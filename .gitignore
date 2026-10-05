@@ -20,3 +20,9 @@ data/token.json
 # 临时调试产物（_login.py / _pubkey.txt 等）
 _*.py
 _*.txt
+_*.json
+_probe_imgs/
+
+# 运行日志
+data/*.log
+data/*.err

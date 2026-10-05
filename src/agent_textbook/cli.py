@@ -6,6 +6,7 @@ import os
 from collections import Counter
 
 from . import config
+from . import parse as ps
 from .collect import catalog as cat
 from .collect import downloader as dl
 from .collect.net import has_credentials, load_token
@@ -102,6 +103,70 @@ def cmd_status(args) -> None:
             print(f"  失败：{r.get('subject')}/{r.get('version')}/{r.get('title')} —— {r.get('reason')}")
 
 
+def cmd_parse(args) -> None:
+    books = ps.pipeline.load_books(
+        stage=args.stage, subject=args.subject, grade=args.grade,
+        version=args.version, need_vlm_only=args.need_vlm,
+    )
+    if args.limit:
+        books = books[: args.limit]
+    if not books:
+        raise SystemExit("没有可解析的教材（需先 fetch 且 status 为 ok）")
+    print(f"待解析 {len(books)} 册，engine={args.engine}")
+    stats = ps.pipeline.parse_all(books, engine=args.engine,
+                                  workers=args.workers, force=args.force)
+    bad = [s for s in stats if s.get("engine") == "error"]
+    print(f"完成 {len(stats) - len(bad)} 册，失败 {len(bad)} 册")
+    for s in bad:
+        print(f"  失败：{s.get('title')} —— {s.get('error')}")
+
+
+def cmd_parse_status(args) -> None:
+    st = ps.pipeline.parse_status()
+    print(f"已解析 {st['books']} 册 / {st['pages']} 页 / {st['chars'] / 1e4:.1f} 万字")
+    print("  通道分布：", st["engines"] or "（无）")
+
+
+def cmd_backfill(args) -> None:
+    """全量核对 + 补齐未提取的册/页（含插图理解）。"""
+    from .parse import backfill as bf
+
+    bf.backfill(subject=args.subject, workers=args.workers,
+                page_workers=args.page_workers, dry_run=args.dry_run)
+
+
+def cmd_ensure_page(args) -> None:
+    """按需在线补解析教材页：本地产物里没有才调 VLM，结果回填。"""
+    import time
+
+    from .parse import online
+
+    _, pages = online.read_book(args.book_id)
+    for n in args.page_no:
+        row = next((p for p in pages if p.get("page_no") == n), None)
+        src = "在线解析" if (args.force or online.needs_online(row)) else "本地命中"
+        t0 = time.time()
+        text = online.ensure_page(args.book_id, n, force=args.force)
+        print(f"[{src}] 第 {n} 页：{len(text)} 字  图描述 {text.count('[图')} 处  "
+              f"耗时 {time.time() - t0:.1f}s")
+        if args.show:
+            print(text[:600])
+
+
+def cmd_photo(args) -> None:
+    """运行期在线提取：孩子拍的题目照片 → 文本。"""
+    import time
+
+    from .parse import online
+
+    with open(args.image, "rb") as f:
+        img = f.read()
+    t0 = time.time()
+    text = online.transcribe_photo(img)
+    print(f"耗时 {time.time() - t0:.1f}s，{len(text)} 字\n")
+    print(text)
+
+
 def main() -> None:
     p = argparse.ArgumentParser(prog="agent-textbook", description="小学生教材 Agent 工程命令行")
     p.add_argument("--out", default=config.BOOKS_DIR, help="教材输出目录")
@@ -132,6 +197,39 @@ def main() -> None:
 
     sub.add_parser("organize", help="整理已下载文件到新目录布局").set_defaults(func=cmd_organize)
     sub.add_parser("status", help="查看下载清单状态").set_defaults(func=cmd_status)
+
+    sp = sub.add_parser("parse", help="解析教材为结构化文本（双通道）")
+    sp.add_argument("--stage", default="", help="学段过滤")
+    sp.add_argument("--subject", default="", help="学科过滤（模糊匹配）")
+    sp.add_argument("--grade", default="", help="年级过滤（模糊匹配）")
+    sp.add_argument("--version", default="", help="版本过滤（模糊匹配）")
+    sp.add_argument("--engine", default="auto", choices=["auto", "text_layer", "vlm"],
+                    help="auto：按文本层判定自动选择；vlm：强制多模态通道")
+    sp.add_argument("--workers", type=int, default=config.VLM_WORKERS, help="VLM 页级并发")
+    sp.add_argument("--limit", type=int, default=0, help="只解析前 N 册")
+    sp.add_argument("--need-vlm", action="store_true", help="只解析无文本层的扫描册")
+    sp.add_argument("--force", action="store_true", help="已解析也重跑")
+    sp.set_defaults(func=cmd_parse)
+
+    sub.add_parser("parse-status", help="查看解析进度").set_defaults(func=cmd_parse_status)
+
+    sp = sub.add_parser("backfill", help="核对全量产物并补齐未提取的册/页（含插图理解）")
+    sp.add_argument("--subject", default="", help="学科过滤（模糊匹配）")
+    sp.add_argument("--workers", type=int, default=config.VLM_WORKERS, help="整册补时的并发")
+    sp.add_argument("--page-workers", type=int, default=4, help="单页补时的并发")
+    sp.add_argument("--dry-run", action="store_true", help="只核对不提取")
+    sp.set_defaults(func=cmd_backfill)
+
+    sp = sub.add_parser("ensure-page", help="按需在线补解析教材页（本地没有才调 VLM，结果回填）")
+    sp.add_argument("book_id")
+    sp.add_argument("page_no", type=int, nargs="+")
+    sp.add_argument("--force", action="store_true", help="已有内容也重新在线解析")
+    sp.add_argument("--show", action="store_true", help="打印正文")
+    sp.set_defaults(func=cmd_ensure_page)
+
+    sp = sub.add_parser("photo", help="在线转录孩子拍的题目照片")
+    sp.add_argument("image", help="图片路径（png / jpg）")
+    sp.set_defaults(func=cmd_photo)
 
     args = p.parse_args()
     os.makedirs(args.out, exist_ok=True)
