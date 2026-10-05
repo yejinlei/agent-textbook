@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# 教材 PDF 不入库：94 册 4.64 GB，其中 17 册超过 GitHub 单文件 100MB 限制。
+# clone 后按 data/downloads.jsonl 执行 fetch 即可复现：
+#   python -m agent_textbook catalog
+#   python -m agent_textbook fetch --preset hangzhou --stage 小学
+books/
+logs/
+*.part
+
+# 登录凭据（含 mac_key，绝对不能入库）
+data/token.json
+
+# IDE 本地状态
+.codebuddy/
+
+# 临时调试产物（_login.py / _pubkey.txt 等）
+_*.py
+_*.txt

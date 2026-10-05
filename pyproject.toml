@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-textbook"
+version = "0.1.0"
+description = "面向小学生的教材 Agent：采集 -> 解析 -> 入库 -> 应用"
+requires-python = ">=3.10"
+dependencies = ["requests"]
+
+[project.scripts]
+agent-textbook = "agent_textbook.cli:main"
+
+[tool.setuptools.packages.find]
+where = "src"
