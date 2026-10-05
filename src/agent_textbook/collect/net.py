@@ -39,11 +39,22 @@ _last_request_at = 0.0
 
 
 def load_token(path: str = config.TOKEN_FILE) -> bool:
-    """载入登录凭据 {access_token, mac_key, diff}；文件不存在则保持匿名。"""
+    """载入登录凭据 {access_token, mac_key, diff}。
+
+    文件不存在、为空或不是合法 JSON 时一律退回匿名（匿名可下绝大多数教材），
+    不让 fetch 因一个坏掉的凭据文件直接崩溃。
+    """
     if not path or not os.path.exists(path):
         return False
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        print(f"[warn] 凭据文件无法解析，按匿名方式请求：{path}")
+        return False
+    if not isinstance(data, dict):
+        print(f"[warn] 凭据格式不是 JSON 对象，按匿名方式请求：{path}")
+        return False
     _token["access_token"] = str(data.get("access_token") or "")
     _token["mac_key"] = str(data.get("mac_key") or "")
     try:
