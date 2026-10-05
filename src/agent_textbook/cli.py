@@ -216,7 +216,7 @@ def main() -> None:
     sp = sub.add_parser("backfill", help="核对全量产物并补齐未提取的册/页（含插图理解）")
     sp.add_argument("--subject", default="", help="学科过滤（模糊匹配）")
     sp.add_argument("--workers", type=int, default=config.VLM_WORKERS, help="整册补时的并发")
-    sp.add_argument("--page-workers", type=int, default=4, help="单页补时的并发")
+    sp.add_argument("--page-workers", type=int, default=1, help="单页补时的并发（建议 1）")
     sp.add_argument("--dry-run", action="store_true", help="只核对不提取")
     sp.set_defaults(func=cmd_backfill)
 

@@ -57,9 +57,13 @@ def audit(subject: str = "") -> dict:
     }
 
 
-def backfill(subject: str = "", workers: int | None = None, page_workers: int = 4,
+def backfill(subject: str = "", workers: int | None = None, page_workers: int = 1,
              dry_run: bool = False, verbose: bool = True) -> dict:
-    """核对 + 补齐。dry_run 只核对不提取。"""
+    """核对 + 补齐。dry_run 只核对不提取。
+
+    page_workers 默认 **1**：实测该 VLM 接口并发能力很弱，补页时并发 2 以上就会
+    大面积 429 / 返回空，串行反而最快（见 config.VLM_WORKERS 注释）。
+    """
     a = audit(subject)
     if verbose:
         print(f"核对：{a['total_books']} 册 / {a['total_pages']} 页，"

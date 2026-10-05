@@ -6,6 +6,32 @@ import os
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(SRC_DIR))
 
+
+def _load_dotenv(path=None):
+    """把项目根 ``.env`` 载入环境变量——**不覆盖**已存在的环境变量。
+
+    不引第三方依赖，只认 ``KEY=VALUE`` 与 ``#`` 注释。
+    命令行里显式设置的值（如临时换模型）优先于 .env。
+    """
+    p = path or os.path.join(ROOT, ".env")
+    if not os.path.exists(p):
+        return
+    try:
+        with open(p, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                k, v = k.strip(), v.strip().strip('"').strip("'")
+                if k and k not in os.environ:
+                    os.environ[k] = v
+    except OSError:
+        pass
+
+
+_load_dotenv()
+
 # 数据产物
 BOOKS_DIR = os.path.join(ROOT, "books")        # 教材文件：books/<学段>/<学科>/<版本>/<年级>/*.pdf
 DATA_DIR = os.path.join(ROOT, "data")          # 元数据：目录、下载清单、凭据
@@ -95,7 +121,7 @@ VERSION_PRESETS: dict[str, dict[str, dict[str, str]]] = {
 # 通道 A：文本层。教材的拼音使用独立字体（如 HanyuXi-JZ），其 ToUnicode 把带调元音
 # 映射成了大写字母（tiQn 实为 tiān）。只对命中该字体的 span 做映射替换，避免误伤正文。
 PARSE_ENGINE = os.environ.get("PARSE_ENGINE", "auto")   # auto / text_layer / vlm
-TEXT_LAYER_MIN_CHARS = 50        # 平均每页字符数低于此值 → 判定无文本层，走 VLM
+TEXT_LAYER_MIN_CHARS = int(os.environ.get("TEXT_LAYER_MIN_CHARS", "50"))  # 低于此值判定无文本层
 PINYIN_FONT_PATTERN = "Hanyu"    # 拼音字体名特征
 PINYIN_MAP_FILE = os.path.join(SRC_DIR, "parse", "pinyin_map.json")
 
@@ -103,11 +129,17 @@ PINYIN_MAP_FILE = os.path.join(SRC_DIR, "parse", "pinyin_map.json")
 VLM_BASE_URL = os.environ.get("VLM_BASE_URL", "https://token.sensenova.cn/v1")
 VLM_MODEL = os.environ.get("VLM_MODEL", "sensenova-6.8-flash-lite")
 VLM_API_KEY = os.environ.get("VLM_API_KEY", "")
-VLM_DPI = int(os.environ.get("VLM_DPI", "200"))
+# 200 dpi 实测会让该模型把 token 全耗在推理上、返回空内容（160 页因此失败），
+# 且单页图片 ~1.6MB 会触发 413。降到 150 后图片 ~937KB，转录稳定成功。
+VLM_DPI = int(os.environ.get("VLM_DPI", "150"))
 VLM_WORKERS = int(os.environ.get("VLM_WORKERS", "8"))
 VLM_TIMEOUT = int(os.environ.get("VLM_TIMEOUT", "180"))
 # 推理型模型会用掉上千 token 做思考，max_tokens 给小了会导致正文被截断甚至为空
 VLM_MAX_TOKENS = int(os.environ.get("VLM_MAX_TOKENS", "8192"))
+
+# 失败重试。429 是平台侧限流，退避必须够长（秒级重试只会继续被拒）
+VLM_MAX_RETRIES = int(os.environ.get("VLM_MAX_RETRIES", "2"))
+VLM_RETRY_DELAYS = tuple(int(x) for x in os.environ.get("VLM_RETRY_DELAYS", "5,20,60").split(","))
 
 # 转录提示词。
 # 教材页：除文字外**必须描述插图**——数学的几何图形/线段图/统计图、科学的实验装置图，

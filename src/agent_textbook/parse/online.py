@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import os
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 from .. import config
@@ -157,10 +158,17 @@ def ensure_pages(book_id: str, page_nos: list[int],
     client = client or vlm.VLMClient()
 
     def one(n: int) -> tuple[int, str, str]:
-        try:
-            return n, vlm.extract_page_vlm(rec["_abs"], n, client=client).text, ""
-        except Exception as exc:
-            return n, "", f"{type(exc).__name__}: {exc}"
+        """带退避重试：429 限流需要间隔够长才可能成功。"""
+        last = ""
+        for attempt in range(config.VLM_MAX_RETRIES + 1):
+            try:
+                return n, vlm.extract_page_vlm(rec["_abs"], n, client=client,
+                                                dpi=vlm.dpi_for_attempt(attempt)).text, ""
+            except Exception as exc:
+                last = f"{type(exc).__name__}: {exc}"
+                if attempt < config.VLM_MAX_RETRIES and vlm.needs_backoff(last):
+                    time.sleep(config.VLM_RETRY_DELAYS[attempt])
+        return n, "", last
 
     raws: dict[int, str] = {}
     with ThreadPoolExecutor(max_workers=max(1, min(workers, len(todo)))) as pool:

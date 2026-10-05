@@ -84,6 +84,26 @@ class VLMClient:
         )
 
 
+def dpi_for_attempt(attempt: int) -> int:
+    """重试时逐级降低 dpi。
+
+    图片越大，推理型模型消耗的思考 token 越多——实测 200 dpi 时大量页面"想完了却
+    吐不出正文"（返回空内容），150 dpi 能救回一部分，但书法作品这类密集页面仍不够。
+    因此失败重试时自动降档：150 → 120 → 96，同时也能避开 413（请求体过大）。
+    """
+    base = config.VLM_DPI
+    return base if attempt <= 0 else max(72, int(base * 0.8 ** attempt))
+
+
+def needs_backoff(err: str) -> bool:
+    """这个错误需要退避等待，还是可以直接降 dpi 重试？
+
+    429（限流）、413（请求体过大）、超时/连接错误属于平台侧，等一会儿才可能恢复；
+    "返回空内容"是模型侧问题（想太多吐不出正文），**等着没用**，直接降档重试。
+    """
+    return any(s in err for s in ("429", "413", "Timeout", "timeout", "Connection"))
+
+
 def render_page(pdf_path: str, page_no: int, dpi: int | None = None) -> bytes:
     """把教材页渲染为 PNG 字节。"""
     doc = pymupdf.open(pdf_path)

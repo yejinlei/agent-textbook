@@ -18,7 +18,7 @@ from concurrent.futures import ThreadPoolExecutor
 from .. import config
 from . import extract, vlm
 
-MAX_RETRIES = 2   # 单页 VLM 调用失败重试次数（应对限流与偶发超时）
+# 重试次数与退避时长统一由 config 提供（可用 .env 调整）
 
 
 def _need_vlm_map() -> dict[str, bool]:
@@ -112,7 +112,10 @@ def parse_vlm_book(rec: dict, client: vlm.VLMClient | None = None,
                 continue
             try:
                 with open(os.path.join(raw_dir, name), encoding="utf-8") as f:
-                    cached[int(name[:-3])] = f.read()
+                    text = f.read()
+                # 空文件不能当缓存——否则该页会被永久当成"已解析"，再也不会重试
+                if text.strip():
+                    cached[int(name[:-3])] = text
             except Exception:
                 continue
     todo = [i for i in range(doc_pages) if i not in cached]
@@ -120,12 +123,14 @@ def parse_vlm_book(rec: dict, client: vlm.VLMClient | None = None,
     def one(i: int) -> tuple[int, vlm.VLMResult | None, str]:
         """单页失败不拖垮整册：重试若干次仍失败则记下原因，留空待补。"""
         last = ""
-        for attempt in range(MAX_RETRIES + 1):
+        for attempt in range(config.VLM_MAX_RETRIES + 1):
             try:
-                return i, vlm.extract_page_vlm(rec["_abs"], i, client=client), ""
+                return i, vlm.extract_page_vlm(rec["_abs"], i, client=client,
+                                               dpi=vlm.dpi_for_attempt(attempt)), ""
             except Exception as exc:
                 last = f"{type(exc).__name__}: {exc}"
-                time.sleep(2 * (attempt + 1))
+                if attempt < config.VLM_MAX_RETRIES and vlm.needs_backoff(last):
+                    time.sleep(config.VLM_RETRY_DELAYS[attempt])
         return i, None, last
 
     for i, text in cached.items():
