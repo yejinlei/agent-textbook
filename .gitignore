@@ -3,7 +3,10 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 
-# 教材 PDF 不入库：94 册 4.64 GB，其中 17 册超过 GitHub 单文件 100MB 限制。
+# 教材 PDF 不入库（决策依据：体积 + 可复现 + 版权）
+#   94 册 4.64 GB；17 册超过 GitHub 单文件 100MB 硬限（最大 356 MB），
+#   改走 Git LFS 则超出免费 1GB 配额、需另购数据包。
+#   原件涉版权，故即使仓库转为私有也不入库——只留可复现的下载清单。
 # clone 后按 data/downloads.jsonl 执行 fetch 即可复现：
 #   python -m agent_textbook catalog
 #   python -m agent_textbook fetch --preset hangzhou --stage 小学
