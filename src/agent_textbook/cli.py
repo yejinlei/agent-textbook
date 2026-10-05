@@ -135,6 +135,14 @@ def cmd_backfill(args) -> None:
                 page_workers=args.page_workers, dry_run=args.dry_run)
 
 
+def cmd_figures(args) -> None:
+    """只补插图描述：正文一字不动（避免 VLM 转录覆盖精确的文本层正文）。"""
+    from .parse import figures as fg
+
+    fg.backfill_figures(subject=args.subject, workers=args.workers,
+                        limit=args.limit, dry_run=args.dry_run, force=args.force)
+
+
 def cmd_ensure_page(args) -> None:
     """按需在线补解析教材页：本地产物里没有才调 VLM，结果回填。"""
     import time
@@ -219,6 +227,14 @@ def main() -> None:
     sp.add_argument("--page-workers", type=int, default=1, help="单页补时的并发（建议 1）")
     sp.add_argument("--dry-run", action="store_true", help="只核对不提取")
     sp.set_defaults(func=cmd_backfill)
+
+    sp = sub.add_parser("figures", help="只补插图描述（正文不动，产物存 data/figures/）")
+    sp.add_argument("--subject", default="", help="学科过滤（模糊匹配）")
+    sp.add_argument("--workers", type=int, default=config.VLM_WORKERS, help="页级并发（整册批量用 8）")
+    sp.add_argument("--limit", type=int, default=0, help="本次最多补多少页（试跑用）")
+    sp.add_argument("--force", action="store_true", help="已补过也重跑")
+    sp.add_argument("--dry-run", action="store_true", help="只核对不调用")
+    sp.set_defaults(func=cmd_figures)
 
     sp = sub.add_parser("ensure-page", help="按需在线补解析教材页（本地没有才调 VLM，结果回填）")
     sp.add_argument("book_id")

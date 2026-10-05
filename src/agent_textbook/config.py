@@ -42,6 +42,7 @@ TOKEN_FILE = os.path.join(DATA_DIR, "token.json")
 # 解析产物
 PARSED_DIR = os.path.join(DATA_DIR, "parsed")        # parsed/<book_id>.jsonl
 VLM_RAW_DIR = os.path.join(DATA_DIR, "vlm_raw")      # VLM 原始输出，可回溯可 diff
+FIGURES_DIR = os.path.join(DATA_DIR, "figures")      # figures/<book_id>/<page_no>.md：只补插图，正文不动
 SCAN_FILE = os.path.join(DATA_DIR, "scan.json")      # 全册扫描：页数、文本层判定、通道选择
 
 # 平台地址（方法参考 happycola233/tchMaterial-parser）
@@ -153,6 +154,16 @@ VLM_PROMPT_PAGE = (
     "   [图N] 描述：图中画了什么、有哪些标注与数据、说明了什么规律或关系\n"
     "   （N 从 1 开始递增；几何图要说清形状、已知条件与数量关系，实验装置要说清器材与步骤）\n"
     "5. 若页面没有插图，则不要编造 [图N]。"
+)
+VLM_PROMPT_FIGURE = (
+    "请只描述这页小学教材里的插图，不要转录正文。严格要求：\n"
+    "1. 对每个插图、图表、照片、示意图，按出现顺序输出一行：\n"
+    "   [图N] 描述：图中画了什么、有哪些标注与数据、说明了什么规律或关系\n"
+    "   （N 从 1 开始递增）\n"
+    "2. 几何图要说清形状、已知条件与数量关系；实验装置要说清器材与步骤；\n"
+    "   统计图要说清数据、单位与趋势；地图与示意图要说清方位与图例。\n"
+    "3. 不要转录正文、题目、页码等文字，也不要解释你在做什么。\n"
+    "4. 若整页没有任何插图，只输出一行：[无图]"
 )
 VLM_PROMPT_PHOTO = (
     "请把图片中的题目/作业内容完整转录为纯文本。\n"
