@@ -171,10 +171,21 @@ def _find_at(s: str, title: str, after: int = 0) -> int:
 
 
 def _clean_source(s: str) -> str:
-    """剥掉不属于原文的东西：注释圈码、注音声调、题名。"""
+    """剥掉不属于原文的东西：注释圈码、注音声调，以及**尾部**粘着的课后题。
+
+    篇尾常连着生字条与课后题（`…忙趁东风放纸鸢碧碧妆妆归归…填一填，想象
+    画面，说说…`）——诗句本身是完整的，只是后面拖了尾巴。整段丢掉太可惜，
+    截到第一处课后题之前即可（《村居》因此从"原文不可靠"变回可译）。
+    """
     from . import pieces as P
 
-    return P.RE_PINYIN.sub("", P.RE_NOTE_NUM.sub("", s or "")).strip()
+    s = P.RE_PINYIN.sub("", P.RE_NOTE_NUM.sub("", s or "")).strip()
+    m = RE_JUNK.search(s)
+    if m and m.start() >= 8:
+        head = s[:m.start()].strip()
+        if len(head) >= 8 and not RE_JUNK.search(head):
+            s = head
+    return s
 
 
 # 不可能是原文的东西：课后题、页眉、注释括号
