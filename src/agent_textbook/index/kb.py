@@ -24,6 +24,7 @@ PIECE_FILE = os.path.join(config.ATTRS_DIR, "piece.jsonl")
 GENRE_FILE = os.path.join(config.ATTRS_DIR, "lesson_genre.jsonl")
 STRUCT_FILE = os.path.join(config.ATTRS_DIR, "lesson_structure.jsonl")
 GLOSS_FILE = os.path.join(config.ATTRS_DIR, "lesson_glossary.jsonl")
+TRANS_FILE = os.path.join(config.ATTRS_DIR, "lesson_translation.jsonl")
 
 # 用 OR REPLACE 而不是 IF NOT EXISTS：表结构演进（如给 lesson_text 加 notes 列）
 # 时，IF NOT EXISTS 会静默沿用旧表，导入的列数对不上才暴露，排查成本高。
@@ -81,6 +82,12 @@ SCHEMA = [
     """CREATE OR REPLACE TABLE lesson_glossary(
         piece_id VARCHAR PRIMARY KEY, lesson_id VARCHAR, book_id VARCHAR,
         title VARCHAR, glossary VARCHAR, model VARCHAR, ts BIGINT)""",
+    # 白话译文（LLM 补充层）：逐句对照 literal 存 JSON 串，
+    # source 记原文取自 lesson 段落还是 piece（可信度不同）。
+    """CREATE OR REPLACE TABLE lesson_translation(
+        piece_id VARCHAR PRIMARY KEY, lesson_id VARCHAR, book_id VARCHAR,
+        title VARCHAR, translation VARCHAR, literal VARCHAR, source VARCHAR,
+        model VARCHAR, ts BIGINT)""",
 ]
 
 
@@ -95,7 +102,8 @@ def build(subject: str = "语文", verbose: bool = True) -> dict:
     for ddl in SCHEMA:
         con.execute(ddl)
     for t in ("books", "lessons", "words", "lesson_text", "lesson_meta", "piece",
-              "lesson_genre", "lesson_structure", "lesson_glossary"):
+              "lesson_genre", "lesson_structure", "lesson_glossary",
+              "lesson_translation"):
         con.execute(f"DELETE FROM {t}")
 
     nb = nl = 0
@@ -221,14 +229,29 @@ def build(subject: str = "语文", verbose: bool = True) -> dict:
             ])
             ngl += 1
 
+    ntr = 0
+    if os.path.exists(TRANS_FILE):
+        for l in open(TRANS_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute(
+                "INSERT OR REPLACE INTO lesson_translation VALUES (?,?,?,?,?,?,?,?,?)", [
+                    r.get("piece_id"), r.get("lesson_id"), r.get("book_id"),
+                    r.get("title"), r.get("translation"), _j(r.get("literal")),
+                    r.get("source"), r.get("model"), r.get("ts"),
+                ])
+            ntr += 1
+
     con.close()
     stat = {"books": nb, "lessons": nl, "words": nw, "lesson_text": nt,
             "lesson_meta": nm, "piece": npi, "lesson_genre": ng,
-            "lesson_structure": nst, "lesson_glossary": ngl, "db": DB_PATH}
+            "lesson_structure": nst, "lesson_glossary": ngl,
+            "lesson_translation": ntr, "db": DB_PATH}
     if verbose:
         print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / "
-              "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 → %s"
-              % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, DB_PATH))
+              "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 / %d 条译文 → %s"
+              % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, DB_PATH))
     return stat
 
 
