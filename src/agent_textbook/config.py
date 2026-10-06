@@ -43,6 +43,8 @@ TOKEN_FILE = os.path.join(DATA_DIR, "token.json")
 PARSED_DIR = os.path.join(DATA_DIR, "parsed")        # parsed/<book_id>.jsonl
 VLM_RAW_DIR = os.path.join(DATA_DIR, "vlm_raw")      # VLM 原始输出，可回溯可 diff
 FIGURES_DIR = os.path.join(DATA_DIR, "figures")      # figures/<book_id>/<page_no>.md：只补插图，正文不动
+OUTLINE_DIR = os.path.join(DATA_DIR, "outline")      # outline/<book_id>.jsonl：目录与结构骨架（知识库 L1）
+ATTRS_DIR = os.path.join(DATA_DIR, "attrs")          # attrs/*.jsonl：外挂属性，一律靠 lesson_id/book_id 挂载
 SCAN_FILE = os.path.join(DATA_DIR, "scan.json")      # 全册扫描：页数、文本层判定、通道选择
 
 # 平台地址（方法参考 happycola233/tchMaterial-parser）

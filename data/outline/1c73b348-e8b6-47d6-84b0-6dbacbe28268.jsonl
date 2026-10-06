@@ -1,0 +1,46 @@
+{"type": "meta", "book_id": "1c73b348-e8b6-47d6-84b0-6dbacbe28268", "stage": "小学", "subject": "语文", "version": "统编版", "grade": "一年级", "term": "上册", "title": "（根据2022年版课程标准修订）义务教育教科书·语文一年级上册", "total_pages": 118, "toc_pages": [3, 4, 5], "entries": 45}
+{"lesson_id": ":001", "seq": 1, "unit_no": 1, "unit_name": "第一单元", "unit_tag": "识字", "section": "识字", "lesson_no": "1", "title": "天地人", "printed_start": 8, "elective": false}
+{"lesson_id": ":002", "seq": 2, "unit_no": 1, "unit_name": "第一单元", "unit_tag": "识字", "section": "识字", "lesson_no": "2", "title": "金木水火土", "printed_start": 9, "elective": false}
+{"lesson_id": ":003", "seq": 3, "unit_no": 1, "unit_name": "第一单元", "unit_tag": "识字", "section": "识字", "lesson_no": "3", "title": "口耳目手足", "printed_start": 11, "elective": false}
+{"lesson_id": ":004", "seq": 4, "unit_no": 1, "unit_name": "第一单元", "unit_tag": "识字", "section": "识字", "lesson_no": "4", "title": "日月山川", "printed_start": 13, "elective": false}
+{"lesson_id": ":005", "seq": 5, "unit_no": 1, "unit_name": "第一单元", "unit_tag": "识字", "section": "识字", "lesson_no": null, "title": "语文园地一", "printed_start": 15, "elective": false}
+{"lesson_id": ":006", "seq": 6, "unit_no": 1, "unit_name": "第一单元", "unit_tag": "识字", "section": "识字", "lesson_no": null, "title": "快乐读书吧  读书真快乐", "printed_start": 19, "elective": false}
+{"lesson_id": ":007", "seq": 7, "unit_no": 2, "unit_name": "第二单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "1", "title": "a o e", "printed_start": 20, "elective": false}
+{"lesson_id": ":008", "seq": 8, "unit_no": 2, "unit_name": "第二单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "2", "title": "i u ü", "printed_start": 22, "elective": false}
+{"lesson_id": ":009", "seq": 9, "unit_no": 2, "unit_name": "第二单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "3", "title": "b p m f", "printed_start": 24, "elective": false}
+{"lesson_id": ":010", "seq": 10, "unit_no": 2, "unit_name": "第二单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "4", "title": "d t n l", "printed_start": 26, "elective": false}
+{"lesson_id": ":011", "seq": 11, "unit_no": 2, "unit_name": "第二单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": null, "title": "语文园地二", "printed_start": 28, "elective": false}
+{"lesson_id": ":012", "seq": 12, "unit_no": 2, "unit_name": "第二单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "2", "title": "我爱我们的祖国", "printed_start": 4, "elective": false}
+{"lesson_id": ":013", "seq": 13, "unit_no": 2, "unit_name": "第二单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "6", "title": "我爱学语文", "printed_start": 7, "elective": false}
+{"lesson_id": ":014", "seq": 14, "unit_no": 3, "unit_name": "第三单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "5", "title": "g  h", "printed_start": 32, "elective": false}
+{"lesson_id": ":015", "seq": 15, "unit_no": 3, "unit_name": "第三单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "6", "title": "j q x", "printed_start": 34, "elective": false}
+{"lesson_id": ":016", "seq": 16, "unit_no": 3, "unit_name": "第三单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "7", "title": "z c s", "printed_start": 36, "elective": false}
+{"lesson_id": ":017", "seq": 17, "unit_no": 3, "unit_name": "第三单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "8", "title": "zh ch sh r", "printed_start": 38, "elective": false}
+{"lesson_id": ":018", "seq": 18, "unit_no": 3, "unit_name": "第三单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "9", "title": "y w", "printed_start": 40, "elective": false}
+{"lesson_id": ":019", "seq": 19, "unit_no": 3, "unit_name": "第三单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": null, "title": "语文园地三", "printed_start": 42, "elective": false}
+{"lesson_id": ":020", "seq": 20, "unit_no": 4, "unit_name": "第四单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "10", "title": "ai ei ui", "printed_start": 45, "elective": false}
+{"lesson_id": ":021", "seq": 21, "unit_no": 4, "unit_name": "第四单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "11", "title": "ao ou iu", "printed_start": 47, "elective": false}
+{"lesson_id": ":022", "seq": 22, "unit_no": 4, "unit_name": "第四单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "12", "title": "ie üe er", "printed_start": 49, "elective": false}
+{"lesson_id": ":023", "seq": 23, "unit_no": 4, "unit_name": "第四单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "13", "title": "an en in un ün", "printed_start": 51, "elective": false}
+{"lesson_id": ":024", "seq": 24, "unit_no": 4, "unit_name": "第四单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": "14", "title": "ang eng ing ong", "printed_start": 54, "elective": false}
+{"lesson_id": ":025", "seq": 25, "unit_no": 4, "unit_name": "第四单元", "unit_tag": "汉语拼音", "section": "汉语拼音", "lesson_no": null, "title": "语文园地四", "printed_start": 56, "elective": false}
+{"lesson_id": ":026", "seq": 26, "unit_no": 5, "unit_name": "第五单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": "1", "title": "秋天", "printed_start": 60, "elective": false}
+{"lesson_id": ":027", "seq": 27, "unit_no": 5, "unit_name": "第五单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": "2", "title": "江南", "printed_start": 62, "elective": false}
+{"lesson_id": ":028", "seq": 28, "unit_no": 5, "unit_name": "第五单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": "3", "title": "雪地里的小画家", "printed_start": 64, "elective": false}
+{"lesson_id": ":029", "seq": 29, "unit_no": 5, "unit_name": "第五单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": "4", "title": "四季", "printed_start": 66, "elective": false}
+{"lesson_id": ":030", "seq": 30, "unit_no": 5, "unit_name": "第五单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": null, "title": "语文园地五", "printed_start": 68, "elective": false}
+{"lesson_id": ":031", "seq": 31, "unit_no": 6, "unit_name": "第六单元", "unit_tag": "识字", "section": "识字", "lesson_no": "5", "title": "对韵歌", "printed_start": 73, "elective": false}
+{"lesson_id": ":032", "seq": 32, "unit_no": 6, "unit_name": "第六单元", "unit_tag": "识字", "section": "识字", "lesson_no": "6", "title": "日月明", "printed_start": 74, "elective": false}
+{"lesson_id": ":033", "seq": 33, "unit_no": 6, "unit_name": "第六单元", "unit_tag": "识字", "section": "识字", "lesson_no": "7", "title": "小书包", "printed_start": 76, "elective": false}
+{"lesson_id": ":034", "seq": 34, "unit_no": 6, "unit_name": "第六单元", "unit_tag": "识字", "section": "识字", "lesson_no": "8", "title": "升国旗", "printed_start": 78, "elective": false}
+{"lesson_id": ":035", "seq": 35, "unit_no": 6, "unit_name": "第六单元", "unit_tag": "识字", "section": "识字", "lesson_no": null, "title": "语文园地六", "printed_start": 80, "elective": false}
+{"lesson_id": ":036", "seq": 36, "unit_no": 7, "unit_name": "第七单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": "5", "title": "小小的船", "printed_start": 84, "elective": false}
+{"lesson_id": ":037", "seq": 37, "unit_no": 7, "unit_name": "第七单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": "6", "title": "影子", "printed_start": 86, "elective": false}
+{"lesson_id": ":038", "seq": 38, "unit_no": 7, "unit_name": "第七单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": "7", "title": "两件宝", "printed_start": 88, "elective": false}
+{"lesson_id": ":039", "seq": 39, "unit_no": 7, "unit_name": "第七单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": null, "title": "语文园地七", "printed_start": 90, "elective": false}
+{"lesson_id": ":040", "seq": 40, "unit_no": 8, "unit_name": "第八单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": "8", "title": "比尾巴", "printed_start": 95, "elective": false}
+{"lesson_id": ":041", "seq": 41, "unit_no": 8, "unit_name": "第八单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": "9", "title": "乌鸦喝水", "printed_start": 97, "elective": false}
+{"lesson_id": ":042", "seq": 42, "unit_no": 8, "unit_name": "第八单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": "10", "title": "雨点儿", "printed_start": 99, "elective": false}
+{"lesson_id": ":043", "seq": 43, "unit_no": 8, "unit_name": "第八单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": null, "title": "语文园地八", "printed_start": 101, "elective": false}
+{"lesson_id": ":044", "seq": 44, "unit_no": 8, "unit_name": "第八单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": "105", "title": "写字表", "printed_start": 108, "elective": false}
+{"lesson_id": ":045", "seq": 45, "unit_no": 8, "unit_name": "第八单元", "unit_tag": "阅读", "section": "阅读", "lesson_no": "109", "title": "常用偏旁名称表", "printed_start": 110, "elective": false}

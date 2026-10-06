@@ -143,6 +143,107 @@ def cmd_figures(args) -> None:
                         limit=args.limit, dry_run=args.dry_run, force=args.force)
 
 
+def cmd_outline(args) -> None:
+    """抽取目录与结构骨架（知识库 L1）：单元 → 课/栏目 → 起始印刷页码。"""
+    from .index import outline as ol
+
+    if args.book_id:
+        r = ol.build_book(args.book_id)
+        if not r.get("entries"):
+            print("未识别到目录：%s" % args.book_id)
+            return
+        path = ol.save_book(r)
+        m = r["meta"]
+        print("%s%s 目录页%s → %d 条 → %s" % (
+            m["grade"], m["term"], m["toc_pages"], m["entries"], path))
+        for e in r["entries"][: args.show]:
+            print("  第%s单元 %-6s %-4s %-24s 起 p%s" % (
+                e.get("unit_no"), (e.get("section") or e.get("unit_tag") or ""),
+                e.get("lesson_no") or "", (e.get("title") or "")[:24],
+                e.get("printed_start")))
+        return
+
+    print("抽取目录骨架：%s" % (args.subject or "全部学科"))
+    rs = ol.build_all(subject=args.subject)
+    print("共 %d 册 / %d 条" % (len(rs), sum(r["meta"]["entries"] for r in rs)))
+    for r in rs[: args.show]:
+        print("--- %s%s ---" % (r["meta"]["grade"], r["meta"]["term"]))
+        for e in r["entries"][:10]:
+            print("   %-4s %-22s p%s" % (
+                e.get("lesson_no") or "◎", (e.get("title") or "")[:22],
+                e.get("printed_start")))
+
+
+def cmd_words(args) -> None:
+    """抽取识字表 / 写字表 / 词语表（知识库 L1 资产）。"""
+    from .index import words as wd
+
+    if args.book_id:
+        r = wd.build_book(args.book_id)
+        if not r.get("rows"):
+            print("未抽到字表：%s" % args.book_id)
+            return
+        m = r["meta"]
+        print("%s%s 附录位置 %s" % (m["grade"], m["term"], m["appendix"]))
+        print("统计：%s" % m["stat"])
+        for row in r["rows"][: args.show]:
+            print("  %-6s %-4s %-8s %s" % (
+                row["kind"], row.get("lesson_no") or "", row["value"],
+                row.get("pinyin") or ""))
+        return
+
+    print("抽取字表：%s" % (args.subject or "全部学科"))
+    rs = wd.build_all(subject=args.subject)
+    print("共 %d 册" % len(rs))
+
+
+def cmd_kb(args) -> None:
+    """知识库（DuckDB）：不给 --sql 则重建库，给了就查询。"""
+    from .index import kb
+
+    if args.sql:
+        kb.query(args.sql)
+    else:
+        kb.build(subject=args.subject)
+
+
+def cmd_lessons(args) -> None:
+    """切分课文原文、还原段落并抽取学习任务（知识库地基）。"""
+    import json
+    import os
+
+    from .index import lessons
+
+    if args.book_id:
+        r = lessons.build_book(args.book_id)
+        if not r:
+            print("未找到该册，或它还没有目录产物：%s" % args.book_id)
+            return
+        print("%s%s %d 篇" % (r["meta"].get("grade", ""), r["meta"].get("term", ""),
+                              len(r["rows"])))
+    else:
+        lessons.build_all(subject=args.subject)
+
+    if args.show:
+        fp = os.path.join(config.ATTRS_DIR, "lesson_text.jsonl")
+        if not os.path.exists(fp):
+            return
+        rs = [json.loads(l) for l in open(fp, encoding="utf-8") if l.strip()]
+        for r in rs[:args.show]:
+            print("\n【%s】%s%s U%s p%s-%s  %d 段 / %d 字" % (
+                r.get("title"), r.get("grade"), r.get("term"), r.get("unit_no"),
+                r.get("page_from"), r.get("page_to"),
+                len(r.get("paragraphs") or []), r.get("chars") or 0))
+            for p in (r.get("paragraphs") or [])[:3]:
+                print("    %s" % p[:66])
+            if r.get("tasks"):
+                print("    任务：%s" % "；".join(r["tasks"])[:88])
+            if r.get("exercises"):
+                print("    练习：%s" % "；".join(r["exercises"])[:88])
+            if r.get("newchars"):
+                print("    生字：%s" % " ".join(r["newchars"])[:60])
+
+
 def cmd_ensure_page(args) -> None:
     """按需在线补解析教材页：本地产物里没有才调 VLM，结果回填。"""
     import time
@@ -235,6 +336,29 @@ def main() -> None:
     sp.add_argument("--force", action="store_true", help="已补过也重跑")
     sp.add_argument("--dry-run", action="store_true", help="只核对不调用")
     sp.set_defaults(func=cmd_figures)
+
+    sp = sub.add_parser("outline", help="抽取目录与结构骨架（知识库 L1）")
+    sp.add_argument("--subject", default="", help="学科过滤（如 语文）")
+    sp.add_argument("--book-id", default="", help="只抽一册")
+    sp.add_argument("--show", type=int, default=0, help="打印前 N 条样例")
+    sp.set_defaults(func=cmd_outline)
+
+    sp = sub.add_parser("words", help="抽取识字表/写字表/词语表（知识库 L1 资产）")
+    sp.add_argument("--subject", default="", help="学科过滤（如 语文）")
+    sp.add_argument("--book-id", default="", help="只抽一册")
+    sp.add_argument("--show", type=int, default=0, help="打印前 N 条样例")
+    sp.set_defaults(func=cmd_words)
+
+    sp = sub.add_parser("lessons", help="切分课文原文、段落与学习任务（知识库地基）")
+    sp.add_argument("--subject", default="语文", help="学科过滤")
+    sp.add_argument("--book-id", default="", help="只切一册（不写产物）")
+    sp.add_argument("--show", type=int, default=0, help="打印前 N 篇样例")
+    sp.set_defaults(func=cmd_lessons)
+
+    sp = sub.add_parser("kb", help="知识库（DuckDB）：默认重建库，--sql 直接查询")
+    sp.add_argument("--subject", default="语文", help="建库时的学科过滤")
+    sp.add_argument("--sql", default="", help="执行 SQL 查询")
+    sp.set_defaults(func=cmd_kb)
 
     sp = sub.add_parser("ensure-page", help="按需在线补解析教材页（本地没有才调 VLM，结果回填）")
     sp.add_argument("book_id")
