@@ -22,33 +22,37 @@ LESSON_TEXT_FILE = os.path.join(config.ATTRS_DIR, "lesson_text.jsonl")
 LESSON_META_FILE = os.path.join(config.ATTRS_DIR, "lesson_meta.jsonl")
 PIECE_FILE = os.path.join(config.ATTRS_DIR, "piece.jsonl")
 
+# 用 OR REPLACE 而不是 IF NOT EXISTS：表结构演进（如给 lesson_text 加 notes 列）
+# 时，IF NOT EXISTS 会静默沿用旧表，导入的列数对不上才暴露，排查成本高。
+# 属性表全部由 JSONL 重建，整表替换没有任何损失。
 SCHEMA = [
-    """CREATE TABLE IF NOT EXISTS books(
+    """CREATE OR REPLACE TABLE books(
         book_id VARCHAR PRIMARY KEY, stage VARCHAR, subject VARCHAR,
         version VARCHAR, grade VARCHAR, term VARCHAR, title VARCHAR,
         total_pages INTEGER, toc_pages VARCHAR)""",
-    """CREATE TABLE IF NOT EXISTS lessons(
+    """CREATE OR REPLACE TABLE lessons(
         lesson_id VARCHAR PRIMARY KEY, book_id VARCHAR, seq INTEGER,
         unit_no INTEGER, unit_name VARCHAR, unit_tag VARCHAR, section VARCHAR,
         lesson_no VARCHAR, title VARCHAR, printed_start INTEGER,
         elective BOOLEAN)""",
-    """CREATE TABLE IF NOT EXISTS words(
+    """CREATE OR REPLACE TABLE words(
         book_id VARCHAR, grade VARCHAR, term VARCHAR, kind VARCHAR,
         lesson_no VARCHAR, value VARCHAR, pinyin VARCHAR, page_no INTEGER)""",
-    # 课文正文（切分产物）：paragraphs/tasks/exercises/newchars 存 JSON 串
-    """CREATE TABLE IF NOT EXISTS lesson_text(
+    # 课文正文（切分产物）：paragraphs/tasks/exercises/notes/newchars 存 JSON 串
+    """CREATE OR REPLACE TABLE lesson_text(
         lesson_id VARCHAR PRIMARY KEY, book_id VARCHAR, grade VARCHAR, term VARCHAR,
         unit_no INTEGER, unit_name VARCHAR, section VARCHAR, lesson_no VARCHAR,
         title VARCHAR, printed_start INTEGER, printed_end INTEGER,
         page_from INTEGER, page_to INTEGER, n_pages INTEGER, chars INTEGER,
         text VARCHAR, text_plain VARCHAR,
-        paragraphs VARCHAR, tasks VARCHAR, exercises VARCHAR, newchars VARCHAR)""",
+        paragraphs VARCHAR, tasks VARCHAR, exercises VARCHAR, notes VARCHAR,
+        newchars VARCHAR)""",
     # 课文元数据：体裁/作者/朝代/出处，只记原文里写明的
-    """CREATE TABLE IF NOT EXISTS lesson_meta(
+    """CREATE OR REPLACE TABLE lesson_meta(
         lesson_id VARCHAR PRIMARY KEY, book_id VARCHAR, title VARCHAR,
         genre VARCHAR, author VARCHAR, dynasty VARCHAR, source VARCHAR)""",
     # 篇（piece）：一课多篇的展开，piece_id 由父 lesson_id + 序号构成
-    """CREATE TABLE IF NOT EXISTS piece(
+    """CREATE OR REPLACE TABLE piece(
         piece_id VARCHAR PRIMARY KEY, lesson_id VARCHAR, book_id VARCHAR,
         grade VARCHAR, term VARCHAR, unit_no INTEGER, unit_name VARCHAR,
         lesson_no VARCHAR, parent_title VARCHAR, seq INTEGER, title VARCHAR,
@@ -116,14 +120,14 @@ def build(subject: str = "语文", verbose: bool = True) -> dict:
             if not l.strip():
                 continue
             r = json.loads(l)
-            con.execute("INSERT OR REPLACE INTO lesson_text VALUES (%s)" % ",".join(["?"] * 21), [
+            con.execute("INSERT OR REPLACE INTO lesson_text VALUES (%s)" % ",".join(["?"] * 22), [
                 r.get("lesson_id"), r.get("book_id"), r.get("grade"), r.get("term"),
                 r.get("unit_no"), r.get("unit_name"), r.get("section"), r.get("lesson_no"),
                 r.get("title"), r.get("printed_start"), r.get("printed_end"),
                 r.get("page_from"), r.get("page_to"), r.get("n_pages"), r.get("chars"),
                 r.get("text"), r.get("text_plain"),
                 _j(r.get("paragraphs")), _j(r.get("tasks")),
-                _j(r.get("exercises")), _j(r.get("newchars")),
+                _j(r.get("exercises")), _j(r.get("notes")), _j(r.get("newchars")),
             ])
             nt += 1
 

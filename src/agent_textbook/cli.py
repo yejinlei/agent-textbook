@@ -264,6 +264,20 @@ def cmd_pieces(args) -> None:
                 print("    注：%s" % r["notes"][0][:60])
 
 
+def cmd_audit(args) -> None:
+    """LLM 校对层：只修规则修不了的（细分体裁 / 未定位篇补正文）。"""
+    from .index import audit
+
+    try:
+        audit.sync_piece_genre()
+        if args.kind == "piece":
+            audit.fix_pieces(limit=args.limit, force=args.force)
+        else:
+            audit.classify_genre(limit=args.limit, force=args.force)
+    except RuntimeError as e:
+        print("跳过：%s" % e)
+
+
 def cmd_ensure_page(args) -> None:
     """按需在线补解析教材页：本地产物里没有才调 VLM，结果回填。"""
     import time
@@ -379,6 +393,13 @@ def main() -> None:
     sp.add_argument("--subject", default="语文", help="学科过滤")
     sp.add_argument("--show", type=int, default=0, help="打印前 N 篇样例")
     sp.set_defaults(func=cmd_pieces)
+
+    sp = sub.add_parser("audit", help="LLM 校对层：课文细分体裁 / 未定位篇补正文")
+    sp.add_argument("--kind", default="genre", choices=["genre", "piece"],
+                    help="genre=细分体裁；piece=补未定位篇的正文")
+    sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少条")
+    sp.add_argument("--force", action="store_true", help="已处理过也重跑")
+    sp.set_defaults(func=cmd_audit)
 
     sp = sub.add_parser("kb", help="知识库（DuckDB）：默认重建库，--sql 直接查询")
     sp.add_argument("--subject", default="语文", help="建库时的学科过滤")

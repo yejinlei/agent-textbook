@@ -74,9 +74,22 @@ RE_POET = re.compile(
 # 文言文语感特征
 RE_CLASSIC = re.compile(r"[曰云]|[，。]\s*(之|其|以|而|者|也)\s*[，。]|……?者[，。]")
 
+# 栏目优先于正文信号：目录自带的 section 与标题前缀是教材自己写的分类，
+# 比在正文里找朝代标记可靠得多——后者的典型误判是把"语文园地"里
+# 日积月累的 `[宋]文天祥` 当成课文作者，整条被判成古诗。
+COLUMN_BY_SECTION = {
+    "口语交际": "口语交际", "习作": "习作", "识字": "识字",
+    "汉语拼音": "拼音", "语文园地": "语文园地", "综合性学习": "综合性学习",
+    "快乐读书吧": "快乐读书吧", "例文": "例文", "梳理与交流": "梳理与交流",
+}
+RE_COLUMN_TITLE = re.compile(
+    r"^(口语交际|习作|语文园地|综合性学习|快乐读书吧|日积月累|我爱阅读|梳理与交流)")
+
 GENRE_BY_TITLE = (
-    (r"古诗|绝句|律诗|词$|曲$|〔唐〕|〔宋〕", "古诗"),
-    (r"司马光|守株待兔|精卫|王戎|囊萤|铁杵|杨氏之子|自相矛盾|伯牙|学弈|两小儿|古人谈读书|少年中国说", "文言文"),
+    (r"古诗|绝句|律诗|七律|五律|词$|曲$|〔唐〕|〔宋〕", "古诗"),
+    (r"文言文|司马光|守株待兔|精卫|王戎|囊萤|铁杵|杨氏之子|自相矛盾|伯牙|学弈|"
+     r"两小儿|古人谈读书|少年中国说|曹冲称象|书戴嵩画牛|囊萤夜读", "文言文"),
+    (r"现代诗|短诗三首|现代诗二首", "现代诗"),
     (r"寓言", "寓言"),
     (r"童话", "童话"),
     (r"神话", "神话"),
@@ -150,20 +163,25 @@ def split_paragraphs(lines: list[str]) -> list[str]:
     return [p for p in paras if p.strip()]
 
 
-def split_body_tasks(paras: list[str]) -> tuple[list[str], list[str], list[str], list[str]]:
-    """把段落分成 正文 / 学习任务 / 课后题 / 生字条候选。
+def split_body_tasks(paras: list[str]) -> tuple[list[str], list[str], list[str], list[str], list[str]]:
+    """把段落分成 正文 / 学习任务 / 课后题 / 生字条 / 注释。
 
     课文区间里课后内容与正文混排，判据是句式而不是位置：
+      * 注释：编号词条（`①〔洞庭〕…`）与栏名粘连的正文（`注释者不详，`）；
       * 生字条：整段是纯汉字串（页边字条，无标点）；
       * 学习任务：含"朗读/背诵/默写"等教材固定说法；
       * 课后题：疑问句，或以"说说/想想/交流/想象"开头的祈使句。
+
+    注释单独出来：它是教材自带的权威讲解（`①〔等闲〕平常。`），
+    混在正文里会让朗读、分段、LLM 输入都带上不属于课文的文字。
     """
-    body, tasks, exes, chars = [], [], [], []
+    body, tasks, exes, chars, notes = [], [], [], [], []
     for p in paras:
         s = p.strip()
         if not s:
             continue
-        if RE_NOTE.match(s):
+        if RE_NOTE.match(s) or s.startswith("注释"):
+            notes.append(s)
             continue
         # 生字条与任务句挤在同一段时切开。前半截必须是**纯汉字串**才认：
         # 否则"上课了，大家在教室里一起朗读课文，那声音真好听！"会被切成两半。
@@ -184,7 +202,7 @@ def split_body_tasks(paras: list[str]) -> tuple[list[str], list[str], list[str],
             exes.append(s)
             continue
         body.append(s)
-    return body, tasks, exes, chars
+    return body, tasks, exes, chars, notes
 
 
 def _is_header(ln: str, title: str) -> bool:
@@ -198,34 +216,80 @@ def _is_header(ln: str, title: str) -> bool:
     return len(ln) <= len(title) + 6 and not RE_PARA_END.search(ln)
 
 
+def _looks_poem(head: str) -> bool:
+    """诗句结构判据：句读切分后，五言/七言句占多数。
+
+    只凭"正文里有 `[唐]`"会把《海上日出》这类提到古人的现代散文判成古诗，
+    加上句式判据才稳——古诗的句子长度是整齐的 5 或 7。
+    """
+    sents = [s.strip() for s in re.split(r"[，。！？；]", head) if len(s.strip()) >= 4]
+    if len(sents) < 2:
+        return False
+    hit = sum(1 for s in sents if len(s) in (5, 7))
+    return hit / len(sents) >= 0.5
+
+
+def _looks_classical(head: str) -> bool:
+    """文言文判据：虚词密度高 **且** 句子短。
+
+    原判据（出现任意一个"之/其/以/而"就判文言）把《乡下人家》
+    《海滨小城》全判成了文言文，实测误判 37 条。文言文是**密集**出现虚词，
+    现代散文只是偶尔用到，故要求命中 >=4 次且平均句长不超过 12 字。
+    """
+    sents = [s.strip() for s in re.split(r"[，。！？；]", head) if s.strip()]
+    if len(sents) < 2:
+        return False
+    if sum(len(s) for s in sents) / len(sents) > 12:
+        return False
+    return len(RE_CLASSIC.findall(head)) >= 4
+
+
 def extract_meta(title: str, body: str, section: str = "") -> dict:
-    """体裁 / 作者 / 朝代 / 出处——只抽原文里写明的，不猜。"""
-    genre = None
-    for pat, g in GENRE_BY_TITLE:
-        if re.search(pat, title or ""):
-            genre = g
-            break
-    if genre is None and RE_DYNASTY.search(body):
+    """体裁 / 作者 / 朝代 / 出处——只抽原文里写明的，不猜。
+
+    两条实测教训：
+      * 栏目优先。目录的 section 与标题前缀是教材自己写的分类，比正文信号可靠；
+      * 作者/朝代只看**开头**。课文区间常把单元末"日积月累"一起吞进来，
+        扫全篇会把里面诗句的作者当成课文作者（`让真情自然流露` 的作者变文天祥）。
+    """
+    t = title or ""
+    head = body[:300]
+    # 书末附录（写字表/词语表）不是课文，且目录里常常排在最后、会被并进上一课
+    if re.search(r"(写字表|识字表|词语表|附录|后记)", t):
+        genre = "附录"
+    else:
+        genre = COLUMN_BY_SECTION.get(section or "")
+        m = RE_COLUMN_TITLE.match(t)
+        if m:
+            genre = m.group(1)
+    if genre is None:
+        for pat, g in GENRE_BY_TITLE:
+            if re.search(pat, t):
+                genre = g
+                break
+    if genre is None and RE_DYNASTY.search(head) and _looks_poem(head):
         genre = "古诗"
-    if genre is None and section == "习作":
-        genre = "习作"
-    if genre is None and RE_CLASSIC.search(body[:400]):
+    if genre is None and _looks_classical(head):
         genre = "文言文"
+    # 普通课文也必须有体裁，空着会让"按体裁筛选"直接漏掉一半库
+    if genre is None:
+        genre = "课文"
 
     author = None
-    m = RE_AUTHOR.search(body)
+    m = RE_AUTHOR.search(head)
     if m:
         author = m.group(1)
     if author is None:
-        m = RE_POET.search(body)
+        m = RE_POET.search(head)
         if m:
             author = m.group(1)
     dynasty = None
-    m = RE_DYNASTY.search(body)
-    if m:
-        dynasty = m.group(1)
+    if genre in ("古诗", "文言文"):
+        m = RE_DYNASTY.search(head)
+        if m:
+            dynasty = m.group(1)
     source = None
-    m = RE_AUTHOR_SEL.search(body)
+    m = RE_AUTHOR_SEL.search(body[:600])
     if m:
         source = m.group(1)
     return {"genre": genre, "author": author, "dynasty": dynasty, "source": source}
@@ -261,7 +325,7 @@ def slice_lesson(pages: list[dict], by: dict, start: int, end: int, title: str =
     # 诗题与首句粘成一段（`寒 食[唐] 韩 翃春城无处不飞花，…`），无法切分。
     plain_lines = [ln for ln in lines if not RE_PINYIN.match(ln)]
     paras = split_paragraphs(plain_lines)
-    body, tasks, exes, chars = split_body_tasks(paras)
+    body, tasks, exes, chars, notes = split_body_tasks(paras)
     return {
         "page_from": by[keys[0]].get("page_no"),
         "page_to": by[keys[-1]].get("page_no"),
@@ -272,6 +336,7 @@ def slice_lesson(pages: list[dict], by: dict, start: int, end: int, title: str =
         "paragraphs": body,
         "tasks": tasks,
         "exercises": exes,
+        "notes": notes,
         "newchars": chars,
         "chars": len(plain),
     }

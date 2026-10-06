@@ -44,21 +44,7 @@ class VLMClient:
                 "$env:VLM_API_KEY='...'（构建期与运行期共用）"
             )
 
-    def extract(self, image: bytes, prompt: str = config.VLM_PROMPT_PAGE,
-                max_tokens: int | None = None) -> VLMResult:
-        b64 = base64.b64encode(image).decode()
-        payload = {
-            "model": self.model,
-            "messages": [{
-                "role": "user",
-                "content": [
-                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}},
-                    {"type": "text", "text": prompt},
-                ],
-            }],
-            "temperature": 0,
-            "max_tokens": max_tokens or config.VLM_MAX_TOKENS,
-        }
+    def _post(self, payload: dict) -> VLMResult:
         t0 = time.time()
         resp = requests.post(
             f"{self.base_url}/chat/completions",
@@ -74,7 +60,7 @@ class VLMClient:
         if not text:
             raise RuntimeError(
                 f"VLM 返回空内容（可能被推理 token 耗尽，max_tokens="
-                f"{max_tokens or config.VLM_MAX_TOKENS}）"
+                f"{payload.get('max_tokens')}）"
             )
         return VLMResult(
             text=text,
@@ -82,6 +68,35 @@ class VLMClient:
             elapsed=round(time.time() - t0, 1),
             usage=data.get("usage", {}),
         )
+
+    def extract(self, image: bytes, prompt: str = config.VLM_PROMPT_PAGE,
+                max_tokens: int | None = None) -> VLMResult:
+        b64 = base64.b64encode(image).decode()
+        return self._post({
+            "model": self.model,
+            "messages": [{
+                "role": "user",
+                "content": [
+                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}},
+                    {"type": "text", "text": prompt},
+                ],
+            }],
+            "temperature": 0,
+            "max_tokens": max_tokens or config.VLM_MAX_TOKENS,
+        })
+
+    def chat(self, prompt: str, max_tokens: int = 512) -> VLMResult:
+        """纯文本对话（不带图片）——构建期的校对/整理层用。
+
+        与 extract 唯一的区别是不带 image_url：课文已经切好存成文本，
+        再把页面渲染成图送进去既慢又贵，还会重新引入转录错误。
+        """
+        return self._post({
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0,
+            "max_tokens": max_tokens,
+        })
 
 
 def dpi_for_attempt(attempt: int) -> int:
