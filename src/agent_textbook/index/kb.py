@@ -21,6 +21,7 @@ WORDS_FILE = os.path.join(config.ATTRS_DIR, "words.jsonl")
 LESSON_TEXT_FILE = os.path.join(config.ATTRS_DIR, "lesson_text.jsonl")
 LESSON_META_FILE = os.path.join(config.ATTRS_DIR, "lesson_meta.jsonl")
 PIECE_FILE = os.path.join(config.ATTRS_DIR, "piece.jsonl")
+GENRE_FILE = os.path.join(config.ATTRS_DIR, "lesson_genre.jsonl")
 
 # 用 OR REPLACE 而不是 IF NOT EXISTS：表结构演进（如给 lesson_text 加 notes 列）
 # 时，IF NOT EXISTS 会静默沿用旧表，导入的列数对不上才暴露，排查成本高。
@@ -59,6 +60,12 @@ SCHEMA = [
         kind VARCHAR, printed_start INTEGER, printed_end INTEGER,
         dynasty VARCHAR, author VARCHAR, located BOOLEAN, chars INTEGER,
         text VARCHAR, sentences VARCHAR, notes VARCHAR)""",
+    # 细分体裁（LLM 校对层）：与 lesson_meta.genre 分开存——
+    # genre 是规则判的大类（课文/古诗/习作…），genre_sub 是语义细分（写景/记事…），
+    # 分开才能看出"哪一条是模型给的"，换模型重抽时只覆盖这张表。
+    """CREATE OR REPLACE TABLE lesson_genre(
+        lesson_id VARCHAR PRIMARY KEY, book_id VARCHAR, title VARCHAR,
+        genre_sub VARCHAR, reason VARCHAR, model VARCHAR, ts BIGINT)""",
 ]
 
 
@@ -72,7 +79,8 @@ def build(subject: str = "语文", verbose: bool = True) -> dict:
     con = connect()
     for ddl in SCHEMA:
         con.execute(ddl)
-    for t in ("books", "lessons", "words", "lesson_text", "lesson_meta", "piece"):
+    for t in ("books", "lessons", "words", "lesson_text", "lesson_meta", "piece",
+              "lesson_genre"):
         con.execute(f"DELETE FROM {t}")
 
     nb = nl = 0
@@ -160,12 +168,25 @@ def build(subject: str = "语文", verbose: bool = True) -> dict:
             ])
             npi += 1
 
+    ng = 0
+    if os.path.exists(GENRE_FILE):
+        for l in open(GENRE_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO lesson_genre VALUES (?,?,?,?,?,?,?)", [
+                r.get("lesson_id"), r.get("book_id"), r.get("title"),
+                r.get("genre_sub"), r.get("reason"), r.get("model"), r.get("ts"),
+            ])
+            ng += 1
+
     con.close()
-    stat = {"books": nb, "lessons": nl, "words": nw,
-            "lesson_text": nt, "lesson_meta": nm, "piece": npi, "db": DB_PATH}
+    stat = {"books": nb, "lessons": nl, "words": nw, "lesson_text": nt,
+            "lesson_meta": nm, "piece": npi, "lesson_genre": ng, "db": DB_PATH}
     if verbose:
-        print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / %d 篇 → %s"
-              % (nb, nl, nw, nt, nm, npi, DB_PATH))
+        print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / "
+              "%d 篇 / %d 条细分体裁 → %s"
+              % (nb, nl, nw, nt, nm, npi, ng, DB_PATH))
     return stat
 
 
