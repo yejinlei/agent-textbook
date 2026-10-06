@@ -36,6 +36,8 @@ RE_DOT_ENTRY = re.compile(
 RE_DOT_PLAIN = re.compile(r"^(?P<title>.+?)\.{2,}\s*(?P<page>\d{1,3})\s*$")
 RE_INT = re.compile(r"^\d{1,3}$")
 # 目录页整体检测：页眉在前，行首锚点必须开 MULTILINE 才能命中
+# 「目录」两字常被排版拆开（`目  录`，中间是全角/半角空格），直接判子串会漏
+RE_TOC_WORD = re.compile(r"目\s*录")
 RE_UNIT_M = re.compile(r"^第([一二三四五六七八九十]+)单元", re.M)
 RE_DOT_M = re.compile(r"^\d{1,2}\s*\*?\s*\S.*?\.{2,}\s*\d{1,3}\s*$", re.M)
 RE_NOISE = re.compile(r"仅供个人学习使用|未经授权|绿色印刷|^\s*$")
@@ -78,7 +80,7 @@ def find_toc_pages(pages: list[dict], max_scan: int = 12) -> list[int]:
     hits = []
     for i, r in enumerate(pages[:max_scan]):
         t = r.get("text") or ""
-        if "目录" in t or RE_UNIT_M.search(t) or RE_DOT_M.search(t):
+        if RE_TOC_WORD.search(t) or RE_UNIT_M.search(t) or RE_DOT_M.search(t):
             hits.append(i)
     if not hits:
         return []

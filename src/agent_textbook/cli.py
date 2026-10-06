@@ -197,6 +197,19 @@ def cmd_words(args) -> None:
     print("共 %d 册" % len(rs))
 
 
+def cmd_toc(args) -> None:
+    """看图抽分栏目录骨架（数学/科学等规则对不上标题↔页码的册）。"""
+    from .index import toc
+
+    rs = toc.build_all_vlm(subject=args.subject, limit=args.limit, force=args.force,
+                           min_entries=args.min_entries)
+    print("看图抽出骨架 %d 册 / %d 条"
+          % (len(rs), sum(len(r["entries"]) for r in rs)))
+    for r in rs:
+        m = r["meta"]
+        print("  %-4s %-4s %d 条" % (m.get("grade"), m.get("term"), len(r["entries"])))
+
+
 def cmd_kb(args) -> None:
     """知识库（DuckDB）：不给 --sql 则重建库，给了就查询。"""
     from .index import kb
@@ -406,6 +419,14 @@ def main() -> None:
     sp.add_argument("--book-id", default="", help="只抽一册")
     sp.add_argument("--show", type=int, default=0, help="打印前 N 条样例")
     sp.set_defaults(func=cmd_outline)
+
+    sp = sub.add_parser("toc", help="看图抽分栏目录骨架（数学/科学等规则抽不出的册）")
+    sp.add_argument("--subject", default="", help="学科过滤（如 数学）")
+    sp.add_argument("--limit", type=int, default=0, help="本次最多抽多少册")
+    sp.add_argument("--force", action="store_true", help="已抽出也重跑")
+    sp.add_argument("--min-entries", type=int, default=0,
+                    help="已有骨架少于此条数就重抽（如数学填 6）")
+    sp.set_defaults(func=cmd_toc)
 
     sp = sub.add_parser("words", help="抽取识字表/写字表/词语表（知识库 L1 资产）")
     sp.add_argument("--subject", default="", help="学科过滤（如 语文）")
