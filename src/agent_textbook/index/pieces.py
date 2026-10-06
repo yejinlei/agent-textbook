@@ -22,6 +22,7 @@ import os
 import re
 
 from .. import config
+from . import lessons as L
 
 PIECE_FILE = os.path.join(config.ATTRS_DIR, "piece.jsonl")
 
@@ -98,6 +99,10 @@ def find_head(lines: list[str], title: str, after: int = 0) -> int:
     for m in re.finditer(pat + r"[\[〔(（]", s):
         return owner[m.start()]
     for m in re.finditer(pat, s):
+        # 题名后紧接收尾标点（`…有感》。借助注释…`）说明是**引用**这个篇名
+        # 的课后题，不是篇题本身——照旧匹配会把整篇定位到课后题区。
+        if s[m.end():m.end() + 1] in ("》", "」", "』", "）", ")"):
+            continue
         if re.search(r"[，。！？、]", s[m.end():m.end() + 24]):
             return owner[m.start()]
     return -1
@@ -146,9 +151,73 @@ def collect_subentries(entries: list[dict]) -> list[tuple[dict, dict, int]]:
     return out
 
 
+def clean_lines(lines: list[str], newchars: set | None = None,
+                titles: list[str] | None = None,
+                parent_title: str = "") -> list[str]:
+    """行级清洗：篇级切分必须自己洗一遍，不能指望 lesson 层。
+
+    lesson 层的清洗发生在**段落**切分之后，而篇是直接在行上切的，
+    于是什么都没过滤——实测《石灰吟》尾部挂着课后题与生字条
+    （`借助注释，说说下面诗句的意思…络锤凿焚`），《寒食》尾部挂着
+    下一篇的注释碎片，全靠这一步去掉。
+
+    与 lesson 层同样采取"正文是连续块"的截断策略：遇到课后题或
+    阅读链接就丢弃其后所有行。
+    """
+    ts = [norm(t) for t in (titles or []) if t]
+    # 页眉碎片：`三首古诗`（父课题名打散后的几个字）。判据是字符全部落在
+    # 父课题名里且没有句读——正文短句不会这么巧。
+    pchars = set(norm(parent_title))
+    out = []
+    skip = 0  # 注释块：栏名行之后还跟着若干解释行，一并去掉
+    for ln in lines:
+        s = L.RE_FIGURE.sub("", ln.strip())
+        s = L.RE_PAGENO.sub("", s)
+        if not s or not re.search(r"[一-鿿]", s):
+            continue
+        # 含篇题的行一律保住：`15 十五夜望月` 长得像页眉（数字+短串），
+        # 按页眉删掉之后这一篇就永远定位不到了。
+        has_title = any(t and t in norm(s) for t in ts)
+        if skip:
+            skip -= 1
+            if not has_title:
+                continue
+        if L.RE_HEADNUM.match(s) and not has_title:
+            continue
+        if L.RE_NOTE.match(s):
+            continue
+        if s.startswith("注释"):
+            skip = 3
+            continue
+        if (not has_title and len(pchars) >= 3 and 2 <= len(s) <= 8
+                and set(s) <= pchars):
+            continue
+        # 只跳过、不截断：同一页上诗歌与课后题可能交替出现（注释/习题
+        # 排在页底，下一篇的正文反而排在它们之后），一截断就把后面的
+        # 篇整首丢了——实测《十五夜望月》《竹石》就是这样没的。
+        if not has_title and (L.RE_EXERCISE.search(s) or L.RE_TASK_HEAD.search(s)):
+            continue
+        m = L.RE_EXE_INLINE.search(s)
+        if m and not has_title:
+            # 课后题粘在这一行里，只留前半截
+            s = s[:m.start()].strip()
+            if not s:
+                continue
+        if L.RE_LINK.search(s) and not has_title:
+            continue
+        # 整行都是本课生字（`络锤凿焚`）＝页边字条
+        if (newchars and not has_title and len(s) >= 4
+                and all(c in newchars for c in s)):
+            continue
+        out.append(s)
+    return out
+
+
 def build_piece(parent: dict, subs: list[dict], lines: list[str],
-                printed_end: int) -> list[dict]:
+                printed_end: int, newchars: set | None = None) -> list[dict]:
     """按目录子篇切父课的正文行。"""
+    lines = clean_lines(lines, newchars, [s.get("title") or "" for s in subs],
+                        parent.get("title") or "")
     if not lines:
         return [{
             "title": s.get("title"), "seq": i + 1, "located": False,
@@ -269,7 +338,8 @@ def build_book(book_id: str) -> list[dict]:
         end = end or maxp
         kind = ("文言文" if "文言文" in ptitle
                 else "古诗" if re.search(r"诗|词|曲", ptitle) else "篇")
-        for p in build_piece(parent, [s for s, _ in slist], lines, end - 1):
+        nc = L.book_newchars(book_id).get(str(parent.get("lesson_no") or ""))
+        for p in build_piece(parent, [s for s, _ in slist], lines, end - 1, nc):
             p.update({
                 "piece_id": "%s:%02d" % (pid, p["seq"]),
                 "lesson_id": pid,

@@ -21,7 +21,7 @@ import re
 import time
 
 from .. import config
-from ..parse.vlm import VLMClient
+from . import llm
 
 GENRE_FILE = os.path.join(config.ATTRS_DIR, "lesson_genre.jsonl")
 PIECE_FIX_FILE = os.path.join(config.ATTRS_DIR, "piece_fix.jsonl")
@@ -29,7 +29,6 @@ PIECE_FIX_FILE = os.path.join(config.ATTRS_DIR, "piece_fix.jsonl")
 # 细分体裁：封闭枚举，越界即判为失败（可校验性的落点）
 GENRE_SUB = ("写景状物", "记事写人", "童话寓言", "神话传说", "说明文",
              "议论文", "现代诗", "儿歌", "散文", "其他")
-RE_JSON = re.compile(r"\{.*\}", re.S)
 
 PROMPT_GENRE = (
     "你是小学语文教材分析助手。只根据下面给出的课文原文作答，"
@@ -55,36 +54,6 @@ PROMPT_PIECE = (
 
 def _norm(s: str) -> str:
     return re.sub(r"[\s　·•・​-‏﻿，。！？；、]", "", s or "")
-
-
-def _parse_json(text: str) -> dict:
-    """从模型输出里抠出 JSON——它可能自带 ```json 围栏或前后废话。"""
-    m = RE_JSON.search(text or "")
-    if not m:
-        return {}
-    try:
-        return json.loads(m.group(0))
-    except ValueError:
-        return {}
-
-
-def _load_done(path: str, key: str) -> set:
-    done = set()
-    if not os.path.exists(path):
-        return done
-    for l in open(path, encoding="utf-8"):
-        if l.strip():
-            try:
-                done.add(json.loads(l).get(key))
-            except ValueError:
-                continue
-    return done
-
-
-def _append(path: str, rec: dict) -> None:
-    os.makedirs(config.ATTRS_DIR, exist_ok=True)
-    with open(path, "a", encoding="utf-8") as f:
-        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
 
 def _load_lessons() -> list[dict]:
@@ -150,7 +119,7 @@ def classify_genre(limit: int = 0, force: bool = False,
             if (metas.get(r.get("lesson_id")) or {}).get("genre") == "课文"
             and (r.get("text") or "").strip()]
     if not force:
-        done = _load_done(GENRE_FILE, "lesson_id")
+        done = llm.load_done(GENRE_FILE, "lesson_id")
         todo = [r for r in todo if r.get("lesson_id") not in done]
     if limit:
         todo = todo[:limit]
@@ -159,7 +128,6 @@ def classify_genre(limit: int = 0, force: bool = False,
     if not todo:
         return {"ok": 0, "fail": 0}
 
-    client = VLMClient()
     ok = fail = 0
     for i, r in enumerate(todo, 1):
         text = (r.get("text") or "")[:600]
@@ -169,12 +137,12 @@ def classify_genre(limit: int = 0, force: bool = False,
         try:
             # 推理型模型会把 token 耗在思考上，给小了会返回空内容
             # （config 里记录的同一个坑：max_tokens 不够 → content 为空）
-            res = client.chat(prompt, max_tokens=2048)
-            d = _parse_json(res.text)
+            res = llm.chat(prompt, max_tokens=2048)
+            d = llm.parse_json(res.text)
             g = (d.get("genre_sub") or "").strip()
             if g not in GENRE_SUB:
                 raise ValueError("体裁越界：%r" % g)
-            _append(GENRE_FILE, {
+            llm.append_jsonl(GENRE_FILE, {
                 "lesson_id": r.get("lesson_id"), "book_id": r.get("book_id"),
                 "title": r.get("title"), "genre_sub": g,
                 "reason": (d.get("reason") or "")[:40],
@@ -226,7 +194,7 @@ def fix_pieces(limit: int = 0, force: bool = False, verbose: bool = True) -> dic
     ps = [json.loads(l) for l in open(fp, encoding="utf-8") if l.strip()]
     todo = [p for p in ps if not p.get("located")]
     if not force:
-        done = _load_done(PIECE_FIX_FILE, "piece_id")
+        done = llm.load_done(PIECE_FIX_FILE, "piece_id")
         todo = [p for p in todo if p.get("piece_id") not in done]
     if limit:
         todo = todo[:limit]
@@ -236,7 +204,6 @@ def fix_pieces(limit: int = 0, force: bool = False, verbose: bool = True) -> dic
         return {"ok": 0, "fail": 0, "reject": 0}
 
     rows = {r.get("lesson_id"): r for r in _load_lessons()}
-    client = VLMClient()
     ok = fail = reject = 0
     for i, p in enumerate(todo, 1):
         parent = rows.get(p.get("lesson_id")) or {}
@@ -255,8 +222,8 @@ def fix_pieces(limit: int = 0, force: bool = False, verbose: bool = True) -> dic
             parent=p.get("parent_title") or "", title=p.get("title") or "",
             text=src[:4000])
         try:
-            res = client.chat(prompt, max_tokens=4096)
-            d = _parse_json(res.text)
+            res = llm.chat(prompt, max_tokens=4096)
+            d = llm.parse_json(res.text)
             lines = [x.strip() for x in (d.get("lines") or []) if str(x).strip()]
             # 可校验：每句都必须在原文里出现，否则整条丢弃（宁缺勿编）
             ns = _norm(src)
@@ -267,7 +234,7 @@ def fix_pieces(limit: int = 0, force: bool = False, verbose: bool = True) -> dic
                     print("  [%d/%d] %s 引文校验未过（%d/%d 句不在原文）" % (
                         i, len(todo), p.get("title"), len(bad), len(lines)))
                 continue
-            _append(PIECE_FIX_FILE, {
+            llm.append_jsonl(PIECE_FIX_FILE, {
                 "piece_id": p.get("piece_id"), "lesson_id": p.get("lesson_id"),
                 "title": p.get("title"), "lines": lines,
                 "n_bad": len(bad), "model": res.model, "ts": int(time.time()),
@@ -313,7 +280,7 @@ def apply_piece_fixes(verbose: bool = True) -> int:
         p["sentences"] = P.split_sentences(text)
         p["chars"] = len(_norm(text))
         p["located"] = True
-        p["source"] = "llm"
+        p["source"] = fx.get("source") or "llm"
         n += 1
     if n:
         with open(fp, "w", encoding="utf-8") as f:

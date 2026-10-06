@@ -251,6 +251,16 @@ def cmd_pieces(args) -> None:
     from .index import pieces
 
     stat = pieces.build_all(subject=args.subject)
+    # 重跑会覆盖规则定位失败的篇，生成后必须立刻回填 LLM 补抽的结果，
+    # 否则每跑一次 pieces 就丢一次补抽内容（未定位数会反弹）。
+    from .index import audit
+
+    applied = audit.apply_piece_fixes(verbose=False)
+    if applied:
+        rs = [json.loads(l) for l in open(pieces.PIECE_FILE, encoding="utf-8")
+              if l.strip()]
+        print("回填 LLM 补抽 %d 篇，未定位 %d 篇" % (
+            applied, sum(1 for x in rs if not x.get("located"))))
     if args.show:
         rs = [json.loads(l) for l in open(pieces.PIECE_FILE, encoding="utf-8") if l.strip()]
         for r in rs[:args.show]:
@@ -274,6 +284,20 @@ def cmd_audit(args) -> None:
             audit.fix_pieces(limit=args.limit, force=args.force)
         else:
             audit.classify_genre(limit=args.limit, force=args.force)
+    except RuntimeError as e:
+        print("跳过：%s" % e)
+
+
+def cmd_digest(args) -> None:
+    """LLM 整理层：段落归并+段意+全文大意 / 字词解释。"""
+    from .index import audit, organize
+
+    try:
+        audit.sync_piece_genre()
+        if args.kind == "gloss":
+            organize.build_glossary(limit=args.limit, force=args.force)
+        else:
+            organize.build_structure(limit=args.limit, force=args.force)
     except RuntimeError as e:
         print("跳过：%s" % e)
 
@@ -400,6 +424,14 @@ def main() -> None:
     sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少条")
     sp.add_argument("--force", action="store_true", help="已处理过也重跑")
     sp.set_defaults(func=cmd_audit)
+
+    # 命令名叫 digest：`organize` 已被"下载文件整理"占用
+    sp = sub.add_parser("digest", help="LLM 整理层：段落归并+段意 / 字词解释")
+    sp.add_argument("--kind", default="structure", choices=["structure", "gloss"],
+                    help="structure=段意与全文大意；gloss=古诗文言文字词解释")
+    sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少条")
+    sp.add_argument("--force", action="store_true", help="已处理过也重跑")
+    sp.set_defaults(func=cmd_digest)
 
     sp = sub.add_parser("kb", help="知识库（DuckDB）：默认重建库，--sql 直接查询")
     sp.add_argument("--subject", default="语文", help="建库时的学科过滤")

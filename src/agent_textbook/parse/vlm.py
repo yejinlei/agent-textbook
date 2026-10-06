@@ -88,15 +88,33 @@ class VLMClient:
     def chat(self, prompt: str, max_tokens: int = 512) -> VLMResult:
         """纯文本对话（不带图片）——构建期的校对/整理层用。
 
-        与 extract 唯一的区别是不带 image_url：课文已经切好存成文本，
+        与 extract 唯一的区别是不带图片：课文已经切好存成文本，
         再把页面渲染成图送进去既慢又贵，还会重新引入转录错误。
+
+        空内容在这里重试：网关会间歇性地吐空（推理 token 耗尽或限流），
+        属平台侧抖动，退避一下通常就有；重试仍空才抛给调用方按条记失败——
+        一层每月只跑一次，为偶发空响应丢掉一篇不值得。
         """
-        return self._post({
+        payload = {
             "model": self.model,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0,
             "max_tokens": max_tokens,
-        })
+        }
+        last: Exception | None = None
+        for attempt in range(3):
+            try:
+                return self._post(payload)
+            except requests.HTTPError as e:
+                code = getattr(e.response, "status_code", 0)
+                if code not in (429, 500, 502, 503, 504) or attempt == 2:
+                    raise
+                last = e
+            except (RuntimeError, requests.RequestException) as e:
+                last = e
+            if attempt < 2:
+                time.sleep(3 * (attempt + 1))
+        raise last  # type: ignore[misc]
 
 
 def dpi_for_attempt(attempt: int) -> int:
