@@ -22,6 +22,8 @@ LESSON_TEXT_FILE = os.path.join(config.ATTRS_DIR, "lesson_text.jsonl")
 LESSON_META_FILE = os.path.join(config.ATTRS_DIR, "lesson_meta.jsonl")
 PIECE_FILE = os.path.join(config.ATTRS_DIR, "piece.jsonl")
 GENRE_FILE = os.path.join(config.ATTRS_DIR, "lesson_genre.jsonl")
+STRUCT_FILE = os.path.join(config.ATTRS_DIR, "lesson_structure.jsonl")
+GLOSS_FILE = os.path.join(config.ATTRS_DIR, "lesson_glossary.jsonl")
 
 # 用 OR REPLACE 而不是 IF NOT EXISTS：表结构演进（如给 lesson_text 加 notes 列）
 # 时，IF NOT EXISTS 会静默沿用旧表，导入的列数对不上才暴露，排查成本高。
@@ -66,6 +68,19 @@ SCHEMA = [
     """CREATE OR REPLACE TABLE lesson_genre(
         lesson_id VARCHAR PRIMARY KEY, book_id VARCHAR, title VARCHAR,
         genre_sub VARCHAR, reason VARCHAR, model VARCHAR, ts BIGINT)""",
+    # 课文结构（LLM 整理层）：段落归并成结构段 + 段意 + 全文大意。
+    # parts 存 JSON 串，段数是可校验的（结构段必须连续覆盖全部段落），
+    # 换模型重抽时整表替换即可。
+    """CREATE OR REPLACE TABLE lesson_structure(
+        lesson_id VARCHAR PRIMARY KEY, book_id VARCHAR, title VARCHAR,
+        n_paragraphs INTEGER, parts VARCHAR, main_idea VARCHAR,
+        model VARCHAR, ts BIGINT)""",
+    # 词语解释（LLM 整理层）：补教材注释没覆盖的字词。
+    # 挂在 **piece** 上而不是 lesson——一课多首古诗时，lesson 层是整组诗，
+    # 词会安错对象（《迢迢牵牛星》的"迢迢"跑到《寒食》头上）。
+    """CREATE OR REPLACE TABLE lesson_glossary(
+        piece_id VARCHAR PRIMARY KEY, lesson_id VARCHAR, book_id VARCHAR,
+        title VARCHAR, glossary VARCHAR, model VARCHAR, ts BIGINT)""",
 ]
 
 
@@ -80,7 +95,7 @@ def build(subject: str = "语文", verbose: bool = True) -> dict:
     for ddl in SCHEMA:
         con.execute(ddl)
     for t in ("books", "lessons", "words", "lesson_text", "lesson_meta", "piece",
-              "lesson_genre"):
+              "lesson_genre", "lesson_structure", "lesson_glossary"):
         con.execute(f"DELETE FROM {t}")
 
     nb = nl = 0
@@ -181,13 +196,39 @@ def build(subject: str = "语文", verbose: bool = True) -> dict:
             ])
             ng += 1
 
+    nst = 0
+    if os.path.exists(STRUCT_FILE):
+        for l in open(STRUCT_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO lesson_structure VALUES (?,?,?,?,?,?,?,?)", [
+                r.get("lesson_id"), r.get("book_id"), r.get("title"),
+                r.get("n_paragraphs"), _j(r.get("parts")), r.get("main_idea"),
+                r.get("model"), r.get("ts"),
+            ])
+            nst += 1
+
+    ngl = 0
+    if os.path.exists(GLOSS_FILE):
+        for l in open(GLOSS_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO lesson_glossary VALUES (?,?,?,?,?,?,?)", [
+                r.get("piece_id"), r.get("lesson_id"), r.get("book_id"),
+                r.get("title"), _j(r.get("glossary")), r.get("model"), r.get("ts"),
+            ])
+            ngl += 1
+
     con.close()
     stat = {"books": nb, "lessons": nl, "words": nw, "lesson_text": nt,
-            "lesson_meta": nm, "piece": npi, "lesson_genre": ng, "db": DB_PATH}
+            "lesson_meta": nm, "piece": npi, "lesson_genre": ng,
+            "lesson_structure": nst, "lesson_glossary": ngl, "db": DB_PATH}
     if verbose:
         print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / "
-              "%d 篇 / %d 条细分体裁 → %s"
-              % (nb, nl, nw, nt, nm, npi, ng, DB_PATH))
+              "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 → %s"
+              % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, DB_PATH))
     return stat
 
 
