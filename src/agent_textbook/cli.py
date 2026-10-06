@@ -210,6 +210,13 @@ def cmd_toc(args) -> None:
         print("  %-4s %-4s %d 条" % (m.get("grade"), m.get("term"), len(r["entries"])))
 
 
+def cmd_sections(args) -> None:
+    """切分数学/科学的小节正文。"""
+    from .index import sections as sc
+
+    sc.build_all(subject=args.subject)
+
+
 def cmd_kb(args) -> None:
     """知识库（DuckDB）：不给 --sql 则重建库，给了就查询。"""
     from .index import kb
@@ -462,8 +469,12 @@ def main() -> None:
     sp.add_argument("--force", action="store_true", help="已处理过也重跑")
     sp.set_defaults(func=cmd_digest)
 
+    sp = sub.add_parser("sections", help="切分数学/科学小节正文（骨架 → 一节正文 + 例题/练习）")
+    sp.add_argument("--subject", default="", help="学科过滤（如 数学、科学）")
+    sp.set_defaults(func=cmd_sections)
+
     sp = sub.add_parser("kb", help="知识库（DuckDB）：默认重建库，--sql 直接查询")
-    sp.add_argument("--subject", default="语文", help="建库时的学科过滤")
+    sp.add_argument("--subject", default="", help="建库时的学科过滤（默认全部）")
     sp.add_argument("--sql", default="", help="执行 SQL 查询")
     sp.set_defaults(func=cmd_kb)
 

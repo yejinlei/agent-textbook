@@ -27,6 +27,7 @@ GLOSS_FILE = os.path.join(config.ATTRS_DIR, "lesson_glossary.jsonl")
 TRANS_FILE = os.path.join(config.ATTRS_DIR, "lesson_translation.jsonl")
 AUTHOR_FILE = os.path.join(config.ATTRS_DIR, "lesson_author.jsonl")
 INTRO_FILE = os.path.join(config.ATTRS_DIR, "author_intro.jsonl")
+SECTION_FILE = os.path.join(config.ATTRS_DIR, "section_text.jsonl")
 
 # 用 OR REPLACE 而不是 IF NOT EXISTS：表结构演进（如给 lesson_text 加 notes 列）
 # 时，IF NOT EXISTS 会静默沿用旧表，导入的列数对不上才暴露，排查成本高。
@@ -100,6 +101,19 @@ SCHEMA = [
     """CREATE OR REPLACE TABLE author_intro(
         author VARCHAR PRIMARY KEY, dynasty VARCHAR, intro VARCHAR,
         works VARCHAR, model VARCHAR, ts BIGINT)""",
+    # 数学/科学的小节正文（切分层）：一节一条，blocks 里分好例题/练习/实验。
+    """CREATE OR REPLACE TABLE section_text(
+        section_id VARCHAR PRIMARY KEY, book_id VARCHAR, subject VARCHAR,
+        grade VARCHAR, term VARCHAR, unit_no INTEGER, unit_name VARCHAR,
+        title VARCHAR, printed_from INTEGER, printed_to INTEGER,
+        page_from INTEGER, page_to INTEGER, n_pages INTEGER, chars INTEGER,
+        text VARCHAR, blocks VARCHAR, n_examples INTEGER, n_exercises INTEGER)""",
+    # 插图描述（VLM 侧车）：一页一条，靠 (book_id, page_no) 挂到课/小节。
+    # VLM 通道册的正文里也有 [图N]，那是转录时顺带写的，与本表不重复计。
+    """CREATE OR REPLACE TABLE page_figure(
+        book_id VARCHAR, page_no INTEGER, n_figures INTEGER,
+        text VARCHAR, model VARCHAR, ts VARCHAR,
+        PRIMARY KEY (book_id, page_no))""",
 ]
 
 
@@ -108,14 +122,19 @@ def connect() -> duckdb.DuckDBPyConnection:
     return duckdb.connect(DB_PATH)
 
 
-def build(subject: str = "语文", verbose: bool = True) -> dict:
-    """重建库并导入目录与字表。"""
+def build(subject: str = "", verbose: bool = True) -> dict:
+    """重建库并导入目录与字表。
+
+    subject 为空表示**全部学科**：语文的课文层与数学/科学的小节层共用一套
+    lesson_id / section_id 主键，同库共存互不冲突。
+    """
     con = connect()
     for ddl in SCHEMA:
         con.execute(ddl)
     for t in ("books", "lessons", "words", "lesson_text", "lesson_meta", "piece",
               "lesson_genre", "lesson_structure", "lesson_glossary",
-              "lesson_translation", "lesson_author", "author_intro"):
+              "lesson_translation", "lesson_author", "author_intro",
+              "section_text", "page_figure"):
         con.execute(f"DELETE FROM {t}")
 
     nb = nl = 0
@@ -281,17 +300,59 @@ def build(subject: str = "语文", verbose: bool = True) -> dict:
             ])
             nin += 1
 
+    nse = 0
+    if os.path.exists(SECTION_FILE):
+        for l in open(SECTION_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO section_text VALUES (%s)"
+                        % ",".join(["?"] * 18), [
+                            r.get("section_id"), r.get("book_id"), r.get("subject"),
+                            r.get("grade"), r.get("term"), r.get("unit_no"),
+                            r.get("unit_name"), r.get("title"), r.get("printed_from"),
+                            r.get("printed_to"), r.get("page_from"), r.get("page_to"),
+                            r.get("n_pages"), r.get("chars"), r.get("text"),
+                            _j(r.get("blocks")), r.get("n_examples"),
+                            r.get("n_exercises"),
+                        ])
+            nse += 1
+
+    nfig = 0
+    idx_path = os.path.join(config.FIGURES_DIR, "_index.jsonl")
+    if os.path.exists(idx_path):
+        seen = set()
+        for l in open(idx_path, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            key = (r.get("book_id"), r.get("page_no"))
+            if key in seen:
+                continue
+            seen.add(key)
+            fp = os.path.join(config.FIGURES_DIR, str(r.get("book_id")),
+                              "%04d.md" % int(r.get("page_no") or 0))
+            text = ""
+            if os.path.exists(fp):
+                text = open(fp, encoding="utf-8").read()
+            con.execute("INSERT OR REPLACE INTO page_figure VALUES (?,?,?,?,?,?)", [
+                r.get("book_id"), r.get("page_no"), r.get("figures") or 0,
+                text, r.get("model"), r.get("ts"),
+            ])
+            nfig += 1
+
     con.close()
     stat = {"books": nb, "lessons": nl, "words": nw, "lesson_text": nt,
             "lesson_meta": nm, "piece": npi, "lesson_genre": ng,
             "lesson_structure": nst, "lesson_glossary": ngl,
             "lesson_translation": ntr, "lesson_author": nau, "author_intro": nin,
-            "db": DB_PATH}
+            "section_text": nse, "page_figure": nfig, "db": DB_PATH}
     if verbose:
         print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / "
               "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 / %d 条译文 / "
-              "%d 条作者 / %d 条简介 → %s"
-              % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, nau, nin, DB_PATH))
+              "%d 条作者 / %d 条简介 / %d 节（数/科）/ %d 页插图 → %s"
+              % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, nau, nin, nse, nfig,
+                 DB_PATH))
     return stat
 
 
