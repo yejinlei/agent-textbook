@@ -205,7 +205,9 @@ def build_book(book_id: str) -> dict:
     lines = []
     for i in idxs:
         lines.extend(_clean_lines(pages[i]))
-    entries = parse_toc_lines(lines)
+    # book_id 必须传进去：lesson_id 靠它做前缀，漏传会让 12 册的
+    # lesson_id 全部退化成 ":001/:002…"，跨册主键冲突、互相覆盖。
+    entries = parse_toc_lines(lines, book_id)
     title = meta.get("title", "")
     term = "上册" if "上册" in title else ("下册" if "下册" in title else "")
     head = {

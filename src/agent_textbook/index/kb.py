@@ -20,6 +20,7 @@ DB_PATH = os.path.join(config.DATA_DIR, "kb.duckdb")
 WORDS_FILE = os.path.join(config.ATTRS_DIR, "words.jsonl")
 LESSON_TEXT_FILE = os.path.join(config.ATTRS_DIR, "lesson_text.jsonl")
 LESSON_META_FILE = os.path.join(config.ATTRS_DIR, "lesson_meta.jsonl")
+PIECE_FILE = os.path.join(config.ATTRS_DIR, "piece.jsonl")
 
 SCHEMA = [
     """CREATE TABLE IF NOT EXISTS books(
@@ -46,6 +47,14 @@ SCHEMA = [
     """CREATE TABLE IF NOT EXISTS lesson_meta(
         lesson_id VARCHAR PRIMARY KEY, book_id VARCHAR, title VARCHAR,
         genre VARCHAR, author VARCHAR, dynasty VARCHAR, source VARCHAR)""",
+    # 篇（piece）：一课多篇的展开，piece_id 由父 lesson_id + 序号构成
+    """CREATE TABLE IF NOT EXISTS piece(
+        piece_id VARCHAR PRIMARY KEY, lesson_id VARCHAR, book_id VARCHAR,
+        grade VARCHAR, term VARCHAR, unit_no INTEGER, unit_name VARCHAR,
+        lesson_no VARCHAR, parent_title VARCHAR, seq INTEGER, title VARCHAR,
+        kind VARCHAR, printed_start INTEGER, printed_end INTEGER,
+        dynasty VARCHAR, author VARCHAR, located BOOLEAN, chars INTEGER,
+        text VARCHAR, sentences VARCHAR, notes VARCHAR)""",
 ]
 
 
@@ -59,7 +68,7 @@ def build(subject: str = "语文", verbose: bool = True) -> dict:
     con = connect()
     for ddl in SCHEMA:
         con.execute(ddl)
-    for t in ("books", "lessons", "words", "lesson_text", "lesson_meta"):
+    for t in ("books", "lessons", "words", "lesson_text", "lesson_meta", "piece"):
         con.execute(f"DELETE FROM {t}")
 
     nb = nl = 0
@@ -130,12 +139,29 @@ def build(subject: str = "语文", verbose: bool = True) -> dict:
             ])
             nm += 1
 
+    npi = 0
+    if os.path.exists(PIECE_FILE):
+        for l in open(PIECE_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO piece VALUES (%s)" % ",".join(["?"] * 21), [
+                r.get("piece_id"), r.get("lesson_id"), r.get("book_id"),
+                r.get("grade"), r.get("term"), r.get("unit_no"), r.get("unit_name"),
+                r.get("lesson_no"), r.get("parent_title"), r.get("seq"),
+                r.get("title"), r.get("kind"), r.get("printed_start"),
+                r.get("printed_end"), r.get("dynasty"), r.get("author"),
+                bool(r.get("located")), r.get("chars"), r.get("text"),
+                _j(r.get("sentences")), _j(r.get("notes")),
+            ])
+            npi += 1
+
     con.close()
     stat = {"books": nb, "lessons": nl, "words": nw,
-            "lesson_text": nt, "lesson_meta": nm, "db": DB_PATH}
+            "lesson_text": nt, "lesson_meta": nm, "piece": npi, "db": DB_PATH}
     if verbose:
-        print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 → %s"
-              % (nb, nl, nw, nt, nm, DB_PATH))
+        print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / %d 篇 → %s"
+              % (nb, nl, nw, nt, nm, npi, DB_PATH))
     return stat
 
 

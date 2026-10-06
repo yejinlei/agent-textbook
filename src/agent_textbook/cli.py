@@ -244,6 +244,26 @@ def cmd_lessons(args) -> None:
                 print("    生字：%s" % " ".join(r["newchars"])[:60])
 
 
+def cmd_pieces(args) -> None:
+    """拆一课多篇：来源以目录为准，正文只用于定位切分边界。"""
+    import json
+
+    from .index import pieces
+
+    stat = pieces.build_all(subject=args.subject)
+    if args.show:
+        rs = [json.loads(l) for l in open(pieces.PIECE_FILE, encoding="utf-8") if l.strip()]
+        for r in rs[:args.show]:
+            print("\n【%s】%s%s U%s 父：%s  %s/%s p%s" % (
+                r.get("title"), r.get("grade"), r.get("term"), r.get("unit_no"),
+                r.get("parent_title"), r.get("dynasty") or "-", r.get("author") or "-",
+                r.get("printed_start")))
+            for s in (r.get("sentences") or [])[:6]:
+                print("    %s" % s)
+            if r.get("notes"):
+                print("    注：%s" % r["notes"][0][:60])
+
+
 def cmd_ensure_page(args) -> None:
     """按需在线补解析教材页：本地产物里没有才调 VLM，结果回填。"""
     import time
@@ -354,6 +374,11 @@ def main() -> None:
     sp.add_argument("--book-id", default="", help="只切一册（不写产物）")
     sp.add_argument("--show", type=int, default=0, help="打印前 N 篇样例")
     sp.set_defaults(func=cmd_lessons)
+
+    sp = sub.add_parser("pieces", help="拆一课多篇（古诗三首/文言文二则）为独立篇")
+    sp.add_argument("--subject", default="语文", help="学科过滤")
+    sp.add_argument("--show", type=int, default=0, help="打印前 N 篇样例")
+    sp.set_defaults(func=cmd_pieces)
 
     sp = sub.add_parser("kb", help="知识库（DuckDB）：默认重建库，--sql 直接查询")
     sp.add_argument("--subject", default="语文", help="建库时的学科过滤")

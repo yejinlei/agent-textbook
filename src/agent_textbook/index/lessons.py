@@ -257,7 +257,10 @@ def slice_lesson(pages: list[dict], by: dict, start: int, end: int, title: str =
              and not RE_SECTION_FRAG.match(ln)]
     lines = [ln for ln in (RE_SECTION_INLINE.sub("", x).strip() for x in lines) if ln]
     text, plain = merge_pinyin(lines)
-    paras = split_paragraphs([ln for ln in lines if not RE_PINYIN.match(ln)])
+    # 行级纯文本（去拼音行）：古诗/文言文拆篇必须基于行——段落级会把
+    # 诗题与首句粘成一段（`寒 食[唐] 韩 翃春城无处不飞花，…`），无法切分。
+    plain_lines = [ln for ln in lines if not RE_PINYIN.match(ln)]
+    paras = split_paragraphs(plain_lines)
     body, tasks, exes, chars = split_body_tasks(paras)
     return {
         "page_from": by[keys[0]].get("page_no"),
@@ -265,6 +268,7 @@ def slice_lesson(pages: list[dict], by: dict, start: int, end: int, title: str =
         "n_pages": len(keys),
         "text": "\n".join(body),
         "text_plain": "".join(plain),
+        "lines": plain_lines,
         "paragraphs": body,
         "tasks": tasks,
         "exercises": exes,
