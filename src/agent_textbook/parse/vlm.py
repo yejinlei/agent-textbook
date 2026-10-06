@@ -44,14 +44,24 @@ class VLMClient:
                 "$env:VLM_API_KEY='...'（构建期与运行期共用）"
             )
 
-    def _post(self, payload: dict) -> VLMResult:
-        t0 = time.time()
-        resp = requests.post(
+    def _request(self, body: dict):
+        return requests.post(
             f"{self.base_url}/chat/completions",
             headers={"Authorization": f"Bearer {self.api_key}"},
-            json=payload,
+            json=body,
             timeout=self.timeout,
         )
+
+    def _post(self, payload: dict) -> VLMResult:
+        t0 = time.time()
+        # 该模型默认是推理型：不关掉思考，token 全耗在 reasoning 上，
+        # content 恒为空（同一个网关上实测过的坑）。网关不认这个字段时
+        # 退回来再发一次——老网关可能直接 400。
+        body = dict(payload)
+        body["thinking"] = {"type": "disabled"}
+        resp = self._request(body)
+        if resp.status_code == 400 and "thinking" in resp.text:
+            resp = self._request(payload)
         resp.raise_for_status()
         data = resp.json()
         msg = data["choices"][0]["message"]

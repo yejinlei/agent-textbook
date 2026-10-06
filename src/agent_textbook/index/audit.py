@@ -186,13 +186,32 @@ def _wider_text(book_id: str, start: int, span: int = 4) -> str:
     return "\n".join(out)
 
 
-def fix_pieces(limit: int = 0, force: bool = False, verbose: bool = True) -> dict:
-    """给规则定位失败的篇补正文——引文必须逐句能在父课原文里找到。"""
+def fix_pieces(limit: int = 0, force: bool = False, verbose: bool = True,
+               include_bad: bool = True) -> dict:
+    """给规则定位失败的篇补正文——引文必须逐句能在父课原文里找到。
+
+    include_bad：连**定位成功但原文不可靠**的篇一起补。规则有时候定位到了
+    课后题区或上一篇的正文（`望庐山瀑布` 取出来是"想画面，再说一说"），
+    这种"看似成功"比定位失败更危险——后面译文照着它译，编出来的东西
+    查不出来。判据沿用补充层的原文可靠性检查。
+    """
     fp = os.path.join(config.ATTRS_DIR, "piece.jsonl")
     if not os.path.exists(fp):
         return {"ok": 0, "fail": 0, "reject": 0}
     ps = [json.loads(l) for l in open(fp, encoding="utf-8") if l.strip()]
     todo = [p for p in ps if not p.get("located")]
+    if include_bad:
+        from . import enrich as E
+
+        texts = E._load_lesson_texts()
+        seen = {p.get("piece_id") for p in todo}
+        for p in ps:
+            if not p.get("located") or p.get("piece_id") in seen:
+                continue
+            t, src = E._source_text(p, ps, texts)
+            if src != "piece" or E.RE_JUNK.search(t) or len(t) < 8:
+                todo.append(p)
+                seen.add(p.get("piece_id"))
     if not force:
         done = llm.load_done(PIECE_FIX_FILE, "piece_id")
         todo = [p for p in todo if p.get("piece_id") not in done]

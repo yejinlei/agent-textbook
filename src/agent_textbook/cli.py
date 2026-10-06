@@ -289,13 +289,17 @@ def cmd_audit(args) -> None:
 
 
 def cmd_digest(args) -> None:
-    """LLM 整理层：段落归并+段意+全文大意 / 字词解释。"""
-    from .index import audit, organize
+    """LLM 整理层与补充层：段意 / 字词 / 译文 / 作者。"""
+    from .index import audit, enrich, organize
 
     try:
         audit.sync_piece_genre()
         if args.kind == "gloss":
             organize.build_glossary(limit=args.limit, force=args.force)
+        elif args.kind == "trans":
+            enrich.build_translation(limit=args.limit, force=args.force)
+        elif args.kind == "author":
+            enrich.build_author(limit=args.limit, force=args.force)
         else:
             organize.build_structure(limit=args.limit, force=args.force)
     except RuntimeError as e:
@@ -426,9 +430,11 @@ def main() -> None:
     sp.set_defaults(func=cmd_audit)
 
     # 命令名叫 digest：`organize` 已被"下载文件整理"占用
-    sp = sub.add_parser("digest", help="LLM 整理层：段落归并+段意 / 字词解释")
-    sp.add_argument("--kind", default="structure", choices=["structure", "gloss"],
-                    help="structure=段意与全文大意；gloss=古诗文言文字词解释")
+    sp = sub.add_parser("digest", help="LLM 整理层与补充层：段意 / 字词 / 译文 / 作者")
+    sp.add_argument("--kind", default="structure",
+                    choices=["structure", "gloss", "trans", "author"],
+                    help="structure=段意与全文大意；gloss=古诗文言文字词解释；"
+                         "trans=古诗文言文白话译文；author=课文作者校对")
     sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少条")
     sp.add_argument("--force", action="store_true", help="已处理过也重跑")
     sp.set_defaults(func=cmd_digest)
