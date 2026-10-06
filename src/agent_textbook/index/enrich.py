@@ -26,6 +26,7 @@ from . import llm
 
 TRANS_FILE = os.path.join(config.ATTRS_DIR, "lesson_translation.jsonl")
 AUTHOR_FILE = os.path.join(config.ATTRS_DIR, "lesson_author.jsonl")
+INTRO_FILE = os.path.join(config.ATTRS_DIR, "author_intro.jsonl")
 
 # 主观/传闻标记：这些词一出现，说明模型不是在译，是在猜。
 # "可能/大概"不在此列——白话译文里它只是语气，不代表编造。
@@ -57,9 +58,10 @@ PROMPT_AUTHOR = (
     "【正文开头】\n{head}\n\n"
     "【教材里的线索】{clue}\n\n"
     "要求：\n"
-    "- 只**依据上面的正文与线索**回答，不要凭记忆猜；\n"
+    "- 作者是**常识**，请依据正文与你所知作答；教材里的标注只作参考——\n"
+    "  它常被正文首字污染（`李白日照`），也可能标的是同课的另一篇；\n"
     "- 答案是纯人名（中国人名 2~4 字，外国人名可长一些，如“屠格涅夫”）；\n"
-    "- 正文与线索里都没有作者时，返回空字符串，不要猜。\n\n"
+    "- **拿不准就返回空字符串**，不要猜；正文确实是佚名/民间作品也返回空。\n\n"
     '只输出一行 JSON：{{"author":"..."}}'
 )
 
@@ -187,7 +189,8 @@ PROMPT_SENT = (
 
 # 不可能是原文的东西：课后题、页眉、注释括号
 RE_JUNK = re.compile(r"说一说|说说|画一画|读一读|朗读课文|想一想|填一填|"
-                     r"照样子|用自己的话|想象画面|第.{0,3}单元|语文园地|〔")
+                     r"照样子|用自己的话|想象画面|第.{0,3}单元|语文园地|"
+                     r"这一单元|本单元|单元导语|语文要素|〔")
 
 
 def _source_text(p: dict, pieces: list[dict], texts: dict) -> tuple[str, str]:
@@ -354,57 +357,174 @@ def build_translation(limit: int = 0, force: bool = False,
     return {"ok": ok, "fail": fail, "reject": reject, "skip": skip}
 
 
-def build_author(limit: int = 0, force: bool = False,
-                 verbose: bool = True) -> dict:
-    """课文作者校对 + 作者一句话简介。
+def build_intro(limit: int = 0, force: bool = False,
+                verbose: bool = True) -> dict:
+    """作者一句话简介（按人名去重，一个人只问一次）。
 
-    规则抽的 author 字段是脏的（把正文首字和说明文字一起抓了：`李白日照`、
-    `是俄国的屠格涅`），直接拿去问简介只会得到张冠李戴。故分两步：
-    先按课文校准人名，再按人名（去重）要简介。
+    简介是最容易编出花来的地方——模型爱写生卒年、轶事、评价，一错就是硬伤。
+    故只问常识范围内确凿的三件事（朝代/国籍、身份、以什么著称），并把该作者
+    在**教材里的作品**一并给它，免得把同名的另一个人认错（两个"李贺"？不，
+    是怕把"叶圣陶"和别人混）。拿不准就返回空——简介留白比写错强。
     """
-    fp = os.path.join(config.ATTRS_DIR, "lesson_text.jsonl")
-    texts = {}
-    if os.path.exists(fp):
-        for l in open(fp, encoding="utf-8"):
-            if not l.strip():
-                continue
-            r = json.loads(l)
-            texts[r.get("lesson_id")] = r
-    fp = os.path.join(config.ATTRS_DIR, "lesson_meta.jsonl")
-    metas = []
-    if os.path.exists(fp):
-        metas = [json.loads(l) for l in open(fp, encoding="utf-8") if l.strip()]
-    todo = [m for m in metas if (m.get("author") or "").strip()]
+    if not os.path.exists(AUTHOR_FILE):
+        return {"ok": 0, "fail": 0, "reject": 0}
+    rows = [json.loads(l) for l in open(AUTHOR_FILE, encoding="utf-8") if l.strip()]
+    people: dict[str, dict] = {}
+    for r in rows:
+        name = (r.get("author") or "").strip()
+        if not name:
+            continue
+        p = people.setdefault(name, {"dynasty": r.get("dynasty") or "", "works": []})
+        if r.get("dynasty") and not p["dynasty"]:
+            p["dynasty"] = r["dynasty"]
+        t = (r.get("title") or "").strip()
+        if t and t not in p["works"]:
+            p["works"].append(t)
+    todo = [(n, p) for n, p in people.items()]
     if not force:
-        done = llm.load_done(AUTHOR_FILE, "lesson_id")
-        todo = [m for m in todo if m.get("lesson_id") not in done]
+        done = llm.load_done(INTRO_FILE, "author")
+        todo = [(n, p) for n, p in todo if n not in done]
+    todo.sort()
     if limit:
         todo = todo[:limit]
     if verbose:
-        print("待校对作者：%d 课" % len(todo))
+        print("待补充简介：%d 位作者" % len(todo))
+    if not todo:
+        return {"ok": 0, "fail": 0, "reject": 0}
+
+    ok = fail = reject = 0
+    for i, (name, p) in enumerate(todo, 1):
+        prompt = PROMPT_INTRO.format(
+            name=name, dynasty=p["dynasty"] or "未标朝代",
+            works="、".join(("《%s》" % w) for w in p["works"][:6]) or "（未举）")
+        try:
+            res = llm.chat(prompt, max_tokens=1024)
+            d = llm.parse_json(res.text)
+            intro = (d.get("intro") or "").strip()
+            if intro:
+                if len(intro) > 80:
+                    raise ValueError("简介超 80 字：%d" % len(intro))
+                if RE_HEDGE.search(intro) or re.search(r"\d{3,4}年", intro):
+                    raise ValueError("简介含不确定或具体年份：%s" % intro[:20])
+            llm.append_jsonl(INTRO_FILE, {
+                "author": name, "dynasty": p["dynasty"], "intro": intro,
+                "works": p["works"][:6], "model": res.model, "ts": int(time.time()),
+            })
+            ok += 1
+            if verbose:
+                print("  [%d/%d] %s → %s" % (i, len(todo), name, intro[:40] or "（空）"))
+        except Exception as e:
+            if "简介" in str(e):
+                reject += 1
+            else:
+                fail += 1
+            if verbose:
+                print("  [%d/%d] %s 失败：%s" % (i, len(todo), name, e))
+    if verbose:
+        print("→ %s（成功 %d / 失败 %d / 校验丢弃 %d）" % (INTRO_FILE, ok, fail, reject))
+    return {"ok": ok, "fail": fail, "reject": reject}
+
+
+def _load_meta_rows() -> list[dict]:
+    fp = os.path.join(config.ATTRS_DIR, "lesson_meta.jsonl")
+    if not os.path.exists(fp):
+        return []
+    return [json.loads(l) for l in open(fp, encoding="utf-8") if l.strip()]
+
+
+def _author_targets(texts: dict) -> list[dict]:
+    """作者要挂在**篇**上，不是挂在课上。
+
+    一课常常是多首诗（《古诗三首》里有白居易、苏轼、卢钺），给课标一个作者
+    毫无意义——而且证据若取父课开头，同课每篇都会被判成第一首的作者
+    （实测《题西林壁》被判成"白居易"）。故目标是篇；只有**没有子篇**的课
+    才自己标作者。
+    """
+    from . import organize as O
+
+    pieces = O._load_pieces()
+    out = []
+    for p in pieces:
+        if not (p.get("text") or "").strip():
+            continue
+        out.append({
+            "key": p.get("piece_id"), "piece_id": p.get("piece_id"),
+            "lesson_id": p.get("lesson_id"), "book_id": p.get("book_id"),
+            "title": p.get("title"), "parent_title": p.get("parent_title"),
+        })
+    with_piece = {p.get("lesson_id") for p in pieces}
+    for m in _load_meta_rows():
+        if m.get("lesson_id") in with_piece or not (m.get("author") or "").strip():
+            continue
+        out.append({
+            "key": m.get("lesson_id"), "piece_id": None,
+            "lesson_id": m.get("lesson_id"), "book_id": m.get("book_id"),
+            "title": m.get("title"), "parent_title": "",
+        })
+    return out
+
+
+def build_author(limit: int = 0, force: bool = False,
+                 verbose: bool = True) -> dict:
+    """作者校对：规则抽的 author 是脏的，按**篇**重新校准。
+
+    规则从正文里抓作者时会把首字一起抓进来（`李白日照`、`是俄国的屠格涅`），
+    直接拿去问简介只会张冠李戴。故先校准人名：证据用**这一篇自己的正文**，
+    教材标注只当参考——它可能标的是同课的另一篇。
+    """
+    from . import organize as O
+
+    texts = _load_lesson_texts()
+    all_pieces = O._load_pieces()
+    metas = {m.get("lesson_id"): m for m in _load_meta_rows()}
+    todo = _author_targets(texts)
+    if not force:
+        done = llm.load_done(AUTHOR_FILE, "key")
+        todo = [t for t in todo if t.get("key") not in done]
+    if limit:
+        todo = todo[:limit]
+    if verbose:
+        print("待校对作者：%d 条" % len(todo))
     if not todo:
         return {"ok": 0, "fail": 0, "reject": 0}
 
     ok = fail = reject = 0
     for i, m in enumerate(todo, 1):
-        t = texts.get(m.get("lesson_id")) or {}
-        paras = t.get("paragraphs") or []
-        head = "".join(paras[:2])[:300] or (t.get("text") or "")[:300]
-        prompt = PROMPT_AUTHOR.format(title=m.get("title") or "", head=head,
-                                      clue=m.get("author") or "")
+        # 证据取**这一篇自己的正文**，不能用父课开头——否则同课各篇会被判成
+        # 同一个作者（《题西林壁》→ 白居易 就是这么错的）。
+        if m.get("piece_id"):
+            piece = next((p for p in all_pieces
+                          if p.get("piece_id") == m.get("piece_id")), None)
+            head, _ = _source_text(piece or m, all_pieces, texts)
+        else:
+            t = texts.get(m.get("lesson_id")) or {}
+            head = "".join((t.get("paragraphs") or [])[:2])[:300]
+        if len(head.strip()) < 8:
+            fail += 1
+            if verbose:
+                print("  [%d/%d] %s 取不到正文，跳过" % (i, len(todo), m.get("title")))
+            continue
+        clue = (metas.get(m.get("lesson_id")) or {}).get("author") or ""
+        prompt = PROMPT_AUTHOR.format(title=m.get("title") or "",
+                                      head=head[:400], clue=clue or "（教材未标注）")
         try:
             res = llm.chat(prompt, max_tokens=1024)
             d = llm.parse_json(res.text)
             name = (d.get("author") or "").strip()
+            # "佚名"也是一种答案，但库里统一留空，免得简介去介绍"佚名"
+            if name in ("佚名", "无名氏", "不详", "未知", "无"):
+                name = ""
             # 可校验：人名里不该有虚词与标点——`是俄国的屠格涅` 这类脏值
             # 一眼看得出；空是合法答案（教材确实没写作者）。
             if name and (len(name) > 8 or re.search(r"[的是了，。、？！]", name)):
                 raise ValueError("作者名不合法：%s" % name[:20])
             llm.append_jsonl(AUTHOR_FILE, {
-                "lesson_id": m.get("lesson_id"), "book_id": m.get("book_id"),
-                "title": m.get("title"), "author": name,
-                "dynasty": m.get("dynasty") or "", "intro": "",
-                "model": res.model, "ts": int(time.time()),
+                "key": m.get("key"),
+                "piece_id": m.get("piece_id"), "lesson_id": m.get("lesson_id"),
+                "book_id": m.get("book_id"), "title": m.get("title"),
+                "parent_title": m.get("parent_title"), "author": name,
+                "dynasty": (metas.get(m.get("lesson_id")) or {}).get("dynasty") or "",
+                "intro": "", "model": res.model, "ts": int(time.time()),
             })
             ok += 1
             if verbose:

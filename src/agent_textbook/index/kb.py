@@ -25,6 +25,8 @@ GENRE_FILE = os.path.join(config.ATTRS_DIR, "lesson_genre.jsonl")
 STRUCT_FILE = os.path.join(config.ATTRS_DIR, "lesson_structure.jsonl")
 GLOSS_FILE = os.path.join(config.ATTRS_DIR, "lesson_glossary.jsonl")
 TRANS_FILE = os.path.join(config.ATTRS_DIR, "lesson_translation.jsonl")
+AUTHOR_FILE = os.path.join(config.ATTRS_DIR, "lesson_author.jsonl")
+INTRO_FILE = os.path.join(config.ATTRS_DIR, "author_intro.jsonl")
 
 # 用 OR REPLACE 而不是 IF NOT EXISTS：表结构演进（如给 lesson_text 加 notes 列）
 # 时，IF NOT EXISTS 会静默沿用旧表，导入的列数对不上才暴露，排查成本高。
@@ -88,6 +90,16 @@ SCHEMA = [
         piece_id VARCHAR PRIMARY KEY, lesson_id VARCHAR, book_id VARCHAR,
         title VARCHAR, translation VARCHAR, literal VARCHAR, source VARCHAR,
         model VARCHAR, ts BIGINT)""",
+    # 作者（LLM 补充层）：挂在**篇**上——一课多首诗时挂课会把作者安错。
+    # key = piece_id（篇）或 lesson_id（没有子篇的课）。
+    """CREATE OR REPLACE TABLE lesson_author(
+        key VARCHAR PRIMARY KEY, piece_id VARCHAR, lesson_id VARCHAR,
+        book_id VARCHAR, title VARCHAR, parent_title VARCHAR, author VARCHAR,
+        dynasty VARCHAR, model VARCHAR, ts BIGINT)""",
+    # 作者简介（LLM 补充层）：按人名去重，一个人一条。
+    """CREATE OR REPLACE TABLE author_intro(
+        author VARCHAR PRIMARY KEY, dynasty VARCHAR, intro VARCHAR,
+        works VARCHAR, model VARCHAR, ts BIGINT)""",
 ]
 
 
@@ -103,7 +115,7 @@ def build(subject: str = "语文", verbose: bool = True) -> dict:
         con.execute(ddl)
     for t in ("books", "lessons", "words", "lesson_text", "lesson_meta", "piece",
               "lesson_genre", "lesson_structure", "lesson_glossary",
-              "lesson_translation"):
+              "lesson_translation", "lesson_author", "author_intro"):
         con.execute(f"DELETE FROM {t}")
 
     nb = nl = 0
@@ -243,15 +255,43 @@ def build(subject: str = "语文", verbose: bool = True) -> dict:
                 ])
             ntr += 1
 
+    nau = 0
+    if os.path.exists(AUTHOR_FILE):
+        for l in open(AUTHOR_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute(
+                "INSERT OR REPLACE INTO lesson_author VALUES (?,?,?,?,?,?,?,?,?,?)", [
+                    r.get("key"), r.get("piece_id"), r.get("lesson_id"),
+                    r.get("book_id"), r.get("title"), r.get("parent_title"),
+                    r.get("author"), r.get("dynasty"), r.get("model"), r.get("ts"),
+                ])
+            nau += 1
+
+    nin = 0
+    if os.path.exists(INTRO_FILE):
+        for l in open(INTRO_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO author_intro VALUES (?,?,?,?,?,?)", [
+                r.get("author"), r.get("dynasty"), r.get("intro"),
+                _j(r.get("works")), r.get("model"), r.get("ts"),
+            ])
+            nin += 1
+
     con.close()
     stat = {"books": nb, "lessons": nl, "words": nw, "lesson_text": nt,
             "lesson_meta": nm, "piece": npi, "lesson_genre": ng,
             "lesson_structure": nst, "lesson_glossary": ngl,
-            "lesson_translation": ntr, "db": DB_PATH}
+            "lesson_translation": ntr, "lesson_author": nau, "author_intro": nin,
+            "db": DB_PATH}
     if verbose:
         print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / "
-              "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 / %d 条译文 → %s"
-              % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, DB_PATH))
+              "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 / %d 条译文 / "
+              "%d 条作者 / %d 条简介 → %s"
+              % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, nau, nin, DB_PATH))
     return stat
 
 
