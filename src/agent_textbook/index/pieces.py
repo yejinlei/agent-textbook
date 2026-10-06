@@ -34,6 +34,29 @@ RE_COLUMN = re.compile(
     r"梳理与交流|专题学习|演讲|交流平台|初试身手|写字|识字|选读)")
 RE_APPENDIX = re.compile(r"(写字表|识字表|词语表|附录|后记|索引|注音表)$")
 RE_NOTE = re.compile(r"^[①②③④⑤⑥⑦⑧⑨⑩]")
+RE_NOTE_NUM = re.compile(r"[①②③④⑤⑥⑦⑧⑨⑩]")
+# 注音：`鸿鹄hú` / `这里读yú`。只认带声调的字母——普通英文在现代文里会用到，
+# 带声调的只可能是注音。
+RE_PINYIN = re.compile(r"[a-zA-Z]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜüńňǹ]+")
+# 篇末粘着的课后题碎片：`正确、流利地3 也。` / `对照注释，想想每句话的意思`
+RE_TAIL_TASK = re.compile(
+    r"^(正确|流利)|朗读课文|背诵|默写|对照注释|结合课文|用自己的话|"
+    r"想想每句|说说下面|再连起来|有感情地")
+
+
+def is_note_line(s: str) -> bool:
+    """圈码开头的行是注释，还是被排版撞到行首的正文续行？
+
+    文言文的课文与注释交错排版，正文常被切断到下一行并**正好以圈码开头**
+    （`弈秋②，通国` / `③之善弈者也。使弈秋诲二人弈…`）。一律按注释删行，
+    整句就被吃掉——《学弈》的 text 因此变成"弈秋二人弈"，中间十几个字没了。
+
+    判据是注释的排版形：圈码后**留了空格**（`② 〔弈秋〕…`、`① 本文选自…`），
+    或行内有被释词括号 `〔…〕`。正文里的圈码紧跟汉字（`弈秋②，`、`⑩是其智弗若
+    与？曰：非然也。`）——不能只看有没有冒号，文言文对话里满是"曰："。
+    拿不准时**当正文留着**：多留一行注释碎屑只是脏，丢一行正文是直接缺字。
+    """
+    return bool(re.match(r"^[①②③④⑤⑥⑦⑧⑨⑩]\s", s)) or "〔" in s
 # 朝代标记：`[唐]` / `〔宋〕`。作者**不在这里抽**：题名与首句粘连时
 # （`[明]于谦千锤万凿出深山，`）无法切准，硬取会污染作者字段，留待 LLM 校对。
 RE_DYNASTY = re.compile(
@@ -87,7 +110,7 @@ def find_head(lines: list[str], title: str, after: int = 0) -> int:
     joined: list[str] = []
     owner: list[int] = []
     for i in range(after, len(lines)):
-        if RE_NOTE.match(lines[i]):
+        if RE_NOTE.match(lines[i]) and is_note_line(lines[i]):
             continue
         for ch in norm(lines[i]):
             joined.append(ch)
@@ -179,15 +202,21 @@ def clean_lines(lines: list[str], newchars: set | None = None,
         # 按页眉删掉之后这一篇就永远定位不到了。
         has_title = any(t and t in norm(s) for t in ts)
         if skip:
-            skip -= 1
-            if not has_title:
+            # 注释块一直跨到**下一篇的题名行**为止：只跳固定行数（3）的话，
+            # 注释条数一多就漏，实测《学弈》尾部因此挂着"善于下棋，所以称为
+            # 弈秋"这样的释义。也不能一路跳到页尾——排版会把下一篇正文
+            # 排在注释之后（《十五夜望月》《竹石》就是这么丢的），故遇题名即停。
+            if has_title and "〔" not in s:
+                skip = 0
+            else:
+                skip -= 1
                 continue
         if L.RE_HEADNUM.match(s) and not has_title:
             continue
-        if L.RE_NOTE.match(s):
+        if L.RE_NOTE.match(s) and is_note_line(s):
             continue
         if s.startswith("注释"):
-            skip = 3
+            skip = 1
             continue
         if (not has_title and len(pchars) >= 3 and 2 <= len(s) <= 8
                 and set(s) <= pchars):
@@ -270,11 +299,21 @@ def build_piece(parent: dict, subs: list[dict], lines: list[str],
             dynasty = author = None
             body = []
 
-        # 注释两种形态：编号条目（`①〔洞庭〕…`）与栏名粘连的正文（`注释者不详，`）
-        notes = [x for x in body if RE_NOTE.match(x) or x.startswith("注释")]
-        body = [x for x in body
-                if not (RE_NOTE.match(x) or x.startswith("注释")) and not RE_TASK.match(x)]
-        text = "".join(body)
+        # 注释两种形态：编号条目（`①〔洞庭〕…`）与栏名粘连的正文（`注释者不详，`）。
+        # 判据必须与 clean_lines 一致——文言文的正文常被排版撞到行首带圈码
+        # （`③之善弈者也。使弈秋诲`），这里若照"圈码开头即注释"抽走，
+        # 《学弈》会缺掉中间十几个字。
+        def _note(x: str) -> bool:
+            return (RE_NOTE.match(x) and is_note_line(x)) or x.startswith("注释")
+
+        notes = [x for x in body if _note(x)]
+        body = [x for x in body if not _note(x) and not RE_TASK.match(x)]
+        # 篇末粘着的课后题碎片：正文之后的行若是习题口气就一路丢到结尾
+        while body and RE_TAIL_TASK.search(body[-1]):
+            body.pop()
+        # 圈码是注释标号、声调字母是注音，都不属于原文
+        # （`弈秋②，通国③之善弈者也…鸿鹄hú ⑤将至`）
+        text = RE_PINYIN.sub("", RE_NOTE_NUM.sub("", "".join(body)))
         p = {
             "title": s.get("title"),
             "seq": i + 1,
