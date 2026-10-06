@@ -26,7 +26,9 @@ RE_PRINTED = re.compile(r"^\d{1,3}$")
 # 纯拼音行：含声调字母，无汉字。一年级整页注音（每个字后都带拼音）也命中。
 RE_PINYIN = re.compile(r"^[a-zA-Zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜüńňǹḿěǹ\s]+$")
 RE_CJK_ONLY = re.compile(r"^[一-鿿]+$")
-RE_NOTE = re.compile(r"^[①②③④⑤⑥⑦⑧⑨⑩]")
+# 注释：编号词条（`①〔洞庭〕…`）与被释词行（`〔孰〕谁。`）。
+# 后者不带圈码，是注释块的续行，漏掉它们会让文言文的注释整段留在正文里。
+RE_NOTE = re.compile(r"^[①②③④⑤⑥⑦⑧⑨⑩]|^\s*〔")
 # 句末标点：段落结束的判据。必须**先有句末标点**，右引号只能跟在后面——
 # 否则"我理解了“五彩缤纷” / 的意思。"这种被排版切断的句子会被误判成两段。
 RE_PARA_END = re.compile(r"[。！？…][”’」』）]*\s*$")
@@ -42,14 +44,36 @@ RE_TASK_HEAD = re.compile(
 RE_TASK_INLINE = re.compile(
     r"(有感情地)?朗读课文|背诵第?[一二三四五六七八九十\d]*自然段?|默写[《「]"
 )
-# 课后思考题：疑问句或以"说说/想想/交流/想象/写一写"开头的祈使句
+# 课后思考题：**只认段首的教材指令**，不认问号。
+# 问号不能当判据——《两小儿辩日》的"孰为汝多知乎？"是正文，照问号切会
+# 把课文腰斩。正文里出现的问句靠"截断"处理（见 split_body_tasks）。
 RE_EXERCISE = re.compile(
-    r"[？?]$"
-    r"|^(说说|想一想|想想|交流|讨论|想象|写一写|照样子写一写|结合注释|用自己的话|读一读|记一记)"
+    r"^(说说|想一想|想想|交流|讨论|想象|写一写|照样子写一写|结合注释|用自己的话|"
+    r"读一读|记一记|默读课文|朗读课文|有感情地朗读课文|找出|画出|读下面的|"
+    r"读读下面|体会|反复朗读|分角色|和同学交流|联系上下文|搜集|摘抄|背诵你喜欢|"
+    r"小练笔|课文主要写了|选做|活动提示)"
     r"|^◇"
 )
+# 课后题还可能粘在段落**中间**（`—选自斯妤的《除夕》，有改动默读课文，想想…`），
+# 整段判不了，只能在句中定位后切开。
+RE_EXE_INLINE = re.compile(
+    r"(默读课文|小练笔|朗读课文|找出课文中|读下面的句子|"
+    r"说说哪部分|想想这样写|再讨论一下|和同学交流|照样子写)"
+)
+# 作者行被文本层塞进句子末尾：`…并且八儿所说的腊八粥本文作者沈从文，选作课文时有改动。`
+RE_AUTHOR_LINE = re.compile(r"本文作者[^，。！？]{2,8}[，。][^，。！？]{0,12}")
 # 课内生字条：页边独立成行的纯汉字串（无标点），长度 1~24
 RE_NEWCHARS = re.compile(r"^[一-鿿]{1,24}$")
+# 课后补充栏目：紧跟课文的"阅读链接/资料袋"，不是课文正文
+RE_LINK = re.compile(r"阅读链接|资料袋|阅读连接")
+# 图注：`（图）盛锡珊`。**必须限长**——图注后面常直接跟着正文
+# （`（图）盛锡珊阅读链接我于是猛地想起…`），不设上限会把整句正文删掉。
+RE_FIGURE = re.compile(r"（图）[^，。！？]{0,3}|[（(]\s*图\s*[\d\-.]*\s*[)）]")
+# 页眉：`20 文言文二则` / `3 腊八粥`——课号+课题，短且无句读
+RE_HEADNUM = re.compile(r"^\d{1,3}\s+[^，。！？]{0,10}$")
+# 页码残留在句中：`…色味双1    北京的春节（图）盛锡`。
+# 要求数字后跟**两个以上**空格才认，正文里的"读了 3 遍"不会被误删。
+RE_PAGENO = re.compile(r"\d{1,3}\s{2,}(?=[一-鿿])")
 # 栏目页眉：`阅 读`、`①阅读`——会被文本层插到句子中间（"蝴蝶停①阅读在花朵上"）
 RE_SECTION_HEADER = re.compile(
     r"^[①②③]?\s*(阅读|识字|汉语拼音|习作|习作例文|口语交际|语文园地|"
@@ -163,25 +187,82 @@ def split_paragraphs(lines: list[str]) -> list[str]:
     return [p for p in paras if p.strip()]
 
 
-def split_body_tasks(paras: list[str]) -> tuple[list[str], list[str], list[str], list[str], list[str]]:
-    """把段落分成 正文 / 学习任务 / 课后题 / 生字条 / 注释。
+_WORDS_CACHE: dict = {}
 
-    课文区间里课后内容与正文混排，判据是句式而不是位置：
-      * 注释：编号词条（`①〔洞庭〕…`）与栏名粘连的正文（`注释者不详，`）；
-      * 生字条：整段是纯汉字串（页边字条，无标点）；
-      * 学习任务：含"朗读/背诵/默写"等教材固定说法；
-      * 课后题：疑问句，或以"说说/想想/交流/想象"开头的祈使句。
 
-    注释单独出来：它是教材自带的权威讲解（`①〔等闲〕平常。`），
-    混在正文里会让朗读、分段、LLM 输入都带上不属于课文的文字。
+def book_newchars(book_id: str) -> dict:
+    """按课号取该课生字集合（写字表+识字表），用于剥离粘进段落的字条。"""
+    if book_id in _WORDS_CACHE:
+        return _WORDS_CACHE[book_id]
+    out: dict = {}
+    fp = os.path.join(config.ATTRS_DIR, "words.jsonl")
+    if os.path.exists(fp):
+        for l in open(fp, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            if r.get("book_id") != book_id or r.get("kind") not in ("写字表", "识字表"):
+                continue
+            out.setdefault(str(r.get("lesson_no") or ""), set()).add(r.get("value") or "")
+    _WORDS_CACHE[book_id] = out
+    return out
+
+
+def strip_newchar_prefix(s: str, chars: set) -> tuple[str, str]:
+    """剥掉段首粘连的生字条：`醋饺摊拌筝…骆驼一眨眼，到了残灯末庙…`
+
+    判据是"连续 6 个以上的本课生字"。正文开头连着 6 个字恰好全是本课生字
+    几乎不可能，而页边字条正是这一课的字——拿生字表比对，比猜长度可靠。
     """
-    body, tasks, exes, chars, notes = [], [], [], [], []
+    if len(chars) < 5:
+        return s, ""
+    i = 0
+    while i < len(s) and s[i] in chars:
+        i += 1
+    if i >= 6 and (i >= len(s) or s[i] not in chars):
+        return s[i:], s[:i]
+    return s, ""
+
+
+def split_body_tasks(paras: list[str], newchars: set | None = None, title: str = ""
+                     ) -> tuple[list[str], list[str], list[str], list[str], list[str], list[str]]:
+    """把段落分成 正文 / 学习任务 / 课后题 / 生字条 / 注释 / 阅读链接。
+
+    课文区间里课后内容与正文混排，单看一段往往分不清，但**正文是连续块**：
+    一旦出现课后题或"阅读链接"，其后的段落就都不再是课文。故先逐段打标，
+    再从第一个课后题/链接处截断——截断之后的正文段落也一并归入课后部分。
+
+    这条规则顺带解决了一个反例：《两小儿辩日》的"孰为汝多知乎？"是正文里
+    的问句，如果按"问号即课后题"逐段判断，课文会被腰斩。
+    """
+    items: list[tuple[str, str]] = []
+    t = (title or "").strip()
     for p in paras:
-        s = p.strip()
-        if not s:
+        s = RE_FIGURE.sub("", p.strip())
+        s = RE_PAGENO.sub("", s)
+        s = RE_AUTHOR_LINE.sub("", s)
+        # 页眉+图注会被文本层插进句子中间：`…色味双1    北京的春节（图）盛锡珊…`。
+        # **不能按课题原样删除**——课文正文常提到自己的题目（《腊八粥》里
+        # 就有"提到腊八粥"），原样删会破坏句子。只删"课题紧挨着图注"或
+        # "页码+课题"这两种页眉形态。
+        if len(t) >= 3:
+            te = re.escape(t)
+            s = re.sub(r"\d{0,3}\s{0,4}" + te + r"\s*（图）[^，。！？]{0,3}", "", s)
+            s = re.sub(r"\d{1,3}\s{2,}" + te, "", s)
+        s = s.strip()
+        # 删掉图注/作者行之后可能只剩标点（`本文作者老舍，…` 删完剩个句号）
+        if not s or not re.search(r"[一-鿿]", s):
+            continue
+        if RE_HEADNUM.match(s):
             continue
         if RE_NOTE.match(s) or s.startswith("注释"):
-            notes.append(s)
+            items.append(("note", s))
+            continue
+        # 课后题粘在段落中间时切开（`…有改动默读课文，想想…`）
+        m = RE_EXE_INLINE.search(s)
+        if m and m.start() > 0:
+            items.append(("body", s[:m.start()].strip()))
+            items.append(("exe", s[m.start():].strip()))
             continue
         # 生字条与任务句挤在同一段时切开。前半截必须是**纯汉字串**才认：
         # 否则"上课了，大家在教室里一起朗读课文，那声音真好听！"会被切成两半。
@@ -189,20 +270,38 @@ def split_body_tasks(paras: list[str]) -> tuple[list[str], list[str], list[str],
         if m and m.start() > 0 and RE_CJK_ONLY.match(s[:m.start()].strip()):
             head = s[:m.start()].strip()
             if head:
-                chars.append(head)
-            tasks.append(s[m.start():].strip())
+                items.append(("char", head))
+            items.append(("task", s[m.start():].strip()))
             continue
         if RE_TASK_HEAD.search(s):
-            tasks.append(s)
+            items.append(("task", s))
             continue
-        if RE_NEWCHARS.match(s) and len(s) <= 24 and not RE_PARA_END.search(s):
-            chars.append(s)
+        if RE_LINK.search(s):
+            items.append(("link", s))
             continue
         if RE_EXERCISE.search(s):
-            exes.append(s)
+            items.append(("exe", s))
             continue
-        body.append(s)
-    return body, tasks, exes, chars, notes
+        if newchars:
+            s, head = strip_newchar_prefix(s, newchars)
+            if head:
+                items.append(("char", head))
+        if RE_NEWCHARS.match(s) and len(s) <= 24 and not RE_PARA_END.search(s):
+            items.append(("char", s))
+            continue
+        items.append(("body", s))
+
+    cut = next((i for i, (k, _) in enumerate(items) if k in ("exe", "link")), len(items))
+    out = {k: [] for k in ("body", "task", "exe", "char", "note", "link")}
+    cur = None
+    for i, (k, s) in enumerate(items):
+        if i >= cut and k == "body":
+            k = cur or "exe"
+        if k in ("exe", "link"):
+            cur = k
+        out[k].append(s)
+    return (out["body"], out["task"], out["exe"], out["char"],
+            out["note"], out["link"])
 
 
 def _is_header(ln: str, title: str) -> bool:
@@ -308,8 +407,12 @@ def printed_index(pages: list[dict], toc_pages: set) -> dict:
     return by
 
 
-def slice_lesson(pages: list[dict], by: dict, start: int, end: int, title: str = "") -> dict:
-    """取 [start, end) 印刷页码区间的页，还原正文与各部分。"""
+def slice_lesson(pages: list[dict], by: dict, start: int, end: int, title: str = "",
+                 newchars: set | None = None) -> dict:
+    """取 [start, end) 印刷页码区间的页，还原正文与各部分。
+
+    newchars 为该课生字集合，用来剥离粘进段落开头的页边字条。
+    """
     keys = sorted(k for k in by if start <= k < end)
     if not keys:
         return {}
@@ -325,7 +428,7 @@ def slice_lesson(pages: list[dict], by: dict, start: int, end: int, title: str =
     # 诗题与首句粘成一段（`寒 食[唐] 韩 翃春城无处不飞花，…`），无法切分。
     plain_lines = [ln for ln in lines if not RE_PINYIN.match(ln)]
     paras = split_paragraphs(plain_lines)
-    body, tasks, exes, chars, notes = split_body_tasks(paras)
+    body, tasks, exes, chars, notes, links = split_body_tasks(paras, newchars, title)
     return {
         "page_from": by[keys[0]].get("page_no"),
         "page_to": by[keys[-1]].get("page_no"),
@@ -337,6 +440,7 @@ def slice_lesson(pages: list[dict], by: dict, start: int, end: int, title: str =
         "tasks": tasks,
         "exercises": exes,
         "notes": notes,
+        "reading_links": links,
         "newchars": chars,
         "chars": len(plain),
     }
@@ -359,13 +463,16 @@ def build_book(book_id: str) -> dict:
     items = [e for e in entries if isinstance(e.get("printed_start"), int)]
     items.sort(key=lambda e: e["printed_start"])
     maxp = max(by) + 1
+    # 生字表按课号组织，用它在切分时剥掉粘进段落的字条
+    nc = book_newchars(book_id)
 
     rows, metas = [], []
     for i, e in enumerate(items):
         s = e["printed_start"]
         nxt = items[i + 1]["printed_start"] if i + 1 < len(items) else maxp
         end = nxt if nxt > s else s + 1
-        r = slice_lesson(pages, by, s, end, e.get("title") or "")
+        r = slice_lesson(pages, by, s, end, e.get("title") or "",
+                         nc.get(str(e.get("lesson_no") or "")))
         if not r:
             continue
         rec = {

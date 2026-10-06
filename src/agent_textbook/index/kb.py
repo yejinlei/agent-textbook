@@ -47,7 +47,7 @@ SCHEMA = [
         page_from INTEGER, page_to INTEGER, n_pages INTEGER, chars INTEGER,
         text VARCHAR, text_plain VARCHAR,
         paragraphs VARCHAR, tasks VARCHAR, exercises VARCHAR, notes VARCHAR,
-        newchars VARCHAR)""",
+        reading_links VARCHAR, newchars VARCHAR)""",
     # 课文元数据：体裁/作者/朝代/出处，只记原文里写明的
     """CREATE OR REPLACE TABLE lesson_meta(
         lesson_id VARCHAR PRIMARY KEY, book_id VARCHAR, title VARCHAR,
@@ -128,14 +128,15 @@ def build(subject: str = "语文", verbose: bool = True) -> dict:
             if not l.strip():
                 continue
             r = json.loads(l)
-            con.execute("INSERT OR REPLACE INTO lesson_text VALUES (%s)" % ",".join(["?"] * 22), [
+            con.execute("INSERT OR REPLACE INTO lesson_text VALUES (%s)" % ",".join(["?"] * 23), [
                 r.get("lesson_id"), r.get("book_id"), r.get("grade"), r.get("term"),
                 r.get("unit_no"), r.get("unit_name"), r.get("section"), r.get("lesson_no"),
                 r.get("title"), r.get("printed_start"), r.get("printed_end"),
                 r.get("page_from"), r.get("page_to"), r.get("n_pages"), r.get("chars"),
                 r.get("text"), r.get("text_plain"),
                 _j(r.get("paragraphs")), _j(r.get("tasks")),
-                _j(r.get("exercises")), _j(r.get("notes")), _j(r.get("newchars")),
+                _j(r.get("exercises")), _j(r.get("notes")),
+                _j(r.get("reading_links")), _j(r.get("newchars")),
             ])
             nt += 1
 
