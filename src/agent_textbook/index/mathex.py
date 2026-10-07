@@ -86,8 +86,11 @@ PROMPT_CONCEPT = (
 )
 
 
-def _load_sections(subject: str) -> list[dict]:
-    src = os.path.join(config.ATTRS_DIR, "section_text.jsonl")
+def _load_rows(subject: str, level: str) -> list[dict]:
+    """level=section 取单元级小节，level=subsection 取课时（mathunit 切的）。"""
+    src = os.path.join(config.ATTRS_DIR,
+                       "subsection.jsonl" if level == "subsection"
+                       else "section_text.jsonl")
     if not os.path.exists(src):
         return []
     rows = [json.loads(l) for l in open(src, encoding="utf-8") if l.strip()]
@@ -96,13 +99,13 @@ def _load_sections(subject: str) -> list[dict]:
     return [r for r in rows if (r.get("text") or "").strip()]
 
 
-def _formula_index() -> dict[str, list[str]]:
-    """section_id → 本节已抽出的 LaTeX 列表（按页、按序号排好）。
+def _formula_index() -> dict[tuple, list[str]]:
+    """(book_id, page_no) → 该页已抽出的 LaTeX 列表。
 
-    例题本身拿不到 LaTeX（文本层里公式是坏的），用这层把公式挂回来，
-    动画才有东西可渲染。
+    例题本身拿不到 LaTeX（文本层里公式是坏的），用这层把公式按**页**挂回来。
+    按页存而不是按小节存：课时切出来后，同一单元里几十条公式要能分开归属。
     """
-    idx: dict[str, list[str]] = {}
+    idx: dict[tuple, list[str]] = {}
     if not os.path.exists(FORMULA_FILE):
         return idx
     for l in open(FORMULA_FILE, encoding="utf-8"):
@@ -112,20 +115,31 @@ def _formula_index() -> dict[str, list[str]]:
         tex = (r.get("latex") or "").strip()
         if not tex:
             continue
-        idx.setdefault(r.get("section_id") or "", []).append(tex)
+        idx.setdefault((r.get("book_id"), r.get("page_no")), []).append(tex)
     return idx
 
 
-def build_examples(subject: str = "数学", limit: int = 0, force: bool = False,
-                   verbose: bool = True) -> dict:
-    rows = _load_sections(subject)
+def _refs_of(idx: dict[tuple, list[str]], book_id, pf, pt) -> list[str]:
+    """把 [pf,pt] 页区间里的公式按顺序收成一条引用列表。"""
+    out = []
+    if not isinstance(pf, int) or not isinstance(pt, int):
+        return out
+    for n in range(pf, pt + 1):
+        out.extend(idx.get((book_id, n), []))
+    return out[:12]
+
+
+def build_examples(subject: str = "数学", level: str = "section", limit: int = 0,
+                   force: bool = False, verbose: bool = True) -> dict:
+    rows = _load_rows(subject, level)
+    key = "subsection_id" if level == "subsection" else "section_id"
     if not force:
-        done = llm.load_done(EXAMPLE_FILE, "section_id")
-        rows = [r for r in rows if r.get("section_id") not in done]
+        done = llm.load_done(EXAMPLE_FILE, key)
+        rows = [r for r in rows if r.get(key) not in done]
     if limit:
         rows = rows[:limit]
     if verbose:
-        print("待抽例题：%d 节" % len(rows))
+        print("待抽例题：%d %s" % (len(rows), "课时" if level == "subsection" else "节"))
     fidx = _formula_index()
     ok = fail = nexp = 0
     for i, r in enumerate(rows, 1):
@@ -137,11 +151,13 @@ def build_examples(subject: str = "数学", limit: int = 0, force: bool = False,
             res = llm.chat(prompt, max_tokens=4000)
             data = llm.parse_json(res.text)
             exs = data.get("examples") or []
-            refs = fidx.get(r.get("section_id"), [])[:12]
+            refs = _refs_of(fidx, r.get("book_id"), r.get("page_from"),
+                            r.get("page_to"))
             if not exs:
                 llm.append_jsonl(EXAMPLE_FILE, {
-                    "example_id": r["section_id"] + ":000",
+                    "example_id": r[key] + ":000",
                     "section_id": r.get("section_id"),
+                    "subsection_id": r.get("subsection_id"),
                     "book_id": r.get("book_id"), "subject": r.get("subject"),
                     "grade": r.get("grade"), "term": r.get("term"),
                     "unit_name": r.get("unit_name"), "title": r.get("title"),
@@ -169,8 +185,9 @@ def build_examples(subject: str = "数学", limit: int = 0, force: bool = False,
                         steps.append({"text": t[:200], "latex": lx[:200]})
                 typ = (e.get("type") or "").strip()
                 llm.append_jsonl(EXAMPLE_FILE, {
-                    "example_id": "%s:%02d" % (r["section_id"], k),
+                    "example_id": "%s:%02d" % (r[key], k),
                     "section_id": r.get("section_id"),
+                    "subsection_id": r.get("subsection_id"),
                     "book_id": r.get("book_id"), "subject": r.get("subject"),
                     "grade": r.get("grade"), "term": r.get("term"),
                     "unit_name": r.get("unit_name"), "title": r.get("title"),
@@ -205,7 +222,7 @@ def build_examples(subject: str = "数学", limit: int = 0, force: bool = False,
 def build_concepts(subject: str = "数学", limit: int = 0, force: bool = False,
                    verbose: bool = True) -> dict:
     """数学概念：与科学概念共用 concept.jsonl，靠 subject/category 区分。"""
-    rows = _load_sections(subject)
+    rows = _load_rows(subject, "section")
     if not force:
         done = llm.load_done(CONCEPT_FILE, "section_id")
         rows = [r for r in rows if r.get("section_id") not in done]

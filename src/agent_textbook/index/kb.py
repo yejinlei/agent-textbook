@@ -39,6 +39,8 @@ EXP_FILE = os.path.join(config.ATTRS_DIR, "experiment.jsonl")
 CONCEPT_FILE = os.path.join(config.ATTRS_DIR, "concept.jsonl")
 # 数学本体：例题（含解题步骤），公式的"用武之地"（见 index/mathex.py）
 EXAMPLE_FILE = os.path.join(config.ATTRS_DIR, "example.jsonl")
+# 数学课时（见 index/mathunit.py）：单元级小节拆出来的课
+SUBSEC_FILE = os.path.join(config.ATTRS_DIR, "subsection.jsonl")
 # 英语本体：情景对话 / 句型语法 / 拼读（见 index/enlang.py）
 EN_DIALOGUE_FILE = os.path.join(config.ATTRS_DIR, "en_dialogue.jsonl")
 EN_GRAMMAR_FILE = os.path.join(config.ATTRS_DIR, "en_grammar.jsonl")
@@ -146,7 +148,8 @@ SCHEMA = [
         formula_id VARCHAR PRIMARY KEY, page_key VARCHAR, section_id VARCHAR,
         book_id VARCHAR, subject VARCHAR, grade VARCHAR, term VARCHAR,
         unit_name VARCHAR, title VARCHAR, page_no INTEGER, latex VARCHAR,
-        kind VARCHAR, note VARCHAR, vars VARCHAR, model VARCHAR, ts BIGINT)""",
+        kind VARCHAR, note VARCHAR, vars VARCHAR, model VARCHAR, ts BIGINT,
+        subsection_id VARCHAR)""",
     # 科学探究活动：器材/步骤/变量/现象/结论，数组与对象存 JSON 串
     """CREATE OR REPLACE TABLE experiment(
         exp_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
@@ -164,10 +167,19 @@ SCHEMA = [
         title VARCHAR, name VARCHAR, definition VARCHAR, symbol VARCHAR,
         property VARCHAR, example VARCHAR, misconception VARCHAR,
         category VARCHAR, model VARCHAR, ts BIGINT)""",
+    # 数学课时（mathunit 切分）：单元级小节再拆成教材真实的课，
+    # 例题与公式都靠它的 page_from/page_to 归到"课"而不是"单元"
+    """CREATE OR REPLACE TABLE subsection(
+        subsection_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
+        subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
+        title VARCHAR, seq INTEGER, page_from INTEGER, page_to INTEGER,
+        n_pages INTEGER, chars INTEGER, text VARCHAR, blocks VARCHAR,
+        model VARCHAR, ts BIGINT)""",
     # 数学例题：题面 + 分步解法 + 答案，formula_refs 存本节 LaTeX（JSON 串），
-    # 动画层拿它把"这一步"和"这条公式"对上
+    # 动画层拿它把"这一步"和"这条公式"对上。课时级抽取时 subsection_id 非空
     """CREATE OR REPLACE TABLE example(
-        example_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
+        example_id VARCHAR PRIMARY KEY, section_id VARCHAR,
+        subsection_id VARCHAR, book_id VARCHAR,
         subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
         title VARCHAR, name VARCHAR, type VARCHAR, stem VARCHAR, given VARCHAR,
         ask VARCHAR, steps VARCHAR, latex VARCHAR, answer VARCHAR,
@@ -227,7 +239,8 @@ def build(subject: str = "", verbose: bool = True) -> dict:
               "lesson_translation", "lesson_author", "author_intro",
               "section_text", "section_keypoint", "en_vocab", "en_expr",
               "section_formula", "experiment", "concept", "page_figure",
-              "example", "en_dialogue", "en_grammar", "en_phonics"):
+              "example", "en_dialogue", "en_grammar", "en_phonics",
+              "subsection"):
         con.execute(f"DELETE FROM {t}")
     # 清空后先落盘：旧版本行一直攒在内存/WAL 里，后面逐条 INSERT 大表会 OOM
     con.execute("CHECKPOINT")
@@ -463,6 +476,24 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                         ])
             nexpr += 1
 
+    # 课时索引：公式与例题只记页码，靠它把"这一页的公式"归到具体的课
+    sub_by_book: dict[str, list[tuple]] = {}
+    if os.path.exists(SUBSEC_FILE):
+        for l in open(SUBSEC_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            pf, pt = r.get("page_from"), r.get("page_to")
+            if isinstance(pf, int) and isinstance(pt, int):
+                sub_by_book.setdefault(r.get("book_id") or "", []).append(
+                    (pf, pt, r.get("subsection_id")))
+
+    def _sub_of(book_id, page_no) -> str:
+        for pf, pt, sid in sub_by_book.get(book_id or "", ()):
+            if isinstance(page_no, int) and pf <= page_no <= pt:
+                return sid or ""
+        return ""
+
     nfo = 0
     if os.path.exists(FORMULA_FILE):
         for l in open(FORMULA_FILE, encoding="utf-8"):
@@ -472,7 +503,7 @@ def build(subject: str = "", verbose: bool = True) -> dict:
             if not r.get("latex"):
                 continue          # 整页无公式的空壳记录不入库
             con.execute("INSERT OR REPLACE INTO section_formula VALUES (%s)"
-                        % ",".join(["?"] * 16), [
+                        % ",".join(["?"] * 17), [
                             r.get("formula_id"), r.get("page_key"),
                             r.get("section_id"), r.get("book_id"),
                             r.get("subject"), r.get("grade"), r.get("term"),
@@ -480,6 +511,7 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                             r.get("latex"), r.get("kind"),
                             r.get("note") or r.get("desc"),
                             r.get("vars"), r.get("model"), r.get("ts"),
+                            _sub_of(r.get("book_id"), r.get("page_no")),
                         ])
             nfo += 1
             _tick(nfo)
@@ -540,6 +572,27 @@ def build(subject: str = "", verbose: bool = True) -> dict:
             ncp += 1
             _tick(ncp)
 
+    nsb = 0
+    if os.path.exists(SUBSEC_FILE):
+        for l in open(SUBSEC_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            if not r.get("subsection_id"):
+                continue
+            con.execute("INSERT OR REPLACE INTO subsection VALUES (%s)"
+                        % ",".join(["?"] * 17), [
+                            r.get("subsection_id"), r.get("section_id"),
+                            r.get("book_id"), r.get("subject"), r.get("grade"),
+                            r.get("term"), r.get("unit_name"), r.get("title"),
+                            r.get("seq"), r.get("page_from"), r.get("page_to"),
+                            r.get("n_pages"), r.get("chars"), r.get("text"),
+                            _j(r.get("blocks")), r.get("model") or "",
+                            r.get("ts"),
+                        ])
+            nsb += 1
+            _tick(nsb)
+
     nex = 0
     if os.path.exists(EXAMPLE_FILE):
         for l in open(EXAMPLE_FILE, encoding="utf-8"):
@@ -549,8 +602,9 @@ def build(subject: str = "", verbose: bool = True) -> dict:
             if not r.get("stem"):
                 continue          # 空壳：该节没有题目
             con.execute("INSERT OR REPLACE INTO example VALUES (%s)"
-                        % ",".join(["?"] * 23), [
+                        % ",".join(["?"] * 24), [
                             r.get("example_id"), r.get("section_id"),
+                            r.get("subsection_id") or "",
                             r.get("book_id"), r.get("subject"), r.get("grade"),
                             r.get("term"), r.get("unit_name"), r.get("title"),
                             r.get("name"), r.get("type"), r.get("stem"),
@@ -655,15 +709,16 @@ def build(subject: str = "", verbose: bool = True) -> dict:
             "en_vocab": nvocab, "en_expr": nexpr, "section_formula": nfo,
             "experiment": nexp, "concept": ncp, "page_figure": nfig,
             "example": nex, "en_dialogue": ndia, "en_grammar": ngra,
-            "en_phonics": nph, "db": DB_PATH}
+            "en_phonics": nph, "subsection": nsb, "db": DB_PATH}
     if verbose:
         print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / "
               "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 / %d 条译文 / "
               "%d 条作者 / %d 条简介 / %d 节 / %d 条知识点 / "
               "%d 英语词 / %d 英语表达 / %d 条公式 / %d 个探究 / %d 个概念 / "
-              "%d 页插图 / %d 道例题 / %d 段对话 / %d 条语法 / %d 条拼读 → %s"
+              "%d 页插图 / %d 道例题 / %d 段对话 / %d 条语法 / %d 条拼读 / "
+              "%d 个课时 → %s"
               % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, nau, nin, nse, nkp,
-                 nvocab, nexpr, nfo, nexp, ncp, nfig, nex, ndia, ngra, nph,
+                 nvocab, nexpr, nfo, nexp, ncp, nfig, nex, ndia, ngra, nph, nsb,
                  DB_PATH))
     return stat
 

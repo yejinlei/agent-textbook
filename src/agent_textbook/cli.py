@@ -218,6 +218,7 @@ def cmd_mathex(args) -> None:
                               limit=args.limit, force=args.force)
     else:
         mathex.build_examples(subject=args.subject or "数学",
+                              level=getattr(args, "level", "section"),
                               limit=args.limit, force=args.force)
 
 
@@ -234,6 +235,14 @@ def cmd_enlang(args) -> None:
     else:
         enlang.build_dialogues(subject=args.subject or "英语",
                                limit=args.limit, force=args.force)
+
+
+def cmd_mathunit(args) -> None:
+    """数学课级切分：规则筛候选页 + LLM 判定，把单元拆成教材真实课时。"""
+    from .index import mathunit
+
+    mathunit.build(subject=args.subject or "数学", limit=args.limit,
+                   force=args.force)
 
 
 def cmd_formula(args) -> None:
@@ -504,6 +513,8 @@ def main() -> None:
     sp = sub.add_parser("mathex", help="数学本体深挖：例题（含步骤）/ 数学概念")
     sp.add_argument("--kind", default="example", choices=["example", "concept"],
                     help="example=例题与解题步骤，concept=数学概念")
+    sp.add_argument("--level", default="section", choices=["section", "subsection"],
+                    help="section=单元级小节，subsection=课时（先跑 mathunit）")
     sp.add_argument("--subject", default="数学", help="学科过滤")
     sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少节")
     sp.add_argument("--force", action="store_true", help="已抽过也重跑")
@@ -517,6 +528,12 @@ def main() -> None:
     sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少节")
     sp.add_argument("--force", action="store_true", help="已抽过也重跑")
     sp.set_defaults(func=cmd_enlang)
+
+    sp = sub.add_parser("mathunit", help="数学课级切分：单元级小节再拆成课时")
+    sp.add_argument("--subject", default="数学", help="学科过滤")
+    sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少册")
+    sp.add_argument("--force", action="store_true", help="已切过也重跑")
+    sp.set_defaults(func=cmd_mathunit)
 
     sp = sub.add_parser("enwords", help="抽英语词汇表与常用表达（附录规则层）")
     sp.add_argument("--subject", default="英语", help="学科过滤")
