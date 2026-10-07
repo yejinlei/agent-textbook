@@ -223,15 +223,22 @@ def cmd_mathex(args) -> None:
 
 
 def cmd_enlang(args) -> None:
-    """英语本体深挖：情景对话（话轮）/ 句型语法 / 拼读。"""
+    """英语本体深挖：对话 / 句型语法 / 拼读 / 语篇 / 项目。"""
     from .index import enlang
 
-    if args.kind == "grammar":
+    kind = args.kind
+    if kind == "grammar":
         enlang.build_grammar(subject=args.subject or "英语",
                              limit=args.limit, force=args.force)
-    elif args.kind == "phonics":
+    elif kind == "phonics":
         enlang.build_phonics(subject=args.subject or "英语",
                              limit=args.limit, force=args.force)
+    elif kind == "passage":
+        enlang.build_passages(subject=args.subject or "英语",
+                              limit=args.limit, force=args.force)
+    elif kind == "project":
+        enlang.build_projects(subject=args.subject or "英语",
+                              limit=args.limit, force=args.force)
     else:
         enlang.build_dialogues(subject=args.subject or "英语",
                                limit=args.limit, force=args.force)
@@ -264,10 +271,13 @@ def cmd_formula(args) -> None:
 
 
 def cmd_enwords(args) -> None:
-    """抽英语词汇表与常用表达（英语本体的核心资产）。"""
+    """抽英语词汇表与常用表达（英语本体的核心资产）；--enrich 补教材原句与话题。"""
     from .index import enwords
 
-    enwords.build_all(subject=args.subject or "英语")
+    if getattr(args, "enrich", False):
+        enwords.enrich(subject=args.subject or "英语")
+    else:
+        enwords.build_all(subject=args.subject or "英语")
 
 
 def cmd_toc(args) -> None:
@@ -533,10 +543,11 @@ def main() -> None:
     sp.add_argument("--force", action="store_true", help="已抽过也重跑")
     sp.set_defaults(func=cmd_mathex)
 
-    sp = sub.add_parser("enlang", help="英语本体深挖：情景对话 / 句型语法 / 拼读")
+    sp = sub.add_parser("enlang", help="英语本体深挖：对话 / 句型语法 / 拼读 / 语篇 / 项目")
     sp.add_argument("--kind", default="dialogue",
-                    choices=["dialogue", "grammar", "phonics"],
-                    help="dialogue=情景对话，grammar=句型语法，phonics=拼读")
+                    choices=["dialogue", "grammar", "phonics", "passage", "project"],
+                    help="dialogue=情景对话，grammar=句型语法，phonics=拼读，"
+                         "passage=语篇（Read and write 等），project=项目任务")
     sp.add_argument("--subject", default="英语", help="学科过滤")
     sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少节")
     sp.add_argument("--force", action="store_true", help="已抽过也重跑")
@@ -556,6 +567,8 @@ def main() -> None:
 
     sp = sub.add_parser("enwords", help="抽英语词汇表与常用表达（附录规则层）")
     sp.add_argument("--subject", default="英语", help="学科过滤")
+    sp.add_argument("--enrich", action="store_true",
+                    help="给已抽出的词补教材原句（对话/语篇里取）与所属话题")
     sp.set_defaults(func=cmd_enwords)
 
     sp = sub.add_parser("toc", help="看图抽分栏目录骨架（数学/科学等规则抽不出的册）")

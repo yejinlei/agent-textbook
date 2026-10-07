@@ -273,6 +273,91 @@ def parse_expressions(pages: list[dict], book_id: str, meta: dict) -> list[dict]
     return out
 
 
+def enrich(subject: str = "英语", verbose: bool = True) -> dict:
+    """给词汇表补**教材原文例句**与所属话题。
+
+    词汇层原来只有 词/音标/释义/级别，做动画或出题时缺两样：这个词在教材里
+    到底怎么用（例句）、它属于哪个话题（主题）。两者都不用模型生成——例句直接
+    从已抽好的对话、语篇、语法例句里按全词匹配取原句，话题取该词所在单元的
+    单元名；教材里没出现过的词就留空。零幻觉，也不会凭空造句。
+    """
+    if not os.path.exists(VOCAB_FILE):
+        return {"n": 0, "with_example": 0}
+    vocab = [json.loads(l) for l in open(VOCAB_FILE, encoding="utf-8") if l.strip()]
+    if subject:
+        vocab = [r for r in vocab if r.get("subject") == subject]
+
+    # (book_id, grade) → 教材原句（对话话轮 / 语篇正文 / 语法例句）
+    sents: dict[tuple, list[str]] = {}
+
+    def add(key, text):
+        bucket = sents.setdefault(key, [])
+        for ln in (text or "").split("\n"):
+            s = ln.strip()
+            if 3 < len(s) < 160 and re.search(r"[A-Za-z]", s) and s not in bucket:
+                bucket.append(s)
+
+    for fn, fields in (("en_dialogue", "turns"), ("en_grammar", "examples"),
+                       ("en_passage", None)):
+        p = os.path.join(config.ATTRS_DIR, fn + ".jsonl")
+        if not os.path.exists(p):
+            continue
+        for l in open(p, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            key = (r.get("book_id"), r.get("grade"))
+            if fields == "turns":
+                for t in (r.get("turns") or []):
+                    add(key, (t.get("en") or "") if isinstance(t, dict) else str(t))
+            elif fields == "examples":
+                for t in (r.get("examples") or []):
+                    add(key, (t.get("en") or "") if isinstance(t, dict) else str(t))
+            else:
+                add(key, r.get("text"))
+
+    # 单元号 → 单元名（话题）：取同一册同一单元的小节标题
+    topic: dict[tuple, str] = {}
+    sp = os.path.join(config.ATTRS_DIR, "section_text.jsonl")
+    if os.path.exists(sp):
+        for l in open(sp, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            if subject and r.get("subject") != subject:
+                continue
+            u = r.get("unit_no")
+            if isinstance(u, int):
+                topic.setdefault((r.get("book_id"), u), r.get("title") or "")
+
+    n = 0
+    for r in vocab:
+        w = (r.get("word") or "").strip()
+        pat = (re.compile(r"(?<![A-Za-z])" + re.escape(w) + r"(?![A-Za-z])", re.I)
+               if w else None)
+        got = []
+        if pat:
+            for key in ((r.get("book_id"), r.get("grade")), (None, r.get("grade"))):
+                for s in sents.get(key) or ():
+                    if pat.search(s) and s not in got:
+                        got.append(s)
+                    if len(got) >= 2:
+                        break
+                if len(got) >= 2:
+                    break
+        r["example"] = got[:2]
+        r["topic"] = (topic.get((r.get("book_id"), r.get("unit_no")), "")
+                      if isinstance(r.get("unit_no"), int) else "")
+        if got:
+            n += 1
+    with open(VOCAB_FILE, "w", encoding="utf-8") as f:
+        for r in vocab:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    if verbose:
+        print("→ %s（%d 词，%d 个补到教材原句）" % (VOCAB_FILE, len(vocab), n))
+    return {"n": len(vocab), "with_example": n}
+
+
 def build_all(subject: str = "英语", verbose: bool = True) -> dict:
     """重建英语词汇/表达两个属性层（全量覆盖写）。"""
     os.makedirs(config.ATTRS_DIR, exist_ok=True)

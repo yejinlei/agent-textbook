@@ -45,6 +45,9 @@ SUBSEC_FILE = os.path.join(config.ATTRS_DIR, "subsection.jsonl")
 EN_DIALOGUE_FILE = os.path.join(config.ATTRS_DIR, "en_dialogue.jsonl")
 EN_GRAMMAR_FILE = os.path.join(config.ATTRS_DIR, "en_grammar.jsonl")
 EN_PHONICS_FILE = os.path.join(config.ATTRS_DIR, "en_phonics.jsonl")
+# 英语语篇与项目（见 index/enlang.py）：阅读/写作/做中学三个维度的落点
+EN_PASSAGE_FILE = os.path.join(config.ATTRS_DIR, "en_passage.jsonl")
+EN_PROJECT_FILE = os.path.join(config.ATTRS_DIR, "en_project.jsonl")
 
 # 用 OR REPLACE 而不是 IF NOT EXISTS：表结构演进（如给 lesson_text 加 notes 列）
 # 时，IF NOT EXISTS 会静默沿用旧表，导入的列数对不上才暴露，排查成本高。
@@ -136,7 +139,7 @@ SCHEMA = [
         vocab_id VARCHAR PRIMARY KEY, book_id VARCHAR, subject VARCHAR,
         grade VARCHAR, term VARCHAR, unit_no INTEGER, word VARCHAR,
         phonetic VARCHAR, meaning VARCHAR, level VARCHAR,
-        printed_page INTEGER, source VARCHAR)""",
+        printed_page INTEGER, source VARCHAR, topic VARCHAR, example VARCHAR)""",
     # 英语常用表达/功能句：一问一答成对出现，靠 unit_no 归到单元
     """CREATE OR REPLACE TABLE en_expr(
         expr_id VARCHAR PRIMARY KEY, book_id VARCHAR, subject VARCHAR,
@@ -205,6 +208,23 @@ SCHEMA = [
         subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
         title VARCHAR, letters VARCHAR, sound VARCHAR, examples VARCHAR,
         chant VARCHAR, page_hint VARCHAR, model VARCHAR, ts BIGINT)""",
+    # 英语语篇：Read and write / Start to read / Story time 的成篇原文、体裁、
+    # 阅读理解题（comprehension）与配套写作任务（writing_task）——阅读与写作
+    # 两个课标维度在库里的落点，前三层（对话/语法/拼读）都覆盖不到。
+    """CREATE OR REPLACE TABLE en_passage(
+        passage_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
+        subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
+        title VARCHAR, name VARCHAR, genre VARCHAR, source VARCHAR,
+        text VARCHAR, zh VARCHAR, topic VARCHAR, words VARCHAR,
+        comprehension VARCHAR, writing_task VARCHAR, keypoints VARCHAR,
+        model VARCHAR, ts BIGINT)""",
+    # 英语项目：Project / Make a ... 的任务目标、步骤、产出与要用的语言（"做中学"）
+    """CREATE OR REPLACE TABLE en_project(
+        project_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
+        subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
+        title VARCHAR, name VARCHAR, type VARCHAR, goal VARCHAR, steps VARCHAR,
+        language VARCHAR, product VARCHAR, materials VARCHAR,
+        model VARCHAR, ts BIGINT)""",
     # 插图描述（VLM 侧车）：一页一条，靠 (book_id, page_no) 挂到课/小节。
     # VLM 通道册的正文里也有 [图N]，那是转录时顺带写的，与本表不重复计。
     """CREATE OR REPLACE TABLE page_figure(
@@ -240,7 +260,7 @@ def build(subject: str = "", verbose: bool = True) -> dict:
               "section_text", "section_keypoint", "en_vocab", "en_expr",
               "section_formula", "experiment", "concept", "page_figure",
               "example", "en_dialogue", "en_grammar", "en_phonics",
-              "subsection"):
+              "en_passage", "en_project", "subsection"):
         con.execute(f"DELETE FROM {t}")
     # 清空后先落盘：旧版本行一直攒在内存/WAL 里，后面逐条 INSERT 大表会 OOM
     con.execute("CHECKPOINT")
@@ -454,11 +474,12 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                 continue
             r = json.loads(l)
             con.execute("INSERT OR REPLACE INTO en_vocab VALUES (%s)"
-                        % ",".join(["?"] * 12), [
+                        % ",".join(["?"] * 14), [
                             r.get("vocab_id"), r.get("book_id"), r.get("subject"),
                             r.get("grade"), r.get("term"), r.get("unit_no"),
                             r.get("word"), r.get("phonetic"), r.get("meaning"),
                             r.get("level"), r.get("printed_page"), r.get("source"),
+                            r.get("topic") or "", _j(r.get("example")),
                         ])
             nvocab += 1
 
@@ -676,6 +697,47 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                         ])
             nph += 1
 
+    npsg = 0
+    if os.path.exists(EN_PASSAGE_FILE):
+        for l in open(EN_PASSAGE_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            if not (r.get("text") or "").strip():
+                continue          # 空壳：该节没有成篇内容
+            con.execute("INSERT OR REPLACE INTO en_passage VALUES (%s)"
+                        % ",".join(["?"] * 20), [
+                            r.get("passage_id"), r.get("section_id"),
+                            r.get("book_id"), r.get("subject"), r.get("grade"),
+                            r.get("term"), r.get("unit_name"), r.get("title"),
+                            r.get("name"), r.get("genre"), r.get("source"),
+                            r.get("text"), r.get("zh"), r.get("topic"),
+                            _j(r.get("words")), _j(r.get("comprehension")),
+                            r.get("writing_task"), _j(r.get("keypoints")),
+                            r.get("model") or "", r.get("ts"),
+                        ])
+            npsg += 1
+
+    npj = 0
+    if os.path.exists(EN_PROJECT_FILE):
+        for l in open(EN_PROJECT_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            if not r.get("name"):
+                continue
+            con.execute("INSERT OR REPLACE INTO en_project VALUES (%s)"
+                        % ",".join(["?"] * 17), [
+                            r.get("project_id"), r.get("section_id"),
+                            r.get("book_id"), r.get("subject"), r.get("grade"),
+                            r.get("term"), r.get("unit_name"), r.get("title"),
+                            r.get("name"), r.get("type"), r.get("goal"),
+                            _j(r.get("steps")), _j(r.get("language")),
+                            r.get("product"), _j(r.get("materials")),
+                            r.get("model") or "", r.get("ts"),
+                        ])
+            npj += 1
+
     nfig = 0
     idx_path = os.path.join(config.FIGURES_DIR, "_index.jsonl")
     if os.path.exists(idx_path):
@@ -709,17 +771,18 @@ def build(subject: str = "", verbose: bool = True) -> dict:
             "en_vocab": nvocab, "en_expr": nexpr, "section_formula": nfo,
             "experiment": nexp, "concept": ncp, "page_figure": nfig,
             "example": nex, "en_dialogue": ndia, "en_grammar": ngra,
-            "en_phonics": nph, "subsection": nsb, "db": DB_PATH}
+            "en_phonics": nph, "en_passage": npsg, "en_project": npj,
+            "subsection": nsb, "db": DB_PATH}
     if verbose:
         print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / "
               "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 / %d 条译文 / "
               "%d 条作者 / %d 条简介 / %d 节 / %d 条知识点 / "
               "%d 英语词 / %d 英语表达 / %d 条公式 / %d 个探究 / %d 个概念 / "
               "%d 页插图 / %d 道例题 / %d 段对话 / %d 条语法 / %d 条拼读 / "
-              "%d 个课时 → %s"
+              "%d 段语篇 / %d 个项目 / %d 个课时 → %s"
               % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, nau, nin, nse, nkp,
-                 nvocab, nexpr, nfo, nexp, ncp, nfig, nex, ndia, ngra, nph, nsb,
-                 DB_PATH))
+                 nvocab, nexpr, nfo, nexp, ncp, nfig, nex, ndia, ngra, nph,
+                 npsg, npj, nsb, DB_PATH))
     return stat
 
 

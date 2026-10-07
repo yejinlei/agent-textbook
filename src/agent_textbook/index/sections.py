@@ -90,11 +90,17 @@ def _norm(s: str) -> str:
     `～`，不做归一化时整单元的锚点为 0，区间只能靠夹逼补出来。
     """
     s = (s or "").replace("～", "~").replace("－", "-").replace("　", "")
+    # 引号：目录是 VLM 看图抄的，抄成直引号 `Mike's`；教材正文印的是弯引号
+    # `Mike’s`。不统一的话整条锚点落空——六下 Recycle 就因此丢了起点，只能靠
+    # 夹逼顶到上一单元的尾巴上（Then and now 被挤成 2 页）。
+    for a, b in (("\u2019", "'"), ("\u2018", "'"), ("\u201c", '"'), ("\u201d", '"')):
+        s = s.replace(a, b)
     return re.sub(r"\s+", "", s)
 
 
 def unit_anchor_spans(pages: list[dict], entries: list[dict], toc_pages=None,
-                      max_gap: int = 4, min_cover: float = 0.6) -> dict | None:
+                      max_gap: int = 4, min_cover: float = 0.6,
+                      tol: int = 3) -> dict | None:
     """用**页眉上的单元名**给每个目录条目定位页区间。
 
     为什么要绕开印刷页码
@@ -118,14 +124,33 @@ def unit_anchor_spans(pages: list[dict], entries: list[dict], toc_pages=None,
     texts = {p["page_no"]: _norm(p.get("text") or "") for p in body}
     nos = sorted(texts)
     lo, hi = nos[0], nos[-1]
+    # 目录给出的预测区间（印刷页码 + 偏移）：单元名会在**别的**单元里被提到
+    # （复习页回顾、Recycle 故事跨单元），只取"最长簇"会让簇跨到邻单元去——
+    # 实测六下 Recycle「Mike's happy days」的锚点一路铺到 p38，把上一单元挤没了。
+    # 故只保留预测区间附近的命中；预测本身不准时（数学的印刷页码就是乱的）
+    # 过滤会清空，那时回退到全部命中。
+    off = _page_offset(pages, entries, toc_pages)
+
+    def _predict(i: int):
+        s = entries[i].get("printed_start")
+        if off is None or not isinstance(s, int):
+            return None
+        e2 = entries[i + 1].get("printed_start") if i + 1 < len(entries) else None
+        pe = (e2 + off - 1) if isinstance(e2, int) and e2 > s else hi
+        return (max(lo, s + off), min(hi, pe))
 
     spans: list = []
-    for e in entries:
+    for i, e in enumerate(entries):
         name = _norm(e.get("title") or "")
         if len(name) < 2:
             spans.append(None)
             continue
         hits = [n for n in nos if name in texts[n]]
+        pr = _predict(i)
+        if pr:
+            near = [n for n in hits if pr[0] - tol <= n <= pr[1] + tol]
+            if near:
+                hits = near
         if not hits:
             spans.append(None)
             continue
@@ -153,11 +178,13 @@ def unit_anchor_spans(pages: list[dict], entries: list[dict], toc_pages=None,
         if start[i] is None or start[i] < prev:
             start[i] = prev
         prev = (end[i] if end[i] and end[i] >= start[i] else start[i]) + 1
-    # 后向：终点一律收到下一单元起点前一页，保证区间单调不重叠
+    # 后向：终点一律收到下一单元起点前一页，保证区间单调不重叠。
+    # **无条件赋值**（不能只在 end 偏大时收缩）：英语的页眉只印单元号不印标题，
+    # 锚点簇退化成单元扉页那一页，只收缩的话区间就永远停在扉页上——实测会把
+    # "How tall are you?" 切成 p7-9。单元之间的内容归前一单元，这是教材的排法。
     nxt = hi
     for i in range(n - 1, -1, -1):
-        if end[i] is None or end[i] > nxt:
-            end[i] = nxt
+        end[i] = nxt
         if start[i] > end[i]:
             end[i] = start[i]
         nxt = start[i] - 1
@@ -224,7 +251,8 @@ def build_book(book_id: str) -> list[dict]:
     all_nos = sorted(p.get("page_no") for p in pages
                      if isinstance(p.get("page_no"), int))
 
-    out = []
+    picked: list = []
+    out: list = []
     for i, e in enumerate(entries):
         start = e.get("printed_start")
         if not isinstance(start, int):
@@ -245,7 +273,28 @@ def build_book(book_id: str) -> list[dict]:
             nos = nos_anchor
         if not nos:
             continue
-        by_no = {p.get("page_no"): p for p in pages}
+        picked.append((e, start, end, nos))
+
+    # 目录顺序就是教材顺序：任两条目的页区间都不许重叠。三条路（页码/偏移/锚定）
+    # 各有各的错法，锚点跨单元时尤其容易把邻单元的页一起吞掉，最后统一裁一刀。
+    for i in range(len(picked) - 1, 0, -1):
+        nxt = next((p[3][0] for p in picked[i:] if p[3]), None)
+        if nxt is None:      # 后面全被裁空了，没有可参照的下界
+            continue
+        old = picked[i - 1][3]
+        cur = [n for n in old if n < nxt]
+        if not cur and old:
+            # 裁空有两种：①一页上确实印着两个条目（音乐"春景"和"sol mi"同在 p17），
+            # 起点没有越界 → 保留共享的那一页；②起点本身就跑到下一节之后去了，
+            # 是噪声（目录顺序与页序矛盾）→ 丢掉，别留一段伸进下一节的区间。
+            cur = [old[0]] if old[0] <= nxt else []
+        picked[i - 1] = (picked[i - 1][0], picked[i - 1][1], picked[i - 1][2], cur)
+
+    by_no = {p.get("page_no"): p for p in pages}
+    out = []
+    for e, start, end, nos in picked:
+        if not nos:          # 被下一节整体盖住的噪声条目，见上面的裁剪
+            continue
         per_page = [_clean(L.clean_page_lines((by_no.get(n) or {}).get("text") or ""))
                     for n in nos]
         lines = [ln for ls in per_page for ln in ls]

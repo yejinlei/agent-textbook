@@ -91,6 +91,32 @@ def _parse_array(text: str) -> list[dict]:
     raise ValueError("JSON 数组没有闭合")
 
 
+def _speaker_names(pages: list[dict], titles) -> set:
+    """目录条目里哪些其实是**教材角色名**。
+
+    旧版 PEP 在目录之前有一页「角色介绍」，看图抽目录时会把角色名当成目录条目
+    一起抽进来——六年级下册混进了 9 条（Zhang Peng / Amy / Zip / Zoom…），
+    它们的印刷页码（1~4）比真正的单元还小，于是后面每个单元的页区间都被顶到
+    册末（"How tall are you?" 变成 p6-75，整册 70 页）。
+
+    判据来自教材自己：角色名在正文对话里必然作说话人标签出现（`Zhang Peng:`）。
+    单元标题不会带这个冒号（"How tall are you?"、"Mike's happy days" 都安全），
+    所以不需要维护人名词表，也不会误伤。
+    """
+    body = "\n".join((p.get("text") or "") for p in pages)
+    out = set()
+    for t in titles or ():
+        t = (t or "").strip()
+        if not t or len(t) > 24 or re.search(r"[?!.,，。？:：]", t):
+            continue
+        words = t.split()
+        if not (1 <= len(words) <= 2) or not all(w[:1].isupper() for w in words):
+            continue
+        if re.search(r"\s*" + re.escape(t) + r"\s*:", body):
+            out.add(t)
+    return out
+
+
 def _validate(rows: list[dict], total_pages: int) -> list[dict]:
     """可校验的部分一律不放过：页码越界、页码倒退、标题为空。
 
@@ -174,6 +200,9 @@ def build_book_vlm(book_id: str, client=None, verbose: bool = False) -> dict:
         seen.add(k)
         uniq.append(r)
     uniq.sort(key=lambda x: int(x.get("page") or 0))
+    junk = _speaker_names(pages, [r.get("title") for r in uniq])
+    if junk:
+        uniq = [r for r in uniq if (r.get("title") or "").strip() not in junk]
     got = _validate(uniq, len(pages))
 
     title = meta.get("title", "")
