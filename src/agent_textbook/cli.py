@@ -209,6 +209,33 @@ def cmd_science(args) -> None:
                                   limit=args.limit, force=args.force)
 
 
+def cmd_mathex(args) -> None:
+    """数学本体深挖：例题（题面/分步解法/答案）与数学概念（含符号、性质）。"""
+    from .index import mathex
+
+    if args.kind == "concept":
+        mathex.build_concepts(subject=args.subject or "数学",
+                              limit=args.limit, force=args.force)
+    else:
+        mathex.build_examples(subject=args.subject or "数学",
+                              limit=args.limit, force=args.force)
+
+
+def cmd_enlang(args) -> None:
+    """英语本体深挖：情景对话（话轮）/ 句型语法 / 拼读。"""
+    from .index import enlang
+
+    if args.kind == "grammar":
+        enlang.build_grammar(subject=args.subject or "英语",
+                             limit=args.limit, force=args.force)
+    elif args.kind == "phonics":
+        enlang.build_phonics(subject=args.subject or "英语",
+                             limit=args.limit, force=args.force)
+    else:
+        enlang.build_dialogues(subject=args.subject or "英语",
+                               limit=args.limit, force=args.force)
+
+
 def cmd_formula(args) -> None:
     """数学公式 → LaTeX（看图，文本层里的公式是坏的）。"""
     from .index import formula
@@ -473,6 +500,23 @@ def main() -> None:
     sp.add_argument("--limit", type=int, default=0, help="本次最多抽多少页")
     sp.add_argument("--force", action="store_true", help="已抽过的页也重跑")
     sp.set_defaults(func=cmd_formula)
+
+    sp = sub.add_parser("mathex", help="数学本体深挖：例题（含步骤）/ 数学概念")
+    sp.add_argument("--kind", default="example", choices=["example", "concept"],
+                    help="example=例题与解题步骤，concept=数学概念")
+    sp.add_argument("--subject", default="数学", help="学科过滤")
+    sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少节")
+    sp.add_argument("--force", action="store_true", help="已抽过也重跑")
+    sp.set_defaults(func=cmd_mathex)
+
+    sp = sub.add_parser("enlang", help="英语本体深挖：情景对话 / 句型语法 / 拼读")
+    sp.add_argument("--kind", default="dialogue",
+                    choices=["dialogue", "grammar", "phonics"],
+                    help="dialogue=情景对话，grammar=句型语法，phonics=拼读")
+    sp.add_argument("--subject", default="英语", help="学科过滤")
+    sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少节")
+    sp.add_argument("--force", action="store_true", help="已抽过也重跑")
+    sp.set_defaults(func=cmd_enlang)
 
     sp = sub.add_parser("enwords", help="抽英语词汇表与常用表达（附录规则层）")
     sp.add_argument("--subject", default="英语", help="学科过滤")

@@ -55,7 +55,7 @@ def _clean(row: dict) -> dict:
     return {
         "latex": latex,
         "kind": kind,
-        "desc": (str(row.get("desc") or "").strip())[:40],
+        "note": (str(row.get("note") or row.get("desc") or "").strip())[:40],
         "vars": (str(row.get("vars") or "").strip())[:120],
     }
 
@@ -129,7 +129,7 @@ def build(subject: str = "数学", limit: int = 0, force: bool = False,
                 "subject": s.get("subject"), "grade": s.get("grade"),
                 "term": s.get("term"), "unit_name": s.get("unit_name"),
                 "title": s.get("title"), "page_no": n,
-                "latex": "", "kind": "", "desc": "", "vars": "",
+                "latex": "", "kind": "", "note": "", "vars": "",
                 "model": model, "ts": int(time.time()),
             })
             ok += 1
@@ -142,7 +142,7 @@ def build(subject: str = "数学", limit: int = 0, force: bool = False,
                 "subject": s.get("subject"), "grade": s.get("grade"),
                 "term": s.get("term"), "unit_name": s.get("unit_name"),
                 "title": s.get("title"), "page_no": n,
-                "latex": x["latex"], "kind": x["kind"], "desc": x["desc"],
+                "latex": x["latex"], "kind": x["kind"], "note": x["note"],
                 "vars": x["vars"], "model": model, "ts": int(time.time()),
             })
             nformula += 1

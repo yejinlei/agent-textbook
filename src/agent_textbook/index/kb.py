@@ -37,6 +37,12 @@ FORMULA_FILE = os.path.join(config.ATTRS_DIR, "section_formula.jsonl")
 # 科学本体：探究活动 + 科学概念（见 index/science.py）
 EXP_FILE = os.path.join(config.ATTRS_DIR, "experiment.jsonl")
 CONCEPT_FILE = os.path.join(config.ATTRS_DIR, "concept.jsonl")
+# 数学本体：例题（含解题步骤），公式的"用武之地"（见 index/mathex.py）
+EXAMPLE_FILE = os.path.join(config.ATTRS_DIR, "example.jsonl")
+# 英语本体：情景对话 / 句型语法 / 拼读（见 index/enlang.py）
+EN_DIALOGUE_FILE = os.path.join(config.ATTRS_DIR, "en_dialogue.jsonl")
+EN_GRAMMAR_FILE = os.path.join(config.ATTRS_DIR, "en_grammar.jsonl")
+EN_PHONICS_FILE = os.path.join(config.ATTRS_DIR, "en_phonics.jsonl")
 
 # 用 OR REPLACE 而不是 IF NOT EXISTS：表结构演进（如给 lesson_text 加 notes 列）
 # 时，IF NOT EXISTS 会静默沿用旧表，导入的列数对不上才暴露，排查成本高。
@@ -149,13 +155,44 @@ SCHEMA = [
         materials VARCHAR, steps VARCHAR, phenomenon VARCHAR, conclusion VARCHAR,
         variables VARCHAR, safety VARCHAR, page_hint VARCHAR,
         model VARCHAR, ts BIGINT)""",
-    # 科学概念：术语 + 定义 + 生活实例 + 常见迷思。
+    # 概念：术语 + 定义 + 生活实例 + 常见迷思，科学与数学共用（subject 区分）。
     # 术语列叫 name 而非 term —— term 在本库里一律指学期，重名会撞 Catalog Error。
+    # symbol/property 是数学概念才有的（数学表示、性质法则），科学留空。
     """CREATE OR REPLACE TABLE concept(
         concept_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
         subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
-        title VARCHAR, name VARCHAR, definition VARCHAR, example VARCHAR,
-        misconception VARCHAR, category VARCHAR, model VARCHAR, ts BIGINT)""",
+        title VARCHAR, name VARCHAR, definition VARCHAR, symbol VARCHAR,
+        property VARCHAR, example VARCHAR, misconception VARCHAR,
+        category VARCHAR, model VARCHAR, ts BIGINT)""",
+    # 数学例题：题面 + 分步解法 + 答案，formula_refs 存本节 LaTeX（JSON 串），
+    # 动画层拿它把"这一步"和"这条公式"对上
+    """CREATE OR REPLACE TABLE example(
+        example_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
+        subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
+        title VARCHAR, name VARCHAR, type VARCHAR, stem VARCHAR, given VARCHAR,
+        ask VARCHAR, steps VARCHAR, latex VARCHAR, answer VARCHAR,
+        answer_latex VARCHAR, keypoint VARCHAR, difficulty VARCHAR,
+        page_hint VARCHAR, formula_refs VARCHAR,
+        model VARCHAR, ts BIGINT)""",
+    # 英语情景对话：turns 与 patterns 存 JSON 串
+    """CREATE OR REPLACE TABLE en_dialogue(
+        dialogue_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
+        subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
+        title VARCHAR, scene VARCHAR, function VARCHAR, turns VARCHAR,
+        patterns VARCHAR, page_hint VARCHAR, model VARCHAR, ts BIGINT)""",
+    # 英语句型语法：可替换结构式 + 规则 + 例句（examples 存 JSON 串）
+    """CREATE OR REPLACE TABLE en_grammar(
+        grammar_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
+        subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
+        title VARCHAR, point VARCHAR, pattern VARCHAR, rule VARCHAR,
+        category VARCHAR, tense VARCHAR, examples VARCHAR, page_hint VARCHAR,
+        model VARCHAR, ts BIGINT)""",
+    # 英语拼读：字母（组合）+ 发音 + 例词 + 歌谣
+    """CREATE OR REPLACE TABLE en_phonics(
+        phonics_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
+        subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
+        title VARCHAR, letters VARCHAR, sound VARCHAR, examples VARCHAR,
+        chant VARCHAR, page_hint VARCHAR, model VARCHAR, ts BIGINT)""",
     # 插图描述（VLM 侧车）：一页一条，靠 (book_id, page_no) 挂到课/小节。
     # VLM 通道册的正文里也有 [图N]，那是转录时顺带写的，与本表不重复计。
     """CREATE OR REPLACE TABLE page_figure(
@@ -189,7 +226,8 @@ def build(subject: str = "", verbose: bool = True) -> dict:
               "lesson_genre", "lesson_structure", "lesson_glossary",
               "lesson_translation", "lesson_author", "author_intro",
               "section_text", "section_keypoint", "en_vocab", "en_expr",
-              "section_formula", "experiment", "concept", "page_figure"):
+              "section_formula", "experiment", "concept", "page_figure",
+              "example", "en_dialogue", "en_grammar", "en_phonics"):
         con.execute(f"DELETE FROM {t}")
 
     nb = nl = 0
@@ -475,20 +513,104 @@ def build(subject: str = "", verbose: bool = True) -> dict:
             if not l.strip():
                 continue
             r = json.loads(l)
-            if not r.get("term"):
+            # 旧科学记录里术语落在 term 键（当年与学期撞名），新记录用 term_name
+            name = (r.get("term_name") or r.get("term") or "").strip()
+            if not name:
                 continue
             g, t = sec_meta.get(r.get("section_id"), (r.get("grade"), r.get("term")))
             con.execute("INSERT OR REPLACE INTO concept VALUES (%s)"
-                        % ",".join(["?"] * 15), [
+                        % ",".join(["?"] * 17), [
                             r.get("concept_id"), r.get("section_id"),
                             r.get("book_id"), r.get("subject"),
                             r.get("grade") or g, t,
-                            r.get("unit_name"), r.get("title"),
-                            r.get("term_name") or r.get("term"), r.get("definition"),
-                            r.get("example"), r.get("misconception"), r.get("category"),
+                            r.get("unit_name"), r.get("title"), name,
+                            r.get("definition"), r.get("symbol") or "",
+                            r.get("property") or "", r.get("example"),
+                            r.get("misconception"), r.get("category"),
                             r.get("model"), r.get("ts"),
                         ])
             ncp += 1
+
+    nex = 0
+    if os.path.exists(EXAMPLE_FILE):
+        for l in open(EXAMPLE_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            if not r.get("stem"):
+                continue          # 空壳：该节没有题目
+            con.execute("INSERT OR REPLACE INTO example VALUES (%s)"
+                        % ",".join(["?"] * 23), [
+                            r.get("example_id"), r.get("section_id"),
+                            r.get("book_id"), r.get("subject"), r.get("grade"),
+                            r.get("term"), r.get("unit_name"), r.get("title"),
+                            r.get("name"), r.get("type"), r.get("stem"),
+                            r.get("given"), r.get("ask"), _j(r.get("steps")),
+                            _j(r.get("latex")),
+                            r.get("answer"), r.get("answer_latex"),
+                            r.get("keypoint"), r.get("difficulty"),
+                            r.get("page_hint"), _j(r.get("formula_refs")),
+                            r.get("model"), r.get("ts"),
+                        ])
+            nex += 1
+
+    ndia = 0
+    if os.path.exists(EN_DIALOGUE_FILE):
+        for l in open(EN_DIALOGUE_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            if not r.get("turns"):
+                continue          # 空壳：该节没有对话
+            con.execute("INSERT OR REPLACE INTO en_dialogue VALUES (%s)"
+                        % ",".join(["?"] * 15), [
+                            r.get("dialogue_id"), r.get("section_id"),
+                            r.get("book_id"), r.get("subject"), r.get("grade"),
+                            r.get("term"), r.get("unit_name"), r.get("title"),
+                            r.get("scene"), r.get("function"),
+                            _j(r.get("turns")), _j(r.get("patterns")),
+                            r.get("page_hint"), r.get("model") or "", r.get("ts"),
+                        ])
+            ndia += 1
+
+    ngra = 0
+    if os.path.exists(EN_GRAMMAR_FILE):
+        for l in open(EN_GRAMMAR_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            if not r.get("point"):
+                continue
+            con.execute("INSERT OR REPLACE INTO en_grammar VALUES (%s)"
+                        % ",".join(["?"] * 17), [
+                            r.get("grammar_id"), r.get("section_id"),
+                            r.get("book_id"), r.get("subject"), r.get("grade"),
+                            r.get("term"), r.get("unit_name"), r.get("title"),
+                            r.get("point"), r.get("pattern"), r.get("rule"),
+                            r.get("category"), r.get("tense"),
+                            _j(r.get("examples")), r.get("page_hint"),
+                            r.get("model") or "", r.get("ts"),
+                        ])
+            ngra += 1
+
+    nph = 0
+    if os.path.exists(EN_PHONICS_FILE):
+        for l in open(EN_PHONICS_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            if not r.get("letters"):
+                continue
+            con.execute("INSERT OR REPLACE INTO en_phonics VALUES (%s)"
+                        % ",".join(["?"] * 15), [
+                            r.get("phonics_id"), r.get("section_id"),
+                            r.get("book_id"), r.get("subject"), r.get("grade"),
+                            r.get("term"), r.get("unit_name"), r.get("title"),
+                            r.get("letters"), r.get("sound"),
+                            _j(r.get("examples")), r.get("chant"),
+                            r.get("page_hint"), r.get("model") or "", r.get("ts"),
+                        ])
+            nph += 1
 
     nfig = 0
     idx_path = os.path.join(config.FIGURES_DIR, "_index.jsonl")
@@ -521,15 +643,17 @@ def build(subject: str = "", verbose: bool = True) -> dict:
             "section_text": nse, "section_keypoint": nkp,
             "en_vocab": nvocab, "en_expr": nexpr, "section_formula": nfo,
             "experiment": nexp, "concept": ncp, "page_figure": nfig,
-            "db": DB_PATH}
+            "example": nex, "en_dialogue": ndia, "en_grammar": ngra,
+            "en_phonics": nph, "db": DB_PATH}
     if verbose:
         print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / "
               "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 / %d 条译文 / "
               "%d 条作者 / %d 条简介 / %d 节 / %d 条知识点 / "
               "%d 英语词 / %d 英语表达 / %d 条公式 / %d 个探究 / %d 个概念 / "
-              "%d 页插图 → %s"
+              "%d 页插图 / %d 道例题 / %d 段对话 / %d 条语法 / %d 条拼读 → %s"
               % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, nau, nin, nse, nkp,
-                 nvocab, nexpr, nfo, nexp, ncp, nfig, DB_PATH))
+                 nvocab, nexpr, nfo, nexp, ncp, nfig, nex, ndia, ngra, nph,
+                 DB_PATH))
     return stat
 
 
