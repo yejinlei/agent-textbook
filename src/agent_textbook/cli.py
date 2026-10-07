@@ -210,6 +210,13 @@ def cmd_toc(args) -> None:
         print("  %-4s %-4s %d 条" % (m.get("grade"), m.get("term"), len(r["entries"])))
 
 
+def cmd_keypoints(args) -> None:
+    """抽数学/科学的小节知识点（摘要 / 知识点 / 公式 / 术语）。"""
+    from .index import keypoints as kp
+
+    kp.build(limit=args.limit, force=args.force, subject=args.subject)
+
+
 def cmd_sections(args) -> None:
     """切分数学/科学的小节正文。"""
     from .index import sections as sc
@@ -468,6 +475,12 @@ def main() -> None:
     sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少条")
     sp.add_argument("--force", action="store_true", help="已处理过也重跑")
     sp.set_defaults(func=cmd_digest)
+
+    sp = sub.add_parser("keypoints", help="抽数学/科学小节知识点（摘要/知识点/公式/术语）")
+    sp.add_argument("--subject", default="", help="学科过滤（如 数学、科学）")
+    sp.add_argument("--limit", type=int, default=0, help="本次最多抽多少节")
+    sp.add_argument("--force", action="store_true", help="已抽过也重跑")
+    sp.set_defaults(func=cmd_keypoints)
 
     sp = sub.add_parser("sections", help="切分数学/科学小节正文（骨架 → 一节正文 + 例题/练习）")
     sp.add_argument("--subject", default="", help="学科过滤（如 数学、科学）")

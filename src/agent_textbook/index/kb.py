@@ -28,6 +28,7 @@ TRANS_FILE = os.path.join(config.ATTRS_DIR, "lesson_translation.jsonl")
 AUTHOR_FILE = os.path.join(config.ATTRS_DIR, "lesson_author.jsonl")
 INTRO_FILE = os.path.join(config.ATTRS_DIR, "author_intro.jsonl")
 SECTION_FILE = os.path.join(config.ATTRS_DIR, "section_text.jsonl")
+KP_FILE = os.path.join(config.ATTRS_DIR, "section_keypoints.jsonl")
 
 # 用 OR REPLACE 而不是 IF NOT EXISTS：表结构演进（如给 lesson_text 加 notes 列）
 # 时，IF NOT EXISTS 会静默沿用旧表，导入的列数对不上才暴露，排查成本高。
@@ -108,6 +109,12 @@ SCHEMA = [
         title VARCHAR, printed_from INTEGER, printed_to INTEGER,
         page_from INTEGER, page_to INTEGER, n_pages INTEGER, chars INTEGER,
         text VARCHAR, blocks VARCHAR, n_examples INTEGER, n_exercises INTEGER)""",
+    # 小节知识点（LLM 概括层）：概括正文而非添补外部知识，一节一条。
+    """CREATE OR REPLACE TABLE section_keypoint(
+        section_id VARCHAR PRIMARY KEY, book_id VARCHAR, subject VARCHAR,
+        grade VARCHAR, term VARCHAR, unit_name VARCHAR, title VARCHAR,
+        summary VARCHAR, points VARCHAR, formulas VARCHAR, terms VARCHAR,
+        model VARCHAR, ts BIGINT)""",
     # 插图描述（VLM 侧车）：一页一条，靠 (book_id, page_no) 挂到课/小节。
     # VLM 通道册的正文里也有 [图N]，那是转录时顺带写的，与本表不重复计。
     """CREATE OR REPLACE TABLE page_figure(
@@ -134,7 +141,7 @@ def build(subject: str = "", verbose: bool = True) -> dict:
     for t in ("books", "lessons", "words", "lesson_text", "lesson_meta", "piece",
               "lesson_genre", "lesson_structure", "lesson_glossary",
               "lesson_translation", "lesson_author", "author_intro",
-              "section_text", "page_figure"):
+              "section_text", "section_keypoint", "page_figure"):
         con.execute(f"DELETE FROM {t}")
 
     nb = nl = 0
@@ -318,6 +325,22 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                         ])
             nse += 1
 
+    nkp = 0
+    if os.path.exists(KP_FILE):
+        for l in open(KP_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO section_keypoint VALUES (%s)"
+                        % ",".join(["?"] * 13), [
+                            r.get("section_id"), r.get("book_id"), r.get("subject"),
+                            r.get("grade"), r.get("term"), r.get("unit_name"),
+                            r.get("title"), r.get("summary"), _j(r.get("points")),
+                            _j(r.get("formulas")), _j(r.get("terms")),
+                            r.get("model"), r.get("ts"),
+                        ])
+            nkp += 1
+
     nfig = 0
     idx_path = os.path.join(config.FIGURES_DIR, "_index.jsonl")
     if os.path.exists(idx_path):
@@ -346,13 +369,14 @@ def build(subject: str = "", verbose: bool = True) -> dict:
             "lesson_meta": nm, "piece": npi, "lesson_genre": ng,
             "lesson_structure": nst, "lesson_glossary": ngl,
             "lesson_translation": ntr, "lesson_author": nau, "author_intro": nin,
-            "section_text": nse, "page_figure": nfig, "db": DB_PATH}
+            "section_text": nse, "section_keypoint": nkp, "page_figure": nfig,
+            "db": DB_PATH}
     if verbose:
         print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / "
               "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 / %d 条译文 / "
-              "%d 条作者 / %d 条简介 / %d 节（数/科）/ %d 页插图 → %s"
-              % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, nau, nin, nse, nfig,
-                 DB_PATH))
+              "%d 条作者 / %d 条简介 / %d 节 / %d 条知识点 / %d 页插图 → %s"
+              % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, nau, nin, nse, nkp,
+                 nfig, DB_PATH))
     return stat
 
 
