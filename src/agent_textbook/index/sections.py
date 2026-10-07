@@ -83,6 +83,89 @@ def _blocks(lines: list[str]) -> list[dict]:
     return [b for b in out if b["text"].strip()]
 
 
+def _norm(s: str) -> str:
+    """单元名归一化：全角波浪/空格/破折号的不同写法会让页眉字符串对不上。
+
+    实测一年级单元"6~10的认识和加、减法"在目录里是半角 `~`、版面上印全角
+    `～`，不做归一化时整单元的锚点为 0，区间只能靠夹逼补出来。
+    """
+    s = (s or "").replace("～", "~").replace("－", "-").replace("　", "")
+    return re.sub(r"\s+", "", s)
+
+
+def unit_anchor_spans(pages: list[dict], entries: list[dict], toc_pages=None,
+                      max_gap: int = 4, min_cover: float = 0.6) -> dict | None:
+    """用**页眉上的单元名**给每个目录条目定位页区间。
+
+    为什么要绕开印刷页码
+    --------------------
+    数学册的页末没有独立页码行（页脚是"仅供个人学习使用"），``_guess_printed_no``
+    抓到的是版面里的题号，于是 printed_no 序列忽大忽小，按它切出来的单元会
+    张冠李戴——三年级上册"观察物体"的正文里塞进了"分数的初步认识"的内容。
+
+    页眉单元名是教材自己印的：一单元里的每一页（至少每隔一页）都会重复一次。
+    取每个单元名命中的**最长连续簇**（复习页会提到别的单元名，是离群点），
+    再按目录顺序夹逼，就能得到单调、不重叠的页区间。
+
+    返回 {lesson_id: (page_from, page_to)}；锚点不足以覆盖 min_cover 的条目时
+    返回 None，调用方回退到印刷页码方案。
+    """
+    toc = set(toc_pages or ())
+    body = [p for p in pages if isinstance(p.get("page_no"), int)
+            and p.get("page_no") not in toc]
+    if len(body) < 2 or len(entries) < 2:
+        return None
+    texts = {p["page_no"]: _norm(p.get("text") or "") for p in body}
+    nos = sorted(texts)
+    lo, hi = nos[0], nos[-1]
+
+    spans: list = []
+    for e in entries:
+        name = _norm(e.get("title") or "")
+        if len(name) < 2:
+            spans.append(None)
+            continue
+        hits = [n for n in nos if name in texts[n]]
+        if not hits:
+            spans.append(None)
+            continue
+        best, cur = [hits[0]], [hits[0]]
+        for n in hits[1:]:
+            if n - cur[-1] <= max_gap:
+                cur.append(n)
+            else:
+                if len(cur) > len(best):
+                    best = cur
+                cur = [n]
+        if len(cur) > len(best):
+            best = cur
+        spans.append((best[0], best[-1]))
+
+    if sum(1 for s in spans if s) < len(entries) * min_cover:
+        return None
+
+    n = len(entries)
+    start = [(spans[i][0] if spans[i] else None) for i in range(n)]
+    end = [(spans[i][1] if spans[i] else None) for i in range(n)]
+    # 前向：缺锚点的单元从上一单元结束的下一页开始
+    prev = lo
+    for i in range(n):
+        if start[i] is None or start[i] < prev:
+            start[i] = prev
+        prev = (end[i] if end[i] and end[i] >= start[i] else start[i]) + 1
+    # 后向：终点一律收到下一单元起点前一页，保证区间单调不重叠
+    nxt = hi
+    for i in range(n - 1, -1, -1):
+        if end[i] is None or end[i] > nxt:
+            end[i] = nxt
+        if start[i] > end[i]:
+            end[i] = start[i]
+        nxt = start[i] - 1
+    start[0] = max(start[0], lo)
+    end[-1] = min(end[-1], hi)
+    return {entries[i].get("lesson_id"): (start[i], end[i]) for i in range(n)}
+
+
 def _page_offset(pages: list[dict], entries: list[dict], toc_pages) -> int | None:
     """印刷页码 → 页序 的偏移量（page_no = printed + offset）。
 
@@ -135,6 +218,11 @@ def build_book(book_id: str) -> list[dict]:
     # 整册都没有印刷页码时（科学有 9 册如此）不能就此返回——后面还有按偏移
     # 换算页序的兜底，这里退场等于整册不切。
     last_printed = max(by) if by else (max(starts_all) if starts_all else 0)
+    # 页眉单元名锚定：数学册的印刷页码抽不准（见 unit_anchor_spans 的说明），
+    # 锚定成功时以它为准，否则退回页码方案。
+    anchor = unit_anchor_spans(pages, entries, head.get("toc_pages")) or {}
+    all_nos = sorted(p.get("page_no") for p in pages
+                     if isinstance(p.get("page_no"), int))
 
     out = []
     for i, e in enumerate(entries):
@@ -150,6 +238,11 @@ def build_book(book_id: str) -> list[dict]:
         off = _page_offset(pages, entries, head.get("toc_pages"))
         nos_off = _page_no_keys(pages, start, end, off) if off is not None else []
         nos = nos_print if len(nos_print) >= len(nos_off) else (nos_off or nos_print)
+        sp = anchor.get(e.get("lesson_id"))
+        nos_anchor = [n for n in all_nos if sp and sp[0] <= n <= sp[1]]
+        # 锚定是内容级证据（页里确实印着这个单元名），不是退化成 1 页就以它为准
+        if len(nos_anchor) > 1:
+            nos = nos_anchor
         if not nos:
             continue
         by_no = {p.get("page_no"): p for p in pages}

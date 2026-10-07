@@ -60,6 +60,56 @@ def _clean(row: dict) -> dict:
     }
 
 
+def retag(subject: str = "数学", verbose: bool = True) -> dict:
+    """单元页区间修正后，把已抽出的公式重挂到正确的单元。
+
+    公式是逐页看图抽的，latex 本身没错；错的是归属——早先按印刷页码切的小节
+    区间是乱的，公式的 section_id/unit_name/title 跟着挂到了别的单元。
+    按新的（页眉锚定的）区间重挂这三个字段即可，不必再付一遍 VLM 的成本。
+    page_key 与 formula_id 保持不变，续跑时不会重复抽同一页。
+    """
+    src = os.path.join(config.ATTRS_DIR, "section_text.jsonl")
+    if not os.path.exists(src) or not os.path.exists(ATTR_FILE):
+        return {"n": 0, "fix": 0}
+    secs = [json.loads(l) for l in open(src, encoding="utf-8") if l.strip()]
+    if subject:
+        secs = [r for r in secs if r.get("subject") == subject]
+    by_book: dict[str, list[dict]] = {}
+    for r in secs:
+        by_book.setdefault(r.get("book_id") or "", []).append(r)
+    for v in by_book.values():
+        v.sort(key=lambda r: r.get("page_from") or 0)
+
+    rows = [json.loads(l) for l in open(ATTR_FILE, encoding="utf-8") if l.strip()]
+    nfix = 0
+    for r in rows:
+        if subject and r.get("subject") != subject:
+            continue
+        cand = by_book.get(r.get("book_id") or "") or []
+        pg = r.get("page_no")
+        hit = next((s for s in cand
+                    if isinstance(s.get("page_from"), int)
+                    and isinstance(s.get("page_to"), int)
+                    and isinstance(pg, int)
+                    and s["page_from"] <= pg <= s["page_to"]), None)
+        if hit is None:  # 落在单元之间（单元扉页）：归到紧邻的下一个单元
+            hit = next((s for s in cand if isinstance(s.get("page_from"), int)
+                        and isinstance(pg, int) and s["page_from"] > pg), None)
+        if hit is None:
+            hit = cand[-1] if cand else None
+        if hit is None or hit.get("section_id") == r.get("section_id"):
+            continue
+        r.update(section_id=hit.get("section_id"),
+                 unit_name=hit.get("unit_name"), title=hit.get("title"))
+        nfix += 1
+    with open(ATTR_FILE, "w", encoding="utf-8") as f:
+        for r in rows:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    if verbose:
+        print("→ %s（重挂 %d / %d 条公式）" % (ATTR_FILE, nfix, len(rows)))
+    return {"n": len(rows), "fix": nfix}
+
+
 def build(subject: str = "数学", limit: int = 0, force: bool = False,
           verbose: bool = True) -> dict:
     """逐页看图抽公式：按 (section_id, page_no) 续跑。"""

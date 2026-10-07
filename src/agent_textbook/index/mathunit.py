@@ -125,6 +125,49 @@ def _text_of(pages: list[dict], start: int, end: int) -> tuple[str, list[dict], 
     return text, S._blocks(lines), len(nos)
 
 
+def _toc_of(book_id: str) -> set:
+    path = os.path.join(config.OUTLINE_DIR, book_id + ".jsonl")
+    if not os.path.exists(path):
+        return set()
+    rows = [json.loads(l) for l in open(path, encoding="utf-8") if l.strip()]
+    return set((rows[0].get("toc_pages") or [])) if rows else set()
+
+
+def _section_of(secs: list[dict], page: int):
+    """按页定位所属单元；页落在单元之间的空档（单元扉页）时归到最近的下一个。
+
+    教材的单元区间是按页眉锚定切的，单元扉页常常落在上一个单元的区间之外，
+    硬判"落在区间内"会把整单元的课丢掉（实测三上"观察物体"整单元消失）。
+    """
+    hit = None
+    for r in secs:
+        pf, pt = r.get("page_from"), r.get("page_to")
+        if isinstance(pf, int) and isinstance(pt, int) and pf <= page <= pt:
+            hit = r
+            break
+    if hit is not None:
+        return hit
+    nxt = next((r for r in secs if isinstance(r.get("page_from"), int)
+                and r.get("page_from") > page), None)
+    if nxt is not None:
+        return nxt
+    return next((r for r in secs if isinstance(r.get("page_to"), int)
+                 and r.get("page_to") < page), None)
+
+
+def _sections_of(subject: str) -> dict[str, list[dict]]:
+    sec_path = os.path.join(config.ATTRS_DIR, "section_text.jsonl")
+    if not os.path.exists(sec_path):
+        return {}
+    secs = [json.loads(l) for l in open(sec_path, encoding="utf-8") if l.strip()]
+    if subject:
+        secs = [r for r in secs if r.get("subject") == subject]
+    out: dict[str, list[dict]] = {}
+    for r in secs:
+        out.setdefault(r.get("book_id"), []).append(r)
+    return out
+
+
 def build(subject: str = "数学", limit: int = 0, force: bool = False,
           verbose: bool = True) -> dict:
     """逐册切课时：规则筛候选 → LLM 判定 → 落到单元级小节下。"""
@@ -214,12 +257,7 @@ def build(subject: str = "数学", limit: int = 0, force: bool = False,
         recs = []
         for k, ls in enumerate(lessons, 1):
             pg = ls["page"]
-            sec = None
-            for r in mine:
-                pf, pt = r.get("page_from"), r.get("page_to")
-                if isinstance(pf, int) and isinstance(pt, int) and pf <= pg <= pt:
-                    sec = r
-                    break
+            sec = _section_of(mine, pg)
             if sec is None:
                 continue
             nxt = next((x["page"] for x in lessons[k:] if x["page"] > pg), None)
@@ -232,7 +270,8 @@ def build(subject: str = "数学", limit: int = 0, force: bool = False,
                 "section_id": sec.get("section_id"),
                 "book_id": bid, "subject": meta.get("subject") or "",
                 "grade": meta.get("grade") or "", "term": meta.get("term") or "",
-                "unit_name": (ls.get("unit") or sec.get("unit_name") or "").strip()[:40],
+                # 单元名只认目录：VLM 填的 unit 有时是"第2单元"甚至课名本身
+                "unit_name": (sec.get("title") or "").strip()[:40],
                 "title": (ls.get("title") or "").strip()[:60],
                 "seq": k, "printed_start": None,
                 "page_from": pg, "page_to": end, "n_pages": npages,
@@ -272,3 +311,240 @@ def build(subject: str = "数学", limit: int = 0, force: bool = False,
     if verbose:
         print("→ %s（册 %d / 失败 %d / 课时 %d）" % (SUBSEC_FILE, ok, fail, nsub))
     return {"ok": ok, "fail": fail, "n": nsub}
+
+
+def retag(subject: str = "数学", verbose: bool = True) -> dict:
+    """单元区间修好后，把已切出的课时重新挂回正确的单元下。
+
+    sections 早先按印刷页码切区间，而数学册的 printed_no 是乱的（取到的是版面
+    题号），课时归属跟着错：单元名填成"第2单元"、甚至整单元的课被丢掉。区间
+    改成页眉锚定之后重挂一次即可，不必再付一遍 VLM 判页的成本。
+    """
+    books = _sections_of(subject)
+    if not books or not os.path.exists(SUBSEC_FILE):
+        return {"ok": 0, "n": 0}
+    old = [json.loads(l) for l in open(SUBSEC_FILE, encoding="utf-8") if l.strip()]
+    subs: dict[str, list[dict]] = {}
+    for r in old:
+        if r.get("title") and r.get("book_id") in books:
+            subs.setdefault(r.get("book_id"), []).append(r)
+
+    new: list[dict] = []
+    for bid, rows in subs.items():
+        meta, pages = ol.load_book(bid)
+        if not pages:
+            continue
+        mine = sorted(books[bid], key=lambda r: r.get("page_from") or 0)
+        for r in rows:
+            r["_sec"] = _section_of(mine, r.get("page_from") or 0)
+        groups: dict[str, list[dict]] = {}
+        for r in rows:
+            sec = r.get("_sec")
+            if sec is None:
+                continue
+            groups.setdefault(sec.get("section_id") or "", []).append(r)
+        for sid, grp in groups.items():
+            grp.sort(key=lambda r: r.get("page_from") or 0)
+            sec = grp[0]["_sec"]
+            for k, r in enumerate(grp, 1):
+                pf = r.get("page_from")
+                nxt = grp[k].get("page_from") if k < len(grp) else None
+                pt = (nxt - 1) if isinstance(nxt, int) else (sec.get("page_to") or pf)
+                hi = sec.get("page_to")
+                if isinstance(hi, int) and (pt > hi or not isinstance(pt, int)):
+                    pt = hi
+                text, blks, npages = _text_of(pages, pf, pt)
+                r.update(section_id=sec.get("section_id"),
+                         subsection_id="%s:%02d" % (sec.get("section_id"), k),
+                         unit_name=(sec.get("title") or "")[:40], seq=k,
+                         # 年级学期只认目录：parsed 的 meta 里这两项是空的
+                         grade=sec.get("grade") or r.get("grade") or "",
+                         term=sec.get("term") or r.get("term") or "",
+                         page_to=pt, n_pages=npages, chars=len(text),
+                         text=text, blocks=blks)
+                r.pop("_sec", None)
+                new.append(r)
+        if verbose:
+            print("  %s%s → %d 课" % (meta.get("grade") or "", meta.get("term") or "",
+                                      len([x for x in new if x.get("book_id") == bid])))
+    done = set(id(r) for r in new)
+    keep = [r for r in old if id(r) in done or not (
+        r.get("title") and r.get("book_id") in books)]
+    with open(SUBSEC_FILE, "w", encoding="utf-8") as f:
+        for r in keep:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    if verbose:
+        print("→ %s（重挂 %d 课）" % (SUBSEC_FILE, len(new)))
+    return {"ok": len(subs), "n": len(new)}
+
+
+PROMPT_GAP = (
+    "看这一页小学数学教材。它位于前后两节课之间的空档里，上一轮没有判成新课。\n"
+    "请判断这一页是不是某一节课（含复习课、实践活动课、整理与复习）的**第一页**。\n"
+    "只输出 JSON，不要解释：\n"
+    '{"is_start": true, "title": "课标题", "unit": "单元名"}\n'
+    "或\n"
+    '{"is_start": false}\n'
+    "要求：\n"
+    "1. 页面顶部印有课标题（3~16 字短语）就判 true，title 照抄标题。\n"
+    "2. 上一课的续页、练习页、单元扉页续页、目录附录都判 false。\n"
+    "3. 拿不准就判 false。\n"
+)
+
+
+def fill_gaps(subject: str = "数学", min_gap: int = 2, inner_span: int = 5,
+              dpi: int = 150, limit: int = 0, verbose: bool = True) -> dict:
+    """补漏：漏判的课起始页再判一次。
+
+    查两类页：
+      1. 课时之间没被任何课覆盖的空档页（连续段短于 min_gap 的跳过）；
+      2. **跨度大的课的内部页** —— 课数偏少的主因不是覆盖不足，而是相邻几课
+         被并成了一课（实测空档只有 9 页/册，但课跨十几页）。所以页数超过
+         inner_span 的课，除首页外一律复查。
+    只看这两类页，页数少，可以提高 dpi 换准确率。
+    """
+    books = _sections_of(subject)
+    if not books or not os.path.exists(SUBSEC_FILE):
+        return {"ok": 0, "fail": 0, "n": 0}
+    subs: dict[str, list[dict]] = {}
+    for l in open(SUBSEC_FILE, encoding="utf-8"):
+        if not l.strip():
+            continue
+        r = json.loads(l)
+        if r.get("title"):
+            subs.setdefault(r.get("book_id"), []).append(r)
+    book_ids = [b for b in books if b in subs]
+    if limit:
+        book_ids = book_ids[:limit]
+    if verbose:
+        print("待补漏：%d 册" % len(book_ids))
+
+    ok = fail = nnew = 0
+    for i, bid in enumerate(book_ids, 1):
+        meta, pages = ol.load_book(bid)
+        if not meta or not pages:
+            fail += 1
+            continue
+        rec = find_book(bid)
+        if not rec or not rec.get("_abs"):
+            fail += 1
+            continue
+        toc = _toc_of(bid)
+        mine = sorted(books[bid], key=lambda r: r.get("page_from") or 0)
+        lo = min((r.get("page_from") for r in mine
+                  if isinstance(r.get("page_from"), int)), default=None)
+        hi = max((r.get("page_to") for r in mine
+                  if isinstance(r.get("page_to"), int)), default=None)
+        if lo is None or hi is None:
+            ok += 1
+            continue
+        covered = set()
+        inner: set = set()
+        for r in subs[bid]:
+            pf, pt = r.get("page_from"), r.get("page_to")
+            if not (isinstance(pf, int) and isinstance(pt, int)):
+                continue
+            covered |= set(range(pf, pt + 1))
+            # 跨度过长的课：内部很可能藏着没判出来的课起始页
+            if pt - pf + 1 >= inner_span:
+                inner |= set(range(pf + 1, pt))
+        gap = sorted({n for n in range(lo, hi + 1)
+                      if n not in covered and n not in toc} | inner)
+        # 空档切成连续段，太短的（1 页）通常是上节课的尾巴，跳过
+        segs, cur = [], []
+        for n in gap:
+            if cur and n == cur[-1] + 1:
+                cur.append(n)
+            else:
+                if len(cur) >= min_gap or (cur and cur[0] in inner):
+                    segs.append(cur)
+                cur = [n]
+        if len(cur) >= min_gap or (cur and cur[0] in inner):
+            segs.append(cur)
+        if not segs:
+            ok += 1
+            continue
+
+        client = vlm.VLMClient()
+        found: dict[int, dict] = {}
+        model = ""
+        for seg in segs:
+            for n in seg:
+                for attempt in range(3):
+                    try:
+                        r = vlm.extract_page_vlm(rec["_abs"], n, client=client,
+                                                 prompt=PROMPT_GAP, dpi=dpi)
+                        obj = _json_obj(r.text)
+                        model = r.model
+                        if obj.get("is_start") and (obj.get("title") or "").strip():
+                            found[n] = {"page": n,
+                                        "title": str(obj.get("title")).strip()[:60],
+                                        "unit": str(obj.get("unit") or "").strip()[:40]}
+                        break
+                    except Exception as exc:
+                        if attempt < 2 and vlm.needs_backoff(
+                                f"{type(exc).__name__}: {exc}"):
+                            time.sleep((10, 30)[attempt])
+        if not found:
+            ok += 1
+            if verbose:
+                print("  [%d/%d] %s 空档 %d 页 → 无新课"
+                      % (i, len(book_ids), meta.get("title"), len(gap)))
+            continue
+
+        # 旧课 + 新课一起重排：page_to 一律改到下一课首页的前一页
+        lessons = [{"page": r.get("page_from"), "title": r.get("title"),
+                    "unit": r.get("unit_name")} for r in subs[bid]]
+        lessons.extend(found.values())
+        lessons.sort(key=lambda x: x["page"])
+        recs = []
+        for k, ls in enumerate(lessons, 1):
+            pg = ls["page"]
+            sec = _section_of(mine, pg)
+            if sec is None:
+                continue
+            nxt = next((x["page"] for x in lessons[k:] if x["page"] > pg), None)
+            end = (nxt - 1) if nxt else (sec.get("page_to") or pg)
+            if end > (sec.get("page_to") or pg):
+                end = sec.get("page_to") or pg
+            text, blks, npages = _text_of(pages, pg, end)
+            recs.append({
+                "subsection_id": "%s:%02d" % (sec.get("section_id"), k),
+                "section_id": sec.get("section_id"), "book_id": bid,
+                "subject": meta.get("subject") or "",
+                "grade": meta.get("grade") or "", "term": meta.get("term") or "",
+                "unit_name": (sec.get("title") or "")[:40],
+                "title": (ls.get("title") or "")[:60], "seq": k,
+                "printed_start": None, "page_from": pg, "page_to": end,
+                "n_pages": npages, "chars": len(text), "text": text,
+                "blocks": blks, "model": model, "ts": int(time.time()),
+            })
+        merged = []
+        for idx, r in enumerate(recs):
+            nxt = recs[idx + 1] if idx + 1 < len(recs) else None
+            if ((r.get("chars") or 0) < 200 and nxt is not None
+                    and (nxt.get("page_from") or 0) <= (r.get("page_to") or 0) + 1):
+                nxt["page_from"] = r.get("page_from")
+                nxt["text"], nxt["blocks"], nxt["n_pages"] = _text_of(
+                    pages, nxt["page_from"], nxt["page_to"])
+                nxt["chars"] = len(nxt["text"])
+                continue
+            merged.append(r)
+        recs = merged
+
+        keep = [json.loads(l) for l in open(SUBSEC_FILE, encoding="utf-8")
+                if l.strip()]
+        keep = [r for r in keep if r.get("book_id") != bid]
+        keep.extend(recs)
+        with open(SUBSEC_FILE, "w", encoding="utf-8") as f:
+            for r in keep:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+        nnew += len(found)
+        ok += 1
+        if verbose:
+            print("  [%d/%d] %s 空档 %d 页 → 补 %d 课，共 %d 课"
+                  % (i, len(book_ids), meta.get("title"), len(gap),
+                     len(found), len(recs)))
+    if verbose:
+        print("→ %s（册 %d / 失败 %d / 补 %d 课）" % (SUBSEC_FILE, ok, fail, nnew))
+    return {"ok": ok, "fail": fail, "n": nnew}

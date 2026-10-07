@@ -238,18 +238,29 @@ def cmd_enlang(args) -> None:
 
 
 def cmd_mathunit(args) -> None:
-    """数学课级切分：规则筛候选页 + LLM 判定，把单元拆成教材真实课时。"""
+    """数学课级切分：--retag 重挂单元 / --fill-gaps 补漏 / 默认全页 VLM 判定。"""
     from .index import mathunit
 
-    mathunit.build(subject=args.subject or "数学", limit=args.limit,
-                   force=args.force)
+    if getattr(args, "retag", False):
+        mathunit.retag(subject=args.subject or "数学")
+    elif getattr(args, "fill_gaps", False):
+        mathunit.fill_gaps(subject=args.subject or "数学",
+                           min_gap=getattr(args, "min_gap", 2),
+                           limit=args.limit)
+    else:
+        mathunit.build(subject=args.subject or "数学", limit=args.limit,
+                       force=args.force)
 
 
 def cmd_formula(args) -> None:
-    """数学公式 → LaTeX（看图，文本层里的公式是坏的）。"""
+    """数学公式 → LaTeX（看图，文本层里的公式是坏的）；--retag 只重挂单元。"""
     from .index import formula
 
-    formula.build(subject=args.subject or "数学", limit=args.limit, force=args.force)
+    if getattr(args, "retag", False):
+        formula.retag(subject=args.subject or "数学")
+    else:
+        formula.build(subject=args.subject or "数学", limit=args.limit,
+                      force=args.force)
 
 
 def cmd_enwords(args) -> None:
@@ -508,6 +519,8 @@ def main() -> None:
     sp.add_argument("--subject", default="数学", help="学科过滤")
     sp.add_argument("--limit", type=int, default=0, help="本次最多抽多少页")
     sp.add_argument("--force", action="store_true", help="已抽过的页也重跑")
+    sp.add_argument("--retag", action="store_true",
+                    help="单元页区间变了之后，把已有公式重挂到正确单元")
     sp.set_defaults(func=cmd_formula)
 
     sp = sub.add_parser("mathex", help="数学本体深挖：例题（含步骤）/ 数学概念")
@@ -531,6 +544,12 @@ def main() -> None:
 
     sp = sub.add_parser("mathunit", help="数学课级切分：单元级小节再拆成课时")
     sp.add_argument("--subject", default="数学", help="学科过滤")
+    sp.add_argument("--fill-gaps", action="store_true",
+                    help="补漏模式：只复查课时之间没被覆盖的页")
+    sp.add_argument("--retag", action="store_true",
+                    help="重挂模式：单元页区间变了之后，把课时重新归到正确单元")
+    sp.add_argument("--min-gap", type=int, default=2,
+                    help="补漏：至少连续几页的空档才复查")
     sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少册")
     sp.add_argument("--force", action="store_true", help="已切过也重跑")
     sp.set_defaults(func=cmd_mathunit)
