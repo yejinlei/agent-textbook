@@ -134,12 +134,13 @@ SCHEMA = [
         expr_id VARCHAR PRIMARY KEY, book_id VARCHAR, subject VARCHAR,
         grade VARCHAR, term VARCHAR, unit_no INTEGER, en VARCHAR,
         zh VARCHAR, printed_page INTEGER)""",
-    # 数学公式（看图抽的 LaTeX）：一页可有多条，靠 page_key 续跑去重
+    # 数学公式（看图抽的 LaTeX）：一页可有多条，靠 page_key 续跑去重。
+    # 列名不叫 desc —— 那是 DuckDB 保留字，裸写会撞语法错误。
     """CREATE OR REPLACE TABLE section_formula(
         formula_id VARCHAR PRIMARY KEY, page_key VARCHAR, section_id VARCHAR,
         book_id VARCHAR, subject VARCHAR, grade VARCHAR, term VARCHAR,
         unit_name VARCHAR, title VARCHAR, page_no INTEGER, latex VARCHAR,
-        kind VARCHAR, desc VARCHAR, vars VARCHAR, model VARCHAR, ts BIGINT)""",
+        kind VARCHAR, note VARCHAR, vars VARCHAR, model VARCHAR, ts BIGINT)""",
     # 科学探究活动：器材/步骤/变量/现象/结论，数组与对象存 JSON 串
     """CREATE OR REPLACE TABLE experiment(
         exp_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
@@ -148,11 +149,12 @@ SCHEMA = [
         materials VARCHAR, steps VARCHAR, phenomenon VARCHAR, conclusion VARCHAR,
         variables VARCHAR, safety VARCHAR, page_hint VARCHAR,
         model VARCHAR, ts BIGINT)""",
-    # 科学概念：术语 + 定义 + 生活实例 + 常见迷思
+    # 科学概念：术语 + 定义 + 生活实例 + 常见迷思。
+    # 术语列叫 name 而非 term —— term 在本库里一律指学期，重名会撞 Catalog Error。
     """CREATE OR REPLACE TABLE concept(
         concept_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
         subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
-        title VARCHAR, term VARCHAR, definition VARCHAR, example VARCHAR,
+        title VARCHAR, name VARCHAR, definition VARCHAR, example VARCHAR,
         misconception VARCHAR, category VARCHAR, model VARCHAR, ts BIGINT)""",
     # 插图描述（VLM 侧车）：一页一条，靠 (book_id, page_no) 挂到课/小节。
     # VLM 通道册的正文里也有 [图N]，那是转录时顺带写的，与本表不重复计。
@@ -165,7 +167,13 @@ SCHEMA = [
 
 def connect() -> duckdb.DuckDBPyConnection:
     os.makedirs(config.DATA_DIR, exist_ok=True)
-    return duckdb.connect(DB_PATH)
+    con = duckdb.connect(DB_PATH)
+    # 逐条 INSERT 大表（公式 6k 行、概念 2k 行、插图 4k 页）时不设上限会 OOM：
+    # 限制内存 + 允许溢写到磁盘，慢一点但不会中途炸掉
+    con.execute("SET memory_limit='3GB'")
+    con.execute("SET temp_directory='%s'" % os.path.join(
+        config.DATA_DIR, "_tmp").replace("\\", "/"))
+    return con
 
 
 def build(subject: str = "", verbose: bool = True) -> dict:
@@ -423,8 +431,9 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                             r.get("formula_id"), r.get("page_key"),
                             r.get("section_id"), r.get("book_id"),
                             r.get("subject"), r.get("grade"), r.get("term"),
-                            r.get("unit_name"), r.get("title"), r.get("page_no"),
-                            r.get("latex"), r.get("kind"), r.get("desc"),
+                            r.get("unit_name"), r.get("title"),                             r.get("page_no"),
+                            r.get("latex"), r.get("kind"),
+                            r.get("note") or r.get("desc"),
                             r.get("vars"), r.get("model"), r.get("ts"),
                         ])
             nfo += 1
@@ -453,19 +462,30 @@ def build(subject: str = "", verbose: bool = True) -> dict:
 
     ncp = 0
     if os.path.exists(CONCEPT_FILE):
+        # 早期概念记录里"学期"被"术语"覆盖了同一个 term 键，用小节层回填学期/年级，
+        # 免得为了修字段把 300 节的抽取重跑一遍
+        sec_meta = {}
+        if os.path.exists(SECTION_FILE):
+            for l2 in open(SECTION_FILE, encoding="utf-8"):
+                if not l2.strip():
+                    continue
+                s = json.loads(l2)
+                sec_meta[s.get("section_id")] = (s.get("grade"), s.get("term"))
         for l in open(CONCEPT_FILE, encoding="utf-8"):
             if not l.strip():
                 continue
             r = json.loads(l)
             if not r.get("term"):
                 continue
+            g, t = sec_meta.get(r.get("section_id"), (r.get("grade"), r.get("term")))
             con.execute("INSERT OR REPLACE INTO concept VALUES (%s)"
                         % ",".join(["?"] * 15), [
                             r.get("concept_id"), r.get("section_id"),
-                            r.get("book_id"), r.get("subject"), r.get("grade"),
-                            r.get("term"), r.get("unit_name"), r.get("title"),
-                            r.get("term"), r.get("definition"), r.get("example"),
-                            r.get("misconception"), r.get("category"),
+                            r.get("book_id"), r.get("subject"),
+                            r.get("grade") or g, t,
+                            r.get("unit_name"), r.get("title"),
+                            r.get("term_name") or r.get("term"), r.get("definition"),
+                            r.get("example"), r.get("misconception"), r.get("category"),
                             r.get("model"), r.get("ts"),
                         ])
             ncp += 1
