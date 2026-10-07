@@ -102,8 +102,15 @@ def find_toc_pages(pages: list[dict], max_scan: int = 12) -> list[int]:
     return out
 
 
-def parse_toc_lines(lines: list[str], book_id: str = "") -> list[dict]:
-    """解析目录行序列，带跨行/跨页状态（单元、栏目）。"""
+def parse_toc_lines(lines: list[str], book_id: str = "",
+                    subject: str = "") -> list[dict]:
+    """解析目录行序列，带跨行/跨页状态（单元、栏目）。
+
+    板块（栏目）白名单按学科取，见 index/ontology.py：语文的「习作」和科学
+    的「实验」不是一回事，用一套名单会把学科特性抹平。
+    """
+    from .ontology import sections_of
+    sec_names = sections_of(subject) or SECTION_NAMES
     state = {"unit_no": None, "unit_name": None, "unit_tag": None, "section": None}
     entries = []
     seq = [0]
@@ -139,11 +146,11 @@ def parse_toc_lines(lines: list[str], book_id: str = "") -> list[dict]:
             state["unit_no"] = CN_NUM.get(cn)
             state["unit_name"] = f"第{cn}单元"
             state["unit_tag"] = m.group(2)
-            state["section"] = m.group(2) if m.group(2) in SECTION_NAMES else None
+            state["section"] = m.group(2) if m.group(2) in sec_names else None
             i += 1
             continue
 
-        if ln in SECTION_NAMES:
+        if ln in sec_names:
             state["section"] = ln
             i += 1
             continue
@@ -235,7 +242,7 @@ def build_book(book_id: str) -> dict:
         lines.extend(_clean_lines(pages[i]))
     # book_id 必须传进去：lesson_id 靠它做前缀，漏传会让 12 册的
     # lesson_id 全部退化成 ":001/:002…"，跨册主键冲突、互相覆盖。
-    entries = parse_toc_lines(lines, book_id)
+    entries = parse_toc_lines(lines, book_id, meta.get("subject", ""))
     title = meta.get("title", "")
     term = "上册" if "上册" in title else ("下册" if "下册" in title else "")
     head = {
@@ -278,6 +285,18 @@ def build_all(subject: str = "", verbose: bool = True) -> list[dict]:
             continue
         r = build_book(bid)
         if r.get("entries"):
+            # 看图通道抽的骨架往往比规则版完整（规则读不懂分栏/表格目录），
+            # 所以规则结果更差时**不许覆盖**——否则一次 outline 重跑就把
+            # 花钱抽出来的册打回半份（科学就吃过这个亏：304 → 156 条）。
+            path = os.path.join(config.OUTLINE_DIR, bid + ".jsonl")
+            if os.path.exists(path):
+                old = sum(1 for l in open(path, encoding="utf-8") if l.strip()) - 1
+                if old > len(r["entries"]):
+                    if verbose:
+                        print("  [keep] %s%s 已有 %d 条 > 规则 %d 条，不覆盖" % (
+                            r["meta"].get("grade"), r["meta"].get("term"),
+                            old, len(r["entries"])))
+                    continue
             save_book(r)
             results.append(r)
             if verbose:
