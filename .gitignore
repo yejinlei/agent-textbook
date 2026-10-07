@@ -17,6 +17,8 @@ __pycache__/
 #   python -m agent_textbook catalog
 #   python -m agent_textbook fetch --preset hangzhou --stage 小学
 books/
+# 兜底：除 PDF 外一切入库，故 PDF 无论落在哪个目录都不进版本库
+*.pdf
 logs/
 *.part
 
