@@ -1,4 +1,8 @@
-data/backup/
+# 知识库备份入库（单个约 10MB，未压缩、体积可控；远端不放就得另找地方存，
+# 反而容易和代码版本脱节）。注意：目录本身要写成 data/backup/* 而非 data/backup/，
+# 否则父目录被整体忽略，下一行的取反规则不会生效。
+data/backup/*
+!data/backup/*.zip
 
 .venv/
 __pycache__/
