@@ -229,6 +229,13 @@ def build(subject: str = "", verbose: bool = True) -> dict:
               "section_formula", "experiment", "concept", "page_figure",
               "example", "en_dialogue", "en_grammar", "en_phonics"):
         con.execute(f"DELETE FROM {t}")
+    # 清空后先落盘：旧版本行一直攒在内存/WAL 里，后面逐条 INSERT 大表会 OOM
+    con.execute("CHECKPOINT")
+
+    def _tick(i: int) -> None:
+        """大表导入时定期落盘，把已完成的行从内存里放掉。"""
+        if i and i % 2000 == 0:
+            con.execute("CHECKPOINT")
 
     nb = nl = 0
     for f in sorted(glob.glob(os.path.join(config.OUTLINE_DIR, "*.jsonl"))):
@@ -475,6 +482,7 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                             r.get("vars"), r.get("model"), r.get("ts"),
                         ])
             nfo += 1
+            _tick(nfo)
 
     nexp = 0
     if os.path.exists(EXP_FILE):
@@ -530,6 +538,7 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                             r.get("model"), r.get("ts"),
                         ])
             ncp += 1
+            _tick(ncp)
 
     nex = 0
     if os.path.exists(EXAMPLE_FILE):
@@ -553,6 +562,7 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                             r.get("model"), r.get("ts"),
                         ])
             nex += 1
+            _tick(nex)
 
     ndia = 0
     if os.path.exists(EN_DIALOGUE_FILE):
@@ -634,6 +644,7 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                 text, r.get("model"), r.get("ts"),
             ])
             nfig += 1
+            _tick(nfig)
 
     con.close()
     stat = {"books": nb, "lessons": nl, "words": nw, "lesson_text": nt,
