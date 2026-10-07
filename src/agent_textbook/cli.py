@@ -197,6 +197,32 @@ def cmd_words(args) -> None:
     print("共 %d 册" % len(rs))
 
 
+def cmd_science(args) -> None:
+    """科学本体深挖：探究活动（器材/步骤/变量）与科学概念（含常见迷思）。"""
+    from .index import science
+
+    if args.kind == "concept":
+        science.build_concepts(subject=args.subject or "科学",
+                               limit=args.limit, force=args.force)
+    else:
+        science.build_experiments(subject=args.subject or "科学",
+                                  limit=args.limit, force=args.force)
+
+
+def cmd_formula(args) -> None:
+    """数学公式 → LaTeX（看图，文本层里的公式是坏的）。"""
+    from .index import formula
+
+    formula.build(subject=args.subject or "数学", limit=args.limit, force=args.force)
+
+
+def cmd_enwords(args) -> None:
+    """抽英语词汇表与常用表达（英语本体的核心资产）。"""
+    from .index import enwords
+
+    enwords.build_all(subject=args.subject or "英语")
+
+
 def cmd_toc(args) -> None:
     """看图抽分栏目录骨架（数学/科学等规则对不上标题↔页码的册）。"""
     from .index import toc
@@ -433,6 +459,24 @@ def main() -> None:
     sp.add_argument("--book-id", default="", help="只抽一册")
     sp.add_argument("--show", type=int, default=0, help="打印前 N 条样例")
     sp.set_defaults(func=cmd_outline)
+
+    sp = sub.add_parser("science", help="科学本体深挖：探究活动 / 科学概念")
+    sp.add_argument("--kind", default="exp", choices=["exp", "concept"],
+                    help="exp=探究活动，concept=科学概念")
+    sp.add_argument("--subject", default="科学", help="学科过滤")
+    sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少节")
+    sp.add_argument("--force", action="store_true", help="已抽过也重跑")
+    sp.set_defaults(func=cmd_science)
+
+    sp = sub.add_parser("formula", help="数学公式转 LaTeX（看图逐页抽）")
+    sp.add_argument("--subject", default="数学", help="学科过滤")
+    sp.add_argument("--limit", type=int, default=0, help="本次最多抽多少页")
+    sp.add_argument("--force", action="store_true", help="已抽过的页也重跑")
+    sp.set_defaults(func=cmd_formula)
+
+    sp = sub.add_parser("enwords", help="抽英语词汇表与常用表达（附录规则层）")
+    sp.add_argument("--subject", default="英语", help="学科过滤")
+    sp.set_defaults(func=cmd_enwords)
 
     sp = sub.add_parser("toc", help="看图抽分栏目录骨架（数学/科学等规则抽不出的册）")
     sp.add_argument("--subject", default="", help="学科过滤（如 数学）")

@@ -29,6 +29,14 @@ AUTHOR_FILE = os.path.join(config.ATTRS_DIR, "lesson_author.jsonl")
 INTRO_FILE = os.path.join(config.ATTRS_DIR, "author_intro.jsonl")
 SECTION_FILE = os.path.join(config.ATTRS_DIR, "section_text.jsonl")
 KP_FILE = os.path.join(config.ATTRS_DIR, "section_keypoints.jsonl")
+# 英语本体：词与常用表达（附录规则层，见 index/enwords.py）
+EN_VOCAB_FILE = os.path.join(config.ATTRS_DIR, "en_vocab.jsonl")
+EN_EXPR_FILE = os.path.join(config.ATTRS_DIR, "en_expr.jsonl")
+# 数学本体：公式 LaTeX（看图，见 index/formula.py）
+FORMULA_FILE = os.path.join(config.ATTRS_DIR, "section_formula.jsonl")
+# 科学本体：探究活动 + 科学概念（见 index/science.py）
+EXP_FILE = os.path.join(config.ATTRS_DIR, "experiment.jsonl")
+CONCEPT_FILE = os.path.join(config.ATTRS_DIR, "concept.jsonl")
 
 # 用 OR REPLACE 而不是 IF NOT EXISTS：表结构演进（如给 lesson_text 加 notes 列）
 # 时，IF NOT EXISTS 会静默沿用旧表，导入的列数对不上才暴露，排查成本高。
@@ -115,6 +123,37 @@ SCHEMA = [
         grade VARCHAR, term VARCHAR, unit_name VARCHAR, title VARCHAR,
         summary VARCHAR, points VARCHAR, formulas VARCHAR, terms VARCHAR,
         model VARCHAR, ts BIGINT)""",
+    # 英语词汇（附录规则层）：unit 版按单元归类，vocab 版是书末字母序总表
+    """CREATE OR REPLACE TABLE en_vocab(
+        vocab_id VARCHAR PRIMARY KEY, book_id VARCHAR, subject VARCHAR,
+        grade VARCHAR, term VARCHAR, unit_no INTEGER, word VARCHAR,
+        phonetic VARCHAR, meaning VARCHAR, level VARCHAR,
+        printed_page INTEGER, source VARCHAR)""",
+    # 英语常用表达/功能句：一问一答成对出现，靠 unit_no 归到单元
+    """CREATE OR REPLACE TABLE en_expr(
+        expr_id VARCHAR PRIMARY KEY, book_id VARCHAR, subject VARCHAR,
+        grade VARCHAR, term VARCHAR, unit_no INTEGER, en VARCHAR,
+        zh VARCHAR, printed_page INTEGER)""",
+    # 数学公式（看图抽的 LaTeX）：一页可有多条，靠 page_key 续跑去重
+    """CREATE OR REPLACE TABLE section_formula(
+        formula_id VARCHAR PRIMARY KEY, page_key VARCHAR, section_id VARCHAR,
+        book_id VARCHAR, subject VARCHAR, grade VARCHAR, term VARCHAR,
+        unit_name VARCHAR, title VARCHAR, page_no INTEGER, latex VARCHAR,
+        kind VARCHAR, desc VARCHAR, vars VARCHAR, model VARCHAR, ts BIGINT)""",
+    # 科学探究活动：器材/步骤/变量/现象/结论，数组与对象存 JSON 串
+    """CREATE OR REPLACE TABLE experiment(
+        exp_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
+        subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
+        title VARCHAR, name VARCHAR, kind VARCHAR, purpose VARCHAR,
+        materials VARCHAR, steps VARCHAR, phenomenon VARCHAR, conclusion VARCHAR,
+        variables VARCHAR, safety VARCHAR, page_hint VARCHAR,
+        model VARCHAR, ts BIGINT)""",
+    # 科学概念：术语 + 定义 + 生活实例 + 常见迷思
+    """CREATE OR REPLACE TABLE concept(
+        concept_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
+        subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
+        title VARCHAR, term VARCHAR, definition VARCHAR, example VARCHAR,
+        misconception VARCHAR, category VARCHAR, model VARCHAR, ts BIGINT)""",
     # 插图描述（VLM 侧车）：一页一条，靠 (book_id, page_no) 挂到课/小节。
     # VLM 通道册的正文里也有 [图N]，那是转录时顺带写的，与本表不重复计。
     """CREATE OR REPLACE TABLE page_figure(
@@ -141,7 +180,8 @@ def build(subject: str = "", verbose: bool = True) -> dict:
     for t in ("books", "lessons", "words", "lesson_text", "lesson_meta", "piece",
               "lesson_genre", "lesson_structure", "lesson_glossary",
               "lesson_translation", "lesson_author", "author_intro",
-              "section_text", "section_keypoint", "page_figure"):
+              "section_text", "section_keypoint", "en_vocab", "en_expr",
+              "section_formula", "experiment", "concept", "page_figure"):
         con.execute(f"DELETE FROM {t}")
 
     nb = nl = 0
@@ -341,6 +381,95 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                         ])
             nkp += 1
 
+    nvocab = 0
+    if os.path.exists(EN_VOCAB_FILE):
+        for l in open(EN_VOCAB_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO en_vocab VALUES (%s)"
+                        % ",".join(["?"] * 12), [
+                            r.get("vocab_id"), r.get("book_id"), r.get("subject"),
+                            r.get("grade"), r.get("term"), r.get("unit_no"),
+                            r.get("word"), r.get("phonetic"), r.get("meaning"),
+                            r.get("level"), r.get("printed_page"), r.get("source"),
+                        ])
+            nvocab += 1
+
+    nexpr = 0
+    if os.path.exists(EN_EXPR_FILE):
+        for l in open(EN_EXPR_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO en_expr VALUES (%s)"
+                        % ",".join(["?"] * 9), [
+                            r.get("expr_id"), r.get("book_id"), r.get("subject"),
+                            r.get("grade"), r.get("term"), r.get("unit_no"),
+                            r.get("en"), r.get("zh"), r.get("printed_page"),
+                        ])
+            nexpr += 1
+
+    nfo = 0
+    if os.path.exists(FORMULA_FILE):
+        for l in open(FORMULA_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            if not r.get("latex"):
+                continue          # 整页无公式的空壳记录不入库
+            con.execute("INSERT OR REPLACE INTO section_formula VALUES (%s)"
+                        % ",".join(["?"] * 16), [
+                            r.get("formula_id"), r.get("page_key"),
+                            r.get("section_id"), r.get("book_id"),
+                            r.get("subject"), r.get("grade"), r.get("term"),
+                            r.get("unit_name"), r.get("title"), r.get("page_no"),
+                            r.get("latex"), r.get("kind"), r.get("desc"),
+                            r.get("vars"), r.get("model"), r.get("ts"),
+                        ])
+            nfo += 1
+
+    nexp = 0
+    if os.path.exists(EXP_FILE):
+        for l in open(EXP_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            if not (r.get("name") or r.get("steps")):
+                continue          # 空壳：该节没有探究活动
+            con.execute("INSERT OR REPLACE INTO experiment VALUES (%s)"
+                        % ",".join(["?"] * 20), [
+                            r.get("exp_id"), r.get("section_id"), r.get("book_id"),
+                            r.get("subject"), r.get("grade"), r.get("term"),
+                            r.get("unit_name"), r.get("title"), r.get("name"),
+                            r.get("kind"), r.get("purpose"),
+                            _j(r.get("materials")), _j(r.get("steps")),
+                            r.get("phenomenon"), r.get("conclusion"),
+                            json.dumps(r.get("variables") or {}, ensure_ascii=False),
+                            _j(r.get("safety")), r.get("page_hint"),
+                            r.get("model"), r.get("ts"),
+                        ])
+            nexp += 1
+
+    ncp = 0
+    if os.path.exists(CONCEPT_FILE):
+        for l in open(CONCEPT_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            if not r.get("term"):
+                continue
+            con.execute("INSERT OR REPLACE INTO concept VALUES (%s)"
+                        % ",".join(["?"] * 15), [
+                            r.get("concept_id"), r.get("section_id"),
+                            r.get("book_id"), r.get("subject"), r.get("grade"),
+                            r.get("term"), r.get("unit_name"), r.get("title"),
+                            r.get("term"), r.get("definition"), r.get("example"),
+                            r.get("misconception"), r.get("category"),
+                            r.get("model"), r.get("ts"),
+                        ])
+            ncp += 1
+
     nfig = 0
     idx_path = os.path.join(config.FIGURES_DIR, "_index.jsonl")
     if os.path.exists(idx_path):
@@ -369,14 +498,18 @@ def build(subject: str = "", verbose: bool = True) -> dict:
             "lesson_meta": nm, "piece": npi, "lesson_genre": ng,
             "lesson_structure": nst, "lesson_glossary": ngl,
             "lesson_translation": ntr, "lesson_author": nau, "author_intro": nin,
-            "section_text": nse, "section_keypoint": nkp, "page_figure": nfig,
+            "section_text": nse, "section_keypoint": nkp,
+            "en_vocab": nvocab, "en_expr": nexpr, "section_formula": nfo,
+            "experiment": nexp, "concept": ncp, "page_figure": nfig,
             "db": DB_PATH}
     if verbose:
         print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / "
               "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 / %d 条译文 / "
-              "%d 条作者 / %d 条简介 / %d 节 / %d 条知识点 / %d 页插图 → %s"
+              "%d 条作者 / %d 条简介 / %d 节 / %d 条知识点 / "
+              "%d 英语词 / %d 英语表达 / %d 条公式 / %d 个探究 / %d 个概念 / "
+              "%d 页插图 → %s"
               % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, nau, nin, nse, nkp,
-                 nfig, DB_PATH))
+                 nvocab, nexpr, nfo, nexp, ncp, nfig, DB_PATH))
     return stat
 
 

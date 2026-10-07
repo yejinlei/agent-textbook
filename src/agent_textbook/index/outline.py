@@ -38,6 +38,12 @@ RE_INT = re.compile(r"^\d{1,3}$")
 # 目录页整体检测：页眉在前，行首锚点必须开 MULTILINE 才能命中
 # 「目录」两字常被排版拆开（`目  录`，中间是全角/半角空格），直接判子串会漏
 RE_TOC_WORD = re.compile(r"目\s*录")
+# 英语目录页眉是 `Contents`，且其条目是「标题一行 + 页码一行」的英文版式
+RE_TOC_EN = re.compile(r"^\s*Contents\s*$", re.I | re.M)
+RE_EN_ENTRY = re.compile(
+    r"^(?P<kind>Unit|Revision|Appendix|Project|Recycle|Review|Checkout)\s*"
+    r"(?P<no>\d+)?\s*[·•・:：\-—]?\s*(?P<title>.+?)\s*$", re.I
+)
 RE_UNIT_M = re.compile(r"^第([一二三四五六七八九十]+)单元", re.M)
 RE_DOT_M = re.compile(r"^\d{1,2}\s*\*?\s*\S.*?\.{2,}\s*\d{1,3}\s*$", re.M)
 RE_NOISE = re.compile(r"仅供个人学习使用|未经授权|绿色印刷|^\s*$")
@@ -80,7 +86,8 @@ def find_toc_pages(pages: list[dict], max_scan: int = 12) -> list[int]:
     hits = []
     for i, r in enumerate(pages[:max_scan]):
         t = r.get("text") or ""
-        if RE_TOC_WORD.search(t) or RE_UNIT_M.search(t) or RE_DOT_M.search(t):
+        if (RE_TOC_WORD.search(t) or RE_UNIT_M.search(t)
+                or RE_DOT_M.search(t) or RE_TOC_EN.search(t)):
             hits.append(i)
     if not hits:
         return []
@@ -154,6 +161,25 @@ def parse_toc_lines(lines: list[str], book_id: str = "") -> list[dict]:
         if mp:
             emit(None, mp.group("title").strip(), int(mp.group("page")))
             i += 1
+            continue
+
+        # 英语目录：`Unit 1  Meeting new people` 后紧跟单独一行的页码 `2`
+        me = RE_EN_ENTRY.match(ln)
+        if me and i + 1 < n and RE_INT.match(lines[i + 1]):
+            kind = me.group("kind").capitalize()
+            no = me.group("no")
+            title = me.group("title").strip()
+            if kind == "Unit" and no:
+                state["unit_no"] = int(no)
+                state["unit_name"] = f"Unit {no}"
+                state["section"] = None
+            else:
+                # Revision / Appendix / Project 是单元之外的附录栏目
+                state["unit_no"] = None
+                state["unit_name"] = f"{kind} {no}" if no else kind
+                state["section"] = kind
+            emit(no, title, int(lines[i + 1]))
+            i += 2
             continue
 
         # 课号单独成行 + 标题与页码同行：`1` / `北京的春节........2`（六年级多用此版式）。

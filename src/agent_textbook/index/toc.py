@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 
 from .. import config
@@ -28,7 +29,9 @@ from ..parse.online import find_book
 from . import outline
 
 MIN_ENTRIES = 5          # 少于此数视为没读对（一册不可能只有几条）
-MAX_TOC_PAGES = 3        # 目录最多跨 3 页
+MAX_TOC_PAGES = 4        # 目录最多跨 4 页（英语表格目录会跨到附录页）
+# 目录续页的标志：点线页码、`p. 12`、英文 `Unit 3`。续页往往不再写「目录」二字
+RE_TOC_CONT = re.compile(r"\.{2,}\s*\d+|p\.\s*\d+|^\s*Unit\s*\d+", re.I | re.M)
 
 
 def _find_toc_page_nos(pages: list[dict]) -> list[int]:
@@ -36,12 +39,23 @@ def _find_toc_page_nos(pages: list[dict]) -> list[int]:
     idxs = outline.find_toc_pages(pages)
     if idxs:
         nos = [pages[i].get("page_no") for i in idxs[:MAX_TOC_PAGES]]
-        # 目录常跨页，而续页未必再写一遍「目录」（六年级下册 p5 只剩
-        # `比例 4 38` 这种标题+页码）。多带一页让模型一并读——不是目录的页
-        # 它只会返回空，不会污染结果；少带一页则整个下册只有半份骨架。
-        nxt = pages[idxs[-1] + 1].get("page_no") if idxs[-1] + 1 < len(pages) else None
-        if nxt is not None and nxt not in nos:
-            nos.append(nxt)
+        # 目录常跨页，续页未必再写一遍「目录」：有的只剩 `比例 4 38`；英语
+        # 表格目录更是隔页排（p4 放 Unit 1-3、p6 放 Unit 4-6、p7 是附录），
+        # 只多带一页就会丢掉半个目录。故按「点线页码 / `p. N` / `Unit N`」
+        # 往前收，允许中间空 1 页（比如整页 Part C），连空 2 页就停。
+        j, miss = idxs[-1] + 1, 0
+        while j < len(pages) and len(nos) < MAX_TOC_PAGES and j <= idxs[-1] + 6:
+            t = pages[j].get("text") or ""
+            if RE_TOC_CONT.search(t) or outline.RE_TOC_WORD.search(t):
+                no = pages[j].get("page_no")
+                if no not in nos:
+                    nos.append(no)
+                miss = 0
+            else:
+                miss += 1
+                if miss > 1:
+                    break
+            j += 1
         return nos[:MAX_TOC_PAGES]
     nos = []
     for p in pages[:12]:
