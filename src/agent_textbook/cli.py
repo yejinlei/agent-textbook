@@ -238,6 +238,13 @@ def cmd_mathmap(args) -> None:
                            limit=args.limit, force=args.force)
 
 
+def cmd_pages(args) -> None:
+    """静态站点：按教学目标组织的"小学知识大全"。"""
+    from .site import build
+
+    build.build_pages(out_dir=args.out or None)
+
+
 def cmd_enlang(args) -> None:
     """英语本体深挖：对话 / 句型语法 / 拼读 / 语篇 / 项目。"""
     from .index import enlang
@@ -582,6 +589,10 @@ def main() -> None:
     sp.add_argument("--force", action="store_true", help="已抽过也重跑")
     sp.set_defaults(func=cmd_mathmap)
 
+    sp = sub.add_parser("pages", help="静态站点：按教学目标组织的「小学知识大全」")
+    sp.add_argument("--out", default="", help="输出目录（默认 pages/）")
+    sp.set_defaults(func=cmd_pages)
+
     sp = sub.add_parser("enlang", help="英语本体深挖：对话 / 句型语法 / 拼读 / 语篇 / 项目")
     sp.add_argument("--kind", default="dialogue",
                     choices=["dialogue", "grammar", "phonics", "passage", "project",
@@ -684,7 +695,8 @@ def main() -> None:
     sp.set_defaults(func=cmd_photo)
 
     args = p.parse_args()
-    os.makedirs(args.out, exist_ok=True)
+    if getattr(args, "out", None):
+        os.makedirs(args.out, exist_ok=True)
     args.func(args)
 
 
