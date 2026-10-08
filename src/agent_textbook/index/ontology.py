@@ -65,8 +65,10 @@ SLOTS = {
         "层": ["section_text 单元正文", "subsection 课时",
                "example 题目（课时级：例题含分步解法，练习题含答案）",
                "concept 数学概念", "section_keypoint 知识点",
-               "section_formula 公式 LaTeX"],
-        "待挖": ["整理与复习的知识结构图", "单位与符号表"],
+               "section_formula 公式 LaTeX",
+               "unit_map 整理与复习的知识结构图（扁平节点 + parent，可还原成树）",
+               "math_unit 计量单位（含进率）与数学符号（按单元）"],
+        "待挖": [],
     },
     "科学": {
         "粒度": "主题单元 → 课",

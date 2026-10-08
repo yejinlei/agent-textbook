@@ -226,6 +226,18 @@ def cmd_mathex(args) -> None:
                               limit=args.limit, force=args.force)
 
 
+def cmd_mathmap(args) -> None:
+    """数学补充槽位：整理与复习的知识结构图、按单元的单位与符号表。"""
+    from .index import mathmap
+
+    if args.kind == "unit":
+        mathmap.build_units(subject=args.subject or "数学",
+                            limit=args.limit, force=args.force)
+    else:
+        mathmap.build_maps(subject=args.subject or "数学",
+                           limit=args.limit, force=args.force)
+
+
 def cmd_enlang(args) -> None:
     """英语本体深挖：对话 / 句型语法 / 拼读 / 语篇 / 项目。"""
     from .index import enlang
@@ -552,6 +564,14 @@ def main() -> None:
     sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少节")
     sp.add_argument("--force", action="store_true", help="已抽过也重跑")
     sp.set_defaults(func=cmd_mathex)
+
+    sp = sub.add_parser("mathmap", help="数学补充槽位：整理与复习的知识结构图 / 单位与符号表")
+    sp.add_argument("--kind", default="map", choices=["map", "unit"],
+                    help="map=整理复习页的知识结构图，unit=按单元的计量单位与数学符号")
+    sp.add_argument("--subject", default="数学", help="学科过滤")
+    sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少节")
+    sp.add_argument("--force", action="store_true", help="已抽过也重跑")
+    sp.set_defaults(func=cmd_mathmap)
 
     sp = sub.add_parser("enlang", help="英语本体深挖：对话 / 句型语法 / 拼读 / 语篇 / 项目")
     sp.add_argument("--kind", default="dialogue",

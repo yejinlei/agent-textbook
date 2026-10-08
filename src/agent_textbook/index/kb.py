@@ -50,6 +50,9 @@ EN_PASSAGE_FILE = os.path.join(config.ATTRS_DIR, "en_passage.jsonl")
 EN_PROJECT_FILE = os.path.join(config.ATTRS_DIR, "en_project.jsonl")
 # 语文单元要素（见 index/cnelem.py）：单元导语页上印的读写要素
 ELEM_FILE = os.path.join(config.ATTRS_DIR, "unit_element.jsonl")
+# 数学补充槽位（见 index/mathmap.py）：整理复习页的知识结构图、单位与符号表
+MAP_FILE = os.path.join(config.ATTRS_DIR, "unit_map.jsonl")
+MATH_UNIT_FILE = os.path.join(config.ATTRS_DIR, "math_unit.jsonl")
 
 # 用 OR REPLACE 而不是 IF NOT EXISTS：表结构演进（如给 lesson_text 加 notes 列）
 # 时，IF NOT EXISTS 会静默沿用旧表，导入的列数对不上才暴露，排查成本高。
@@ -243,6 +246,19 @@ SCHEMA = [
         unit_title VARCHAR, theme VARCHAR, reading_focus VARCHAR,
         writing_focus VARCHAR, points VARCHAR, page_no INTEGER,
         model VARCHAR, ts BIGINT)""",
+    # 数学知识结构图：整理与复习页那张树状图，nodes 是扁平数组 + parent。
+    """CREATE OR REPLACE TABLE unit_map(
+        map_id VARCHAR PRIMARY KEY, section_id VARCHAR, subsection_id VARCHAR,
+        book_id VARCHAR, subject VARCHAR, grade VARCHAR, term VARCHAR,
+        unit_no INTEGER, unit_name VARCHAR, title VARCHAR, topic VARCHAR,
+        summary VARCHAR, nodes VARCHAR, n_nodes INTEGER, page_from INTEGER,
+        page_to INTEGER, model VARCHAR, ts BIGINT)""",
+    # 数学单位与符号：按单元抽（教材没有独立栏目，规则抓不全进率）。
+    """CREATE OR REPLACE TABLE math_unit(
+        item_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
+        subject VARCHAR, grade VARCHAR, term VARCHAR, unit_no INTEGER,
+        unit_name VARCHAR, units VARCHAR, symbols VARCHAR, n_units INTEGER,
+        n_symbols INTEGER, model VARCHAR, ts BIGINT)""",
 ]
 
 
@@ -272,7 +288,8 @@ def build(subject: str = "", verbose: bool = True) -> dict:
               "section_text", "section_keypoint", "en_vocab", "en_expr",
               "section_formula", "experiment", "concept", "page_figure",
               "example", "en_dialogue", "en_grammar", "en_phonics",
-              "en_passage", "en_project", "subsection", "unit_element"):
+              "en_passage", "en_project", "subsection", "unit_element",
+              "unit_map", "math_unit"):
         con.execute(f"DELETE FROM {t}")
     # 清空后先落盘：旧版本行一直攒在内存/WAL 里，后面逐条 INSERT 大表会 OOM
     con.execute("CHECKPOINT")
@@ -464,6 +481,39 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                 r.get("model"), r.get("ts"),
             ])
             nel += 1
+
+    nmp = 0
+    if os.path.exists(MAP_FILE):
+        for l in open(MAP_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO unit_map VALUES (%s)"
+                        % ",".join(["?"] * 18), [
+                r.get("map_id"), r.get("section_id"), r.get("subsection_id"),
+                r.get("book_id"), r.get("subject"), r.get("grade"), r.get("term"),
+                r.get("unit_no"), r.get("unit_name"), r.get("title"),
+                r.get("topic"), r.get("summary"), _j(r.get("nodes") or []),
+                r.get("n_nodes") or 0, r.get("page_from"), r.get("page_to"),
+                r.get("model"), r.get("ts"),
+            ])
+            nmp += 1
+
+    nun = 0
+    if os.path.exists(MATH_UNIT_FILE):
+        for l in open(MATH_UNIT_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO math_unit VALUES (%s)"
+                        % ",".join(["?"] * 14), [
+                r.get("item_id"), r.get("section_id"), r.get("book_id"),
+                r.get("subject"), r.get("grade"), r.get("term"), r.get("unit_no"),
+                r.get("unit_name"), _j(r.get("units") or []),
+                _j(r.get("symbols") or []), r.get("n_units") or 0,
+                r.get("n_symbols") or 0, r.get("model"), r.get("ts"),
+            ])
+            nun += 1
 
     nse = 0
     if os.path.exists(SECTION_FILE):
@@ -804,17 +854,19 @@ def build(subject: str = "", verbose: bool = True) -> dict:
             "experiment": nexp, "concept": ncp, "page_figure": nfig,
             "example": nex, "en_dialogue": ndia, "en_grammar": ngra,
             "en_phonics": nph, "en_passage": npsg, "en_project": npj,
-            "subsection": nsb, "unit_element": nel, "db": DB_PATH}
+            "subsection": nsb, "unit_element": nel, "unit_map": nmp,
+            "math_unit": nun, "db": DB_PATH}
     if verbose:
         print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / "
               "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 / %d 条译文 / "
               "%d 条作者 / %d 条简介 / %d 节 / %d 条知识点 / "
               "%d 英语词 / %d 英语表达 / %d 条公式 / %d 个探究 / %d 个概念 / "
               "%d 页插图 / %d 道例题 / %d 段对话 / %d 条语法 / %d 条拼读 / "
-              "%d 段语篇 / %d 个项目 / %d 个课时 / %d 个单元要素 → %s"
+              "%d 段语篇 / %d 个项目 / %d 个课时 / %d 个单元要素 / "
+              "%d 张结构图 / %d 个单元单位符号 → %s"
               % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, nau, nin, nse, nkp,
                  nvocab, nexpr, nfo, nexp, ncp, nfig, nex, ndia, ngra, nph,
-                 npsg, npj, nsb, nel, DB_PATH))
+                 npsg, npj, nsb, nel, nmp, nun, DB_PATH))
     return stat
 
 
