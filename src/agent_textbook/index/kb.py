@@ -48,6 +48,8 @@ EN_PHONICS_FILE = os.path.join(config.ATTRS_DIR, "en_phonics.jsonl")
 # 英语语篇与项目（见 index/enlang.py）：阅读/写作/做中学三个维度的落点
 EN_PASSAGE_FILE = os.path.join(config.ATTRS_DIR, "en_passage.jsonl")
 EN_PROJECT_FILE = os.path.join(config.ATTRS_DIR, "en_project.jsonl")
+# 语文单元要素（见 index/cnelem.py）：单元导语页上印的读写要素
+ELEM_FILE = os.path.join(config.ATTRS_DIR, "unit_element.jsonl")
 
 # 用 OR REPLACE 而不是 IF NOT EXISTS：表结构演进（如给 lesson_text 加 notes 列）
 # 时，IF NOT EXISTS 会静默沿用旧表，导入的列数对不上才暴露，排查成本高。
@@ -234,6 +236,13 @@ SCHEMA = [
         book_id VARCHAR, page_no INTEGER, n_figures INTEGER,
         text VARCHAR, model VARCHAR, ts VARCHAR,
         PRIMARY KEY (book_id, page_no))""",
+    # 语文单元要素：课文里抽不到，只有单元导语页印着，一单元一条。
+    """CREATE OR REPLACE TABLE unit_element(
+        unit_id VARCHAR PRIMARY KEY, book_id VARCHAR, subject VARCHAR,
+        grade VARCHAR, term VARCHAR, unit_no INTEGER, unit_name VARCHAR,
+        unit_title VARCHAR, theme VARCHAR, reading_focus VARCHAR,
+        writing_focus VARCHAR, points VARCHAR, page_no INTEGER,
+        model VARCHAR, ts BIGINT)""",
 ]
 
 
@@ -263,7 +272,7 @@ def build(subject: str = "", verbose: bool = True) -> dict:
               "section_text", "section_keypoint", "en_vocab", "en_expr",
               "section_formula", "experiment", "concept", "page_figure",
               "example", "en_dialogue", "en_grammar", "en_phonics",
-              "en_passage", "en_project", "subsection"):
+              "en_passage", "en_project", "subsection", "unit_element"):
         con.execute(f"DELETE FROM {t}")
     # 清空后先落盘：旧版本行一直攒在内存/WAL 里，后面逐条 INSERT 大表会 OOM
     con.execute("CHECKPOINT")
@@ -438,6 +447,23 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                 r.get("model"), r.get("ts"),
             ])
             nin += 1
+
+    nel = 0
+    if os.path.exists(ELEM_FILE):
+        for l in open(ELEM_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO unit_element VALUES (%s)"
+                        % ",".join(["?"] * 15), [
+                r.get("unit_id"), r.get("book_id"), r.get("subject"),
+                r.get("grade"), r.get("term"), r.get("unit_no"),
+                r.get("unit_name"), r.get("unit_title"), r.get("theme"),
+                r.get("reading_focus"), r.get("writing_focus"),
+                _j(r.get("points") or []), r.get("page_no"),
+                r.get("model"), r.get("ts"),
+            ])
+            nel += 1
 
     nse = 0
     if os.path.exists(SECTION_FILE):
@@ -778,17 +804,17 @@ def build(subject: str = "", verbose: bool = True) -> dict:
             "experiment": nexp, "concept": ncp, "page_figure": nfig,
             "example": nex, "en_dialogue": ndia, "en_grammar": ngra,
             "en_phonics": nph, "en_passage": npsg, "en_project": npj,
-            "subsection": nsb, "db": DB_PATH}
+            "subsection": nsb, "unit_element": nel, "db": DB_PATH}
     if verbose:
         print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / "
               "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 / %d 条译文 / "
               "%d 条作者 / %d 条简介 / %d 节 / %d 条知识点 / "
               "%d 英语词 / %d 英语表达 / %d 条公式 / %d 个探究 / %d 个概念 / "
               "%d 页插图 / %d 道例题 / %d 段对话 / %d 条语法 / %d 条拼读 / "
-              "%d 段语篇 / %d 个项目 / %d 个课时 → %s"
+              "%d 段语篇 / %d 个项目 / %d 个课时 / %d 个单元要素 → %s"
               % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, nau, nin, nse, nkp,
                  nvocab, nexpr, nfo, nexp, ncp, nfig, nex, ndia, ngra, nph,
-                 npsg, npj, nsb, DB_PATH))
+                 npsg, npj, nsb, nel, DB_PATH))
     return stat
 
 

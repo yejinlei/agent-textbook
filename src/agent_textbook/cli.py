@@ -416,6 +416,10 @@ def cmd_digest(args) -> None:
             enrich.build_author(limit=args.limit, force=args.force)
         elif args.kind == "intro":
             enrich.build_intro(limit=args.limit, force=args.force)
+        elif args.kind == "elem":
+            from .index import cnelem
+
+            cnelem.build(subject="语文", limit=args.limit, force=args.force)
         else:
             organize.build_structure(limit=args.limit, force=args.force)
     except RuntimeError as e:
@@ -612,9 +616,11 @@ def main() -> None:
     # 命令名叫 digest：`organize` 已被"下载文件整理"占用
     sp = sub.add_parser("digest", help="LLM 整理层与补充层：段意 / 字词 / 译文 / 作者")
     sp.add_argument("--kind", default="structure",
-                    choices=["structure", "gloss", "trans", "author", "intro"],
+                    choices=["structure", "gloss", "trans", "author", "intro",
+                             "elem"],
                     help="structure=段意与全文大意；gloss=古诗文言文字词解释；"
-                         "trans=古诗文言文白话译文；author=作者校对；intro=作者简介")
+                         "trans=古诗文言文白话译文；author=作者校对；intro=作者简介；"
+                         "elem=单元语文要素（导语页上的读写要素）")
     sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少条")
     sp.add_argument("--force", action="store_true", help="已处理过也重跑")
     sp.set_defaults(func=cmd_digest)
