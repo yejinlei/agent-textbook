@@ -30,6 +30,7 @@ data/token.json
 
 # IDE 本地状态
 .codebuddy/
+.vscode/
 
 # 临时调试产物（_login.py / _pubkey.txt 等）
 _*.py

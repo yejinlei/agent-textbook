@@ -48,38 +48,66 @@ header .sub {
   font-size: 14px;
 }
 
-nav {
-  margin: 18px 0 0;
+/* 左侧一级导航：学科在上，本学科的专题在下 */
+body[data-page="index"] { --c: var(--zh); }
+body[data-page^="chinese"] { --c: var(--zh); }
+body[data-page^="math"] { --c: var(--ma); }
+body[data-page^="english"] { --c: var(--en); }
+
+.wrap {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px;
+  gap: 22px;
+  align-items: flex-start;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 16px;
 }
 
-nav a {
-  padding: 8px 18px;
+.side {
+  width: 172px;
+  flex: none;
+  position: sticky;
+  top: 16px;
+  padding: 18px 0 40px;
+}
+
+.sidet {
+  margin: 12px 0 6px 12px;
+  font-size: 12px;
+  letter-spacing: 2px;
   color: var(--muted);
+}
+
+.side nav { margin: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.side nav a {
+  padding: 7px 12px;
+  border-radius: 8px;
+  color: var(--ink);
   text-decoration: none;
   font-size: 16px;
-  border-bottom: 2px solid transparent;
+  border-bottom: 0;
 }
 
-nav a:hover { color: var(--ink); }
+.side nav a:hover { background: #f2ede4; }
+.side nav a.on { background: var(--c); color: #fff; font-weight: 600; }
 
-nav a.on {
-  color: var(--ink);
+.side nav.sub a {
+  margin-left: 8px;
+  padding: 5px 10px;
+  font-size: 15px;
+  color: var(--muted);
+  border-left: 3px solid transparent;
+}
+
+.side nav.sub a.on {
+  background: transparent;
+  color: var(--c);
+  border-left-color: var(--c);
   font-weight: 600;
-  border-bottom-color: var(--zh);
 }
 
-body[data-page="math"] nav a.on { border-bottom-color: var(--ma); }
-body[data-page="english"] nav a.on { border-bottom-color: var(--en); }
-
-main {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 24px 20px 60px;
-}
+main { flex: 1; min-width: 0; padding: 18px 0 60px; }
 
 footer {
   border-top: 1px solid var(--line);
@@ -162,14 +190,55 @@ h3 { font-size: 17px; margin: 0 0 6px; }
   font-size: 15px;
 }
 
-.tab.on {
-  background: var(--zh);
-  border-color: var(--zh);
+/* 学科色随页走（data-page 形如 math-all / chinese-reading，按前缀配） */
+.tab.on, .vtab.on, .ttag.on {
+  background: var(--c);
+  border-color: var(--c);
   color: #fff;
 }
 
-body[data-page="math"] .tab.on { background: var(--ma); border-color: var(--ma); }
-body[data-page="english"] .tab.on { background: var(--en); border-color: var(--en); }
+/* 学法切换：按进度（课本顺序）／按主题（跨册串同类） */
+.views {
+  display: inline-flex;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.vtab { padding: 6px 12px; cursor: pointer; font-size: 14px; color: var(--muted); background: #fff; }
+
+/* 页顶的常用标签与分组跳转：内容一多，全靠它们定位 */
+.tags, .jump {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  align-items: center;
+  overflow-x: auto;
+  flex-basis: 100%;
+  padding: 2px 0;
+}
+.tags::-webkit-scrollbar, .jump::-webkit-scrollbar { height: 6px; }
+.jl { color: var(--muted); font-size: 13px; flex: none; }
+.ttag, .jtab {
+  flex: none;
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+  color: var(--ink);
+}
+.ttag:hover, .jtab:hover { border-color: var(--c); color: var(--c); }
+
+h3.grp {
+  margin: 22px 0 10px;
+  padding-left: 10px;
+  border-left: 4px solid var(--c);
+  font-size: 19px;
+  scroll-margin-top: 130px;   /* 吸顶工具条不挡住跳转目标 */
+}
 
 .count { color: var(--muted); font-size: 14px; }
 
@@ -239,6 +308,310 @@ details > summary {
 }
 
 .empty { color: var(--muted); padding: 20px; text-align: center; }
+
+/* 数学：公式与例题 */
+.tex { font-family: "Cambria Math", Cambria, "Times New Roman", serif; font-size: 18px; }
+
+.frac { display: inline-flex; flex-direction: column; vertical-align: middle;
+  text-align: center; margin: 0 2px; }
+.frac .num { border-bottom: 1.5px solid var(--ink); padding: 0 4px; }
+.frac .den { padding: 0 4px; }
+.sqrt { white-space: nowrap; }
+.sqrt .rad { border-top: 1px solid var(--ink); padding: 0 2px; }
+
+.fboxes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.fbox { background: #fdfaf4; border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; }
+
+.ex { border-left: 3px solid var(--ma); padding: 6px 0 6px 10px; margin: 8px 0; }
+.ex .stem { font-size: 16px; }
+.ex .given { color: var(--muted); font-size: 14px; }
+.ex .step { margin: 4px 0; font-size: 16px; }
+.ex .ans { color: #196f3d; font-weight: 600; margin-top: 4px; }
+
+.svgwrap { overflow: auto; padding: 8px 0; background: #fdfaf4; border-radius: 8px; }
+
+/* 语文：课文与古诗文 */
+.unit { margin: 14px 0; padding-left: 8px; border-left: 3px solid #f0d9a8; }
+.elem { background: #fdf6e8; border-radius: 6px; padding: 6px 10px;
+  font-size: 15px; margin: 4px 0 8px; color: #7a5c1e; }
+.who { color: var(--muted); font-size: 14px; }
+.full { max-height: 420px; overflow: auto; padding: 8px 12px;
+  background: #fdfcf9; border: 1px solid var(--line); border-radius: 8px; margin-top: 6px; }
+.para { margin: 0 0 8px; text-indent: 2em; font-size: 16.5px; line-height: 1.9; }
+.poem { font: inherit; font-size: 17px; line-height: 2; white-space: pre-wrap;
+  margin: 6px 0; padding: 8px 12px; background: #fdfcf9;
+  border: 1px solid var(--line); border-radius: 8px; }
+
+/* 英语：词汇卡、对话、句型 */
+.vcard { background: #fff; border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 10px; cursor: pointer; font-size: 16px; display: inline-block; }
+.vcard b { font-weight: 600; }
+.vcard i { color: var(--muted); font-style: normal; font-size: 13px; }
+.vcard .zh, .vcard .ex-s { display: none; }
+.vcard.open .zh { display: inline; color: #196f3d; margin-left: 6px; }
+.vcard.open .ex-s { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+.turn { padding: 3px 0; border-bottom: 1px dashed var(--line); font-size: 16px; }
+.turn b { color: var(--en); margin-right: 4px; }
+.pat { font-family: Consolas, "Courier New", monospace; font-size: 15px;
+  background: #f4f9f6; border-radius: 6px; padding: 4px 8px; margin: 4px 0;
+  display: inline-block; }
+.hl { background: #ffe9a8; border-radius: 3px; padding: 0 3px; }
+
+.zh { display: none; color: #4b5563; }
+body.show-zh .zh { display: block; }
+body.show-zh .turn .zh { display: inline; margin-left: 8px; }
+.en { font-size: 16.5px; line-height: 1.85; }
+
+.tbl { border-collapse: collapse; font-size: 14px; width: 100%; }
+.tbl th, .tbl td { border: 1px solid var(--line); padding: 4px 6px; text-align: center; }
+.tbl th { background: #f7f3ec; }
+.tbl td:first-child { text-align: left; }
+
+/* 互动实验室：能拖、能点、能自测 */
+.lab { border-left: 4px solid var(--c); }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
+.row input[type="range"] { width: 160px; }
+.eq { color: var(--muted); }
+.big { font-size: 22px; font-weight: 600; color: var(--c); }
+
+.hundred { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin-top: 8px; }
+.cell { text-align: center; border: 1px solid var(--line); border-radius: 6px;
+  background: #fff; padding: 6px 0; cursor: pointer; font-size: 15px; }
+.cell:hover { background: #f2ede4; }
+.cell.hit { background: #fdf3e3; border-color: var(--c); font-weight: 600; }
+.cell.on { background: var(--c); color: #fff; }
+
+.mask { display: none; position: fixed; inset: 0; background: rgba(47, 52, 55, .55);
+  z-index: 50; }
+.mask.on { display: flex; align-items: center; justify-content: center; }
+.bigcard { background: #fff; border-radius: 16px; padding: 28px 40px;
+  text-align: center; box-shadow: 0 8px 30px rgba(0, 0, 0, .2); }
+.bigcard .ch { font-size: 96px; line-height: 1.2; }
+.bigcard .py { font-size: 26px; color: var(--zh); margin-top: 4px; cursor: pointer; }
+.bigcard .py.hide { color: transparent; background: #eee; border-radius: 6px; }
+.bigcard .tip { color: var(--muted); font-size: 13px; margin-top: 10px; }
+
+.btn { background: var(--c); color: #fff; border: 0; border-radius: 8px;
+  padding: 7px 16px; font-size: 15px; cursor: pointer; }
+.q { margin: 10px 0; }
+.qw { font-size: 20px; margin-bottom: 8px; }
+.opt { display: inline-block; border: 1px solid var(--line); background: #fff;
+  border-radius: 8px; padding: 8px 16px; margin: 4px; cursor: pointer; font-size: 17px; }
+.opt.ok { background: #e8f5e9; border-color: #43a047; }
+.opt.no { background: #fdecea; border-color: #e53935; }
+.fb { margin-top: 6px; font-size: 15px; }
+.ok-t { color: #2e7d32; font-weight: 600; }
+.no-t { color: #c62828; }
+
+/* 可视化实验室的画板与模式按钮 */
+.svgwrap { margin: 6px 0; }
+.svgwrap svg { display: block; }
+.segmode {
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 14px;
+  background: #fff;
+  color: var(--ink);
+}
+.segmode.on { background: var(--c); color: #fff; border-color: var(--c); }
+
+/* 生活里在哪儿用 */
+.life { margin: 8px 0; }
+.lf {
+  background: #fdf8ef;
+  border-left: 3px solid var(--c);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+.lf .ask { display: block; color: var(--muted); font-size: 14px; margin-top: 2px; }
+
+/* 数学 · 解决问题：已知 → 所求 → 分步 → 答案（答案先折起来） */
+.prob .qa { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0; }
+.prob .given, .prob .ask { flex: 1; min-width: 220px; background: #f7f4ec;
+  border-radius: 8px; padding: 8px 10px; font-size: 15px; }
+.prob .ask { background: #eef4fa; }
+.steps .step { padding: 4px 0 4px 8px; border-left: 3px solid var(--line); margin: 6px 0; }
+.steps .step.hide, .ansbox.hide, .turn.hide { display: none; }
+.ansbox { margin-top: 8px; padding: 8px 10px; background: #e8f5e9; border-radius: 8px; }
+.bar { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.bar .btn { background: #fff; color: var(--c); border: 1px solid var(--c); }
+.bar .btn:hover { background: var(--c); color: #fff; }
+
+/* 语文 · 课文骨架：一层一段色块，宽度按它占的段落数 */
+.skel { display: flex; height: 26px; border-radius: 6px; overflow: hidden;
+  border: 1px solid var(--line); margin: 8px 0 6px; }
+.seg { height: 100%; border-right: 1px solid #fff; }
+.seg:last-child { border-right: 0; }
+.s0 { background: #f2c57c; }
+.s1 { background: #a8d5ba; }
+.s2 { background: #9ec5e8; }
+.s3 { background: #e6b8b8; }
+.s4 { background: #cfc0e8; }
+.s5 { background: #d9d2a8; }
+
+/* 英语 · 开口说：分角色逐句推进 */
+.turns { margin-top: 8px; }
+.turn { display: flex; gap: 8px; align-items: baseline; padding: 6px 10px;
+  border-radius: 8px; margin-bottom: 4px; }
+.turn.r1 { background: #eef4fa; }
+.turn.r2 { background: #f7f4ec; }
+.turn .sp { font-weight: 600; color: var(--muted); flex: none; }
+.turn .en { font-size: 17px; }
+.turn .zh { color: var(--muted); font-size: 14px; }
+.item.dlg.nozh .turn .zh { visibility: hidden; }
+.ex2 { cursor: pointer; }
+.ex2 b { font-weight: 600; }
+.ex2.hidezh i { visibility: hidden; }
+
+/* ============================================================= 卡通皮肤
+   给孩子看的：圆一点、软一点，按下去会弹一下，边上是奶油色的波点纸。
+   这一层只改外观，不改结构与交互——上面所有规则照旧生效。 */
+
+:root {
+  --paper: #fffaf2;
+  --ink: #3d3a37;
+  --muted: #7b8794;
+  --line: #f2e3cd;
+  --zh: #ff7a6b;   /* 语文：珊瑚红 */
+  --ma: #47a3ff;   /* 数学：天蓝 */
+  --en: #46bd6a;   /* 英语：草绿 */
+  --soft: #f6e7d0; /* 卡片底下的那道"厚边" */
+}
+
+body {
+  font-family: "Yuanti SC", "圆体-简", "PingFang SC", "HarmonyOS Sans SC",
+               "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  font-size: 17.5px;
+  line-height: 1.85;
+  background-color: var(--paper);
+  /* 奶油纸上的小圆点，像作业本的花边 */
+  background-image: radial-gradient(#ffe7c4 1.6px, transparent 1.7px),
+                    radial-gradient(#ffe7c4 1.6px, transparent 1.7px);
+  background-size: 28px 28px;
+  background-position: 0 0, 14px 14px;
+}
+
+/* 页头：像一块贴上去的圆角便签 */
+header {
+  background: #fff;
+  border-bottom: 3px dashed var(--line);
+  border-radius: 0 0 26px 26px;
+  box-shadow: 0 4px 0 var(--soft);
+}
+header .seal {
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-weight: 600;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .12);
+}
+header h1 { font-size: 33px; letter-spacing: 2px; }
+
+/* 卡片与条目：大圆角 + 一道厚边，浮起来一点 */
+.card, .item, .tools, .fbox, .vcard, .wb, .full, .poem,
+.svgwrap, .prob .given, .prob .ask, .ansbox, .lf {
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 3px 0 var(--soft);
+}
+.card { animation: pop .26s ease-out both; }
+.card:hover, .item:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--soft); }
+
+.card big { font-size: 26px; }
+.tools { border-radius: 999px; }
+
+/* 按钮、页签、标签：都是胶囊，按下去会"陷"进去 */
+.tab, .vtab, .ttag, .jtab, .segmode, .opt, .btn {
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.tab:hover, .ttag:hover, .jtab:hover, .opt:hover, .segmode:hover {
+  transform: translateY(-2px);
+  border-color: var(--c);
+}
+.btn, .tab.on, .vtab.on, .ttag.on, .segmode.on {
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .16);
+}
+.btn:active, .tab:active, .ttag:active, .opt:active, .segmode:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+.tools input, .tools select { border: 2px solid var(--line); border-radius: 999px; padding: 5px 12px; }
+
+/* 侧边栏：一级学科与专题都是圆胶囊，指过去会往右挪一点 */
+.side nav a { border-radius: 999px; margin: 2px 0; transition: transform .12s ease; }
+.side nav a:hover { transform: translateX(3px); }
+.side nav a.on { box-shadow: 0 3px 0 rgba(0, 0, 0, .16); }
+.side nav.sub a { border-radius: 999px; }
+
+/* 标题前面挂个小圆点，比竖线更像"贴纸" */
+h2, h3.grp { border-left: 0; padding-left: 0; }
+h2 { font-size: 23px; }
+h2::before, h3.grp::before {
+  content: "";
+  display: inline-block;
+  width: 13px; height: 13px;
+  margin-right: 9px;
+  vertical-align: middle;
+  background: var(--c);
+}
+h2::before { border-radius: 50%; }
+h3.grp::before { border-radius: 4px; transform: rotate(45deg); }
+
+.hero .verse {
+  display: inline-block;
+  background: #fff;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 18px;
+  box-shadow: 0 3px 0 var(--soft);
+}
+.rule { height: 0; border-top: 3px dotted var(--line); width: 150px; }
+
+/* 百数表：圆圆的按钮，指过去会放大 */
+.hundred { gap: 7px; }
+.cell { border: 2px solid var(--line); border-radius: 999px; padding: 7px 0; transition: transform .12s ease; }
+.cell:hover { transform: scale(1.1); }
+
+.tag { border-radius: 999px; padding: 2px 10px; font-weight: 600; }
+.words .wb:hover { background: #fff6e6; }
+.qw { font-size: 22px; }
+.bigcard { border: 3px solid var(--line); border-radius: 22px; }
+.skel { border-radius: 999px; }
+
+@keyframes pop {
+  from { opacity: 0; transform: translateY(8px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* 圆头滚动条，键盘选中也有明显的圈 */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #f0d6ae; border-radius: 999px; }
+:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; }
+
+/* 被 Agent／语音定位到的条目（AT.highlight） */
+.item.at-hl { outline: 3px solid var(--c); outline-offset: 3px; }
+
+/* 窄屏：左侧栏回到顶部，横向排 */
+@media (max-width: 820px) {
+  .wrap { flex-direction: column; padding: 0 12px; }
+  .side { position: static; width: auto; padding: 10px 0 0; }
+  .side nav { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+  .side nav.sub { margin-top: 4px; }
+  .side nav.sub a {
+    margin-left: 0;
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    padding: 4px 8px;
+  }
+  .side nav.sub a.on { border-bottom-color: var(--c); }
+}
 
 @media (max-width: 600px) {
   body { font-size: 16px; }

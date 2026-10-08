@@ -3,14 +3,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>总览 · 小学知识大全</title>
 <link rel="stylesheet" href="assets/app.css"></head>
-<body data-page="index">
+<body data-page="index" data-base="">
 <header>
   <span class="seal">课本</span>
   <h1>小学知识大全</h1>
   <div class="sub">按教学目标编排 · 每条都来自教材，可核对到册次与页码</div>
-  <nav><a href="index.html" class="on">总览</a><a href="chinese.html">语文</a><a href="math.html">数学</a><a href="english.html">英语</a></nav>
 </header>
-<main>
+<div class="wrap">
+  <aside class="side">
+    <p class="sidet">学科</p>
+    <nav><a href="index.html" class="on">总览</a><a href="chinese/index.html">语文</a><a href="math/index.html">数学</a><a href="english/index.html">英语</a></nav>
+    
+  </aside>
+  <main>
 <div class="hero">
   <div class="verse">按学科 · 按教学目标 · 一条一条都对得上课本</div>
   <div class="rule"></div>
@@ -20,26 +25,27 @@
 </div>
 <h2>规模</h2>
 <div class="grid">
-<div class="card">语文 课文 <big>657</big> 篇 · 单元要素 <big>68</big> 条 · 字词 <big>7846</big> 条</div>
+<div class="card">语文 课文 <big>633</big> 篇 · 单元要素 <big>68</big> 条 · 字词 <big>7846</big> 条</div>
 <div class="card">数学 单元 <big>97</big> 个 · 知识点 <big>565</big> 条 · 结构图 <big>31</big> 张</div>
 <div class="card">英语 词汇 <big>829</big> · 句型 <big>671</big> · 拼读 <big>251</big> · 歌谣 <big>66</big></div>
 </div>
 <h2>入口</h2>
 <div class="grid">
-<div class="card zh"><h3>语文</h3><p class="small">识字与写字（识字表/写字表/词语表）、
-阅读与鉴赏（单元语文要素 + 课文）、表达与交流（习作要素 + 口语交际）、梳理与探究。</p>
-<a href="chinese.html">进入 →</a></div>
-<div class="card ma"><h3>数学</h3><p class="small">按课标四大领域编排：数与代数、图形与几何、
-统计与概率、综合与实践。每单元列出知识点，附整理复习的知识结构图与计量单位进率。</p>
-<a href="math.html">进入 →</a></div>
-<div class="card en"><h3>英语</h3><p class="small">语音拼读、词汇、语法句型、语篇对话，
-以及歌谣、项目任务与复习板块；词汇按三大主题范畴归类。</p>
-<a href="english.html">进入 →</a></div>
+<div class="card zh"><h3>语文</h3><p class="small">识字与写字、课文全文（带单元语文要素）、
+表达与交流（习作要素）、古诗文（原文+注释+译文）。</p>
+<a href="chinese/index.html">进入 →</a></div>
+<div class="card ma"><h3>数学</h3><p class="small">按课标四大领域分页：数与代数、图形与几何、
+统计与概率、综合与实践。每单元列出知识点、公式（真渲染）、例题（分步）与知识结构图。</p>
+<a href="math/index.html">进入 →</a></div>
+<div class="card en"><h3>英语</h3><p class="small">课文与语篇（中英对照可切换）、词汇（可自测）、
+语法汇总（含时态线）、语音拼读、歌谣与项目任务。</p>
+<a href="english/index.html">进入 →</a></div>
 </div>
 <div id="app"></div>
-</main>
+  </main>
+</div>
 <footer>由教材解析流水线生成 · 内容取自义务教育教科书（人教版）·
 数据本地生成，不出本机</footer>
-<script>window.DATA={"stats": {"math": {"units": 97, "points": 565, "maps": 31, "measures": 454}, "chinese": {"texts": 657, "elements": 68, "words": 7846}, "english": {"vocab": 829, "grammar": 671, "phonics": 251, "passages": 190, "songs": 66}}};</script>
+<script>window.DATA={"stats": {"math": {"units": 97, "points": 565, "maps": 31, "measures": 454}, "chinese": {"texts": 633, "elements": 68, "words": 7846}, "english": {"vocab": 829, "grammar": 671, "phonics": 251, "passages": 190, "songs": 66}}};</script>
 <script src="assets/app.js"></script>
 </body></html>
