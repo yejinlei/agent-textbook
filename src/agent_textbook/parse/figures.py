@@ -168,7 +168,13 @@ def backfill_figures(subject: str = "", workers: int | None = None, limit: int =
             todo = todo[:room]
 
         def one(n: int) -> tuple[int, str, str, str]:
-            """带退避重试：429/413/超时等平台侧问题等一会儿才可能恢复。"""
+            """带退避重试：429/413/超时等平台侧问题等一会儿才可能恢复。
+
+            为什么 400 也要重试：整页渲染出的 PNG 过大时平台回 400（而不是 413），
+            原先只有 needs_backoff 认的错才重试，400 直接判死，于是一册里总有
+            几页永远补不上（实测数学 5 页 / 语文 2 页）。降档 dpi 后图变小就能过，
+            所以这里对任何异常都重试，只在平台侧错误时才退避等待。
+            """
             last = ""
             for attempt in range(config.VLM_MAX_RETRIES + 1):
                 try:
@@ -180,8 +186,22 @@ def backfill_figures(subject: str = "", workers: int | None = None, limit: int =
                     return n, r.text, r.model, ""
                 except Exception as exc:
                     last = f"{type(exc).__name__}: {exc}"
-                    if attempt < config.VLM_MAX_RETRIES and vlm.needs_backoff(last):
+                    if attempt >= config.VLM_MAX_RETRIES:
+                        break
+                    if vlm.needs_backoff(last):
                         time.sleep(config.VLM_RETRY_DELAYS[attempt])
+            # 平台内容审核会把少数页判成 "sensitive image"（code 18）整页拒答——
+            # 教材里的儿童照片、人体示意图常被误判。缩到更低分辨率重渲一次往往
+            # 能过审（实测数学三上 p95 在 72 dpi 下就通过了），仍被拒就放弃该页。
+            try:
+                r = vlm.extract_page_vlm(
+                    rec["_abs"], n, client=client,
+                    prompt=config.VLM_PROMPT_FIGURE, dpi=72,
+                )
+                if r.text:
+                    return n, r.text, r.model, ""
+            except Exception as exc:
+                last = "低 dpi 仍被拒：%s: %s" % (type(exc).__name__, exc)
             return n, "", "", last
 
         ok = bad = got = 0
