@@ -550,3 +550,45 @@ def build_author(limit: int = 0, force: bool = False,
     if verbose:
         print("→ %s（成功 %d / 失败 %d / 校验丢弃 %d）" % (AUTHOR_FILE, ok, fail, reject))
     return {"ok": ok, "fail": fail, "reject": reject}
+
+
+def link_intro(verbose: bool = True) -> dict:
+    """把作者简介挂回它在教材里真正出现的册与篇。
+
+    author_intro 是按**人名去重**的（一位作者一条），所以它天然没有单一
+    book_id——这不算错，但副作用是没法按册检索：查"三年级上册出现了哪些
+    作家"查不到。这里从 lesson_author（按篇校准过、带 book_id）反查每位作者
+    出现在哪几册、哪几篇，回填 book_ids / lesson_titles / n_lessons。
+
+    只加字段不改 author 主键，所以不影响按人名续跑去重。
+    """
+    if not os.path.exists(INTRO_FILE) or not os.path.exists(AUTHOR_FILE):
+        return {"n": 0, "linked": 0}
+    intros = [json.loads(l) for l in open(INTRO_FILE, encoding="utf-8") if l.strip()]
+    per: dict = {}
+    for r in [json.loads(l) for l in open(AUTHOR_FILE, encoding="utf-8") if l.strip()]:
+        name = (r.get("author") or "").strip()
+        if not name:
+            continue
+        d = per.setdefault(name, {"books": set(), "titles": []})
+        if r.get("book_id"):
+            d["books"].add(r["book_id"])
+        t = r.get("title") or r.get("parent_title")
+        if t and t not in d["titles"]:
+            d["titles"].append(t)
+
+    linked = 0
+    for r in intros:
+        d = per.get((r.get("author") or "").strip())
+        if not d:
+            continue
+        r["book_ids"] = sorted(d["books"])
+        r["lesson_titles"] = d["titles"]
+        r["n_lessons"] = len(d["titles"])
+        linked += 1
+    with open(INTRO_FILE, "w", encoding="utf-8") as f:
+        for r in intros:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    if verbose:
+        print("→ %s（%d/%d 条简介挂上册与篇）" % (INTRO_FILE, linked, len(intros)))
+    return {"n": len(intros), "linked": linked}

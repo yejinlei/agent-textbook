@@ -118,9 +118,12 @@ SCHEMA = [
         book_id VARCHAR, title VARCHAR, parent_title VARCHAR, author VARCHAR,
         dynasty VARCHAR, model VARCHAR, ts BIGINT)""",
     # 作者简介（LLM 补充层）：按人名去重，一个人一条。
+    # book_ids / lesson_titles 由 enrich.link_intro() 从 lesson_author 反查回填，
+    # 有它才能按册检索"这一册出现了哪些作家"。
     """CREATE OR REPLACE TABLE author_intro(
         author VARCHAR PRIMARY KEY, dynasty VARCHAR, intro VARCHAR,
-        works VARCHAR, model VARCHAR, ts BIGINT)""",
+        works VARCHAR, book_ids VARCHAR, lesson_titles VARCHAR,
+        n_lessons INTEGER, model VARCHAR, ts BIGINT)""",
     # 数学/科学的小节正文（切分层）：一节一条，blocks 里分好例题/练习/实验。
     """CREATE OR REPLACE TABLE section_text(
         section_id VARCHAR PRIMARY KEY, book_id VARCHAR, subject VARCHAR,
@@ -427,9 +430,12 @@ def build(subject: str = "", verbose: bool = True) -> dict:
             if not l.strip():
                 continue
             r = json.loads(l)
-            con.execute("INSERT OR REPLACE INTO author_intro VALUES (?,?,?,?,?,?)", [
+            con.execute("INSERT OR REPLACE INTO author_intro VALUES (%s)"
+                        % ",".join(["?"] * 9), [
                 r.get("author"), r.get("dynasty"), r.get("intro"),
-                _j(r.get("works")), r.get("model"), r.get("ts"),
+                _j(r.get("works")), _j(r.get("book_ids") or []),
+                _j(r.get("lesson_titles") or []), r.get("n_lessons") or 0,
+                r.get("model"), r.get("ts"),
             ])
             nin += 1
 

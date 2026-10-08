@@ -23,6 +23,7 @@ from __future__ import annotations
 import json
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 from .. import config
 from . import llm
@@ -63,6 +64,31 @@ PROMPT_EXAMPLE = (
     "11. 不添补正文之外的题目；正文里竖排分数被拆坏看不清时，latex 留空，不要猜。\n\n"
     "年级：{grade}{term}　单元：{unit}　小节：{title}\n\n"
     "正文：\n{body}"
+)
+
+# 练习题补抽：例题层那条 prompt 写了"一节最多 10 道题"，而练习栏目往往有
+# 十几二十道（实测 116 个课时撞到上限）。这里只喂练习栏目、只问题目，不再
+# 设 10 道的天花板，专治被截断的那部分。
+PROMPT_EXERCISE = (
+    "你是小学数学教材分析助手。下面是一节教材里的**练习栏目**正文"
+    "（做一做 / 练习 / 思考题 / 复习题）。\n"
+    "把里面的题目**逐条**抽出来，不要漏题——这一节的题目可能远超 10 道。\n"
+    "只输出 JSON：\n"
+    '{{"exercises":[{{"type":"","stem":"","answer":"","latex":[],'
+    '"keypoint":"","difficulty":"","page_hint":""}}]}}\n'
+    "要求：\n"
+    "1. type 只能是 做一做/练习/思考题/复习题 之一。\n"
+    "2. stem 是题目原文（含数字和条件），不要改写；"
+    "一道题里有多个小题（如'（1）…（2）…'）算一条，不要拆开。\n"
+    "3. answer 填答案（含单位）；正文里没有答案就填空，不要自己算。\n"
+    "4. latex 数组写这道题里出现的算式（如 24\\\\div 6=4），按出现顺序。\n"
+    "5. keypoint 写这道题考的知识点，10 字内。\n"
+    "6. difficulty 只能是 基础/提高/拓展 之一。\n"
+    "7. page_hint 写栏目名（如'练习二'）；拿不准填空。\n"
+    "8. 最多 30 道，按出现顺序；不添补正文之外的题目。\n"
+    "9. 竖排分数在文本层里是拆坏的，latex 留空，不要猜。\n\n"
+    "年级：{grade}{term}　单元：{unit}　小节：{title}\n\n"
+    "练习栏目正文：\n{body}"
 )
 
 PROMPT_CONCEPT = (
@@ -130,7 +156,8 @@ def _refs_of(idx: dict[tuple, list[str]], book_id, pf, pt) -> list[str]:
 
 
 def build_examples(subject: str = "数学", level: str = "section", limit: int = 0,
-                   force: bool = False, verbose: bool = True) -> dict:
+                   force: bool = False, verbose: bool = True,
+                   workers: int = 6) -> dict:
     rows = _load_rows(subject, level)
     key = "subsection_id" if level == "subsection" else "section_id"
     if not force:
@@ -142,14 +169,33 @@ def build_examples(subject: str = "数学", level: str = "section", limit: int =
         print("待抽例题：%d %s" % (len(rows), "课时" if level == "subsection" else "节"))
     fidx = _formula_index()
     ok = fail = nexp = 0
-    for i, r in enumerate(rows, 1):
+    # 并发问模型、串行落盘：一次要补上百个课时，串行要跑两个小时。写文件必须
+    # 留在主线程——llm.append_jsonl 不是线程安全的。
+    results: list = [None] * len(rows)
+
+    def _ask(i_r: tuple) -> None:
+        i, r = i_r
         prompt = PROMPT_EXAMPLE.format(
             grade=r.get("grade") or "", term=r.get("term") or "",
             unit=r.get("unit_name") or "", title=r.get("title") or "",
             body=(r.get("text") or "")[:6000])
         try:
             res = llm.chat(prompt, max_tokens=4000)
-            data = llm.parse_json(res.text)
+            results[i] = (llm.parse_json(res.text), res, "")
+        except Exception as exc:
+            results[i] = (None, None, str(exc))
+
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
+        list(pool.map(_ask, list(enumerate(rows))))
+
+    for i, r in enumerate(rows, 1):
+        data, res, err = results[i - 1]
+        if data is None:
+            fail += 1
+            if verbose:
+                print("  [%d/%d] %s 失败：%s" % (i, len(rows), r.get("title"), err))
+            continue
+        try:
             exs = data.get("examples") or []
             refs = _refs_of(fidx, r.get("book_id"), r.get("page_from"),
                             r.get("page_to"))
@@ -217,6 +263,125 @@ def build_examples(subject: str = "数学", level: str = "section", limit: int =
     if verbose:
         print("→ %s（节 %d / 失败 %d / 例题 %d）" % (EXAMPLE_FILE, ok, fail, nexp))
     return {"ok": ok, "fail": fail, "n": nexp}
+
+
+def _stem_key(s: str) -> str:
+    """题干归一化，用于去重：文本层的空格/换行常常不一致。"""
+    return "".join((s or "").split())[:40]
+
+
+def build_exercises(subject: str = "数学", level: str = "subsection",
+                    limit: int = 0, min_done: int = 10,
+                    verbose: bool = True, workers: int = 6) -> dict:
+    """补回被"一节最多 10 道题"截掉的练习题。
+
+    build_examples 的 prompt 设了 10 道天花板（一次吐太多会糊），可练习栏目
+    常常十几二十道——实测 116 个课时撞到上限，后半段题目全丢了。这里只喂练习
+    栏目、只问题目，把截断的部分补回来；题干跟已有的重复就跳过，不产生重复
+    条目，也不新建表（练习题本来就在 example 层里）。
+    """
+    rows = _load_rows(subject, level)
+    key = "subsection_id" if level == "subsection" else "section_id"
+
+    have: dict = {}
+    if os.path.exists(EXAMPLE_FILE):
+        for l in open(EXAMPLE_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            k = r.get(key)
+            if not k:
+                continue
+            d = have.setdefault(k, {"n": 0, "stems": set()})
+            stem = (r.get("stem") or "").strip()
+            if stem:
+                d["n"] += 1
+                d["stems"].add(_stem_key(stem))
+
+    todo = [r for r in rows if (have.get(r.get(key)) or {}).get("n", 0) >= min_done]
+    if limit:
+        todo = todo[:limit]
+    if verbose:
+        print("待补练习题：%d 课时（已有题目 ≥%d 道）" % (len(todo), min_done))
+
+    fidx = _formula_index()
+    ok = fail = nnew = 0
+    # 同 build_examples：并发问、串行写。
+    results: list = [None] * len(todo)
+
+    def _ask(i_r: tuple) -> None:
+        i, r = i_r
+        blocks = [b for b in (r.get("blocks") or [])
+                  if (b.get("kind") or "") in ("随堂练", "练习", "思考题", "复习题")]
+        body = "\n\n".join((b.get("text") or "") for b in blocks).strip()
+        if len(body) < 30:
+            results[i] = ("skip", None, None, "")
+            return
+        prompt = PROMPT_EXERCISE.format(
+            grade=r.get("grade") or "", term=r.get("term") or "",
+            unit=r.get("unit_name") or "", title=r.get("title") or "",
+            body=body[:6000])
+        try:
+            res = llm.chat(prompt, max_tokens=4000)
+            results[i] = ("ok", llm.parse_json(res.text), res, "")
+        except Exception as exc:
+            results[i] = ("err", None, None, str(exc))
+
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
+        list(pool.map(_ask, list(enumerate(todo))))
+
+    for i, r in enumerate(todo, 1):
+        state, data, res, err = results[i - 1]
+        if state != "ok":
+            if state == "err":
+                fail += 1
+                if verbose:
+                    print("  [%d/%d] %s 失败：%s"
+                          % (i, len(todo), r.get("title"), err))
+            continue
+        try:
+            seen = (have.get(r.get(key)) or {}).get("stems") or set()
+            refs = _refs_of(fidx, r.get("book_id"), r.get("page_from"),
+                            r.get("page_to"))
+            k = 0
+            for e in (data.get("exercises") or []):
+                stem = (e.get("stem") or "").strip()
+                if not stem or _stem_key(stem) in seen:
+                    continue
+                k += 1
+                seen.add(_stem_key(stem))
+                typ = (e.get("type") or "").strip()
+                llm.append_jsonl(EXAMPLE_FILE, {
+                    "example_id": "%s:e%02d" % (r[key], k),
+                    "section_id": r.get("section_id"),
+                    "subsection_id": r.get("subsection_id"),
+                    "book_id": r.get("book_id"), "subject": r.get("subject"),
+                    "grade": r.get("grade"), "term": r.get("term"),
+                    "unit_name": r.get("unit_name"), "title": r.get("title"),
+                    "name": "", "type": typ if typ in EX_TYPES else "练习",
+                    "stem": stem[:600], "given": "", "ask": "",
+                    "steps": [],
+                    "latex": [str(x).strip()[:200] for x in (e.get("latex") or [])][:12],
+                    "answer": (e.get("answer") or "").strip()[:200],
+                    "answer_latex": "",
+                    "keypoint": (e.get("keypoint") or "").strip()[:40],
+                    "difficulty": (e.get("difficulty") or "").strip()[:10],
+                    "page_hint": (e.get("page_hint") or "").strip()[:20],
+                    "formula_refs": refs,
+                    "model": res.model, "ts": int(time.time()),
+                })
+                nnew += 1
+            ok += 1
+            if verbose:
+                print("  [%d/%d] %s → 新增 %d 题" % (i, len(todo), r.get("title"), k))
+        except Exception as exc:
+            fail += 1
+            if verbose:
+                print("  [%d/%d] %s 失败：%s" % (i, len(todo), r.get("title"), exc))
+    if verbose:
+        print("→ %s（课时 %d / 失败 %d / 新增练习题 %d）"
+              % (EXAMPLE_FILE, ok, fail, nnew))
+    return {"ok": ok, "fail": fail, "n": nnew}
 
 
 def build_concepts(subject: str = "数学", limit: int = 0, force: bool = False,

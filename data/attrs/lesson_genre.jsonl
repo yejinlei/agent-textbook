@@ -271,3 +271,4 @@
 {"lesson_id": "b87e153f-a64c-451a-aa6c-6ed9ac7d6821:036", "book_id": "b87e153f-a64c-451a-aa6c-6ed9ac7d6821", "title": "小壁虎借尾巴", "genre_sub": "童话寓言", "reason": "动物拟人对话，借尾巴故事", "model": "sensenova-6.8-flash-lite", "ts": 1791296818}
 {"lesson_id": "8e107655-5128-451f-84e5-d158725c537b:051", "book_id": "8e107655-5128-451f-84e5-d158725c537b", "title": "慢性子裁缝和急性子顾客", "genre_sub": "记事写人", "reason": "叙述裁缝与顾客的对话事件", "model": "sensenova-6.8-flash-lite", "ts": 1791296834}
 {"lesson_id": "aabf2e4a-3ceb-4e86-8804-22c10223cc57:001", "book_id": "aabf2e4a-3ceb-4e86-8804-22c10223cc57", "title": "桂花雨​", "genre_sub": "散文", "reason": "第一人称回忆童年摇桂花经历", "model": "sensenova-6.8-flash-lite", "ts": 1791296892}
+{"lesson_id": "aabf2e4a-3ceb-4e86-8804-22c10223cc57:044", "book_id": "aabf2e4a-3ceb-4e86-8804-22c10223cc57", "title": "早春呈水部张十八员外​", "genre_sub": "现代诗", "reason": "古诗体裁，属现代诗类", "model": "sensenova-6.8-flash-lite", "ts": 1791472647}

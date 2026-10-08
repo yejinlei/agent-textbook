@@ -216,6 +216,10 @@ def cmd_mathex(args) -> None:
     if args.kind == "concept":
         mathex.build_concepts(subject=args.subject or "数学",
                               limit=args.limit, force=args.force)
+    elif args.kind == "exercise":
+        mathex.build_exercises(subject=args.subject or "数学",
+                               level=getattr(args, "level", "subsection"),
+                               limit=args.limit)
     else:
         mathex.build_examples(subject=args.subject or "数学",
                               level=getattr(args, "level", "section"),
@@ -534,8 +538,10 @@ def main() -> None:
     sp.set_defaults(func=cmd_formula)
 
     sp = sub.add_parser("mathex", help="数学本体深挖：例题（含步骤）/ 数学概念")
-    sp.add_argument("--kind", default="example", choices=["example", "concept"],
-                    help="example=例题与解题步骤，concept=数学概念")
+    sp.add_argument("--kind", default="example",
+                    choices=["example", "concept", "exercise"],
+                    help="example=例题与解题步骤，concept=数学概念，"
+                         "exercise=补回被 10 道上限截掉的练习题")
     sp.add_argument("--level", default="section", choices=["section", "subsection"],
                     help="section=单元级小节，subsection=课时（先跑 mathunit）")
     sp.add_argument("--subject", default="数学", help="学科过滤")
