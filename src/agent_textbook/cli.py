@@ -255,6 +255,15 @@ def cmd_enlang(args) -> None:
     elif kind == "project":
         enlang.build_projects(subject=args.subject or "英语",
                               limit=args.limit, force=args.force)
+    elif kind == "song":
+        enlang.build_songs(subject=args.subject or "英语",
+                           limit=args.limit, force=args.force)
+    elif kind == "revision":
+        enlang.build_revisions(subject=args.subject or "英语",
+                               limit=args.limit, force=args.force)
+    elif kind == "reading":
+        enlang.build_readings(subject=args.subject or "英语",
+                              limit=args.limit, force=args.force)
     else:
         enlang.build_dialogues(subject=args.subject or "英语",
                                limit=args.limit, force=args.force)
@@ -575,9 +584,12 @@ def main() -> None:
 
     sp = sub.add_parser("enlang", help="英语本体深挖：对话 / 句型语法 / 拼读 / 语篇 / 项目")
     sp.add_argument("--kind", default="dialogue",
-                    choices=["dialogue", "grammar", "phonics", "passage", "project"],
+                    choices=["dialogue", "grammar", "phonics", "passage", "project",
+                             "song", "revision", "reading"],
                     help="dialogue=情景对话，grammar=句型语法，phonics=拼读，"
-                         "passage=语篇（Read and write 等），project=项目任务")
+                         "passage=语篇（Read and write 等），project=项目任务，"
+                         "song=附录歌谣，revision=综合复习板块，"
+                         "reading=Part C 拓展阅读")
     sp.add_argument("--subject", default="英语", help="学科过滤")
     sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少节")
     sp.add_argument("--force", action="store_true", help="已抽过也重跑")

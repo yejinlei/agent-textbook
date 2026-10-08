@@ -37,6 +37,10 @@ GRAMMAR_FILE = os.path.join(config.ATTRS_DIR, "en_grammar.jsonl")
 PHONICS_FILE = os.path.join(config.ATTRS_DIR, "en_phonics.jsonl")
 PASSAGE_FILE = os.path.join(config.ATTRS_DIR, "en_passage.jsonl")
 PROJECT_FILE = os.path.join(config.ATTRS_DIR, "en_project.jsonl")
+# 附录歌谣、复习板块、Part C 拓展阅读（见 build_songs/build_revisions/build_readings）
+SONG_FILE = os.path.join(config.ATTRS_DIR, "en_song.jsonl")
+REVISION_FILE = os.path.join(config.ATTRS_DIR, "en_revision.jsonl")
+READING_FILE = os.path.join(config.ATTRS_DIR, "en_reading.jsonl")
 
 FUNCS = ("问候与介绍", "询问信息", "请求与应答", "描述事物", "表达喜好",
          "邀请与建议", "购物与价格", "时间与日程", "方位与路线",
@@ -60,6 +64,14 @@ RE_HAS_PASSAGE = re.compile(
     r"Read and write|Start to read|Story time|Short plays|Let\u2019s read|Reading",
     re.I)
 RE_HAS_PROJECT = re.compile(r"Project|Make a|Let\u2019s make|Make and", re.I)
+
+# 拓展阅读在 Part C 选学板块里，正文常被换行拆成 "Exten ded reading"，
+# 所以按字符拆开匹配；只认 Extended reading / Reading plus，不认 Story time
+# （故事另有语篇层，避免重复）。
+RE_HAS_READING = re.compile(r"(?i)exten\s*ded\s*readi|readi\s*ng\s*plus")
+# Revision 是独立板块，标题落在正文开头；只搜开头是为了避开单元正文末尾
+# 那张"本册板块索引"里列出的 "Revision p.74"。
+RE_IS_REVISION = re.compile(r"(?i)^.{0,80}?\brevision\b")
 
 PROMPT_DIALOGUE = (
     "你是小学英语教材分析助手。只根据下面这段教材正文，把里面的**对话**逐个"
@@ -173,6 +185,64 @@ PROMPT_PROJECT = (
     "（正文没提就填空数组）。\n"
     "8. 正文里没有项目/动手任务就输出 {{\"projects\":[]}}；一节最多 3 个。\n\n"
     "年级：{grade}{term}　单元：{unit}　小节：{title}\n\n"
+    "正文：\n{body}"
+)
+
+
+# 附录 Songs 栏目：一册一页，按单元收录若干首歌/歌谣，正文是逐行排的歌词。
+PROMPT_SONG = (
+    "你是小学英语教材分析助手。下面是教材**附录 Songs（歌曲）**栏目的正文，"
+    "里面按单元收录了若干首英文歌曲/歌谣。\n"
+    "把每一首歌抽出来。只输出 JSON：\n"
+    '{{"songs":[{{"unit_no":"","title":"","lyrics":[],"topic":"",'
+    '"words":[],"note":""}}]}}\n'
+    "要求：\n"
+    "1. unit_no 写这首歌属于第几单元（填数字，如 1）；看不出来填空。\n"
+    "2. title 写歌名（教材印的标题，如 Class rules）。\n"
+    "3. lyrics 是歌词**逐行**数组，按教材原文顺序，不要改写、不要合并行。\n"
+    "4. topic 写这首歌的话题（如 家庭、朋友、天气、班级规则），10 字内。\n"
+    "5. words 写这首歌里的关键词/新词，最多 8 个。\n"
+    "6. note 写教材给的演唱提示（如 Listen and sing）；没有填空。\n"
+    "7. 最多 12 首；不要编造正文之外的歌词，也不要把中文译文算进歌词。\n\n"
+    "年级：{grade}{term}\n\n"
+    "Songs 栏目正文：\n{body}"
+)
+
+# Revision 是每册一个的综合复习板块（情境串联听说读写，如 Going to a school fair）
+PROMPT_REVISION = (
+    "你是小学英语教材分析助手。下面是教材 **Revision（复习）**板块的正文——"
+    "一个用情境串起来的综合复习活动。\n"
+    "只输出 JSON：\n"
+    '{{"revisions":[{{"theme":"","tasks":[],"skills":[],"language":[],'
+    '"outcome":""}}]}}\n'
+    "要求：\n"
+    "1. theme 写这个复习板块的情境主题（如 Going to a school fair）。\n"
+    "2. tasks 是这个板块里的活动，每项 {{'name':'','type':'','desc':''}}；"
+    "type 只能是 听说/阅读/写作/表演/手工/游戏/歌曲/其他。\n"
+    "3. skills 写训练的技能（如 听指令做动作、询问与回答），最多 6 条。\n"
+    "4. language 写复习要用到的核心句型或词汇，最多 8 条。\n"
+    "5. outcome 写这个板块最终要学生做出什么（如 完成一次校园义卖的角色扮演）。\n"
+    "6. 只根据正文，不要编造；正文不是复习板块就输出 {{\"revisions\":[]}}。\n\n"
+    "年级：{grade}{term}\n\n"
+    "Revision 板块正文：\n{body}"
+)
+
+# Part C 选学板块的拓展阅读（Extended reading / Reading plus）
+PROMPT_READING = (
+    "你是小学英语教材分析助手。下面是一节英语教材的正文。\n"
+    "找出 **Part C 选学板块里的拓展阅读**（栏目名 Extended reading / "
+    "Reading plus；正文里可能被换行拆开）。\n"
+    "只输出 JSON：\n"
+    '{{"readings":[{{"title":"","text":"","genre":"","topic":"","words":[],'
+    '"tasks":[]}}]}}\n'
+    "要求：\n"
+    "1. 只抽 Extended reading / Reading plus 栏目下的篇章；"
+    "**不要**抽 Story time、Read and write、Start to read（那些另有语篇层）。\n"
+    "2. text 是篇章原文（连续成篇），不要改写；体裁是诗歌就保留分行。\n"
+    "3. genre 只能是 故事/短文/诗歌/对话/说明/其他 之一。\n"
+    "4. words 写生词，最多 8 个；tasks 写文后的理解或拓展任务，最多 4 条。\n"
+    "5. 正文里没有这个栏目就输出 {{\"readings\":[]}}。\n\n"
+    "年级：{grade}{term}　单元：{unit}\n\n"
     "正文：\n{body}"
 )
 
@@ -440,3 +510,103 @@ def build_phonics(subject: str = "英语", limit: int = 0, force: bool = False,
                 lambda: {"letters": "", "sound": "", "examples": [], "chant": "",
                          "page_hint": ""},
                 verbose, "条拼读")
+
+
+def build_songs(subject: str = "英语", limit: int = 0, force: bool = False,
+                verbose: bool = True) -> dict:
+    """附录 Songs 栏目：一册一页的英文歌谣，按单元收录，歌词逐行存。"""
+    rows = _load_sections(subject)
+    rows = [r for r in rows
+            if (r.get("title") or "").strip().lower().startswith("songs")]
+    if not force:
+        done = llm.load_done(SONG_FILE, "section_id")
+        rows = [r for r in rows if r.get("section_id") not in done]
+    if limit:
+        rows = rows[:limit]
+    if verbose:
+        print("待抽歌谣：%d 节" % len(rows))
+
+    def build(r, s):
+        title = (s.get("title") or "").strip()
+        if not title:
+            return None
+        return {"unit_no": str(s.get("unit_no") or "")[:4],
+                "song_title": title[:60],
+                "lyrics": [str(x).strip()[:160] for x in (s.get("lyrics") or [])][:40],
+                "topic": (s.get("topic") or "").strip()[:20],
+                "words": [str(x).strip()[:30] for x in (s.get("words") or [])][:8],
+                "note": (s.get("note") or "").strip()[:40]}
+
+    return _run(rows, SONG_FILE, PROMPT_SONG, "songs", "song_id", build,
+                lambda: {"unit_no": "", "song_title": "", "lyrics": [],
+                         "topic": "", "words": [], "note": ""},
+                verbose, "首歌谣")
+
+
+def build_revisions(subject: str = "英语", limit: int = 0, force: bool = False,
+                    verbose: bool = True) -> dict:
+    """Revision 板块：每册一个综合复习活动，情境串起听说读写。"""
+    rows = _load_sections(subject)
+    rows = [r for r in rows
+            if not r.get("unit_no")
+            and RE_IS_REVISION.search((r.get("text") or "")[:200])]
+    if not force:
+        done = llm.load_done(REVISION_FILE, "section_id")
+        rows = [r for r in rows if r.get("section_id") not in done]
+    if limit:
+        rows = rows[:limit]
+    if verbose:
+        print("待抽复习板块：%d 节" % len(rows))
+
+    def build(r, v):
+        theme = (v.get("theme") or "").strip()
+        if not theme:
+            return None
+        tasks = []
+        for t in (v.get("tasks") or [])[:10]:
+            if isinstance(t, dict) and (t.get("name") or "").strip():
+                tasks.append({"name": str(t.get("name"))[:60],
+                              "type": str(t.get("type") or "")[:8],
+                              "desc": str(t.get("desc") or "")[:200]})
+        return {"theme": theme[:60], "tasks": tasks,
+                "skills": [str(x).strip()[:60] for x in (v.get("skills") or [])][:6],
+                "language": [str(x).strip()[:120] for x in (v.get("language") or [])][:8],
+                "outcome": (v.get("outcome") or "").strip()[:200]}
+
+    return _run(rows, REVISION_FILE, PROMPT_REVISION, "revisions",
+                "revision_id", build,
+                lambda: {"theme": "", "tasks": [], "skills": [], "language": [],
+                         "outcome": ""},
+                verbose, "个复习板块")
+
+
+def build_readings(subject: str = "英语", limit: int = 0, force: bool = False,
+                   verbose: bool = True) -> dict:
+    """Part C 选学板块的拓展阅读（Extended reading / Reading plus）。"""
+    rows = _load_sections(subject)
+    rows = [r for r in rows if RE_HAS_READING.search(r.get("text") or "")]
+    if not force:
+        done = llm.load_done(READING_FILE, "section_id")
+        rows = [r for r in rows if r.get("section_id") not in done]
+    if limit:
+        rows = rows[:limit]
+    if verbose:
+        print("待抽拓展阅读：%d 节" % len(rows))
+
+    def build(r, x):
+        title = (x.get("title") or "").strip()
+        text = (x.get("text") or "").strip()
+        if not title and not text:
+            return None
+        g = (x.get("genre") or "").strip()
+        return {"reading_title": title[:60], "text": text[:2000],
+                "genre": g if g in P_GENRES else "其他",
+                "topic": (x.get("topic") or "").strip()[:30],
+                "words": [str(x).strip()[:30] for x in (x.get("words") or [])][:8],
+                "tasks": [str(x).strip()[:200] for x in (x.get("tasks") or [])][:4]}
+
+    return _run(rows, READING_FILE, PROMPT_READING, "readings", "reading_id",
+                build,
+                lambda: {"reading_title": "", "text": "", "genre": "",
+                         "topic": "", "words": [], "tasks": []},
+                verbose, "篇拓展阅读")

@@ -53,6 +53,9 @@ ELEM_FILE = os.path.join(config.ATTRS_DIR, "unit_element.jsonl")
 # 数学补充槽位（见 index/mathmap.py）：整理复习页的知识结构图、单位与符号表
 MAP_FILE = os.path.join(config.ATTRS_DIR, "unit_map.jsonl")
 MATH_UNIT_FILE = os.path.join(config.ATTRS_DIR, "math_unit.jsonl")
+# 英语补充槽位（见 index/enlang.py）：附录歌谣、每册的综合复习板块
+EN_SONG_FILE = os.path.join(config.ATTRS_DIR, "en_song.jsonl")
+EN_REVISION_FILE = os.path.join(config.ATTRS_DIR, "en_revision.jsonl")
 
 # 用 OR REPLACE 而不是 IF NOT EXISTS：表结构演进（如给 lesson_text 加 notes 列）
 # 时，IF NOT EXISTS 会静默沿用旧表，导入的列数对不上才暴露，排查成本高。
@@ -259,6 +262,18 @@ SCHEMA = [
         subject VARCHAR, grade VARCHAR, term VARCHAR, unit_no INTEGER,
         unit_name VARCHAR, units VARCHAR, symbols VARCHAR, n_units INTEGER,
         n_symbols INTEGER, model VARCHAR, ts BIGINT)""",
+    # 英语附录歌谣：一册一页，按单元收录，歌词逐行。
+    """CREATE OR REPLACE TABLE en_song(
+        song_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
+        subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
+        title VARCHAR, unit_no VARCHAR, song_title VARCHAR, lyrics VARCHAR,
+        topic VARCHAR, words VARCHAR, note VARCHAR, model VARCHAR, ts BIGINT)""",
+    # 英语综合复习板块：每册一个，情境串起听说读写。
+    """CREATE OR REPLACE TABLE en_revision(
+        revision_id VARCHAR PRIMARY KEY, section_id VARCHAR, book_id VARCHAR,
+        subject VARCHAR, grade VARCHAR, term VARCHAR, unit_name VARCHAR,
+        title VARCHAR, theme VARCHAR, tasks VARCHAR, skills VARCHAR,
+        language VARCHAR, outcome VARCHAR, model VARCHAR, ts BIGINT)""",
 ]
 
 
@@ -289,7 +304,7 @@ def build(subject: str = "", verbose: bool = True) -> dict:
               "section_formula", "experiment", "concept", "page_figure",
               "example", "en_dialogue", "en_grammar", "en_phonics",
               "en_passage", "en_project", "subsection", "unit_element",
-              "unit_map", "math_unit"):
+              "unit_map", "math_unit", "en_song", "en_revision"):
         con.execute(f"DELETE FROM {t}")
     # 清空后先落盘：旧版本行一直攒在内存/WAL 里，后面逐条 INSERT 大表会 OOM
     con.execute("CHECKPOINT")
@@ -820,6 +835,40 @@ def build(subject: str = "", verbose: bool = True) -> dict:
                         ])
             npj += 1
 
+    nsg = 0
+    if os.path.exists(EN_SONG_FILE):
+        for l in open(EN_SONG_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO en_song VALUES (%s)"
+                        % ",".join(["?"] * 16), [
+                r.get("song_id"), r.get("section_id"), r.get("book_id"),
+                r.get("subject"), r.get("grade"), r.get("term"),
+                r.get("unit_name"), r.get("title"), r.get("unit_no"),
+                r.get("song_title"), _j(r.get("lyrics") or []), r.get("topic"),
+                _j(r.get("words") or []), r.get("note"), r.get("model"),
+                r.get("ts"),
+            ])
+            nsg += 1
+
+    nrv = 0
+    if os.path.exists(EN_REVISION_FILE):
+        for l in open(EN_REVISION_FILE, encoding="utf-8"):
+            if not l.strip():
+                continue
+            r = json.loads(l)
+            con.execute("INSERT OR REPLACE INTO en_revision VALUES (%s)"
+                        % ",".join(["?"] * 15), [
+                r.get("revision_id"), r.get("section_id"), r.get("book_id"),
+                r.get("subject"), r.get("grade"), r.get("term"),
+                r.get("unit_name"), r.get("title"), r.get("theme"),
+                _j(r.get("tasks") or []), _j(r.get("skills") or []),
+                _j(r.get("language") or []), r.get("outcome"),
+                r.get("model"), r.get("ts"),
+            ])
+            nrv += 1
+
     nfig = 0
     idx_path = os.path.join(config.FIGURES_DIR, "_index.jsonl")
     if os.path.exists(idx_path):
@@ -854,8 +903,9 @@ def build(subject: str = "", verbose: bool = True) -> dict:
             "experiment": nexp, "concept": ncp, "page_figure": nfig,
             "example": nex, "en_dialogue": ndia, "en_grammar": ngra,
             "en_phonics": nph, "en_passage": npsg, "en_project": npj,
-            "subsection": nsb, "unit_element": nel, "unit_map": nmp,
-            "math_unit": nun, "db": DB_PATH}
+            "subsection": nsb, "unit_element": nel,             "unit_map": nmp,
+            "math_unit": nun, "en_song": nsg, "en_revision": nrv,
+            "db": DB_PATH}
     if verbose:
         print("建库完成：%d 册 / %d 条目 / %d 字词条 / %d 篇课文 / %d 条元数据 / "
               "%d 篇 / %d 条细分体裁 / %d 条结构 / %d 条词语 / %d 条译文 / "
@@ -863,10 +913,10 @@ def build(subject: str = "", verbose: bool = True) -> dict:
               "%d 英语词 / %d 英语表达 / %d 条公式 / %d 个探究 / %d 个概念 / "
               "%d 页插图 / %d 道例题 / %d 段对话 / %d 条语法 / %d 条拼读 / "
               "%d 段语篇 / %d 个项目 / %d 个课时 / %d 个单元要素 / "
-              "%d 张结构图 / %d 个单元单位符号 → %s"
+              "%d 张结构图 / %d 个单元单位符号 / %d 首歌谣 / %d 个复习板块 → %s"
               % (nb, nl, nw, nt, nm, npi, ng, nst, ngl, ntr, nau, nin, nse, nkp,
                  nvocab, nexpr, nfo, nexp, ncp, nfig, nex, ndia, ngra, nph,
-                 npsg, npj, nsb, nel, nmp, nun, DB_PATH))
+                 npsg, npj, nsb, nel, nmp, nun, nsg, nrv, DB_PATH))
     return stat
 
 
