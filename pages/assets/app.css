@@ -661,6 +661,82 @@ h3.grp::before { border-radius: 4px; transform: rotate(45deg); }
 .item.at-hl { outline: 3px solid var(--c); outline-offset: 3px; }
 
 /* 窄屏：左侧栏回到顶部，横向排 */
+/* 教材之外的东西：默认全收起，勾了才出来 */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 4px;
+}
+.chip {
+  font-size: 13px;
+  padding: 3px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+.chip.on {
+  background: var(--zh);
+  border-color: var(--zh);
+  color: #fff;
+}
+.kb {
+  display: none;
+  margin: 6px 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--line);
+  background: #fff;
+  border-radius: 0 6px 6px 0;
+}
+.kb.show { display: block; }
+.kbp { margin: 5px 0; }
+.kbtag {
+  font-size: 12px;
+  padding: 1px 7px;
+  margin-right: 6px;
+  border-radius: 4px;
+  background: #f2ece1;
+  color: var(--muted);
+}
+.kbtag.g { background: #e6f1ea; }
+.std { font-size: 12.5px; color: var(--muted); }
+
+/* 正文里的着色与段批注：默认不上色，勾哪个上哪个 */
+.item .pnote {
+  display: none;
+  font-size: 13px;
+  color: var(--muted);
+  background: #faf6ee;
+  border-radius: 4px;
+  padding: 2px 7px;
+  margin-right: 6px;
+}
+.item.on-notes .pnote { display: inline; }
+.item.on-notes .para.hl {
+  border-left: 3px solid var(--line);
+  padding-left: 9px;
+  background: #fffdf8;
+}
+.item mark { background: none; color: inherit; padding: 0 1px; }
+.item.on-words mark.k-word { background: #dbeafe; }
+.item.on-polyphone mark.k-poly { background: #d1fae5; }
+.item.on-sentences mark.k-sent { background: #fde68a; }
+.item.on-accumulate mark.k-acc {
+  background: #fef3c7;
+  box-shadow: inset 0 -2px 0 #f59e0b;
+}
+/* 批注类别：一类一个颜色 */
+.kbtag.k-idea { background: #eceef1; }
+.kbtag.k-word { background: #dbeafe; }
+.kbtag.k-read { background: #d1fae5; }
+.kbtag.k-ask { background: #ffedd5; }
+.kbtag.k-method { background: #ede9fe; }
+.kbtag.k-acc { background: #fef3c7; }
+.kbtag.k-recite { background: #ffe4e6; }
+
 @media (max-width: 820px) {
   .wrap { flex-direction: column; padding: 0 12px; }
   .side { position: static; width: auto; max-width: 100%; padding: 10px 0 0; }

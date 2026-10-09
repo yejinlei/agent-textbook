@@ -259,6 +259,33 @@ def cmd_anim(args) -> None:
         print("提示：没装 manim 就跑不了；页面里的可视化实验室不需要它。")
 
 
+def cmd_lessonkb(args) -> None:
+    """每课本体论：一堂课要掌握什么（按课标学段分档，不超纲）。"""
+    import json
+
+    from .index import lessonkb
+
+    if args.stats:
+        print(json.dumps(lessonkb.stats(), ensure_ascii=False))
+        return
+    r = lessonkb.build(limit=args.limit, force=args.force,
+                       workers=args.workers, grade=args.grade or "")
+    print(json.dumps(r, ensure_ascii=False))
+
+
+def cmd_mathkb(args) -> None:
+    """数学每单元本体：算理 / 算法步骤 / 易错 / 数学思想 / 前后联系。"""
+    import json
+
+    from .index import mathkb
+
+    if args.stats:
+        print(json.dumps(mathkb.stats(), ensure_ascii=False))
+        return
+    r = mathkb.build(limit=args.limit, force=args.force, workers=args.workers)
+    print(json.dumps(r, ensure_ascii=False))
+
+
 def cmd_enlang(args) -> None:
     """英语本体深挖：对话 / 句型语法 / 拼读 / 语篇 / 项目。"""
     from .index import enlang
@@ -610,6 +637,23 @@ def main() -> None:
     sp = sub.add_parser("anim", help="可选：用 Manim 渲染数学公式动画（需先装 manim）")
     sp.add_argument("--quality", default="-ql", help="manim 画质参数，默认 -ql（低清快）")
     sp.set_defaults(func=cmd_anim)
+
+    sp = sub.add_parser("lessonkb",
+                        help="每课本体论：一堂课要掌握什么（按课标学段分档）")
+    sp.add_argument("--limit", type=int, default=0, help="只处理前 N 课")
+    sp.add_argument("--force", action="store_true", help="已生成过的也重跑")
+    sp.add_argument("--workers", type=int, default=4, help="并发数")
+    sp.add_argument("--stats", action="store_true", help="只看已有本体的统计")
+    sp.add_argument("--grade", default="", help="只跑某年级（如 三 / 五）")
+    sp.set_defaults(func=cmd_lessonkb)
+
+    sp = sub.add_parser("mathkb",
+                        help="数学每单元本体：算理 / 算法 / 易错 / 思想 / 联系")
+    sp.add_argument("--limit", type=int, default=0, help="只处理前 N 个单元")
+    sp.add_argument("--force", action="store_true", help="已生成过的也重跑")
+    sp.add_argument("--workers", type=int, default=4, help="并发数")
+    sp.add_argument("--stats", action="store_true", help="只看已有本体的统计")
+    sp.set_defaults(func=cmd_mathkb)
 
     sp = sub.add_parser("enlang", help="英语本体深挖：对话 / 句型语法 / 拼读 / 语篇 / 项目")
     sp.add_argument("--kind", default="dialogue",

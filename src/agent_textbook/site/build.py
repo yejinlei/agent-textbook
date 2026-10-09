@@ -93,6 +93,7 @@ def build_math(con) -> dict:
         mp = maps.get((u["grade"], u["term"], u["title"]))
         ms = measures.get((u["grade"], u["term"], u["title"]))
         item = {
+            "sid": u["section_id"],
             "grade": u["grade"], "term": u["term"], "book": _gt(u),
             "unit_no": u["unit_no"], "title": u["title"], "domain": dom,
             "literacy": goals.math_literacy(u["title"], points),
@@ -143,6 +144,25 @@ def build_math(con) -> dict:
                 all_measures.append({"name": m.get("name"), "rate": m.get("rate"),
                                      "dim": m.get("dimension"), "book": "%s%s" % (g, t),
                                      "unit": un})
+    # 数学每单元本体（LLM 补的算理/算法/易错/思想/联系）：挂上去，默认不显示
+    mkb_path = os.path.join(config.ATTRS_DIR, "math_kb.jsonl")
+    mkeep = ("stage", "topic", "standard", "why", "how", "traps", "ideas",
+             "links")
+    mkb = {}
+    if os.path.exists(mkb_path):
+        for line in open(mkb_path, encoding="utf-8"):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                r = json.loads(line)
+            except Exception:
+                continue
+            if r.get("section_id"):
+                mkb[r["section_id"]] = {k: r[k] for k in mkeep if r.get(k)}
+    for u in out:
+        if u.get("sid") and u["sid"] in mkb:
+            u["kb"] = mkb[u["sid"]]
     return {
         "domains": [{"key": d["key"], "name": d["name"], "desc": d["desc"]}
                     for d in goals.MATH_DOMAINS],
@@ -211,7 +231,7 @@ def build_chinese(con) -> dict:
         con, "select lesson_id,genre,author,dynasty,source from lesson_meta")}
     texts = _rows(con, """select lesson_id,grade,term,unit_no,unit_name,section,
                           lesson_no,title,printed_start,page_from,page_to,chars,
-                          paragraphs,tasks,newchars
+                          paragraphs,tasks,newchars,notes
                           from lesson_text""")
     # lesson_no 只有一半课文有值，缺的用 lessons 表里的 seq 兜底——
     # 课本顺序不能乱：按进度学时，第几单元第几课必须是书上那个次序。
@@ -233,6 +253,7 @@ def build_chinese(con) -> dict:
         m = meta.get(r["lesson_id"]) or {}
         no = _unum(r.get("lesson_no")) or _unum(seqs.get(r["lesson_id"]))
         out.append({
+            "id": r.get("lesson_id"),
             "grade": r.get("grade"), "term": r.get("term"),
             "no": no,
             "book": "%s%s" % (r.get("grade") or "", r.get("term") or ""),
@@ -246,6 +267,8 @@ def build_chinese(con) -> dict:
             "paras": [p for p in _j(r.get("paragraphs")) if p],
             "tasks": [t for t in _j(r.get("tasks")) if t][:6],
             "newchars": _j(r.get("newchars"))[:30],
+            # 教材脚注（"①本文选自……"、"①作者……"），原样放在正文下面
+            "notes": [n for n in _j(r.get("notes")) if n][:8],
         })
     # 课本顺序：册次 → 单元 → 课次 → 起始印刷页码
     # （lesson_no 有缺有重，页码是最后的兜底，同一课次也按书上先后排）
@@ -318,6 +341,28 @@ def build_chinese(con) -> dict:
             authors[r["author"]] = {"dynasty": r.get("dynasty"),
                                     "intro": r.get("intro"),
                                     "works": _j(r.get("works"))[:6]}
+
+    # 每课本体（LLM 补的外延知识）：挂上去，页面默认不显示，家长勾选才出来。
+    # 教材里已有的（课文、课后题、生字、段意、中心）不重复带，只带补出来的部分。
+    kb_path = os.path.join(config.ATTRS_DIR, "lesson_kb.jsonl")
+    keep = ("stage", "standard", "recite", "words", "sentences", "methods",
+            "questions", "polyphone", "notes", "background", "center", "exam",
+            "traps", "accumulate", "extend", "transfer")
+    kb = {}
+    if os.path.exists(kb_path):
+        for line in open(kb_path, encoding="utf-8"):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                r = json.loads(line)
+            except Exception:
+                continue
+            if r.get("lesson_id"):
+                kb[r["lesson_id"]] = {k: r[k] for k in keep if r.get(k)}
+    for x in out:
+        if x.get("id") and x["id"] in kb:
+            x["kb"] = kb[x["id"]]
 
     return {
         "domains": [{"key": d["key"], "name": d["name"], "desc": d["desc"]}

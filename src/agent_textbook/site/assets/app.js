@@ -275,6 +275,16 @@
       }) || '<div class="empty">没有匹配的单元</div>');
     }, { hint: "如：分数、面积、鸡兔同笼",
          tags: hotTags(D.units, "title", 18) });
+    box.addEventListener("click", function (e) {
+      var chip = e.target.closest(".chip");
+      if (!chip) return;
+      var k = chip.dataset.ex;
+      ON[k] = !ON[k];
+      chip.classList.toggle("on", !!ON[k]);
+      [].forEach.call(box.querySelectorAll('.kb[data-kb="' + k + '"]'),
+                      function (d) { d.classList.toggle("show", !!ON[k]); });
+      try { localStorage.setItem("cnExtra", JSON.stringify(ON)); } catch (err) { }
+    });
     t.fire();
     if (kind === "all") measureTable();
   }
@@ -292,6 +302,38 @@
       }).join("") + "</div></details>";
   }
 
+  /* 数学单元的外延（算理／算法／易错／思想／联系）：同样默认收起，勾了才显示 */
+  var M_EXTRA = [["why", "算理"], ["how", "算法步骤"], ["traps", "易错"],
+                 ["ideas", "数学思想"], ["links", "前后联系"]];
+
+  function mBody(kb, k) {
+    var v = kb[k], h = "";
+    if (k === "how") {
+      h = (v || []).map(function (s, i) {
+        return '<p class="kbp"><b>' + (i + 1) + ".</b> " + esc(s.s || "") +
+          (s.note ? '<span class="std">　' + esc(s.note) + "</span>" : "") + "</p>";
+      }).join("");
+    } else if (k === "traps") {
+      h = (v || []).map(function (t) {
+        return '<p class="kbp"><span class="kbtag">' + esc(t.type || "") +
+          "</span>" + esc(t.text || "") + "</p>";
+      }).join("");
+    } else if (k === "ideas") {
+      h = '<p class="kbp">' + (v || []).map(function (m) {
+        return '<span class="kbtag g">' + esc(m) + "</span>";
+      }).join("") + "</p>";
+    } else if (k === "links") {
+      h = '<p class="kbp"><span class="kbtag">先要会</span>' +
+        esc(v.before || "") + "</p>" +
+        '<p class="kbp"><span class="kbtag">接着学</span>' +
+        esc(v.after || "") + "</p>";
+    } else {
+      h = '<p class="kbp">' + esc(String(v || "")) + "</p>";
+    }
+    var std = (kb.standard || {})[k];
+    return h + (std ? '<p class="std">课标依据：' + esc(std) + "</p>" : "");
+  }
+
   function mathUnit(u, idx) {
     var dom = D.domains.filter(function (d) { return d.key === u.domain; })[0] || {};
     var lit = (u.literacy || []).map(function (x) {
@@ -302,6 +344,18 @@
       where(u, u.page_from) + '<span class="tag d' +
       Math.max(0, D.domains.map(function (d) { return d.key; }).indexOf(u.domain)) +
       '">' + esc(dom.name) + "</span>" + lit + "</div>" + pts(u.points);
+    if (u.kb) {
+      h += '<div class="chips">' + M_EXTRA.map(function (e) {
+        return kbHas(u.kb, e[0])
+          ? '<span class="chip' + (ON[e[0]] ? " on" : "") + '" data-ex="' +
+            e[0] + '">' + e[1] + "</span>" : "";
+      }).join("") + "</div>";
+      h += M_EXTRA.map(function (e) {
+        return kbHas(u.kb, e[0])
+          ? '<div class="kb' + (ON[e[0]] ? " show" : "") + '" data-kb="' +
+            e[0] + '">' + mBody(u.kb, e[0]) + "</div>" : "";
+      }).join("");
+    }
     // 课本原文：这一单元教材上写的讲解（按进度学时就是"这一课讲了什么"）
     if (u.text && u.text.length) {
       h += "<details><summary>课本原文（" + u.text.length + " 段）</summary>" +
@@ -410,6 +464,20 @@
     t.fire();
     // 课文目录跳转：点目录里的课文/单元，展开全文并滚到位
     box.addEventListener("click", function (e) {
+      var chip = e.target.closest(".chip");
+      if (chip) {
+        var k = chip.dataset.ex;
+        ON[k] = !ON[k];
+        chip.classList.toggle("on", !!ON[k]);
+        [].forEach.call(box.querySelectorAll('.kb[data-kb="' + k + '"]'),
+                        function (d) { d.classList.toggle("show", !!ON[k]); });
+        // 正文里的着色也跟着走：只切 class，不重绘，免得刚展开的全文又合上
+        [].forEach.call(box.querySelectorAll(".item"), function (it) {
+          it.classList.toggle("on-" + k, !!ON[k]);
+        });
+        try { localStorage.setItem("cnExtra", JSON.stringify(ON)); } catch (err) { }
+        return;
+      }
       var a = e.target.closest("a.tlink, a.ubook");
       if (!a) return;
       var el = document.getElementById((a.getAttribute("href") || "").slice(1));
@@ -495,8 +563,143 @@
     return h;
   }
 
+  /* 教材之外的东西（背景、考点、易错、批注……）一律默认收起：
+     先只给教材里印着的内容，家长勾哪个才显示哪个。勾一次记下来，全站通用。 */
+  var EXTRA = [
+    ["recite", "读背要求"], ["words", "词语理解"], ["sentences", "品读句子"],
+    ["methods", "写法"], ["questions", "答题思路"], ["polyphone", "多音字"],
+    ["notes", "段内批注"], ["background", "背景资料"], ["center", "中心与启示"],
+    ["exam", "考点"], ["traps", "易错"], ["accumulate", "积累"],
+    ["extend", "拓展"], ["transfer", "说到写"]
+  ];
+  var ON = {};
+  try { ON = JSON.parse(localStorage.getItem("cnExtra") || "{}"); } catch (e) { ON = {}; }
+
+  function kbHas(kb, k) {
+    var v = kb[k];
+    if (v == null) return false;
+    if (typeof v === "string") return !!v;
+    if (Array.isArray(v)) return v.length > 0;
+    if (typeof v === "object") return Object.keys(v).length > 0;
+    return !!v;
+  }
+
+  function kbBody(kb, k) {
+    var v = kb[k], h = "";
+    if (k === "notes") {
+      h = (v || []).map(function (n) {
+        return '<p class="kbp"><span class="kbtag">第' + (n.para + 1) + "段 · " +
+          esc(n.kind || "") + "</span>" + (n.tags || []).map(function (t) {
+            return '<span class="kbtag g">' + esc(t) + "</span>";
+          }).join("") + esc(n.text || "") + "</p>";
+      }).join("");
+    } else if (k === "words") {
+      h = (v || []).map(function (w) {
+        return '<p class="kbp"><b>' + esc(w.w) + "</b>：" + esc(w.mean || "") + "</p>";
+      }).join("");
+    } else if (k === "sentences") {
+      h = (v || []).map(function (s) {
+        return '<p class="kbp">“' + esc(s.src || "") + "”<br><span class=\"std\">" +
+          esc(s.why || "") + "</span></p>";
+      }).join("");
+    } else if (k === "questions") {
+      h = (v || []).map(function (q) {
+        return '<p class="kbp"><b>' + esc(q.q || "") + "</b><br><span class=\"std\">" +
+          esc(q.hint || "") + "</span></p>";
+      }).join("");
+    } else if (k === "polyphone") {
+      h = (v || []).map(function (p) {
+        return '<p class="kbp"><b>' + esc(p.zi) + "</b>：" +
+          (p.items || []).map(function (i) {
+            return esc(i.py || "") + "（" + esc(i.ci || "") + "）";
+          }).join("　") + "</p>";
+      }).join("");
+    } else if (k === "methods") {
+      h = '<p class="kbp">' + (v || []).map(function (m) {
+        return '<span class="kbtag g">' + esc(m) + "</span>";
+      }).join("") + "</p>";
+    } else if (k === "exam") {
+      h = (v || []).map(function (e) {
+        return '<p class="kbp"><span class="kbtag">' + esc(e.point || "") +
+          "</span>" + esc(e.how || "") + "</p>";
+      }).join("");
+    } else if (k === "traps") {
+      h = (v || []).map(function (t) {
+        return '<p class="kbp"><span class="kbtag">' + esc(t.type || "") +
+          "</span>" + esc(t.text || "") + "</p>";
+      }).join("");
+    } else if (k === "accumulate") {
+      h = (v || []).map(function (a) {
+        return '<p class="kbp">“' + esc(a.t || "") + "”" +
+          (a.why ? '<span class="std">　' + esc(a.why) + "</span>" : "") + "</p>";
+      }).join("");
+    } else if (k === "center") {
+      h = '<p class="kbp">' + esc(v.idea || "") + "</p>" +
+        (v.virtue ? '<p class="kbp"><span class="kbtag">启示</span>' +
+          esc(v.virtue) + "</p>" : "");
+    } else if (k === "extend") {
+      h = '<p class="kbp">' + esc(v.life || "") + "</p>" +
+        ((v.links || []).length ? '<p class="kbp"><span class="std">连着看：' +
+          esc(v.links.join("　")) + "</span></p>" : "");
+    } else {
+      h = '<p class="kbp">' + esc(String(v)) + "</p>";
+    }
+    var std = (kb.standard || {})[k];       // 这一块依据课标哪一条，一并写清楚
+    return h + (std ? '<p class="std">课标依据：' + esc(std) + "</p>" : "");
+  }
+
+  // 段内批注按 kind 上不同的颜色，一眼能分清"这段是讲词义还是讲写法"
+  var KIND_CLS = {"段意": "idea", "字词": "word", "朗读": "read", "提问": "ask",
+                  "写法": "method", "积累": "acc", "背诵": "recite"};
+
+  function mark(html, w, cls, tip) {
+    var s = esc(w);
+    if (!s || html.indexOf(s) < 0) return html;
+    // 单字（多音字、易错字）到处都是，只标第一次，不然满屏都是色块
+    if (s.length <= 2) {
+      return html.replace(s, '<mark class="' + cls + '"' +
+        (tip ? ' title="' + esc(tip) + '"' : "") + ">" + s + "</mark>");
+    }
+    return html.split(s).join('<mark class="' + cls + '"' +
+      (tip ? ' title="' + esc(tip) + '"' : "") + ">" + s + "</mark>");
+  }
+
+  // 一段课文：先贴批注，再按勾的选项把词、句、多音字、积累句着上色
+  function paraHtml(x, p, i) {
+    var kb = x.kb || {}, t = esc(p), notes = [];
+    (kb.notes || []).forEach(function (n) {
+      if (n.para === i) notes.push(n);
+    });
+    (kb.words || []).forEach(function (w) {
+      t = mark(t, w.w, "k-word", w.mean);
+    });
+    (kb.polyphone || []).forEach(function (q) {
+      t = mark(t, q.zi, "k-poly", (q.items || []).map(function (z) {
+        return (z.py || "") + "（" + (z.ci || "") + "）";
+      }).join(" "));
+    });
+    (kb.sentences || []).forEach(function (s) {
+      t = mark(t, s.src, "k-sent", s.why);
+    });
+    (kb.accumulate || []).forEach(function (a) {
+      t = mark(t, a.t, "k-acc", a.why);
+    });
+    var head = notes.map(function (n) {
+      return '<span class="pnote"><span class="kbtag k-' +
+        (KIND_CLS[n.kind] || "idea") + '">' + esc(n.kind || "") + "</span>" +
+        (n.tags || []).map(function (g) {
+          return '<span class="kbtag g">' + esc(g) + "</span>";
+        }).join("") + esc(n.text || "") + "</span>";
+    }).join("");
+    return '<p class="para' + (notes.length ? " hl k-" +
+      (KIND_CLS[notes[0].kind] || "idea") : "") + '">' + head + t + "</p>";
+  }
+
   function cnText(x, idx) {
-    var h = '<div class="item"' + (idx != null ? ' id="t' + idx + '"' : "") +
+    var onCls = Object.keys(ON).filter(function (k) { return ON[k]; })
+      .map(function (k) { return " on-" + k; }).join("");
+    var h = '<div class="item' + onCls + '"' +
+      (idx != null ? ' id="t' + idx + '"' : "") +
       '><div class="top">' +
       (x.no ? '<span class="tag d1">第' + esc(x.no) + "课</span>" : "") +
       '<span class="name">' + esc(x.title) + "</span>" +
@@ -516,9 +719,14 @@
       // 默认收起：384 篇全铺开页面就散架了，从目录或标题点开再读
       h += '<details class="read"><summary>读全文（' + x.paras.length + " 段" +
         (x.chars ? " · " + esc(x.chars) + "字" : "") + "）</summary>" +
-        '<div class="full">' + x.paras.map(function (p) {
-          return '<p class="para">' + esc(p) + "</p>";
-        }).join("") + "</div></details>";
+        '<div class="full">' + x.paras.map(function (p, i) {
+          return paraHtml(x, p, i);
+        }).join("") +
+        // 注解（教材脚注）照原样放在正文下面，不挪到课后题后面
+        (x.notes && x.notes.length
+          ? '<p class="small">注解</p><ul class="pts">' + x.notes.map(function (n) {
+            return "<li>" + esc(n) + "</li>";
+          }).join("") + "</ul>" : "") + "</div></details>";
     } else {
       // 语文园地、拼音课这类在教材里没有连续正文，如实说明，别留一片空白
       h += '<p class="small">这一课（多为语文园地、拼音课）在教材里没有连续正文，' +
@@ -534,6 +742,19 @@
         x.newchars.map(function (c) {
           return '<span class="wb">' + esc(c) + "</span>";
         }).join("") + "</div>";
+    }
+    if (x.kb) {
+      // 这课没有的块就不给标签，免得点了个空标签
+      h += '<div class="chips">' + EXTRA.map(function (e) {
+        return kbHas(x.kb, e[0])
+          ? '<span class="chip' + (ON[e[0]] ? " on" : "") + '" data-ex="' +
+            e[0] + '">' + e[1] + "</span>" : "";
+      }).join("") + "</div>";
+      h += EXTRA.map(function (e) {
+        return kbHas(x.kb, e[0])
+          ? '<div class="kb' + (ON[e[0]] ? " show" : "") + '" data-kb="' +
+            e[0] + '">' + kbBody(x.kb, e[0]) + "</div>" : "";
+      }).join("");
     }
     return h + "</div>";
   }
