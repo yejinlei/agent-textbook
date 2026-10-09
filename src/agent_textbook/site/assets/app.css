@@ -107,7 +107,9 @@ body[data-page^="english"] { --c: var(--en); }
   font-weight: 600;
 }
 
-main { flex: 1; min-width: 0; padding: 18px 0 60px; }
+/* max-width 不能省：纵向布局时 main 会按 max-content 撑开（"常找/跳到"是
+   不换行的横排，内容有多宽它就想要多宽），窄屏上整页被顶出横向滚动条 */
+main { flex: 1; min-width: 0; max-width: 100%; padding: 18px 0 60px; }
 
 footer {
   border-top: 1px solid var(--line);
@@ -242,6 +244,10 @@ h3.grp {
 
 .count { color: var(--muted); font-size: 14px; }
 
+/* 长算式、长数字串中间没有断点，窄屏上会把整页顶出横向滚动条 */
+.stem, .pat, .given, .ask, .tex { overflow-wrap: anywhere; }
+svg { max-width: 100%; }
+
 /* 条目 */
 .item {
   background: #fff;
@@ -312,7 +318,8 @@ details > summary {
 .empty { color: var(--muted); padding: 20px; text-align: center; }
 
 /* 数学：公式与例题 */
-.tex { font-family: "Cambria Math", Cambria, "Times New Roman", serif; font-size: 18px; }
+.tex { font-family: "Cambria Math", Cambria, "Times New Roman", serif; font-size: 18px;
+  overflow-wrap: anywhere; }   /* 长算式串不换行会把整页顶宽 */
 
 .frac { display: inline-flex; flex-direction: column; vertical-align: middle;
   text-align: center; margin: 0 2px; }
@@ -618,7 +625,8 @@ h3.grp::before { border-radius: 4px; transform: rotate(45deg); }
 /* 窄屏：左侧栏回到顶部，横向排 */
 @media (max-width: 820px) {
   .wrap { flex-direction: column; padding: 0 12px; }
-  .side { position: static; width: auto; padding: 10px 0 0; }
+  .side { position: static; width: auto; max-width: 100%; padding: 10px 0 0; }
+  main, .tools, .toc { max-width: 100%; }
   .side nav { flex-direction: row; flex-wrap: wrap; gap: 6px; }
   .side nav.sub { margin-top: 4px; }
   .side nav.sub a {

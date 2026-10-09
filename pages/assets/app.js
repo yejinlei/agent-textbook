@@ -1393,7 +1393,7 @@
       '<span class="btn reset">重来</span></div>' +
       '<div class="ansbox hide">答：' + esc(p.answer || "") +
       (p.answer_latex ? "（" + tex(p.answer_latex) + "）" : "") + "</div>";
-    return h;
+    return h + "</div>";
   }
 
   function bindProblem(box) {
@@ -1490,7 +1490,7 @@
         return "<li><b>" + seg + "</b>：" + esc(p.gist || "") + "</li>";
       }).join("") + "</ul>";
     }
-    return h;
+    return h + "</div>";
   }
 
   function renderStructure() {
@@ -1536,7 +1536,7 @@
     h += '<div class="bar"><span class="btn next">下一句</span>' +
       '<span class="btn all">全部展开</span>' +
       '<span class="btn zh">遮／显示中文</span></div>';
-    return h;
+    return h + "</div>";
   }
 
   function bindSpeak(box) {
@@ -1584,7 +1584,7 @@
       if (p.materials && p.materials.length) {
         s += '<p class="small">要准备：' + esc(p.materials.join("、")) + "</p>";
       }
-      return s;
+      return s + "</div>";
     }).join("");
     return h;
   }
