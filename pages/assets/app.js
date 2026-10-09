@@ -467,9 +467,13 @@
     order.forEach(function (k, ui) {
       var bk = k.split("#")[0], e = elems[k];
       h += '<div class="unit" id="u' + ui + '"><div class="top"><span class="name">' + esc(bk) +
-        " 第" + esc(k.split("#")[1]) + "单元</span>" +
-        (e && e.reading ? '<span class="tag d1">阅读要素</span>' : "") + "</div>";
+        " 第" + esc(k.split("#")[1]) + "单元" +
+        (e && e.unit_title ? " · " + esc(e.unit_title) : "") + "</span>" +
+        (e && e.reading ? '<span class="tag d1">阅读要素</span>' : "") +
+        (e && e.writing ? '<span class="tag">习作要素</span>' : "") + "</div>";
+      if (e && e.theme) h += '<div class="elem"><b>人文主题</b>' + esc(e.theme) + "</div>";
       if (e && e.reading) h += '<div class="elem">' + esc(e.reading) + "</div>";
+      if (e && e.writing) h += '<div class="elem"><b>习作要素</b>' + esc(e.writing) + "</div>";
       h += byUnit[k].map(function (x) { return cnText(x, x._i); }).join("") + "</div>";
     });
     return h;
@@ -477,8 +481,9 @@
 
   function cnText(x, idx) {
     var h = '<div class="item"' + (idx != null ? ' id="t' + idx + '"' : "") +
-      '><div class="top"><span class="name">' +
-      esc(x.title) + "</span>" +
+      '><div class="top">' +
+      (x.no ? '<span class="tag d1">第' + esc(x.no) + "课</span>" : "") +
+      '<span class="name">' + esc(x.title) + "</span>" +
       (x.genre ? '<span class="tag">' + esc(x.genre) + "</span>" : "") +
       (x.author ? '<span class="who">' + esc(x.author) +
         (x.dynasty ? "（" + esc(x.dynasty) + "）" : "") + "</span>" : "") +
@@ -568,8 +573,22 @@
       return !st.q || has(x.title, st.q) || has(x.author, st.q) || has(x.text, st.q);
     });
     var h = "";
-    return h + rows.map(function (x) {
-      var s = '<div class="item"><div class="top"><span class="name">' + esc(x.title) +
+    // 篇目汇总表：一页看清这一册有哪些古诗文，点篇名直达原文
+    if (rows.length > 1) {
+      h += '<details class="toc"><summary>篇目汇总表（' + rows.length +
+        ' 篇 · 点篇名直达）</summary><div class="toc-b">' +
+        '<table class="tbl"><thead><tr><th>册次</th><th>篇名</th>' +
+        "<th>朝代 / 作者</th><th>类别</th></tr></thead><tbody>" +
+        rows.map(function (x, i) {
+          return "<tr><td>" + esc(x.book) + '</td><td><a href="#p' + i + '">' +
+            esc(x.title) + "</a></td><td>" +
+            esc([x.dynasty, x.author].filter(Boolean).join(" · ")) + "</td><td>" +
+            esc(x.kind || "") + "</td></tr>";
+        }).join("") + "</tbody></table></div></details>";
+    }
+    return h + rows.map(function (x, i) {
+      var s = '<div class="item" id="p' + i + '"><div class="top"><span class="name">' +
+        esc(x.title) +
         "</span>" + (x.dynasty ? '<span class="tag">' + esc(x.dynasty) + "</span>" : "") +
         (x.author ? '<span class="who">' + esc(x.author) + "</span>" : "") +
         (x.kind ? '<span class="tag">' + esc(x.kind) + "</span>" : "") + "</div>";
@@ -635,60 +654,98 @@
     });
   }
 
-  /* 课文：对话（角色分行）+ 语篇（中英对照 + 理解题） */
+  /* 课文：按册 → 单元（教材顺序）→ 对话 / 短文，每课保留教材原有内容 */
   function enText(st) {
-    var h = "<h2>课文与语篇</h2>" +
-      '<p class="lead">点右上角“中文对照”可切换译文显示——纸质书做不到。' +
-      "语篇还带教材原题与重点词。</p>";
     var dl = (D.dialogues || []).filter(pass(st, ["scene", "function", "patterns"]));
-    if (dl.length) {
-      h += "<h3>情景对话（" + dl.length + "）</h3>";
-      dl.slice(0, 150).forEach(function (x) {
-        var s = '<div class="item"><div class="top"><span class="name">' +
-          esc(x.scene) + "</span>" + where(x) +
-          (x.function ? '<span class="tag">' + esc(x.function) + "</span>" : "") + "</div>";
-        (x.patterns || []).forEach(function (p) {
-          s += '<div class="pat">' + hl(String(p)) + "</div>";
-        });
-        (x.turns || []).forEach(function (t) {
-          var who = typeof t === "string" ? "" : (t.speaker || t.role || "");
-          var line = typeof t === "string" ? t : (t.text || t.line || t.en || "");
-          var zh = typeof t === "string" ? "" : (t.zh || t.translation || "");
-          s += '<div class="turn"><b>' + esc(who || "•") + "</b> " + esc(line) +
-            (zh ? '<span class="zh">' + esc(zh) + "</span>" : "") + "</div>";
-        });
-        h += s + "</div>";
-      });
-    }
     var ps = (D.passages || []).filter(pass(st, ["name", "genre", "text", "topic"]));
-    if (ps.length) {
-      h += "<h3>短文 / 阅读（" + ps.length + "）</h3>";
-      ps.slice(0, 120).forEach(function (x) {
-        var s = '<div class="item"><div class="top"><span class="name">' + esc(x.name) +
-          "</span>" + where(x) +
-          (x.genre ? '<span class="tag">' + esc(x.genre) + "</span>" : "") +
-          (x.topic ? '<span class="tag d1">' + esc(x.topic) + "</span>" : "") + "</div>";
-        s += '<div class="en para">' + esc(x.text) + "</div>";
-        if (x.zh) s += '<div class="zh para">' + esc(x.zh) + "</div>";
-        if (x.words && x.words.length) {
-          s += '<p class="small">重点词</p><div class="words">' +
-            x.words.map(function (w) {
-              return '<span class="wb">' + esc(w.word || w) +
-                (w.meaning || w.zh ? " <i>" + esc(w.meaning || w.zh) + "</i>" : "") +
-                "</span>";
-            }).join("") + "</div>";
-        }
-        if (x.comprehension && x.comprehension.length) {
-          s += "<details><summary>理解题（" + x.comprehension.length + "）</summary>" +
-            '<ul class="pts">' + x.comprehension.map(function (c) {
-              return "<li>" + esc(c.q || c.question) +
-                (c.a || c.answer ? " —— " + esc(c.a || c.answer) : "") + "</li>";
-            }).join("") + "</ul></details>";
-        }
-        h += s + "</div>";
-      });
+    var bidx = {};
+    (D.books || []).forEach(function (b, i) { bidx[b] = i; });
+    var units = {}, order = [];
+    function slot(x) {
+      var k = (x.book || "") + "#" + (x.unit || "");
+      if (!units[k]) {
+        units[k] = { book: x.book || "", unit: x.unit || "", dlg: [], pas: [] };
+        order.push(k);
+      }
+      return units[k];
     }
+    dl.forEach(function (x) { slot(x).dlg.push(x); });
+    ps.forEach(function (x) { slot(x).pas.push(x); });
+    order.sort(function (a, b) {
+      var A = units[a], B = units[b];
+      return ((bidx[A.book] || 0) - (bidx[B.book] || 0)) ||
+        String(A.unit).localeCompare(String(B.unit), "zh");
+    });
+    // 课文目录：按册 → 单元列出，点单元直达
+    var h = '<details class="toc"' +
+      (order.length && (st.q || st.book !== "all") ? " open" : "") +
+      '><summary>课文目录（' + (dl.length + ps.length) + " 课 · " + order.length +
+      " 个单元 · 点单元直达）</summary><div class=\"toc-b\">" +
+      order.map(function (k, i) {
+        var u = units[k];
+        return '<div class="toc-u"><a class="ubook" href="#eu' + i + '">' +
+          esc(u.book) + " · " + esc(u.unit || "（未标单元）") + "</a></div>";
+      }).join("") + "</div></details>";
+    order.forEach(function (k, i) {
+      var u = units[k];
+      h += '<div class="unit" id="eu' + i + '"><div class="top"><span class="name">' +
+        esc(u.book) + " · " + esc(u.unit || "（未标单元）") + "</span>" +
+        '<span class="tag d1">对话 ' + u.dlg.length + " · 短文 " + u.pas.length +
+        "</span></div>";
+      u.dlg.forEach(function (x) { h += enDialogue(x); });
+      u.pas.forEach(function (x) { h += enPassage(x); });
+      h += "</div>";
+    });
     return h;
+  }
+
+  /* 一课对话：句型 + 逐句（角色 / 原文 / 中文） */
+  function enDialogue(x) {
+    var s = '<div class="item"><div class="top"><span class="tag d1">对话</span>' +
+      '<span class="name">' + esc(x.scene) + "</span>" + where(x) +
+      (x.function ? '<span class="tag">' + esc(x.function) + "</span>" : "") + "</div>";
+    (x.patterns || []).forEach(function (p) {
+      s += '<div class="pat">' + hl(String(p)) + "</div>";
+    });
+    (x.turns || []).forEach(function (t) {
+      var who = typeof t === "string" ? "" : (t.speaker || t.role || "");
+      var line = typeof t === "string" ? t : (t.text || t.line || t.en || "");
+      var zh = typeof t === "string" ? "" : (t.zh || t.translation || "");
+      s += '<div class="turn"><b>' + esc(who || "•") + "</b> " + esc(line) +
+        (zh ? '<span class="zh">' + esc(zh) + "</span>" : "") + "</div>";
+    });
+    return s + "</div>";
+  }
+
+  /* 一课短文：原文 + 译文 + 重点词 + 理解题 + 写作任务 */
+  function enPassage(x) {
+    var s = '<div class="item"><div class="top"><span class="tag d1">短文</span>' +
+      '<span class="name">' + esc(x.name) + "</span>" + where(x) +
+      (x.genre ? '<span class="tag">' + esc(x.genre) + "</span>" : "") +
+      (x.topic ? '<span class="tag">' + esc(x.topic) + "</span>" : "") + "</div>";
+    if (x.source) s += '<p class="small">来源：' + esc(x.source) + "</p>";
+    s += '<div class="en para">' + esc(x.text) + "</div>";
+    if (x.zh) s += '<div class="zh para">' + esc(x.zh) + "</div>";
+    if (x.words && x.words.length) {
+      s += '<p class="small">重点词</p><div class="words">' +
+        x.words.map(function (w) {
+          return '<span class="wb">' + esc(w.word || w) +
+            (w.meaning || w.zh ? " <i>" + esc(w.meaning || w.zh) + "</i>" : "") +
+            "</span>";
+        }).join("") + "</div>";
+    }
+    if (x.comprehension && x.comprehension.length) {
+      s += "<details><summary>理解题（" + x.comprehension.length + "）</summary>" +
+        '<ul class="pts">' + x.comprehension.map(function (c) {
+          return "<li>" + esc(c.q || c.question) +
+            (c.a || c.answer ? " —— " + esc(c.a || c.answer) : "") + "</li>";
+        }).join("") + "</ul></details>";
+    }
+    if (x.writing) {
+      s += '<div class="life"><div class="lf"><span class="tag d1">写一写</span>' +
+        esc(x.writing) + "</div></div>";
+    }
+    return s + "</div>";
   }
 
   function pass(st, fields) {
