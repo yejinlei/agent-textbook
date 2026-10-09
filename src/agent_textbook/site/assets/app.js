@@ -267,22 +267,38 @@
         return true;
       });
       cnt.textContent = rows.length + " 个单元";
-      box.innerHTML = byGroup(rows, st, function (u) {
+      box.innerHTML = unitToc(rows) + (byGroup(rows, st, function (u) {
         var d = D.domains.filter(function (x) { return x.key === u.domain; })[0];
         return d ? d.name : "";
-      }, mathUnit) || '<div class="empty">没有匹配的单元</div>';
+      }, function (u) {
+        return mathUnit(u, rows.indexOf(u));
+      }) || '<div class="empty">没有匹配的单元</div>');
     }, { hint: "如：分数、面积、鸡兔同笼",
          tags: hotTags(D.units, "title", 18) });
     t.fire();
     if (kind === "all") measureTable();
   }
 
-  function mathUnit(u) {
+  /* 单元目录：按册 → 单元列出，点单元直达（课本翻目录那一页） */
+  function unitToc(rows) {
+    if (!rows || rows.length < 2) return "";
+    return '<details class="toc"><summary>单元目录（' + rows.length +
+      ' 个单元 · 点单元直达）</summary><div class="toc-b">' +
+      rows.map(function (u, i) {
+        var head = (i === 0 || rows[i - 1].book !== u.book)
+          ? '<div class="toc-u">' + esc(u.book) + "</div>" : "";
+        return head + '<a class="tlink" href="#mu' + i + '">' +
+          (u.unit_no ? "第" + esc(u.unit_no) + "单元 · " : "") + esc(u.title) + "</a>";
+      }).join("") + "</div></details>";
+  }
+
+  function mathUnit(u, idx) {
     var dom = D.domains.filter(function (d) { return d.key === u.domain; })[0] || {};
     var lit = (u.literacy || []).map(function (x) {
       return '<span class="tag">' + esc(x) + "</span>";
     }).join("");
-    var h = '<div class="top"><span class="name">' + esc(u.title) + "</span>" +
+    var h = '<div class="item"' + (idx != null ? ' id="mu' + idx + '"' : "") +
+      '><div class="top"><span class="name">' + esc(u.title) + "</span>" +
       where(u, u.page_from) + '<span class="tag d' +
       Math.max(0, D.domains.map(function (d) { return d.key; }).indexOf(u.domain)) +
       '">' + esc(dom.name) + "</span>" + lit + "</div>" + pts(u.points);
@@ -340,7 +356,7 @@
           (m.rate ? " <i>" + esc(m.rate) + "</i>" : "") + "</span>";
       }).join("") + "</div>";
     }
-    return item(h);
+    return h + "</div>";
   }
 
   function measureTable() {
