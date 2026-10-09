@@ -36,7 +36,7 @@ RE_PARA_END = re.compile(r"[。！？…][”’」』）]*\s*$")
 # ---------------------------------------------------------------- 学习任务
 # 学习任务必须**在句首**——正文里出现"一起朗读课文"是内容，不是要求。
 RE_TASK_HEAD = re.compile(
-    r"^(有感情地)?(朗读|背诵|默读|分角色朗读|复述|默写)"
+    r"^(有感情地|正确、流利地|分角色地)?(朗读|背诵|默读|分角色朗读|复述|默写)"
     r"|^背诵第[一二三四五六七八九十\d]+"
 )
 # 页边生字条与任务句常常挤在同一段（`凉枚杏…勾挖有感情地朗读课文。`），
@@ -57,7 +57,9 @@ RE_EXERCISE = re.compile(
 # 课后题还可能粘在段落**中间**（`—选自斯妤的《除夕》，有改动默读课文，想想…`），
 # 整段判不了，只能在句中定位后切开。
 RE_EXE_INLINE = re.compile(
-    r"(默读课文|小练笔|朗读课文|找出课文中|读下面的句子|"
+    r"(默读课文|朗读课文|小练笔|找出课文中|读下面的句子|"
+    r"读一读|说一说|唱一唱|写一写|照样子说一说|照样子写一写|"
+    r"正确、流利地|有感情地|分角色地|背诵|朗读|"
     r"说说哪部分|想想这样写|再讨论一下|和同学交流|照样子写|"
     r"结合注释|借助注释|说说下面|想想它们|分别表达了|再想想|"
     r"还有哪些|在你读过的|说说《|的故事，|类似的诗句|选\s*做)"
@@ -68,6 +70,11 @@ RE_AUTHOR_LINE = re.compile(r"本文作者[^，。！？]{2,8}[，。][^，。�
 RE_NEWCHARS = re.compile(r"^[一-鿿]{1,24}$")
 # 课后补充栏目：紧跟课文的"阅读链接/资料袋"，不是课文正文
 RE_LINK = re.compile(r"阅读链接|资料袋|阅读连接")
+# 单元级栏目名被文本层/生字条粘进段落时（"第七单元·阅读"），整段/片段都是噪声。
+RE_UNIT_COLUMN = re.compile(
+    r"第[一二三四五六七八九十\\d]+单元[·\s]*"
+    r"(?:阅读|识字|汉语拼音|习作|习作例文|口语交际|语文园地|"
+    r"快乐读书吧|综合性学习|梳理与交流|例文|写字)")
 # 图注：`（图）盛锡珊`。**必须限长**——图注后面常直接跟着正文
 # （`（图）盛锡珊阅读链接我于是猛地想起…`），不设上限会把整句正文删掉。
 RE_FIGURE = re.compile(r"（图）[^，。！？]{0,3}|[（(]\s*图\s*[\d\-.]*\s*[)）]")
@@ -82,8 +89,9 @@ RE_SECTION_HEADER = re.compile(
     r"快乐读书吧|综合性学习|梳理与交流|例文|写字)\s*$"
 )
 # 文本层还会把栏目页眉拆成单字行（`①` / `阅` / `读`），合并后才是"①阅读"。
-# 这类行独立成行、只含栏名常用字，正文中极少出现，直接整行丢掉。
-RE_SECTION_FRAG = re.compile(r"^[①②③]$|^[阅读识字习作语文园地快乐书信拼音例交际写]{1,4}$")
+# 整字栏目名（"阅读""语文园地"）会由 RE_SECTION_HEADER 删除；这里只删圈码，
+# 避免把"文/乐/读/书"这类常见正文单字当成栏目碎片误伤。
+RE_SECTION_FRAG = re.compile(r"^[①②③]$")
 # 同样的页眉也可能被文本层塞在**行内**（"蝴蝶停①阅读在花朵上"），只能剥离不能整行删。
 # 只认"圈码+栏目名"这个组合，正文里的"阅读"二字（如"课外阅读"）不受影响。
 RE_SECTION_INLINE = re.compile(
@@ -243,6 +251,24 @@ def split_body_tasks(paras: list[str], newchars: set | None = None, title: str =
         s = RE_FIGURE.sub("", p.strip())
         s = RE_PAGENO.sub("", s)
         s = RE_AUTHOR_LINE.sub("", s)
+        # OCR 常见误识别："朗读课文"成"朗课"、"背诵课文"成"背课"；
+        # 把标题粘到任务前（"江南朗课"）时先剥掉标题。
+        if title and title in s:
+            # 古诗的朝代/出处常粘在首句前，如"汉乐府江南可采莲"——
+            # 只要 title 前面没有句读，就当作页眉噪声剥掉。
+            i = s.find(title)
+            if i > 0 and not re.search(r"[，。！？；、]", s[:i]):
+                s = s[i:]
+        if title and s.startswith(title):
+            rest = s[len(title):].lstrip("。，")
+            # 段首重复出现标题（页眉粘连）时剥掉，让正文露出来。
+            # 古诗首句例外（如"江南可采莲"），免得把诗句切掉。
+            if rest and not _looks_poem(s):
+                s = rest
+        if title and len(title) >= 2:
+            # 标题被 OCR 粘进句子中间（"色味双北京的春节美"）也剥掉。
+            s = re.sub(r"(?<=[一-鿿])" + re.escape(title) + r"(?=[一-鿿])", "", s)
+        s = s.replace("朗课", "朗读课文").replace("背课", "背诵课文")
         # 页眉+图注会被文本层插进句子中间：`…色味双1    北京的春节（图）盛锡珊…`。
         # **不能按课题原样删除**——课文正文常提到自己的题目（《腊八粥》里
         # 就有"提到腊八粥"），原样删会破坏句子。只删"课题紧挨着图注"或
@@ -257,22 +283,37 @@ def split_body_tasks(paras: list[str], newchars: set | None = None, title: str =
             continue
         if RE_HEADNUM.match(s):
             continue
+        # 单元级栏目碎片（"第四单元·阅读"），无论独立成段还是粘在生字条里，都丢掉。
+        if RE_UNIT_COLUMN.search(s):
+            continue
         if RE_NOTE.match(s) or s.startswith("注释"):
             items.append(("note", s))
             continue
         # 课后题粘在段落中间时切开（`…有改动默读课文，想想…`）
         m = RE_EXE_INLINE.search(s)
         if m and m.start() > 0:
-            items.append(("body", s[:m.start()].strip()))
+            head = s[:m.start()].strip()
+            # 前面半截若是生字条噪声（无句读、纯汉字/空格），直接丢掉，
+            # 避免"小小的船月儿…读一读"这种粘连整段污染正文。
+            if head and not re.search(r"[。！？…]", head) and re.fullmatch(r"[一-鿿\s]+", head):
+                items.append(("exe", s[m.start():].strip()))
+                continue
+            if head:
+                items.append(("body", head))
             items.append(("exe", s[m.start():].strip()))
             continue
         # 生字条与任务句挤在同一段时切开。前半截必须是**纯汉字串**才认：
         # 否则"上课了，大家在教室里一起朗读课文，那声音真好听！"会被切成两半。
         m = RE_TASK_INLINE.search(s)
-        if m and m.start() > 0 and RE_CJK_ONLY.match(s[:m.start()].strip()):
+        if m and m.start() > 0 and re.fullmatch(r"[一-鿿]+", s[:m.start()].strip()):
             head = s[:m.start()].strip()
             if head:
-                items.append(("char", head))
+                # 只有前半截全是本课生字时才拆，否则保留在正文里。
+                if not newchars or all(c in newchars for c in head):
+                    for c in head:
+                        items.append(("char", c))
+                else:
+                    items.append(("body", head))
             items.append(("task", s[m.start():].strip()))
             continue
         if RE_TASK_HEAD.search(s):
@@ -291,6 +332,15 @@ def split_body_tasks(paras: list[str], newchars: set | None = None, title: str =
         if RE_NEWCHARS.match(s) and len(s) <= 24 and not RE_PARA_END.search(s):
             items.append(("char", s))
             continue
+        # 文本层把页边生字条粘成一长串（如"江南可采莲戏间东北..."），
+        # 或拆成空格分隔的单字（"西 西 西"）。整段无标点、纯汉字时，
+        # 只要每个字都在本课生字表里，就拆成单字回收。
+        if (not RE_PARA_END.search(s) and re.fullmatch(r"[一-鿿\s]+", s)):
+            cand = [c for c in s if "\u4e00" <= c <= "\u9fff"]
+            if cand and (not newchars or all(c in newchars for c in cand)):
+                for c in cand:
+                    items.append(("char", c))
+                continue
         items.append(("body", s))
 
     cut = next((i for i, (k, _) in enumerate(items) if k in ("exe", "link")), len(items))
@@ -431,6 +481,8 @@ def slice_lesson(pages: list[dict], by: dict, start: int, end: int, title: str =
     plain_lines = [ln for ln in lines if not RE_PINYIN.match(ln)]
     paras = split_paragraphs(plain_lines)
     body, tasks, exes, chars, notes, links = split_body_tasks(paras, newchars, title)
+    # 本课生字以教材字表（words.jsonl）为准，避免页面生字受 OCR 粘连影响。
+    final_chars = sorted({c for c in (newchars or set()) if "\u4e00" <= c <= "\u9fff"})
     return {
         "page_from": by[keys[0]].get("page_no"),
         "page_to": by[keys[-1]].get("page_no"),
@@ -443,7 +495,7 @@ def slice_lesson(pages: list[dict], by: dict, start: int, end: int, title: str =
         "exercises": exes,
         "notes": notes,
         "reading_links": links,
-        "newchars": chars,
+        "newchars": final_chars,
         "chars": len(plain),
     }
 

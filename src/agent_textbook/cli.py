@@ -259,12 +259,42 @@ def cmd_anim(args) -> None:
         print("提示：没装 manim 就跑不了；页面里的可视化实验室不需要它。")
 
 
+def cmd_writing(args) -> None:
+    """单元习作支架包：观察卡 / 提纲 / 课文例证 / 量规 / 修改清单。"""
+    import json
+
+    from .index import writing
+
+    if args.stats:
+        print(json.dumps(writing.stats(), ensure_ascii=False))
+        return
+    r = writing.build(limit=args.limit, force=args.force, grade=args.grade or "")
+    print(json.dumps(r, ensure_ascii=False))
+
+
+def cmd_panel(args) -> None:
+    """语文专家组：复核段意与中心（生成与核查分离，判不过就换人带错因重做）。"""
+    import json
+
+    from .index import panel
+
+    if args.stats:
+        print(json.dumps(panel.stats(), ensure_ascii=False))
+        return
+    r = panel.build(limit=args.limit, force=args.force, workers=args.workers,
+                    grade=args.grade or "")
+    print(json.dumps(r, ensure_ascii=False))
+
+
 def cmd_lessonkb(args) -> None:
     """每课本体论：一堂课要掌握什么（按课标学段分档，不超纲）。"""
     import json
 
     from .index import lessonkb
 
+    if args.schema:
+        print(lessonkb.schema_report())
+        return
     if args.stats:
         print(json.dumps(lessonkb.stats(), ensure_ascii=False))
         return
@@ -643,9 +673,28 @@ def main() -> None:
     sp.add_argument("--limit", type=int, default=0, help="只处理前 N 课")
     sp.add_argument("--force", action="store_true", help="已生成过的也重跑")
     sp.add_argument("--workers", type=int, default=4, help="并发数")
+    sp.add_argument("--schema", action="store_true",
+                    help="打印一课本体的字段 schema（层 / 来源 / 闸门 / 学段）")
     sp.add_argument("--stats", action="store_true", help="只看已有本体的统计")
     sp.add_argument("--grade", default="", help="只跑某年级（如 三 / 五）")
     sp.set_defaults(func=cmd_lessonkb)
+
+    sp = sub.add_parser("panel",
+                        help="语文专家组：复核段意与中心（证据链核查 + 二稿仲裁）")
+    sp.add_argument("--limit", type=int, default=0, help="只处理前 N 篇")
+    sp.add_argument("--force", action="store_true", help="已复核过的也重跑")
+    sp.add_argument("--workers", type=int, default=4, help="并发数")
+    sp.add_argument("--grade", default="", help="只跑某年级（如 五）")
+    sp.add_argument("--stats", action="store_true", help="只看复核统计")
+    sp.set_defaults(func=cmd_panel)
+
+    sp = sub.add_parser("writing",
+                        help="单元习作支架包：观察卡 / 提纲 / 课文例证 / 量规")
+    sp.add_argument("--limit", type=int, default=0, help="只处理前 N 个单元")
+    sp.add_argument("--force", action="store_true", help="已生成的也重跑")
+    sp.add_argument("--grade", default="", help="只跑某年级（如 六）")
+    sp.add_argument("--stats", action="store_true", help="只看统计")
+    sp.set_defaults(func=cmd_writing)
 
     sp = sub.add_parser("mathkb",
                         help="数学每单元本体：算理 / 算法 / 易错 / 思想 / 联系")

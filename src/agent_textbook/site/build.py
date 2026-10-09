@@ -55,6 +55,14 @@ def _unum(s):
     return int(d) if d else 0
 
 
+def _book_sort_key(book: str):
+    """册次字符串 → 排序键：一年级上册 < 一年级下册 < 二年级上册 ……"""
+    m = re.match(r"^(.*年级)(上册|下册)$", book or "")
+    if m:
+        return goals.key_of(m.group(1), m.group(2))
+    return (99, 99)
+
+
 # ------------------------------------------------------------------ 数学
 def build_math(con) -> dict:
     # unit_no 为空的是"整理复习/附录"之类，不算单元；text 是这一单元的教材正文
@@ -559,6 +567,22 @@ def build_english(con) -> dict:
                  for r in pick("en_revision", ["grade", "term", "theme", "tasks",
                                                "outcome"])]
 
+    # 同一单元里的词汇、对话、短文、歌曲应共享 topic。先攒出单元 → topic 映射，
+    # 再把对话/歌曲/项目/复习里缺失 topic 的补上——否则“按话题”筛选时，
+    # 对话因为没有 topic 会被全部过滤掉，页面显示 0 课。
+    unit_topic = {}
+    for x in vocab + passages + dialogues + songs + projects + revisions:
+        t = x.get("topic") or x.get("theme")
+        if t:
+            unit_topic[(x["grade"], x["term"], x.get("unit_no") or 0)] = t
+    for x in dialogues + songs + projects + revisions:
+        if x.get("topic") or x.get("theme"):
+            continue
+        t = unit_topic.get((x["grade"], x["term"], x.get("unit_no") or 0))
+        if t:
+            x["topic"] = t
+            x["theme"] = goals.en_theme(t)
+
     # 课本顺序：册次 → 单元号（无单元号的附录/复习排在册末）
     def _ord(x):
         no = x.get("unit_no")
@@ -625,6 +649,27 @@ def build_speak(con) -> dict:
             expr.append({"book": _gt(r), "grade": r.get("grade"),
                          "term": r.get("term"), "unit_no": no, "unit": unit,
                          "en": r.get("en"), "zh": r.get("zh")})
+
+    # 给开口说里的对话补上单元 topic：站点最终用的是这份 dialogues，
+    # 如果不补 topic，英语“课文与语篇”页按话题筛选时对话会全丢。
+    unit_topic = {}
+    for r in _rows(con, "select grade,term,unit_no,topic from en_vocab "
+                     "where subject='英语' and topic is not null"):
+        unit_topic[(r["grade"], r["term"], r.get("unit_no") or 0)] = r["topic"]
+    for r in _rows(con, "select grade,term,unit_name,topic from en_passage "
+                     "where subject='英语' and topic is not null"):
+        no, _ = resolve(r)
+        unit_topic[(r["grade"], r["term"], no or 0)] = r["topic"]
+    for r in _rows(con, "select grade,term,unit_no,topic from en_song "
+                     "where subject='英语' and topic is not null"):
+        unit_topic[(r["grade"], r["term"], r.get("unit_no") or 0)] = r["topic"]
+    for d in dlg:
+        if d.get("topic") or not d.get("unit_no"):
+            continue
+        t = unit_topic.get((d["grade"], d["term"], d["unit_no"]))
+        if t:
+            d["topic"] = t
+            d["theme"] = goals.en_theme(t)
 
     # 课本顺序：册次 → 单元号（无单元号的附录/复习排在册末）
     def _ord(x):
@@ -754,7 +799,7 @@ def _write(path, html):
 def _slice(key, kind, cn_d, math_d, en_d):
     """子页只拿自己那一份数据——页面小、打开快。"""
     if key == "chinese":
-        books = sorted(cn_d["words"].keys())
+        books = sorted(cn_d["words"].keys(), key=_book_sort_key)
         if kind == "literacy":
             return {"words": cn_d["words"], "word_kinds": cn_d["word_kinds"],
                     "books": books}
@@ -771,22 +816,22 @@ def _slice(key, kind, cn_d, math_d, en_d):
                     "books": books}
         return {"pieces": cn_d["pieces"], "books": books}
     if key == "math":
-        books = sorted({u["book"] for u in math_d["units"]})
+        books = sorted({u["book"] for u in math_d["units"]}, key=_book_sort_key)
         units = math_d["units"] if kind == "all" else \
             [u for u in math_d["units"] if u["domain"] == kind]
         if kind == "problem":
             return {"problems": math_d["problems"], "keypoints": math_d["keypoints"],
                     "life": math_d["life"],
-                    "books": sorted({p["book"] for p in math_d["problems"]})}
+                    "books": sorted({p["book"] for p in math_d["problems"]}, key=_book_sort_key)}
         d = {"domains": math_d["domains"], "units": units, "books": books}
         if kind == "all":
             d["measures"] = math_d["measures"]
         return d
-    books = sorted({v["book"] for v in en_d["vocab"]})
+    books = sorted({v["book"] for v in en_d["vocab"]}, key=_book_sort_key)
     if kind == "speak":
         return {"dialogues": en_d["dialogues"], "projects": en_d["projects"],
                 "exprs": en_d["exprs"], "functions": en_d["functions"],
-                "books": sorted({d["book"] for d in en_d["dialogues"]})}
+                "books": sorted({d["book"] for d in en_d["dialogues"]}, key=_book_sort_key)}
     keys = {"discourse": ["passages", "dialogues"], "vocab": ["vocab"],
             "grammar": ["grammar"], "phonics": ["phonics"],
             "use": ["songs", "projects", "revisions"]}
@@ -856,7 +901,7 @@ def build_pages(out_dir: str = None, verbose: bool = True) -> dict:
 </div>
 <h2>入口</h2>
 <div class="grid">
-<div class="card zh"><h3>语文</h3><p class="small">课文全文（按册→单元→课，含生字与课后题，可当课本）、
+<div class="card cn"><h3>语文</h3><p class="small">课文全文（按册→单元→课，含生字与课后题，可当课本）、
 识字与写字、表达与交流（习作要素）、古诗文（原文+注释+译文）。</p>
 <a href="chinese/index.html">进入 →</a></div>
 <div class="card ma"><h3>数学</h3><p class="small">按课标四大领域分页：数与代数、图形与几何、

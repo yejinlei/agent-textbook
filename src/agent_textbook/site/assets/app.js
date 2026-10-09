@@ -191,16 +191,18 @@
     return { st: st, fire: fire };
   }
 
-  /* 常找标签自动攒：取条目里出现最多的词，不手写、不会过时 */
+  /* 常找标签自动攒：取条目里出现最多的词，不手写、不会过时。
+     过滤掉年级/册次/单元/第/课这类通用词，否则数学头部会挤出一长串。 */
+  var TAG_STOP = /年级|上册|下册|册|单元|练习|复习|总复习|^第|^课$|^的$|^和$|^与$|^是$|^在$|^有$|^了$/;
   function hotTags(rows, field, n) {
     var c = {};
     (rows || []).forEach(function (x) {
       String(x[field] || "").split(/[\s，,、。；;：:（）()【】"“”·0-9]/).forEach(function (w) {
         w = (w || "").trim();
-        if (w.length >= 2 && w.length <= 6) c[w] = (c[w] || 0) + 1;
+        if (w.length >= 2 && w.length <= 6 && !TAG_STOP.test(w)) c[w] = (c[w] || 0) + 1;
       });
     });
-    return Object.keys(c).sort(function (a, b) { return c[b] - c[a]; }).slice(0, n || 16);
+    return Object.keys(c).sort(function (a, b) { return c[b] - c[a]; }).slice(0, n || 12);
   }
 
   /* 两种学法：按进度（按册分组，课本顺序）／按主题（跨册把同类串起来）。
@@ -859,9 +861,14 @@
     }
     var box = listBox();
     var topics = [];
-    (D.vocab || []).forEach(function (v) {
-      if (v.topic && topics.indexOf(v.topic) < 0) topics.push(v.topic);
-    });
+    function addTopic(t) {
+      if (t && topics.indexOf(t) < 0) topics.push(t);
+    }
+    (D.vocab || []).forEach(function (v) { addTopic(v.topic); });
+    if (kind === "discourse") {
+      (D.passages || []).forEach(function (x) { addTopic(x.topic); });
+      (D.dialogues || []).forEach(function (x) { addTopic(x.topic); });
+    }
     var t = tools([], function (st, cnt) {
       var h = "";
       if (kind === "discourse") h = enText(st);
