@@ -116,8 +116,10 @@
       html += "</select>";
     }
     html += '<input id="q" placeholder="' + (opt.hint || "关键词筛选") + '">';
-    html += '<span class="views"><span class="vtab on" data-v="prog">按进度</span>' +
-      '<span class="vtab" data-v="topic">按主题</span></span>';
+    if (opt.noView !== true) {
+      html += '<span class="views"><span class="vtab on" data-v="prog">按进度</span>' +
+        '<span class="vtab" data-v="topic">按主题</span></span>';
+    }
     if (opt.zh) html += '<span class="tab" id="zhbtn">中文对照</span>';
     // 常找标签：点一下就等于搜这个词（内容多的时候比翻页快）
     if (opt.tags && opt.tags.length) {
@@ -130,7 +132,10 @@
     html += '<div class="jump" id="jump"></div>';
     html += '<span class="count" id="cnt"></span>';
     wrap.innerHTML = html;
-    app.appendChild(wrap);
+    // 列表容器往往先创建：工具条必须插到它前面，否则会被几百条内容压到页底
+    var listEl = document.getElementById("list");
+    if (listEl && listEl.parentNode === app) app.insertBefore(wrap, listEl);
+    else app.appendChild(wrap);
 
     function fire() { onChange(st, document.getElementById("cnt")); }
     wrap.addEventListener("click", function (e) {
@@ -175,8 +180,12 @@
       if (e.target.id === "ex") st.extra = e.target.value;
       fire();
     });
+    var qTimer = null;
     wrap.addEventListener("input", function (e) {
-      if (e.target.id === "q") { st.q = e.target.value.trim().toLowerCase(); fire(); }
+      if (e.target.id !== "q") return;
+      st.q = e.target.value.trim().toLowerCase();
+      if (qTimer) clearTimeout(qTimer);
+      qTimer = setTimeout(fire, 200);   // 课文页数据大，防抖后再过滤
     });
     return { st: st, fire: fire };
   }
@@ -372,18 +381,32 @@
       else if (kind === "poetry") h = cnPoetry(st);
       else h = cnInquiry(st);
       box.innerHTML = h || '<div class="empty">没有匹配的内容</div>';
-      cnt.textContent = box.querySelectorAll(".item").length + " 组";
-    }, { hint: { literacy: "如：春、yī", reading: "如：草原、老舍、比喻",
+      var suffix = { reading: " 篇课文", literacy: " 册", writing: " 条",
+                     poetry: " 篇" }[kind] || " 组";
+      cnt.textContent = box.querySelectorAll(".item").length + suffix;
+    }, { noView: true,
+         hint: { literacy: "如：春、yī", reading: "如：草原、老舍、比喻",
                  writing: "如：特点、真情实感", poetry: "如：月、山、送别" }[kind] || "关键词",
          tags: kind === "literacy" ? (D.word_kinds || [])
                : kind === "poetry" ? hotTags(D.pieces, "title", 16)
                : hotTags(D.texts, "title", 18) });
     t.fire();
+    // 课文目录跳转：点目录里的课文/单元，展开全文并滚到位
+    box.addEventListener("click", function (e) {
+      var a = e.target.closest("a.tlink, a.ubook");
+      if (!a) return;
+      var el = document.getElementById((a.getAttribute("href") || "").slice(1));
+      if (!el) return;
+      e.preventDefault();
+      var d = el.querySelector("details.read");
+      if (d && !d.open) d.open = true;
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   function cnLiteracy(st) {
     if (!D.words) return "";
-    var h = "<h2>识字与写字</h2>";
+    var h = "";
     Object.keys(D.words).sort().forEach(function (b) {
       if (st.book !== "all" && st.book !== b) return;
       var kinds = D.words[b] || {};
@@ -406,37 +429,54 @@
     return h;
   }
 
-  /* 课文：按册 → 单元（带语文要素）→ 课文（可展开全文） */
+  /* 课文：课文目录（可跳转/分册）→ 册 → 单元（带语文要素）→ 课文（点开读全文） */
   function cnReading(st, elems) {
     var rows = (D.texts || []).filter(function (x) {
       if (x.domain !== "reading") return false;
       if (st.book !== "all" && x.book !== st.book) return false;
       if (st.q && !(has(x.title, st.q) || has(x.genre, st.q) || has(x.author, st.q) ||
-                    has((x.paras || []).join(" "), st.q))) return false;
+                    has(x.unit_name, st.q) || has((x.paras || []).join(" "), st.q))) return false;
       return true;
     });
-    var h = "<h2>阅读与鉴赏 · 课文全文（" + rows.length + " 篇）</h2>" +
-      '<p class="lead">点标题展开读全文。单元头上印着这一单元的语文要素——' +
-      "它说明这些课文是用来练什么的。</p>";
-    var byUnit = {}, order = [];
-    rows.forEach(function (x) {
+    var byUnit = {}, order = [], toc = {};
+    rows.forEach(function (x, i) {
+      x._i = i;   // 目录跳转用的条目序号
       var k = x.book + "#" + x.unit_no;
-      if (!byUnit[k]) { byUnit[k] = []; order.push(k); }
+      if (!byUnit[k]) {
+        byUnit[k] = [];
+        order.push(k);
+        toc[k] = { i: order.length - 1, book: x.book, no: x.unit_no, items: [] };
+      }
       byUnit[k].push(x);
+      toc[k].items.push(x);
     });
+    // 课文目录：搜索单册时默认展开，其余收起省地方
+    var h = '<details class="toc"' + (rows.length && (st.q || st.book !== "all") ? " open" : "") +
+      '><summary>课文目录（' + rows.length + " 篇 · 点课文直达）</summary>" +
+      '<div class="toc-b">';
     order.forEach(function (k) {
+      var u = toc[k];
+      h += '<div class="toc-u"><a class="ubook" href="#u' + u.i + '">' +
+        esc(u.book) + " · 第" + esc(u.no) + "单元</a>" +
+        u.items.map(function (x) {
+          return '<a class="tlink" href="#t' + x._i + '">' + esc(x.title) + "</a>";
+        }).join("") + "</div>";
+    });
+    h += "</div></details>";
+    order.forEach(function (k, ui) {
       var bk = k.split("#")[0], e = elems[k];
-      h += '<div class="unit"><div class="top"><span class="name">' + esc(bk) +
+      h += '<div class="unit" id="u' + ui + '"><div class="top"><span class="name">' + esc(bk) +
         " 第" + esc(k.split("#")[1]) + "单元</span>" +
         (e && e.reading ? '<span class="tag d1">阅读要素</span>' : "") + "</div>";
       if (e && e.reading) h += '<div class="elem">' + esc(e.reading) + "</div>";
-      h += byUnit[k].map(cnText).join("") + "</div>";
+      h += byUnit[k].map(function (x) { return cnText(x, x._i); }).join("") + "</div>";
     });
     return h;
   }
 
-  function cnText(x) {
-    var h = '<div class="item"><div class="top"><span class="name">' +
+  function cnText(x, idx) {
+    var h = '<div class="item"' + (idx != null ? ' id="t' + idx + '"' : "") +
+      '><div class="top"><span class="name">' +
       esc(x.title) + "</span>" +
       (x.genre ? '<span class="tag">' + esc(x.genre) + "</span>" : "") +
       (x.author ? '<span class="who">' + esc(x.author) +
@@ -451,9 +491,12 @@
         "</p></details>";
     }
     if (x.paras && x.paras.length) {
-      h += '<div class="full">' + x.paras.map(function (p) {
-        return '<p class="para">' + esc(p) + "</p>";
-      }).join("") + "</div>";
+      // 默认收起：384 篇全铺开页面就散架了，从目录或标题点开再读
+      h += '<details class="read"><summary>读全文（' + x.paras.length + " 段" +
+        (x.chars ? " · " + esc(x.chars) + "字" : "") + "）</summary>" +
+        '<div class="full">' + x.paras.map(function (p) {
+          return '<p class="para">' + esc(p) + "</p>";
+        }).join("") + "</div></details>";
     } else {
       // 语文园地、拼音课这类在教材里没有连续正文，如实说明，别留一片空白
       h += '<p class="small">这一课（多为语文园地、拼音课）在教材里没有连续正文，' +
@@ -474,8 +517,7 @@
   }
 
   function cnWriting(st) {
-    var h = "<h2>表达与交流</h2>" +
-      '<p class="lead">习作要素即习作量规：要求来自教材，写完可以逐条对着看。</p>';
+    var h = "";
     (D.elements || []).forEach(function (e) {
       if (!e.writing || (st.book !== "all" && e.book !== st.book)) return;
       if (st.q && !has(e.writing, st.q)) return;
@@ -488,7 +530,7 @@
     });
     var byBook = {};
     rows.forEach(function (x) { (byBook[x.book] = byBook[x.book] || []).push(x); });
-    h += '<h2>习作 · 口语交际 · 习作例文（' + rows.length + " 条）</h2>";
+    h += "<h3>习作 · 口语交际 · 习作例文（" + rows.length + " 条）</h3>";
     Object.keys(byBook).sort().forEach(function (b) {
       h += '<div class="item"><div class="top"><span class="name">' + esc(b) +
         "</span></div><ul class=" + '"pts">' + byBook[b].map(function (x) {
@@ -505,7 +547,7 @@
       return x.domain === "inquiry" && (st.book === "all" || x.book === st.book) &&
         (!st.q || has(x.title, st.q));
     });
-    var h = "<h2>梳理与探究</h2>";
+    var h = "";
     if (!rows.length) {
       return h + '<div class="empty">目录里没有单独标出"综合性学习 / 快乐读书吧"' +
         "的条目（这部分通常印在单元末尾的语文园地里）。</div>";
@@ -524,8 +566,7 @@
       if (st.book !== "all" && x.book !== st.book) return false;
       return !st.q || has(x.title, st.q) || has(x.author, st.q) || has(x.text, st.q);
     });
-    var h = "<h2>古诗文（" + rows.length + " 篇）</h2>" +
-      '<p class="lead">原文 + 注释 + 译文，教材里印在课文下方的这里一并给出。</p>';
+    var h = "";
     return h + rows.map(function (x) {
       var s = '<div class="item"><div class="top"><span class="name">' + esc(x.title) +
         "</span>" + (x.dynasty ? '<span class="tag">' + esc(x.dynasty) + "</span>" : "") +

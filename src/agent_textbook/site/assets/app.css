@@ -249,6 +249,7 @@ h3.grp {
   border-radius: 10px;
   padding: 12px 14px;
   margin-bottom: 10px;
+  scroll-margin-top: 130px;   /* 目录跳转时吸顶工具条不挡住目标 */
 }
 
 .item .top {
@@ -302,8 +303,9 @@ pre.lyric {
 
 details > summary {
   cursor: pointer;
-  color: var(--ma);
+  color: var(--c);   /* 跟随学科主题色，语文页不再是数学蓝 */
   font-size: 15px;
+  font-weight: 600;
   margin-top: 8px;
 }
 
@@ -332,12 +334,27 @@ details > summary {
 .svgwrap { overflow: auto; padding: 8px 0; background: #fdfaf4; border-radius: 8px; }
 
 /* 语文：课文与古诗文 */
-.unit { margin: 14px 0; padding-left: 8px; border-left: 3px solid #f0d9a8; }
+.unit { margin: 14px 0; padding-left: 8px; border-left: 3px solid #f0d9a8;
+  scroll-margin-top: 130px; }
+.toc { border: 2px solid var(--line); border-radius: 14px; background: #fffdf8;
+  box-shadow: 0 3px 0 var(--soft); margin: 0 0 14px; }
+.toc > summary { cursor: pointer; padding: 10px 14px; font-weight: 600;
+  color: var(--c); }
+.toc[open] > summary { border-bottom: 2px dashed var(--line); }
+.toc-b { padding: 6px 14px 12px; max-height: 380px; overflow: auto; }
+.toc-u { margin: 8px 0 2px; }
+.toc-u .ubook { font-weight: 600; color: var(--ink); text-decoration: none;
+  font-size: 15px; margin-right: 10px; }
+.toc-u .ubook:hover { color: var(--c); }
+.tlink { display: inline-block; margin: 2px 6px 2px 0; padding: 2px 10px;
+  border: 1px solid var(--line); border-radius: 999px; background: #fff;
+  color: var(--ink); text-decoration: none; font-size: 14px; }
+.tlink:hover { border-color: var(--c); color: var(--c); }
 .elem { background: #fdf6e8; border-radius: 6px; padding: 6px 10px;
   font-size: 15px; margin: 4px 0 8px; color: #7a5c1e; }
 .who { color: var(--muted); font-size: 14px; }
-.full { max-height: 420px; overflow: auto; padding: 8px 12px;
-  background: #fdfcf9; border: 1px solid var(--line); border-radius: 8px; margin-top: 6px; }
+.full { padding: 8px 12px; background: #fdfcf9;
+  border: 1px solid var(--line); border-radius: 8px; margin-top: 6px; }
 .para { margin: 0 0 8px; text-indent: 2em; font-size: 16.5px; line-height: 1.9; }
 .poem { font: inherit; font-size: 17px; line-height: 2; white-space: pre-wrap;
   margin: 6px 0; padding: 8px 12px; background: #fdfcf9;
@@ -617,4 +634,5 @@ h3.grp::before { border-radius: 4px; transform: rotate(45deg); }
   body { font-size: 16px; }
   header h1 { font-size: 24px; }
   .tools { position: static; }
+  .unit, .item, h3.grp { scroll-margin-top: 12px; }
 }
