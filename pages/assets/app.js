@@ -677,10 +677,12 @@
     var bidx = {};
     (D.books || []).forEach(function (b, i) { bidx[b] = i; });
     var units = {}, order = [];
+    // 单元主键用 unit_no（占位的 "Unit 3" 已换成真实名，同单元不会再散成两组）
     function slot(x) {
-      var k = (x.book || "") + "#" + (x.unit || "");
+      var k = (x.book || "") + "#" + (x.unit_no ? "U" + x.unit_no : x.unit || "");
       if (!units[k]) {
-        units[k] = { book: x.book || "", unit: x.unit || "", dlg: [], pas: [] };
+        units[k] = { book: x.book || "", unit: x.unit || "",
+                     unit_no: x.unit_no || 0, dlg: [], pas: [] };
         order.push(k);
       }
       return units[k];
@@ -690,22 +692,28 @@
     order.sort(function (a, b) {
       var A = units[a], B = units[b];
       return ((bidx[A.book] || 0) - (bidx[B.book] || 0)) ||
+        ((A.unit_no ? 0 : 1) - (B.unit_no ? 0 : 1)) ||
+        ((A.unit_no || 0) - (B.unit_no || 0)) ||
         String(A.unit).localeCompare(String(B.unit), "zh");
     });
+    function uname(u) {
+      return esc(u.book) + " · " +
+        (u.unit_no ? "第" + u.unit_no + "单元 · " : "") +
+        esc(u.unit || "（未标单元）");
+    }
     // 课文目录：按册 → 单元列出，点单元直达
     var h = '<details class="toc"' +
       (order.length && (st.q || st.book !== "all") ? " open" : "") +
       '><summary>课文目录（' + (dl.length + ps.length) + " 课 · " + order.length +
       " 个单元 · 点单元直达）</summary><div class=\"toc-b\">" +
       order.map(function (k, i) {
-        var u = units[k];
         return '<div class="toc-u"><a class="ubook" href="#eu' + i + '">' +
-          esc(u.book) + " · " + esc(u.unit || "（未标单元）") + "</a></div>";
+          uname(units[k]) + "</a></div>";
       }).join("") + "</div></details>";
     order.forEach(function (k, i) {
       var u = units[k];
       h += '<div class="unit" id="eu' + i + '"><div class="top"><span class="name">' +
-        esc(u.book) + " · " + esc(u.unit || "（未标单元）") + "</span>" +
+        uname(u) + "</span>" +
         '<span class="tag d1">对话 ' + u.dlg.length + " · 短文 " + u.pas.length +
         "</span></div>";
       u.dlg.forEach(function (x) { h += enDialogue(x); });

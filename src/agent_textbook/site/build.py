@@ -10,6 +10,7 @@
 """
 import json
 import os
+import re
 import shutil
 
 import duckdb
@@ -368,75 +369,160 @@ def build_structures(con) -> dict:
 
 
 # ------------------------------------------------------------------ 英语
-def build_english(con) -> dict:
-    def pick(table, cols):
-        return _rows(con, "select %s from %s where subject='英语'"
-                     % (",".join(cols), table))
+# unit_name 只是占位的 "Unit 3"，真实单元名（My friends）在该单元 section 的
+# title 上；附录（Appendix/Revision/Recycle）没有 unit_no，单独归一类。
+# 所以单元主键取 (book_id, unit_no)，单元号再回填给只带 unit_name 的子表。
+RE_EN_PH = re.compile(r"^unit\s*\d+$", re.I)          # 占位名 Unit 3
+RE_EN_APPENDIX = re.compile(r"^(appendix|revision|recycle)\b", re.I)
 
-    vocab = [{"grade": r["grade"], "term": r["term"], "book": _gt(r),
-              "unit": r.get("unit_no"), "word": r.get("word"),
-              "phonetic": r.get("phonetic"), "meaning": r.get("meaning"),
-              "topic": r.get("topic"), "example": r.get("example"),
-              "theme": goals.en_theme(r.get("topic"))}
-             for r in pick("en_vocab", ["grade", "term", "unit_no", "word",
-                                        "phonetic", "meaning", "topic", "example"])]
-    grammar = [{"grade": r["grade"], "term": r["term"], "book": _gt(r),
-                "unit": r.get("unit_name"), "point": r.get("point"),
-                "pattern": r.get("pattern"), "rule": r.get("rule"),
-                "category": r.get("category"), "tense": r.get("tense"),
-                "examples": _j(r.get("examples"))[:8]}
+
+def _en_real_name(r):
+    """单元真名：unit_name 若已是真名（Making friends）就用它，否则取 title。
+
+    低年级两本书的 unit_name 就是真名，而 title 是单元核心问句
+    （How do we make friends?），拿来当单元名会误导。
+    """
+    nm = (r.get("unit_name") or "").strip()
+    tt = (r.get("title") or "").strip()
+    for v in (nm, tt):
+        if v and not RE_EN_PH.match(v) and not RE_EN_APPENDIX.match(v):
+            return v
+    return ""
+
+
+def _en_unit_index(con):
+    """英语单元规范表。
+
+    返回 (by_section, names)：
+      by_section[section_id] = (unit_no, 单元真名 / 附录栏目名)
+      names[(book_id, unit_no)] = 单元真名
+    """
+    rows = _rows(con, """select section_id,book_id,unit_no,unit_name,title,page_from
+                         from section_text where subject='英语'""")
+    cand = {}
+    for r in rows:
+        if r.get("unit_no") is None:
+            continue
+        key = (r.get("book_id"), int(r["unit_no"]))
+        nm = _en_real_name(r)
+        old = cand.get(key)
+        pg = r.get("page_from") or 0
+        if nm and (not old or pg < old[0]):
+            cand[key] = (pg, nm)
+    names = {k: v[1] for k, v in cand.items()}
+    by_sec = {}
+    for r in rows:
+        if not r.get("section_id"):
+            continue
+        if r.get("unit_no") is None:
+            # 附录/复习没有单元号，用它的栏目名当标签（Songs、Words in each unit…）
+            by_sec[r["section_id"]] = (None, _en_real_name(r) or
+                                       (r.get("unit_name") or ""))
+            continue
+        key = (r.get("book_id"), int(r["unit_no"]))
+        by_sec[r["section_id"]] = (int(r["unit_no"]),
+                                   names.get(key) or (r.get("unit_name") or ""))
+    return by_sec, names
+
+
+def _en_unit_resolver(con):
+    """把任意一行英语数据归范成 (unit_no, 单元真名)。"""
+    by_sec, names = _en_unit_index(con)
+
+    def resolve(r):
+        info = by_sec.get(r.get("section_id") or "")
+        if info:
+            return info
+        try:                              # en_song 的 unit_no 是字符串
+            no = int(r.get("unit_no"))
+        except (TypeError, ValueError):
+            return (None, r.get("unit_name") or "")
+        if not no:
+            return (None, r.get("unit_name") or "")
+        return (no, names.get((r.get("book_id"), no)) or ("Unit %d" % no))
+
+    return resolve
+
+
+def build_english(con) -> dict:
+    resolve = _en_unit_resolver(con)
+
+    def pick(table, cols):
+        # unit_no / 单元真名要从母表反查，能取到的关联列都一并取出（附录表没有 section_id）
+        have = {r[0] for r in con.execute(
+            "select column_name from information_schema.columns where table_name='%s'"
+            % table).fetchall()}
+        c = [x for x in list(dict.fromkeys(
+            list(cols) + ["section_id", "book_id"])) if x in have]
+        return _rows(con, "select %s from %s where subject='英语'"
+                     % (",".join(c), table))
+
+    def base(r):
+        no, nm = resolve(r)
+        return {"grade": r["grade"], "term": r["term"], "book": _gt(r),
+                "unit_no": no, "unit": nm}
+
+    # 逐单元词表走 unit_no；书末字母序总表（source=vocab）没有单元，单列一类
+    vocab = []
+    for r in pick("en_vocab", ["grade", "term", "unit_no", "source", "word",
+                               "phonetic", "meaning", "topic", "example"]):
+        v = dict(base(r), word=r.get("word"), phonetic=r.get("phonetic"),
+                 meaning=r.get("meaning"), topic=r.get("topic"),
+                 example=r.get("example"), theme=goals.en_theme(r.get("topic")))
+        if not v["unit_no"]:
+            v["unit"] = "词汇总表" if r.get("source") == "vocab" else "（未标单元）"
+        vocab.append(v)
+    grammar = [dict(base(r), point=r.get("point"), pattern=r.get("pattern"),
+                    rule=r.get("rule"), category=r.get("category"),
+                    tense=r.get("tense"), examples=_j(r.get("examples"))[:8])
                for r in pick("en_grammar", ["grade", "term", "unit_name", "point",
                                             "pattern", "rule", "category", "tense",
                                             "examples"])]
-    phonics = [{"grade": r["grade"], "term": r["term"], "book": _gt(r),
-                "unit": r.get("unit_name"), "letters": r.get("letters"),
-                "sound": r.get("sound"), "examples": _j(r.get("examples"))[:8],
-                "chant": r.get("chant")}
+    phonics = [dict(base(r), letters=r.get("letters"), sound=r.get("sound"),
+                    examples=_j(r.get("examples"))[:8], chant=r.get("chant"))
                for r in pick("en_phonics", ["grade", "term", "unit_name", "letters",
                                             "sound", "examples", "chant"])]
     # 语篇即英语的"课文"：原文 + 译文 + 阅读理解题 + 重点词
-    passages = [{"grade": r["grade"], "term": r["term"], "book": _gt(r),
-                 "unit": r.get("unit_name"), "name": r.get("name"),
-                 "genre": r.get("genre"), "source": r.get("source"),
-                 "text": (r.get("text") or "")[:2000],
-                 "zh": (r.get("zh") or "")[:2000],
-                 "topic": r.get("topic"),
-                 "words": _j(r.get("words"))[:20],
-                 "comprehension": [c for c in _j(r.get("comprehension"))
-                                   if isinstance(c, dict)][:8],
-                 "keypoints": _j(r.get("keypoints"))[:8],
-                 "writing": r.get("writing_task")}
+    passages = [dict(base(r), name=r.get("name"), genre=r.get("genre"),
+                     source=r.get("source"), text=(r.get("text") or "")[:2000],
+                     zh=(r.get("zh") or "")[:2000], topic=r.get("topic"),
+                     words=_j(r.get("words"))[:20],
+                     comprehension=[c for c in _j(r.get("comprehension"))
+                                    if isinstance(c, dict)][:8],
+                     keypoints=_j(r.get("keypoints"))[:8],
+                     writing=r.get("writing_task"))
                 for r in pick("en_passage", ["grade", "term", "unit_name", "name",
                                              "genre", "source", "text", "zh", "topic",
                                              "words", "comprehension", "keypoints",
                                              "writing_task"])]
-    dialogues = [{"grade": r["grade"], "term": r["term"], "book": _gt(r),
-                  "unit": r.get("unit_name"), "scene": r.get("scene"),
-                  "function": r.get("function"),
-                  "patterns": _j(r.get("patterns"))[:6],
-                  "turns": _j(r.get("turns"))[:12]}
+    dialogues = [dict(base(r), scene=r.get("scene"), function=r.get("function"),
+                      patterns=_j(r.get("patterns"))[:6],
+                      turns=_j(r.get("turns"))[:12])
                  for r in pick("en_dialogue", ["grade", "term", "unit_name", "scene",
                                                "function", "turns", "patterns"])]
-    songs = [{"grade": r["grade"], "term": r["term"], "book": _gt(r),
-              "unit": r.get("unit_no"), "name": r.get("song_title"),
-              "lyrics": _j(r.get("lyrics"))[:30], "topic": r.get("topic")}
+    songs = [dict(base(r), name=r.get("song_title"),
+                  lyrics=_j(r.get("lyrics"))[:30], topic=r.get("topic"))
              for r in pick("en_song", ["grade", "term", "unit_no", "song_title",
                                        "lyrics", "topic"])]
-    projects = [{"grade": r["grade"], "term": r["term"], "book": _gt(r),
-                 "unit": r.get("unit_name"), "name": r.get("name"),
-                 "type": r.get("type"), "goal": r.get("goal"),
-                 "product": r.get("product")}
+    projects = [dict(base(r), name=r.get("name"), type=r.get("type"),
+                     goal=r.get("goal"), product=r.get("product"))
                 for r in pick("en_project", ["grade", "term", "unit_name", "name",
                                              "type", "goal", "product"])]
     revisions = [{"grade": r["grade"], "term": r["term"], "book": _gt(r),
-                  "theme": r.get("theme"), "tasks": _j(r.get("tasks"))[:10],
-                  "outcome": r.get("outcome")}
+                  "unit": "复习", "theme": r.get("theme"),
+                  "tasks": _j(r.get("tasks"))[:10], "outcome": r.get("outcome")}
                  for r in pick("en_revision", ["grade", "term", "theme", "tasks",
                                                "outcome"])]
-    # 课本顺序：册次 → 单元（Unit 3 → 3）
-    for lst in (vocab, grammar, phonics, passages, dialogues, songs, projects):
-        lst.sort(key=lambda x: (goals.key_of(x["grade"], x["term"]),
-                                _unum(x.get("unit"))))
+
+    # 课本顺序：册次 → 单元号（无单元号的附录/复习排在册末）
+    def _ord(x):
+        no = x.get("unit_no")
+        return (goals.key_of(x["grade"], x["term"]), 0 if no else 1, no or 0,
+                str(x.get("unit") or ""))
+
+    for lst in (vocab, grammar, phonics, passages, dialogues, songs, projects,
+                revisions):
+        lst.sort(key=_ord)
     return {
         "domains": [{"key": d["key"], "name": d["name"], "desc": d["desc"]}
                     for d in goals.EN_DOMAINS],
@@ -454,15 +540,19 @@ def build_speak(con) -> dict:
     有场景、有功能，这里按角色摊开：可以一句一句推进，可以遮住中文自测，
     项目任务则给出"做出一样东西"的完整清单（用到哪句话、需要什么材料）。
     """
+    # 单元号与真名同样走规范表：这条路径的 dialogues 才是站点实际用的那份
+    resolve = _en_unit_resolver(con)
     dlg = []
     for r in _rows(con, """select grade,term,unit_name,title,scene,function,turns,
-                           patterns from en_dialogue where subject='英语'"""):
+                           patterns,section_id,book_id from en_dialogue
+                           where subject='英语'"""):
         turns = [t for t in _j(r.get("turns")) if isinstance(t, dict)]
         if not turns:
             continue
+        no, unit = resolve(r)
         dlg.append({
             "book": _gt(r), "grade": r.get("grade"), "term": r.get("term"),
-            "unit": r.get("unit_name"), "title": r.get("title"),
+            "unit_no": no, "unit": unit, "title": r.get("title"),
             "scene": r.get("scene"), "function": r.get("function"),
             "patterns": [str(p) for p in _j(r.get("patterns"))][:8],
             "turns": [{"s": t.get("speaker"), "speaker": t.get("speaker"),
@@ -470,10 +560,12 @@ def build_speak(con) -> dict:
         })
     prj = []
     for r in _rows(con, """select grade,term,unit_name,name,type,goal,steps,language,
-                           product,materials from en_project where subject='英语'"""):
+                           product,materials,section_id,book_id from en_project
+                           where subject='英语'"""):
+        no, unit = resolve(r)
         prj.append({
             "book": _gt(r), "grade": r.get("grade"), "term": r.get("term"),
-            "unit": r.get("unit_name"), "name": r.get("name"),
+            "unit_no": no, "unit": unit, "name": r.get("name"),
             "type": r.get("type"), "goal": r.get("goal"),
             "steps": [str(s) for s in _j(r.get("steps"))][:8],
             "language": [str(s) for s in _j(r.get("language"))][:8],
@@ -481,15 +573,22 @@ def build_speak(con) -> dict:
             "materials": [str(s) for s in _j(r.get("materials"))][:8],
         })
     expr = []
-    for r in _rows(con, """select grade,term,unit_no,en,zh from en_expr
+    for r in _rows(con, """select grade,term,unit_no,en,zh,book_id from en_expr
                            where subject='英语'"""):
         if r.get("en"):
+            no, unit = resolve(r)
             expr.append({"book": _gt(r), "grade": r.get("grade"),
-                         "unit": r.get("unit_no"), "en": r.get("en"),
-                         "zh": r.get("zh")})
+                         "term": r.get("term"), "unit_no": no, "unit": unit,
+                         "en": r.get("en"), "zh": r.get("zh")})
+
+    # 课本顺序：册次 → 单元号（无单元号的附录/复习排在册末）
+    def _ord(x):
+        no = x.get("unit_no")
+        return (goals.key_of(x.get("grade"), x.get("term")), 0 if no else 1,
+                no or 0, str(x.get("unit") or ""))
+
     for lst in (dlg, prj, expr):
-        lst.sort(key=lambda x: (goals.key_of(x.get("grade"), x.get("term")),
-                                _unum(x.get("unit"))))
+        lst.sort(key=_ord)
     fs = {}
     for d in dlg:
         if d["function"]:

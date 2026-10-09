@@ -78,6 +78,9 @@ SLOTS = {
         "待挖": ["单元起始的驱动性问题", "单元评价与自我评价"],
     },
     "英语": {
+        # 单元主键是 (book_id, unit_no)：unit_name 常是占位的 "Unit 3"，
+        # 真名在 unit_name（低年级）或该单元 section 的 title（高年级）里；
+        # 附录/复习没有 unit_no，不进单元表（见 site/build.py 的 _en_unit_index）
         "粒度": "Unit → Part A/B/C + 附录（三起，三年级～六年级共 8 册）",
         "层": ["section_text 单元正文", "en_vocab 词汇（音标/释义/二级词）",
                "en_expr 常用表达", "en_dialogue 情景对话（场景/角色/轮次/功能）",
