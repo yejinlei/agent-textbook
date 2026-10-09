@@ -103,10 +103,11 @@
     var books = D.books || [];
     var wrap = document.createElement("div");
     wrap.className = "tools";
-    var html = '<span class="tab on" data-t="all">全部</span>';
+    var html = '<span class="nav"><span class="tab on" data-t="all">全部</span>';
     domains.forEach(function (d) {
       html += '<span class="tab" data-t="' + d.key + '">' + esc(d.name) + "</span>";
     });
+    html += "</span>";
     html += '<select id="bk"><option value="all">全部册次</option>';
     books.forEach(function (b) { html += '<option>' + esc(b) + "</option>"; });
     html += "</select>";
@@ -121,6 +122,7 @@
         '<span class="vtab" data-v="topic">按主题</span></span>';
     }
     if (opt.zh) html += '<span class="tab" id="zhbtn">中文对照</span>';
+    html += '<span class="count" id="cnt"></span>';
     // 常找标签：点一下就等于搜这个词（内容多的时候比翻页快）
     if (opt.tags && opt.tags.length) {
       html += '<div class="tags"><span class="jl">常找</span>' +
@@ -130,7 +132,6 @@
     }
     // 跳到：按当前分组一键定位（分组由 byGroup 回填）
     html += '<div class="jump" id="jump"></div>';
-    html += '<span class="count" id="cnt"></span>';
     wrap.innerHTML = html;
     // 列表容器往往先创建：工具条必须插到它前面，否则会被几百条内容压到页底
     var listEl = document.getElementById("list");

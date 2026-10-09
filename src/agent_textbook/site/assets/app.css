@@ -156,93 +156,134 @@ h3 { font-size: 17px; margin: 0 0 6px; }
 .card a { color: var(--ma); text-decoration: none; font-size: 15px; }
 .small { color: var(--muted); font-size: 14px; margin: 4px 0 8px; }
 
-/* 工具条 */
+/* 工具条：页签分段、筛选控件、常找标签三段排开，高度统一、间距均匀 */
 .tools {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px 8px;
   align-items: center;
   margin: 16px 0;
-  padding: 10px 12px;
+  padding: 12px 14px;
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 14px;
   position: sticky;
   top: 0;
   z-index: 5;
 }
 
-.tools input, .tools select {
-  font: inherit;
-  font-size: 15px;
-  padding: 6px 10px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-}
-
-.tools input { flex: 1; min-width: 160px; }
-
-.tab {
-  padding: 6px 14px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: #fff;
-  cursor: pointer;
-  font-size: 15px;
-}
-
-/* 学科色随页走（data-page 形如 math-all / chinese-reading，按前缀配） */
-.tab.on, .vtab.on, .ttag.on {
-  background: var(--c);
-  border-color: var(--c);
-  color: #fff;
-}
-
-/* 学法切换：按进度（课本顺序）／按主题（跨册串同类） */
-.views {
+/* 页签：浅底分段控件，选中项用学科色，不再各自带边框挤成一排 */
+.tools .nav {
   display: inline-flex;
-  gap: 2px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  overflow: hidden;
+  gap: 3px;
+  padding: 3px;
+  background: var(--soft);
+  border-radius: 999px;
 }
-.vtab { padding: 6px 12px; cursor: pointer; font-size: 14px; color: var(--muted); background: #fff; }
-
-/* 页顶的常用标签与分组跳转：内容一多，全靠它们定位 */
-.tags, .jump {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 6px;
-  align-items: center;
-  overflow-x: auto;
-  flex-basis: 100%;
-  padding: 2px 0;
-}
-.tags::-webkit-scrollbar, .jump::-webkit-scrollbar { height: 6px; }
-.jl { color: var(--muted); font-size: 13px; flex: none; }
-.ttag, .jtab {
-  flex: none;
-  padding: 3px 10px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: #fff;
+.tab {
+  padding: 4px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
   cursor: pointer;
   font-size: 14px;
-  white-space: nowrap;
+  line-height: 22px;
+  color: var(--muted);
+  transition: background .15s ease, color .15s ease;
+}
+.tab:hover { color: var(--ink); }
+.tab.on { background: var(--c); color: #fff; }
+
+/* 筛选控件：统一 36px 高的胶囊，聚焦时有学科色光圈 */
+.tools input, .tools select {
+  font: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  height: 36px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.tools input { flex: 1 1 180px; min-width: 150px; }
+.tools input::placeholder { color: var(--muted); }
+.tools input:focus, .tools select:focus {
+  outline: none;
+  border-color: var(--c);
+  box-shadow: 0 0 0 3px var(--soft);
+}
+
+/* 学法切换：按进度（课本顺序）／按主题（跨册串同类），与页签同一套分段样式 */
+.views {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  background: var(--soft);
+  border-radius: 999px;
+}
+.vtab {
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 22px;
+  color: var(--muted);
+  background: transparent;
+  transition: background .15s ease, color .15s ease;
+}
+.vtab:hover { color: var(--ink); }
+.vtab.on { background: var(--c); color: #fff; }
+
+/* 中文对照：独立开关，与控件同高 */
+#zhbtn {
+  height: 36px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  border: 1.5px solid var(--line);
+  background: #fff;
   color: var(--ink);
 }
+#zhbtn.on { background: var(--c); border-color: var(--c); color: #fff; }
+
+/* 页顶的常用标签与分组跳转：自动换行铺开，不再横向挤成一条 */
+.tags, .jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  flex-basis: 100%;
+}
+.jl { color: var(--muted); font-size: 13px; flex: none; }
+.ttag, .jtab {
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fffdf8;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 20px;
+  white-space: nowrap;
+  color: var(--ink);
+  transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
 .ttag:hover, .jtab:hover { border-color: var(--c); color: var(--c); }
+.ttag.on { background: var(--c); border-color: var(--c); color: #fff; }
 
 h3.grp {
   margin: 22px 0 10px;
   padding-left: 10px;
   border-left: 4px solid var(--c);
   font-size: 19px;
-  scroll-margin-top: 130px;   /* 吸顶工具条不挡住跳转目标 */
+  scroll-margin-top: 190px;   /* 吸顶工具条不挡住跳转目标 */
 }
 
-.count { color: var(--muted); font-size: 14px; }
+.count { color: var(--muted); font-size: 13px; margin-left: auto; }
 
 /* 长算式、长数字串中间没有断点，窄屏上会把整页顶出横向滚动条 */
 .stem, .pat, .given, .ask, .tex { overflow-wrap: anywhere; }
@@ -255,7 +296,7 @@ svg { max-width: 100%; }
   border-radius: 10px;
   padding: 12px 14px;
   margin-bottom: 10px;
-  scroll-margin-top: 130px;   /* 目录跳转时吸顶工具条不挡住目标 */
+  scroll-margin-top: 190px;   /* 目录跳转时吸顶工具条不挡住目标 */
 }
 
 .item .top {
@@ -342,7 +383,7 @@ details > summary {
 
 /* 语文：课文与古诗文 */
 .unit { margin: 14px 0; padding-left: 8px; border-left: 3px solid #f0d9a8;
-  scroll-margin-top: 130px; }
+  scroll-margin-top: 190px; }
 .toc { border: 2px solid var(--line); border-radius: 14px; background: #fffdf8;
   box-shadow: 0 3px 0 var(--soft); margin: 0 0 14px; }
 .toc > summary { cursor: pointer; padding: 10px 14px; font-weight: 600;
@@ -547,26 +588,23 @@ header h1 { font-size: 33px; letter-spacing: 2px; }
 .card:hover, .item:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--soft); }
 
 .card big { font-size: 26px; }
-.tools { border-radius: 999px; }
+.tools { border-radius: 16px; }
 
-/* 按钮、页签、标签：都是胶囊，按下去会"陷"进去 */
-.tab, .vtab, .ttag, .jtab, .segmode, .opt, .btn {
-  border: 2px solid var(--line);
-  border-radius: 999px;
+/* 按钮、标签：都是胶囊，按下去会"陷"进去（页签走分段样式，不参与） */
+.ttag, .jtab, .segmode, .opt, .btn {
   transition: transform .12s ease, box-shadow .12s ease;
 }
-.tab:hover, .ttag:hover, .jtab:hover, .opt:hover, .segmode:hover {
+.ttag:hover, .jtab:hover, .opt:hover, .segmode:hover {
   transform: translateY(-2px);
   border-color: var(--c);
 }
-.btn, .tab.on, .vtab.on, .ttag.on, .segmode.on {
+.btn, .ttag.on, .segmode.on {
   box-shadow: 0 3px 0 rgba(0, 0, 0, .16);
 }
-.btn:active, .tab:active, .ttag:active, .opt:active, .segmode:active {
+.btn:active, .ttag:active, .opt:active, .segmode:active {
   transform: translateY(2px);
   box-shadow: none;
 }
-.tools input, .tools select { border: 2px solid var(--line); border-radius: 999px; padding: 5px 12px; }
 
 /* 侧边栏：一级学科与专题都是圆胶囊，指过去会往右挪一点 */
 .side nav a { border-radius: 999px; margin: 2px 0; transition: transform .12s ease; }
