@@ -265,12 +265,11 @@ def synth_voice(texts: list[str], voice: str, limit: int | None = None) -> dict:
     os.makedirs(vdir, exist_ok=True)
     piper = piper_exe()
 
-    # 前端"试听"按钮用的固定文本，确保每种音色都合成一份
-    if VOICE_PREVIEW_TEXT not in texts:
-        texts.append(VOICE_PREVIEW_TEXT)
-
+    # 先按 limit 截断，再把试听文本 append 到末尾，避免 preview 被 limit 切掉
     if limit is not None:
         texts = texts[:limit]
+    if VOICE_PREVIEW_TEXT not in texts:
+        texts.append(VOICE_PREVIEW_TEXT)
 
     results: dict[str, dict] = {}
     p = Path(piper)
