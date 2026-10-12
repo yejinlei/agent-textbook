@@ -854,6 +854,20 @@ def build_pages(out_dir: str = None, verbose: bool = True) -> dict:
         for fn in os.listdir(ASSETS_SRC):
             shutil.copy(os.path.join(ASSETS_SRC, fn), os.path.join(out, "assets", fn))
 
+    # 英语点读音频：把 data/tts/ 整目录拷到 pages/tts/（含 index.json 与 4 个音色子目录）
+    from . import tts as _tts
+    if os.path.isdir(_tts.TTS_DIR):
+        tts_out = os.path.join(out, "tts")
+        if os.path.isdir(tts_out):
+            shutil.rmtree(tts_out)
+        shutil.copytree(_tts.TTS_DIR, tts_out)
+        n_mp3 = sum(len([f for f in os.listdir(os.path.join(tts_out, v))
+                         if f.endswith(".mp3")])
+                    for v in os.listdir(tts_out)
+                    if os.path.isdir(os.path.join(tts_out, v)))
+        if verbose:
+            print(f"→ TTS: {n_mp3} MP3 从 {_tts.TTS_DIR} 拷到 {tts_out}")
+
     con = duckdb.connect(DB_PATH, read_only=True)
     try:
         math_d = build_math(con)

@@ -15,6 +15,376 @@
   }
   function has(s, q) { return !q || String(s || "").toLowerCase().indexOf(q) >= 0; }
 
+  /* ---- 点读：单词/句子/段落一键朗读。
+        优先级：
+          1) 本地 Piper MP3（英语页有 ../tts/map.json，命中率取决于该词/句是否在
+             教材里出现过；命中就用 selectedVoice 播放，音质保准）
+          2) 宿主注入的 window.ttsSpeak（iframe 里被父窗口拦截的情况）
+          3) 浏览器原生 speechSynthesis（离线可用，音质因平台而异）
+          4) Google Translate TTS（在线兜底）
+        音色选择器：英语页顶部挂一个下拉框，选后写进 localStorage("ttsVoice")。 */
+  var speechCurrent = null;
+  var currentVoice = (function () {
+    try { return localStorage.getItem("ttsVoice") || "alan"; } catch (e) { return "alan"; }
+  })();
+  function setVoice(v) {
+    if (!v || v === currentVoice) return;
+    currentVoice = v;
+    try { localStorage.setItem("ttsVoice", v); } catch (e) {}
+  }
+  var TTS_MAP = null;       // {cleaned_text: {voice: "voice/hash.mp3"}}
+  var TTS_MAP_FAILED = false; // 首次 404 后不再重试
+  var TTS_MAP_LOADED = false;
+  var TTS_PREVIEW = null;    // {voice: "voice/hash.mp3"}
+  var TTS_PREVIEW_LOADED = false;
+  var TTS_BASE = "../tts/"; // 静态站点根目录下的 tts/ 目录
+
+  function loadTtsMap() {
+    if (TTS_MAP) return Promise.resolve(TTS_MAP);
+    if (TTS_MAP_LOADED) return Promise.resolve(TTS_MAP || {});
+    TTS_MAP_LOADED = true;
+    return new Promise(function (resolve) {
+      try {
+        var x = new XMLHttpRequest();
+        x.open("GET", TTS_BASE + "map.json", true);
+        x.onload = function () {
+          if (x.status === 200 || x.status === 0) {
+            try { TTS_MAP = JSON.parse(x.responseText || "{}"); } catch (e) { TTS_MAP = {}; }
+          } else {
+            TTS_MAP_FAILED = true;
+            TTS_MAP = {};
+          }
+          resolve(TTS_MAP);
+        };
+        x.onerror = function () { TTS_MAP_LOADED = false; resolve(TTS_MAP || {}); };
+        x.send(null);
+      } catch (e) { TTS_MAP_LOADED = false; resolve(TTS_MAP || {}); }
+    });
+  }
+  function loadTtsPreview() {
+    if (TTS_PREVIEW) return Promise.resolve(TTS_PREVIEW);
+    if (TTS_PREVIEW_LOADED) return Promise.resolve(TTS_PREVIEW || {});
+    TTS_PREVIEW_LOADED = true;
+    return new Promise(function (resolve) {
+      try {
+        var x = new XMLHttpRequest();
+        x.open("GET", TTS_BASE + "preview.json", true);
+        x.onload = function () {
+          if (x.status === 200 || x.status === 0) {
+            try { TTS_PREVIEW = JSON.parse(x.responseText || "{}"); } catch (e) { TTS_PREVIEW = {}; }
+          } else { TTS_PREVIEW = {}; }
+          resolve(TTS_PREVIEW);
+        };
+        x.onerror = function () { TTS_PREVIEW_LOADED = false; resolve(TTS_PREVIEW || {}); };
+        x.send(null);
+      } catch (e) { TTS_PREVIEW_LOADED = false; resolve(TTS_PREVIEW || {}); }
+    });
+  }
+  /* 播放某个音色的一段固定试听音频；不走 speech() 的降级链，直接 new Audio() */
+  function ttsPreview(voice) {
+    stopTtsAudio();
+    if (window.speechSynthesis) try { window.speechSynthesis.cancel(); } catch (e) {}
+    if (googleAudio) { try { googleAudio.pause(); } catch (e) {} googleAudio = null; }
+    function doPlay(file) {
+      if (!file) { speakText("Hello! This is your TTS voice.", voice); return; }
+      try {
+        var a = new Audio(TTS_BASE + file);
+        ttsAudio = a;
+        a.onended = function () { ttsAudio = null; };
+        var p = a.play();
+        if (p && typeof p.then === "function") p.catch(function () {});
+      } catch (e) { speakText("Hello! This is your TTS voice.", voice); }
+    }
+    if (TTS_PREVIEW && TTS_PREVIEW[voice]) { doPlay(TTS_PREVIEW[voice]); return; }
+    loadTtsPreview().then(function () {
+      if (TTS_PREVIEW && TTS_PREVIEW[voice]) doPlay(TTS_PREVIEW[voice]);
+      else speakText("Hello! This is your TTS voice.", voice);
+    });
+  }
+  /* 无本地 MP3 时用浏览器/宿主接口兜底朗读（试听按钮专用） */
+  function speakText(text, voice) {
+    if (window.speechSynthesis) {
+      try {
+        var u = new SpeechSynthesisUtterance(text);
+        u.lang = (voice === "amy") ? "en-US" : "en-GB";
+        u.rate = 0.95;
+        window.speechSynthesis.speak(u);
+        return;
+      } catch (e) {}
+    }
+    if (typeof window.ttsSpeak === "function") {
+      try { window.ttsSpeak(text, { lang: "en-GB" }); } catch (e) {}
+    }
+  }
+  /* 与 Python 端 _clean() 保持一致：只保留 ASCII 字母数字与常见英文标点，
+     折叠空白。前端拿同一份规则就能命中本地缓存。 */
+  function ttsClean(s) {
+    s = String(s == null ? "" : s)
+      .replace(/\u2018|\u2019/g, "'").replace(/\u201c|\u201d/g, '"')
+      .replace(/\u2013|\u2014/g, "-").replace(/\u2026/g, "...");
+    var o = "";
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charAt(i), cc = s.charCodeAt(i);
+      if (cc < 128 && ((/[a-z0-9]/i.test(c) || " .,!?;:'\"-()/-_\n%".indexOf(c) >= 0))) o += c;
+      else o += " ";
+    }
+    o = o.replace(/\n/g, " ").replace(/\s+/g, " ").trim();
+    return o;
+  }
+  function clearSpeechOn() {
+    if (speechCurrent) { speechCurrent.classList.remove("tts-on"); speechCurrent = null; }
+  }
+  function setSpeechOn(el) {
+    if (!el) return;
+    if (speechCurrent && speechCurrent !== el) speechCurrent.classList.remove("tts-on");
+    el.classList.add("tts-on");
+    speechCurrent = el;
+  }
+  function speechOf(el) {
+    if (!el) return "";
+    if (el.__text) return el.__text;
+    var t = (el.getAttribute("data-spk") || "").trim();
+    if (!t) {
+      var clone = el.cloneNode(true);
+      clone.querySelectorAll(".spkbtn, .zh").forEach(function (n) { n.remove(); });
+      t = (clone.textContent || "").replace(/\s+/g, " ").trim();
+    }
+    el.__text = t;
+    return t;
+  }
+  var ttsAudio = null;      // 正在播放的本地 MP3 Audio 元素
+  var googleAudio = null;   // Google 兜底音源
+  function stopTtsAudio() {
+    if (ttsAudio) {
+      try { ttsAudio.pause(); ttsAudio.currentTime = 0; } catch (e) {}
+      ttsAudio = null;
+    }
+  }
+  function speechViaLocal(text, rate, el) {
+    if (!TTS_MAP) return false;
+    var key = ttsClean(text);
+    if (!key) return false;
+    var entry = TTS_MAP[key];
+    if (!entry) return false;
+    var file = entry[currentVoice] || entry.alan;
+    if (!file) return false;
+    try {
+      stopTtsAudio();
+      var a = new Audio(TTS_BASE + file);
+      ttsAudio = a;
+      a.playbackRate = Math.max(0.3, Math.min(2, rate || 0.95));
+      a.onended = function () { clearSpeechOn(); ttsAudio = null; };
+      a.onerror = function () { ttsAudio = null; };
+      var p = a.play();
+      if (p && typeof p.then === "function") p.catch(function () { ttsAudio = null; });
+      setSpeechOn(el);
+      return true;
+    } catch (e) { return false; }
+  }
+  function speech(text, rate, el) {
+    text = String(text || "").trim();
+    if (!text) return;
+    speechToast(text, rate, el);
+    // 停止上一次朗读（本地 audio / 浏览器原生）
+    stopTtsAudio();
+    if (window.speechSynthesis && window.speechSynthesis.speaking) {
+      try { window.speechSynthesis.cancel(); } catch (e) {}
+    }
+    // 1) 本地 MP3 优先（命中就用）；未加载过就先拉一次再决定
+    if (TTS_MAP_LOADED && !TTS_MAP_FAILED) {
+      if (speechViaLocal(text, rate, el)) return;
+    } else if (subject === "english") {
+      loadTtsMap().then(function () {
+        if (!TTS_MAP_FAILED && speechViaLocal(text, rate, el)) return;
+        doFallbackSpeech(text, rate, el);
+      });
+      return;
+    }
+    // 2~4) 老降级链
+    doFallbackSpeech(text, rate, el);
+  }
+  function doFallbackSpeech(text, rate, el) {
+    var ok = false;
+    // 2) 宿主注入的自定义朗读接口
+    if (typeof window.ttsSpeak === "function") {
+      try { ok = window.ttsSpeak(text, { lang: "en-GB", rate: rate || 0.95 }) !== false; }
+      catch (e) { ok = false; }
+    }
+    // 3) 浏览器原生 speechSynthesis
+    if (!ok && window.speechSynthesis && window.SpeechSynthesisUtterance) {
+      try {
+        if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+        var u = new window.SpeechSynthesisUtterance(text);
+        u.lang = "en-GB";
+        u.rate = rate || 0.95;
+        u.pitch = 1;
+        try {
+          var vs = window.speechSynthesis.getVoices() || [];
+          for (var i = 0; i < vs.length; i++) {
+            if (vs[i].lang && vs[i].lang.toLowerCase().indexOf("en-") === 0) {
+              u.voice = vs[i];
+              if (vs[i].lang.toLowerCase() === "en-gb") break;
+            }
+          }
+        } catch (e) {}
+        var done = false;
+        var clear = function () { if (!done) { done = true; clearSpeechOn(); } };
+        u.onend = clear;
+        u.onerror = clear;
+        u.onpause = clear;
+        window.speechSynthesis.speak(u);
+        ok = true;
+      } catch (e) { ok = false; }
+    }
+    // 4) iframe 场景：转发给父窗口
+    if (!ok && window.parent && window.parent !== window) {
+      try {
+        window.parent.postMessage({
+          type: "tts.request", action: "tts.speak",
+          text: text, lang: "en-GB", rate: rate || 0.95
+        }, "*");
+        ok = true;
+      } catch (e) { ok = false; }
+    }
+    // 5) 兜底：Google Translate TTS
+    if (!ok) ok = speechViaGoogle(text, rate, el);
+    if (ok) setSpeechOn(el);
+    else if (el) speechUnavailableHint(el);
+  }
+  function speechViaGoogle(text, rate, el) {
+    var clean = text.replace(/[^A-Za-z0-9\?\.\!\,\;\:\'\"\ \-\(\)\/]+/g, "")
+      .replace(/\s+/g, " ").trim();
+    if (!clean) return false;
+    var url = "https://translate.google.com/translate_tts?ie=UTF-8&q=" +
+      encodeURIComponent(clean.slice(0, 200)) + "&tl=en&client=tw-ob";
+    try {
+      var a = new Audio();
+      googleAudio = a;
+      a.src = url;
+      a.volume = 1;
+      a.playbackRate = rate || 0.95;
+      a.onend = function () { clearSpeechOn(); googleAudio = null; };
+      a.onerror = function () {
+        googleAudio = null;
+        if (el) speechUnavailableHint(el); else clearSpeechOn();
+      };
+      var p = a.play();
+      if (p && typeof p.then === "function") {
+        p.then(function () { setSpeechOn(el); }).catch(function () {
+          googleAudio = null;
+          if (el) speechUnavailableHint(el); else clearSpeechOn();
+        });
+      }
+      return true;
+    } catch (e) { return false; }
+  }
+  function speechUnavailableHint(el) {
+    setSpeechOn(el);
+    var tip = ensureTip();
+    tip.innerHTML = buildToastHTML(el, null, true);
+    tip.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      tip.classList.remove("show");
+      tip.innerHTML = "";
+    }, 60000); // 有重试按钮时保留久一点
+  }
+  /* Toast HTML 模板：🔊 + 文本 + [重试] + [×]；hint=true 时显示"当前环境可能不支持" */
+  function buildToastHTML(el, label, hint) {
+    var here = (window.location.href || "").replace(/&/g, "&amp;");
+    var html = "";
+    if (hint) {
+      html += "⚠️ 当前环境可能不支持朗读。";
+    }
+    if (label) {
+      html += '<span style="display:block;margin-top:2px;">🔊 <b>' +
+        esc(String(label).length > 40 ? String(label).slice(0, 40) + "…" : label) + "</b></span>";
+    }
+    html += '<span style="display:flex;gap:6px;margin-top:6px;align-items:center;">' +
+      '<button class="spk-act" data-act="retry" ' +
+      'style="background:#2c6bb3;color:#fff;border:none;border-radius:6px;' +
+      'padding:3px 10px;font-size:12px;cursor:pointer;">重试</button>' +
+      '<a href="' + here + '" target="_blank" rel="noreferrer" class="spk-act" ' +
+      'style="color:#ffd07a;text-decoration:underline;font-size:12px;">外部浏览器</a>' +
+      '<button class="spk-act" data-act="close" ' +
+      'style="background:#444;color:#ddd;border:none;border-radius:6px;' +
+      'padding:3px 10px;font-size:12px;cursor:pointer;">关闭</button>' +
+      "</span>";
+    return html;
+  }
+  /* Toast 交互委托：重试 / 关闭 */
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("#spk-tip .spk-act[data-act]");
+    if (!b) return;
+    var tip = b.parentNode.parentNode;
+    var act = b.getAttribute("data-act");
+    if (act === "close") {
+      if (window.speechSynthesis) try { window.speechSynthesis.cancel(); } catch (e) {}
+      if (googleAudio) { try { googleAudio.pause(); } catch (e) {} }
+      tip.classList.remove("show");
+      tip.innerHTML = "";
+      clearSpeechOn();
+      if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+      return;
+    }
+    if (act === "retry" && speechCurrent) {
+      var text = speechOf(speechCurrent) || (speechCurrent.getAttribute("data-spk") || "");
+      speech(text, 0.95, speechCurrent);
+    }
+  });
+  function ensureTip() {
+    var tip = document.getElementById("spk-tip");
+    if (!tip) {
+      tip = document.createElement("div");
+      tip.id = "spk-tip";
+      tip.className = "spk-tip";
+      document.body.appendChild(tip);
+    }
+    return tip;
+  }
+  /* 点读提示：告诉用户"我在读了"，同时兜住 TTS 不可见的问题 */
+  var toastTimer = null;
+  function speechToast(text, rate, el) {
+    var tip = ensureTip();
+    tip.innerHTML = buildToastHTML(el, text, false);
+    tip.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { tip.classList.remove("show"); tip.innerHTML = ""; }, 4000);
+    // 停止上一次朗读
+    if (window.speechSynthesis && window.speechSynthesis.speaking) {
+      try { window.speechSynthesis.cancel(); } catch (e) {}
+    }
+    if (googleAudio) { try { googleAudio.pause(); googleAudio.currentTime = 0; } catch (e) {} }
+  }
+  function spkBtn(text) {
+    return '<span class="spkbtn" data-spk="' +
+      String(text || "").replace(/"/g, "&quot;") + '" title="点击朗读，双击慢速">🔊</span>';
+  }
+  /* 点读事件委托：挂一次，任何位置的 .spk / .spkbtn 都会响应
+        文本（.spk）：单击正常语速，双击慢速
+        按钮（.spkbtn）：单击正常语速；不拦截冒泡，父容器的自测开合等交互照常触发 */
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest(".spkbtn");
+    if (b) { speech(b.getAttribute("data-spk") || "", 0.95, b); return; }
+    var s = e.target.closest("[data-spk]");
+    if (s) { speech(s.getAttribute("data-spk") || "", 0.95, s); return; }
+    var el = e.target.closest(".spk");
+    if (!el) return;
+    var slow = (e.detail || 1) >= 2;
+    speech(speechOf(el), slow ? 0.65 : 0.95, el);
+  });
+  /* Chrome/Safari 的 speechSynthesis.getVoices() 在页面首次访问时可能还是空的，
+        必须先调一次才会开始加载语音列表。挂个一次性预热。 */
+  (function warmUpVoices() {
+    if (!window.speechSynthesis) return;
+    try {
+      if (!window.speechSynthesis.getVoices() || !window.speechSynthesis.getVoices().length) {
+        window.speechSynthesis.onvoiceschanged = function () {};
+        window.speechSynthesis.getVoices();
+      }
+    } catch (e) {}
+  })();
+
   /* ---- LaTeX 迷你渲染器：小学范围够用（分数 / 上下标 / 根号 / 常用符号） ---- */
   function tex(s) {
     if (!s) return "";
@@ -963,7 +1333,8 @@
       var who = typeof t === "string" ? "" : (t.speaker || t.role || "");
       var line = typeof t === "string" ? t : (t.text || t.line || t.en || "");
       var zh = typeof t === "string" ? "" : (t.zh || t.translation || "");
-      s += '<div class="turn"><b>' + esc(who || "•") + "</b> " + esc(line) +
+      s += '<div class="turn"><b>' + esc(who || "•") + "</b> " +
+        spkBtn(String(line || "")) + ' <span class="spk">' + esc(line) + "</span>" +
         (zh ? '<span class="zh">' + esc(zh) + "</span>" : "") + "</div>";
     });
     return s + "</div>";
@@ -976,12 +1347,15 @@
       (x.genre ? '<span class="tag">' + esc(x.genre) + "</span>" : "") +
       (x.topic ? '<span class="tag">' + esc(x.topic) + "</span>" : "") + "</div>";
     if (x.source) s += '<p class="small">来源：' + esc(x.source) + "</p>";
-    s += '<div class="en para">' + esc(x.text) + "</div>";
+    s += '<div class="en para">' + spkBtn(String(x.text || "")) +
+      '<span class="spk">' + esc(x.text) + "</span></div>";
     if (x.zh) s += '<div class="zh para">' + esc(x.zh) + "</div>";
     if (x.words && x.words.length) {
       s += '<p class="small">重点词</p><div class="words">' +
         x.words.map(function (w) {
-          return '<span class="wb">' + esc(w.word || w) +
+          var wword = w.word || w;
+          return '<span class="wb">' + spkBtn(String(wword || "")) +
+            esc(wword) +
             (w.meaning || w.zh ? " <i>" + esc(w.meaning || w.zh) + "</i>" : "") +
             "</span>";
         }).join("") + "</div>";
@@ -1036,8 +1410,10 @@
         '<div class="words">' + by[k].slice(0, 200).map(function (v) {
           return '<span class="vcard"><b>' + esc(v.word) + "</b>" +
             (v.phonetic ? " <i>" + esc(v.phonetic) + "</i>" : "") +
+            spkBtn(String(v.word || "")) +
             '<span class="zh">' + esc(v.meaning || "") + "</span>" +
-            (v.example ? '<span class="ex-s">' + esc(v.example) + "</span>" : "") +
+            (v.example ? '<span class="ex-s">' + spkBtn(String(v.example || "")) +
+              esc(v.example) + "</span>" : "") +
             "</span>";
         }).join("") + "</div></div>";
     }).join("");
@@ -1087,13 +1463,15 @@
         byCat[k].slice(0, 60).map(function (g) {
           var s = '<div class="step"><b>' + esc(g.point) + "</b>" + where(g) +
             (g.tense ? '<span class="tag">' + esc(g.tense) + "</span>" : "") + "</div>";
-          if (g.pattern) s += '<div class="pat">' + hl(g.pattern) + "</div>";
+          if (g.pattern) s += '<div class="pat">' + spkBtn(String(g.pattern || "")) +
+            hl(g.pattern) + "</div>";
           if (g.rule) s += '<div class="small">' + esc(g.rule) + "</div>";
           var exs = typeof g.examples === "string" ? safeJson(g.examples) : (g.examples || []);
           if (exs.length) {
             s += "<details><summary>例句</summary><ul class=" + '"pts">' +
               exs.slice(0, 6).map(function (e) {
-                return "<li>" + esc(typeof e === "string" ? e : (e.en || e.text || e)) +
+                var s2 = String(typeof e === "string" ? e : (e.en || e.text || e) || "");
+                return "<li>" + spkBtn(s2) + '<span class="spk">' + esc(s2) + "</span>" +
                   (e && e.zh ? '<span class="zh"> ' + esc(e.zh) + "</span>" : "") + "</li>";
               }).join("") + "</ul></details>";
           }
@@ -1120,10 +1498,12 @@
           esc(x.sound || "") + "</i>" +
           ((x.examples || []).length ? ' <span class="words">' +
             x.examples.slice(0, 6).map(function (e) {
-              return '<span class="wb">' + esc(typeof e === "string" ? e : (e.word || e)) +
-                "</span>";
+              var ew = typeof e === "string" ? e : (e.word || e);
+              return '<span class="wb">' + spkBtn(String(ew || "")) +
+                esc(ew) + "</span>";
             }).join("") + "</span>" : "") + "</div>";
-        if (x.chant) s += '<div class="pat">' + esc(x.chant.slice(0, 140)) + "</div>";
+        if (x.chant) s += '<div class="pat">' + spkBtn(String(x.chant || "")) +
+          esc(x.chant.slice(0, 140)) + "</div>";
       });
       return s + "</div>";
     }).join("");
@@ -1147,9 +1527,15 @@
     if (pj.length) {
       h += "<h3>项目任务（" + pj.length + "）</h3>";
       h += pj.slice(0, 80).map(function (x) {
+        var lang = (x.language || []).length ?
+          '<p class="small">会用到的话</p><div class="words">' +
+          x.language.map(function (s) {
+            return '<span class="wb">' + spkBtn(String(s || "")) + esc(s) + "</span>";
+          }).join("") + "</div>" : "";
         return item('<div class="top"><span class="name">' + esc(x.name) + "</span>" +
           where(x) + (x.type ? '<span class="tag">' + esc(x.type) + "</span>" : "") +
           "</div>" + (x.goal ? '<div class="small">' + esc(x.goal) + "</div>" : "") +
+          lang +
           (x.product ? "<div>产出：" + esc(x.product) + "</div>" : ""));
       }).join("");
     }
@@ -1834,13 +2220,14 @@
       (d.function ? '<span class="tag d1">' + esc(d.function) + "</span>" : "") + "</div>";
     if (d.patterns && d.patterns.length) {
       h += '<div class="words">' + d.patterns.map(function (p) {
-        return '<span class="wb">' + esc(p) + "</span>";
+        return '<span class="wb">' + spkBtn(String(p || "")) + esc(p) + "</span>";
       }).join("") + "</div>";
     }
     h += '<div class="turns">' + (d.turns || []).map(function (t, i) {
+      var sent = String(t.en || "");
       return '<div class="turn r' + (t.s === "B" || (t.s || "").indexOf("B") >= 0 ? 2 : 1) +
         (i ? " hide" : "") + '"><span class="sp">' + esc(t.s || "A") + "</span>" +
-        '<span class="en">' + esc(t.en || "") + "</span>" +
+        spkBtn(sent) + '<span class="en spk">' + esc(sent) + "</span>" +
         '<span class="zh">' + esc(t.zh || "") + "</span></div>";
     }).join("") + "</div>";
     h += '<div class="bar"><span class="btn next">下一句</span>' +
@@ -1887,7 +2274,7 @@
       if (p.language && p.language.length) {
         s += '<p class="small">会用到的话</p><div class="words">' +
           p.language.map(function (x) {
-            return '<span class="wb">' + esc(x) + "</span>";
+            return '<span class="wb">' + spkBtn(String(x || "")) + esc(x) + "</span>";
           }).join("") + "</div>";
       }
       if (p.product) s += '<p class="small">做出来是什么：' + esc(p.product) + "</p>";
@@ -1904,7 +2291,8 @@
     return "<h2>常用表达</h2>" +
       '<p class="lead">点一句看中文，再点一下盖回去（自测）。</p>' +
       '<div class="card"><div class="words">' + D.exprs.slice(0, 200).map(function (e) {
-        return '<span class="wb ex2"><b>' + esc(e.en) + "</b><i>" + esc(e.zh || "") + "</i></span>";
+        return '<span class="wb ex2">' + spkBtn(String(e.en || "")) +
+          '<b>' + esc(e.en) + "</b><i>" + esc(e.zh || "") + "</i></span>";
       }).join("") + "</div></div>";
   }
 
@@ -1938,6 +2326,47 @@
       var w = e.target.closest(".ex2");
       if (w) w.classList.toggle("hidezh");
     });
+  }
+
+  /* ---- 音色选择器：只挂在英语页顶部。选后写 localStorage，点按钮试听当前音色 ---- */
+  var VOICE_LIST = [
+    { id: "alan",  label: "Alan · 英音男",  emoji: "🎤" },
+    { id: "jenny", label: "Jenny · 英音女", emoji: "🎤" },
+    { id: "amy",   label: "Amy · 美音女",   emoji: "🎤" },
+    { id: "cori",  label: "Cori · 高质量英音", emoji: "🎤" }
+  ];
+  if (subject === "english") {
+    // 提前加载一次，别等第一次点才拉（避免第一下点读无声音）
+    loadTtsMap();
+    var bar = document.createElement("div");
+    bar.className = "tools tts-voice-bar";
+    var opts = VOICE_LIST.map(function (v) {
+      var sel = (v.id === currentVoice) ? " selected" : "";
+      return '<option value="' + v.id + '"' + sel + '>' +
+             esc(v.emoji + " " + v.label) + "</option>";
+    }).join("");
+    bar.innerHTML =
+      '<span class="tv-label">朗读音色</span>' +
+      '<select id="ttsVoiceSel">' + opts + '</select>' +
+      '<button id="ttsVoiceTry" title="试听当前音色">▶ 试听</button>' +
+      '<span class="tv-note" id="ttsVoiceNote"></span>';
+    if (app.firstChild) app.insertBefore(bar, app.firstChild);
+    else app.appendChild(bar);
+    var sel = document.getElementById("ttsVoiceSel");
+    var btn = document.getElementById("ttsVoiceTry");
+    var note = document.getElementById("ttsVoiceNote");
+    function updateNote() {
+      var v = VOICE_LIST.filter(function (x) { return x.id === currentVoice; })[0];
+      if (note) note.textContent = v ? ("当前：" + v.label) : "";
+    }
+    sel.addEventListener("change", function () {
+      setVoice(sel.value);
+      updateNote();
+    });
+    btn.addEventListener("click", function () {
+      ttsPreview(currentVoice);
+    });
+    updateNote();
   }
 
   if (kind === "problem") renderProblem();

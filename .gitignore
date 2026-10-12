@@ -41,3 +41,15 @@ _probe_imgs/
 # 运行日志
 data/*.log
 data/*.err
+
+# TTS 产物：模型不入库（350MB，需本地 download），data/tts 只留 json 索引
+#   模型体积：单个 onnx 约 90MB × 4 音色 = 350MB，超过 GitHub 免费配额，走本地 download
+#   生成方式：python -m agent_textbook tts download && python -m agent_textbook tts gen
+#   静态站：pages/tts/ 里的 mp3 会随 pages/ 一起进 GitHub Pages，供前端直接播放
+models/
+data/tts/*.mp3
+data/tts/*/*.mp3
+
+# 本地开发临时采样（一次性试听样例，非交付物）
+tts-sample/
+tts_sample_gen.py

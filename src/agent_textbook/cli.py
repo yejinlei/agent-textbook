@@ -245,6 +245,24 @@ def cmd_pages(args) -> None:
     build.build_pages(out_dir=args.out or None)
 
 
+def cmd_tts(args) -> None:
+    """英语点读音频：Piper 批量生成 + 音色索引。"""
+    from .site import tts
+
+    voices = [v.strip() for v in (args.voice or "").split(",") if v.strip()] or None
+    if args.action == "list":
+        tts.cmd_list()
+    elif args.action == "download":
+        tts.cmd_download(voices)
+    elif args.action == "gen":
+        tts.cmd_gen(voices=voices, limit=args.limit or None, parallel=not args.serial)
+    elif args.action == "extract":
+        texts = tts.extract_texts()
+        print(f"{len(texts)} unique texts extracted")
+        for t in texts[:int(args.show or 0)]:
+            print(" ", t[:80])
+
+
 def cmd_anim(args) -> None:
     """可选：用 Manim 渲染数学公式动画（需先 pip install manim）。"""
     from .site import anim
@@ -663,6 +681,16 @@ def main() -> None:
     sp = sub.add_parser("pages", help="静态站点：按教学目标组织的「小学知识大全」")
     sp.add_argument("--out", default="", help="输出目录（默认 pages/）")
     sp.set_defaults(func=cmd_pages)
+
+    sp = sub.add_parser("tts", help="英语点读音频：Piper 批量生成 + 音色索引")
+    sp.add_argument("action", choices=["gen", "list", "download", "extract"],
+                    help="gen=生成音频；list=查看音色与产出；download=下载模型；extract=仅抽文本")
+    sp.add_argument("--voice", default="",
+                    help="只处理指定音色，逗号分隔：alan,jenny,amy,cori（默认全部）")
+    sp.add_argument("--limit", type=int, default=0, help="gen：只合成前 N 条")
+    sp.add_argument("--serial", action="store_true", help="gen：串行生成（默认 4 音色并发）")
+    sp.add_argument("--show", type=int, default=0, help="extract：打印前 N 条文本")
+    sp.set_defaults(func=cmd_tts)
 
     sp = sub.add_parser("anim", help="可选：用 Manim 渲染数学公式动画（需先装 manim）")
     sp.add_argument("--quality", default="-ql", help="manim 画质参数，默认 -ql（低清快）")

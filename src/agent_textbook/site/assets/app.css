@@ -216,6 +216,45 @@ h3 { font-size: 17px; margin: 0 0 6px; }
   box-shadow: 0 0 0 3px var(--soft);
 }
 
+/* 音色选择条：英语页顶部横条，比筛选工具更轻 */
+.tts-voice-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  margin: 8px 0;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  position: static;
+}
+.tts-voice-bar .tv-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.tts-voice-bar .tv-note {
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: auto;
+}
+.tts-voice-bar button#ttsVoiceTry {
+  font: inherit;
+  font-size: 13px;
+  height: 32px;
+  padding: 0 14px;
+  border: 1.5px solid var(--c);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--c);
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.tts-voice-bar button#ttsVoiceTry:hover {
+  background: var(--c);
+  color: #fff;
+}
+
 /* 学法切换：按进度（课本顺序）／按主题（跨册串同类），与页签同一套分段样式 */
 .views {
   display: inline-flex;
@@ -416,6 +455,35 @@ details > summary {
 .vcard .zh, .vcard .ex-s { display: none; }
 .vcard.open .zh { display: inline; color: #196f3d; margin-left: 6px; }
 .vcard.open .ex-s { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+/* 点读：小喇叭按钮 + 朗读时目标文本高亮闪烁 */
+.spkbtn { display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; margin-right: 3px; padding: 0;
+  background: #eef4fa; color: #2a6a9a; border: 1px solid #cfe0ee;
+  border-radius: 10px; font-size: 11px; cursor: pointer; vertical-align: -3px;
+  transition: background .15s, transform .1s; }
+.spkbtn:hover { background: #dbe8f5; }
+.spkbtn:active { transform: scale(0.92); }
+.vcard .spkbtn { background: #fff; }
+.tts-on { animation: spkPulse 1.1s ease-in-out infinite;
+  background: #fff4c8 !important; border-radius: 4px; }
+@keyframes spkPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 180, 60, 0.0); }
+  50%      { box-shadow: 0 0 0 3px rgba(255, 180, 60, 0.35); }
+}
+/* 朗读中的按钮：变成"再点停止" */
+.spkbtn.tts-on { background: #ffd479; color: #8a4a00; border-color: #f0a63a;
+  animation: none; }
+
+/* 点读 Toast：右上角浮出提示"我在读了"，用户能直观看到反馈 */
+.spk-tip { position: fixed; top: 14px; right: 14px; z-index: 10000;
+  padding: 10px 14px; background: #1e2a3a; color: #fff;
+  border-radius: 22px; box-shadow: 0 6px 18px rgba(0,0,0,.22);
+  font-size: 13px; max-width: 340px; overflow: hidden;
+  opacity: 0; transform: translateY(-8px); pointer-events: none;
+  transition: opacity .22s, transform .22s; }
+.spk-tip.show { opacity: 1; transform: translateY(0); }
+.spk-tip em { color: #ffd07a; font-style: normal; margin-left: 4px; }
 
 .turn { padding: 3px 0; border-bottom: 1px dashed var(--line); font-size: 16px; }
 .turn b { color: var(--en); margin-right: 4px; }
