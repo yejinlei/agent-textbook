@@ -32,6 +32,30 @@
     currentVoice = v;
     try { localStorage.setItem("ttsVoice", v); } catch (e) {}
   }
+  /* 音色元数据：fallback 到浏览器 speechSynthesis 时用来区分英美、调整音高 */
+  var VOICE_META = {
+    alan:  { lang: "en-GB", pitch: 1.0 },
+    jenny: { lang: "en-GB", pitch: 1.15 },
+    amy:   { lang: "en-US", pitch: 1.2 },
+    cori:  { lang: "en-GB", pitch: 1.1 }
+  };
+  function currentVoiceMeta() { return VOICE_META[currentVoice] || VOICE_META.alan; }
+  /* 从浏览器 speechSynthesis 的 voice 列表里按目标语言挑一个：
+     优先完全匹配的 lang（en-GB / en-US），再退化到任意 en-* 音色。 */
+  function pickBrowserVoice(targetLang) {
+    if (!window.speechSynthesis || typeof window.speechSynthesis.getVoices !== "function") return null;
+    try {
+      var vs = window.speechSynthesis.getVoices() || [];
+      var want = (targetLang || "en-GB").toLowerCase();
+      var picked = null;
+      for (var i = 0; i < vs.length; i++) {
+        var lang = (vs[i].lang || "").toLowerCase();
+        if (lang === want) { picked = vs[i]; break; }
+        if (!picked && lang.indexOf("en-") === 0) picked = vs[i];
+      }
+      return picked;
+    } catch (e) { return null; }
+  }
   var TTS_MAP = null;       // {cleaned_text: {voice: "voice/hash.mp3"}}
   var TTS_MAP_FAILED = false; // 首次 404 后不再重试
   var TTS_MAP_LOADED = false;
@@ -105,9 +129,13 @@
   function speakText(text, voice) {
     if (window.speechSynthesis) {
       try {
+        var meta = VOICE_META[voice] || VOICE_META.alan;
         var u = new SpeechSynthesisUtterance(text);
-        u.lang = (voice === "amy") ? "en-US" : "en-GB";
+        u.lang = meta.lang;
         u.rate = 0.95;
+        u.pitch = meta.pitch;
+        var picked = pickBrowserVoice(meta.lang);
+        if (picked) u.voice = picked;
         window.speechSynthesis.speak(u);
         return;
       } catch (e) {}
@@ -166,8 +194,12 @@
     if (!key) return false;
     var entry = TTS_MAP[key];
     if (!entry) return false;
+    // 优先用当前音色；缺失时降级到 Alan，并给用户提示"该词没有 XX 音色的音频"
     var file = entry[currentVoice] || entry.alan;
     if (!file) return false;
+    if (!entry[currentVoice] && currentVoice !== "alan") {
+      showVoiceMissingHint(currentVoice);
+    }
     try {
       stopTtsAudio();
       var a = new Audio(TTS_BASE + file);
@@ -184,7 +216,8 @@
   function speech(text, rate, el) {
     text = String(text || "").trim();
     if (!text) return;
-    speechToast(text, rate, el);
+    // 不再弹右上角朗读 toast：朗读中的高亮由 .tts-on CSS 承担；
+    // 失败时才由 doFallbackSpeech → speechUnavailableHint 弹右上角警告。
     // 停止上一次朗读（本地 audio / 浏览器原生）
     stopTtsAudio();
     if (window.speechSynthesis && window.speechSynthesis.speaking) {
@@ -210,23 +243,17 @@
       try { ok = window.ttsSpeak(text, { lang: "en-GB", rate: rate || 0.95 }) !== false; }
       catch (e) { ok = false; }
     }
-    // 3) 浏览器原生 speechSynthesis
+    // 3) 浏览器原生 speechSynthesis：按当前音色挑英/美音色 + 音高微调
     if (!ok && window.speechSynthesis && window.SpeechSynthesisUtterance) {
       try {
         if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+        var meta = currentVoiceMeta();
         var u = new window.SpeechSynthesisUtterance(text);
-        u.lang = "en-GB";
+        u.lang = meta.lang;
         u.rate = rate || 0.95;
-        u.pitch = 1;
-        try {
-          var vs = window.speechSynthesis.getVoices() || [];
-          for (var i = 0; i < vs.length; i++) {
-            if (vs[i].lang && vs[i].lang.toLowerCase().indexOf("en-") === 0) {
-              u.voice = vs[i];
-              if (vs[i].lang.toLowerCase() === "en-gb") break;
-            }
-          }
-        } catch (e) {}
+        u.pitch = meta.pitch;
+        var picked = pickBrowserVoice(meta.lang);
+        if (picked) u.voice = picked;
         var done = false;
         var clear = function () { if (!done) { done = true; clearSpeechOn(); } };
         u.onend = clear;
@@ -278,10 +305,12 @@
       return true;
     } catch (e) { return false; }
   }
+  /* 失败提示的自动消失计时器：朗读失败时才使用 */
+  var toastTimer = null;
   function speechUnavailableHint(el) {
     setSpeechOn(el);
     var tip = ensureTip();
-    tip.innerHTML = buildToastHTML(el, null, true);
+    tip.innerHTML = buildToastHTML();
     tip.classList.add("show");
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(function () {
@@ -289,17 +318,10 @@
       tip.innerHTML = "";
     }, 60000); // 有重试按钮时保留久一点
   }
-  /* Toast HTML 模板：🔊 + 文本 + [重试] + [×]；hint=true 时显示"当前环境可能不支持" */
-  function buildToastHTML(el, label, hint) {
+  /* Toast HTML 模板：仅失败提示 + [重试] + [外部浏览器] + [×] */
+  function buildToastHTML() {
     var here = (window.location.href || "").replace(/&/g, "&amp;");
-    var html = "";
-    if (hint) {
-      html += "⚠️ 当前环境可能不支持朗读。";
-    }
-    if (label) {
-      html += '<span style="display:block;margin-top:2px;">🔊 <b>' +
-        esc(String(label).length > 40 ? String(label).slice(0, 40) + "…" : label) + "</b></span>";
-    }
+    var html = "⚠️ 当前环境可能不支持朗读。";
     html += '<span style="display:flex;gap:6px;margin-top:6px;align-items:center;">' +
       '<button class="spk-act" data-act="retry" ' +
       'style="background:#2c6bb3;color:#fff;border:none;border-radius:6px;' +
@@ -342,19 +364,35 @@
     }
     return tip;
   }
-  /* 点读提示：告诉用户"我在读了"，同时兜住 TTS 不可见的问题 */
-  var toastTimer = null;
-  function speechToast(text, rate, el) {
-    var tip = ensureTip();
-    tip.innerHTML = buildToastHTML(el, text, false);
-    tip.classList.add("show");
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { tip.classList.remove("show"); tip.innerHTML = ""; }, 4000);
-    // 停止上一次朗读
-    if (window.speechSynthesis && window.speechSynthesis.speaking) {
-      try { window.speechSynthesis.cancel(); } catch (e) {}
+  /* 缺当前音色音频时的提示：短小悬浮条，不覆盖朗读 toast */
+  var VOICE_LABELS = {
+    alan: "Alan · 英音男",
+    jenny: "Jenny · 英音女",
+    amy: "Amy · 美音女",
+    cori: "Cori · 高质量英音"
+  };
+  var voiceHintEl = null;
+  var voiceHintTimer = null;
+  function showVoiceMissingHint(voice) {
+    var label = VOICE_LABELS[voice] || voice;
+    if (!voiceHintEl) {
+      voiceHintEl = document.createElement("div");
+      voiceHintEl.id = "voice-missing-hint";
+      voiceHintEl.style.cssText =
+        "position:fixed;left:50%;bottom:28px;transform:translateX(-50%);" +
+        "background:rgba(50,50,50,.92);color:#ffd07a;border:1px solid #665;" +
+        "padding:6px 14px;border-radius:20px;font-size:12px;z-index:9999;" +
+        "pointer-events:none;opacity:0;transition:opacity .25s;" +
+        "box-shadow:0 4px 12px rgba(0,0,0,.25);";
+      document.body.appendChild(voiceHintEl);
     }
-    if (googleAudio) { try { googleAudio.pause(); googleAudio.currentTime = 0; } catch (e) {} }
+    voiceHintEl.textContent = "⚠ 该词没有 " + label + " 的音频，已用 Alan 兜底";
+    voiceHintEl.style.opacity = "1";
+    if (voiceHintTimer) clearTimeout(voiceHintTimer);
+    voiceHintTimer = setTimeout(function () {
+      voiceHintEl.style.opacity = "0";
+      voiceHintTimer = null;
+    }, 2500);
   }
   function spkBtn(text) {
     return '<span class="spkbtn" data-spk="' +
