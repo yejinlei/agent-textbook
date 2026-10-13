@@ -2296,6 +2296,459 @@
       }).join("") + "</div></div>";
   }
 
+  /* ================================================== 英语 · 听写练习
+     三种模式：拼写听写（vocab）/ 句子听写（对话&常用表达）/ 短文填空（passage）。
+     10 题一组，右侧错题本，localStorage 记当日进度。 */
+  var DICT_KEY = "en-dictation";
+  var DICT_ROUND = 10;
+
+  function dictPool(st) {
+    // 按 st 抽题池；返回 [{type, answer, hint, ...}]
+    var arr = [];
+    var vocab = D.vocab || [];
+    var dialogues = D.dialogues || [];
+    var passages = D.passages || [];
+    var exprs = D.exprs || [];
+    function ok(x) {
+      if (st.book !== "all" && x.book !== st.book) return false;
+      if (st.unit !== "all" && String(x.unit_no || "") !== st.unit) return false;
+      if (st.topic !== "all" && x.topic !== st.topic) return false;
+      if (st.q) {
+        var hay = [x.word, x.meaning, x.en, x.zh, x.text, x.name, x.scene, x.function]
+          .join(" ").toLowerCase();
+        if (hay.indexOf(st.q.toLowerCase()) < 0) return false;
+      }
+      return true;
+    }
+    function add(o) { if (o && o.answer && String(o.answer).length >= 2) arr.push(o); }
+    if (st.mode === "word") {
+      vocab.forEach(function (v) {
+        if (!ok(v) || !v.word || !v.meaning) return;
+        // 挑战：只给中文；提高：给音标+中文；基础：给音标+中文+例句
+        var hint = v.meaning;
+        if (st.level !== "hard" && v.phonetic) hint = "/" + v.phonetic.replace(/^\//, "").replace(/\/$/, "") + "/ " + v.meaning;
+        add({ type: "word", answer: v.word, hint: hint, phonetic: v.phonetic,
+              meaning: v.meaning, example: v.example, book: v.book,
+              unit: v.unit, topic: v.topic, tag: v.theme });
+      });
+    } else if (st.mode === "sentence") {
+      var maxLen = st.level === "basic" ? 6 : (st.level === "mid" ? 12 : 99);
+      function push(en, zh, meta) {
+        if (!en || !zh) return;
+        var wc = String(en).split(/\s+/).filter(Boolean).length;
+        if (wc < 3 || wc > maxLen) return;
+        add({ type: "sentence", answer: en, hint: zh, book: meta.book,
+              unit: meta.unit, topic: meta.topic,
+              meta: (meta.scene || meta.function || meta.name || "") });
+      }
+      if (st.level === "basic") {
+        exprs.forEach(function (e) { if (ok(e)) push(e.en, e.zh, e); });
+      } else if (st.level === "mid") {
+        exprs.forEach(function (e) { if (ok(e)) push(e.en, e.zh, e); });
+        dialogues.forEach(function (d) {
+          if (!ok(d)) return;
+          (d.turns || []).forEach(function (t) { push(t.en, t.zh, d); });
+        });
+      } else {
+        dialogues.forEach(function (d) {
+          if (!ok(d)) return;
+          (d.turns || []).forEach(function (t) { push(t.en, t.zh, d); });
+        });
+        passages.forEach(function (p) {
+          if (!ok(p)) return;
+          var first = String(p.text || "").split(/[.!?]/)[0].trim();
+          if (first.length >= 20) push(first, String(p.zh || "").split(/[。！？]/)[0], p);
+        });
+      }
+    } else {
+      // 短文填空：从 passage 挖 3-5 个 3-8 长度英文词
+      passages.forEach(function (p) {
+        if (!ok(p)) return;
+        var text = String(p.text || "");
+        if (text.length < 60) return;
+        var words = text.match(/([A-Za-z][A-Za-z']{2,8})/g) || [];
+        if (words.length < 3) return;
+        var idxs = [], seen = {}, guard = 0;
+        var n = Math.min(words.length, 3 + Math.floor(Math.random() * 3));
+        while (idxs.length < n && guard++ < 60) {
+          var i = Math.floor(Math.random() * words.length);
+          var w = words[i];
+          if (!seen[w]) { seen[w] = 1; idxs.push(i); }
+        }
+        if (idxs.length < 2) return;
+        var answers = idxs.map(function (i) { return words[i]; });
+        add({ type: "passage", passage: text, answers: answers,
+              hint: String(p.zh || "").slice(0, 120), name: p.name,
+              book: p.book, unit: p.unit, topic: p.topic });
+      });
+    }
+    return arr;
+  }
+
+  function dictShell(st) {
+    var modeBtns = [
+      { id: "word",     label: "拼写听写", icon: "🔤" },
+      { id: "sentence", label: "句子听写", icon: "📝" },
+      { id: "passage",  label: "短文填空", icon: "📄" }
+    ].map(function (m) {
+      return '<button class="d-mode' + (m.id === st.mode ? " on" : "") +
+        '" data-m="' + m.id + '">' + m.icon + " " + m.label + "</button>";
+    }).join("");
+    var levels = [
+      { id: "basic", label: "基础" },
+      { id: "mid",   label: "提高" },
+      { id: "hard",  label: "挑战" }
+    ];
+    var lvOpts = levels.map(function (l) {
+      return '<option value="' + l.id + '"' + (l.id === st.level ? " selected" : "") +
+        ">" + l.label + "</option>";
+    }).join("");
+    var books = D.books || [];
+    var bkOpts = '<option value="all">全部册次</option>' +
+      books.map(function (b) {
+        return '<option value="' + esc(b) + '"' + (b === st.book ? " selected" : "") + ">" + esc(b) + "</option>";
+      }).join("");
+    // 单元/话题动态渲染，见 populateDictFilters
+    return '<div class="d-ctl">' +
+      '<div class="d-modes">' + modeBtns + "</div>" +
+      '<div class="d-filters">' +
+      '<select id="d-book">' + bkOpts + "</select>" +
+      '<select id="d-unit"><option value="all">全部单元</option></select>' +
+      '<select id="d-topic"><option value="all">全部话题</option></select>' +
+      '<select id="d-level">' + lvOpts + "</select>" +
+      '<input id="d-q" placeholder="关键词（如：dog、family）">' +
+      "</div></div>" +
+      '<div class="d-body">' +
+      '<div class="d-main">' +
+      '<div class="d-hdr">' +
+      '<span class="d-title">第 <span id="d-idx">1</span> / <span id="d-total">' + DICT_ROUND +
+      "</span> 题</span>" +
+      '<span class="d-score">已对 <b id="d-right">0</b></span>' +
+      '<span class="d-prog"><span id="d-prog" style="width:0%"></span></span>' +
+      "</div>" +
+      '<div id="d-card" class="d-card"></div>' +
+      '<div class="d-nav">' +
+      '<button id="d-prev" class="btn-ghost">← 上一题</button>' +
+      '<button id="d-skip" class="btn-ghost">跳过</button>' +
+      '<button id="d-check" class="btn">判分 →</button>' +
+      "</div></div>" +
+      '<aside class="d-side">' +
+      "<h4>错题本 · <span id="d-wrong-n">0</span></h4>" +
+      '<div id="d-wrong" class="d-wrong"><p class="small">做错的题会留在这里，方便回头重做。</p></div>' +
+      '<button id="d-redo" class="btn-ghost">重做错题</button>' +
+      '<button id="d-new" class="btn">新一组</button>' +
+      "</aside></div>";
+  }
+
+  function populateDictFilters(st) {
+    function unique(arr, key) {
+      var s = {}, o = [];
+      arr.forEach(function (x) {
+        var k = x[key];
+        if (k && !s[k]) { s[k] = 1; o.push(k); }
+      });
+      return o.sort();
+    }
+    var unitSel = document.getElementById("d-unit");
+    var topicSel = document.getElementById("d-topic");
+    if (!unitSel || !topicSel) return;
+    // 单元：只列当前书（或全部）里的单元
+    var units = {};
+    (D.vocab || []).concat(D.passages || []).concat(D.dialogues || []).forEach(function (x) {
+      if (st.book !== "all" && x.book !== st.book) return;
+      if (x.unit_no) units[x.unit_no] = x.unit;
+    });
+    var uKeys = Object.keys(units).sort(function (a, b) { return +a - +b; });
+    unitSel.innerHTML = '<option value="all">全部单元</option>' +
+      uKeys.map(function (k) {
+        return '<option value="' + k + '"' + (String(st.unit) === String(k) ? " selected" : "") + ">" +
+          "U" + k + " · " + esc(units[k] || "") + "</option>";
+      }).join("");
+    var topics = unique((D.vocab || []).concat(D.passages || []).concat(D.dialogues || []), "topic");
+    topicSel.innerHTML = '<option value="all">全部话题</option>' +
+      topics.map(function (t) {
+        return '<option value="' + esc(t) + '"' + (t === st.topic ? " selected" : "") + ">" + esc(t) + "</option>";
+      }).join("");
+  }
+
+  function dictCard(item, userAns) {
+    var h = "";
+    if (item.type === "word") {
+      h += '<div class="d-hint"><p class="d-q">听发音，拼出这个单词：</p>' +
+        '<p class="d-hint-text"><b>' + esc(item.meaning || "") + "</b>";
+      if (item.phonetic && String(st_level()).level !== "hard") {
+        h += ' <i>/' + esc(item.phonetic.replace(/^\/|\/$/g, "")) + "/</i>";
+      }
+      h += "</p>";
+      if (item.example) h += '<p class="small">例句：' + esc(item.example) + "</p>";
+      h += spkBtn(item.answer);
+      h += "</div>";
+      h += '<div class="d-input">' +
+        '<input id="d-ans" type="text" autocomplete="off" placeholder="输入拼写…" ' +
+        'value="' + esc(userAns || "") + '" data-key="0">' +
+        "</div>";
+    } else if (item.type === "sentence") {
+      h += '<div class="d-hint"><p class="d-q">听发音，写出英文原句：</p>' +
+        '<p class="d-hint-text">' + esc(item.hint || "") + "</p>";
+      if (item.meta) h += '<p class="small">场景：' + esc(item.meta) + "</p>";
+      h += spkBtn(item.answer);
+      h += "</div>";
+      h += '<div class="d-input"><textarea id="d-ans" rows="3" ' +
+        'placeholder="写整句…" data-key="0">' + esc(userAns || "") + "</textarea></div>";
+    } else if (item.type === "passage") {
+      h += '<div class="d-hint"><p class="d-q">听整篇短文，把挖空的关键词按顺序填上：</p>' +
+        (item.name ? '<p class="small">' + esc(item.name) + "</p>" : "") +
+        "</div>";
+      h += '<div class="d-passage">' + paintBlanks(item.passage, item.answers) + "</div>";
+      h += '<div class="d-input">' + item.answers.map(function (a, i) {
+        return '<div class="d-blank"><span>' + (i + 1) + '.</span>' +
+          '<input type="text" placeholder="填空 ' + (i + 1) + '" data-key="' + i + '" ' +
+          'value="' + esc((userAns || [])[i] || "") + '" autocomplete="off">' +
+          "</div>";
+      }).join("") + "</div>";
+    }
+    return h;
+  }
+
+  function st_level() { return DICT_STATE.st; }
+
+  var DICT_STATE = { st: null, round: [], idx: 0, ans: {}, right: 0, wrong: [] };
+
+  function paintBlanks(text, answers) {
+    // 把 answers 中每个词的首次出现替换成 ______
+    var out = text;
+    answers.forEach(function (w) {
+      out = out.replace(new RegExp("\\b" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i"),
+                        "_______");
+    });
+    return esc(out);
+  }
+
+  function dictFb(item, ok) {
+    var h = '<div class="d-fb ' + (ok ? "ok" : "no") + '">';
+    if (item.type === "word") {
+      h += '<div class="big">' + (ok ? "✅ 正确" : "❌ 不对") + "</div>";
+      if (!ok) {
+        h += '<div class="d-ans">正确答案：<b>' + esc(item.answer) + "</b>";
+        if (item.phonetic) h += " <i>/" + esc(item.phonetic.replace(/^\/|\/$/g, "")) + "/</i>";
+        h += "</div>";
+      }
+    } else if (item.type === "sentence") {
+      h += '<div class="big">' + (ok ? "✅ 基本正确" : "对照原句") + "</div>" +
+        '<div class="d-ans"><b>' + esc(item.answer) + "</b></div>";
+    } else if (item.type === "passage") {
+      var user = DICT_STATE.ans[DICT_STATE.idx] || [];
+      var per = item.answers.map(function (a, i) {
+        var u = (user[i] || "").toLowerCase().trim();
+        var ok2 = u === a.toLowerCase();
+        return '<span class="' + (ok2 ? "ok" : "no") + '">' + (i + 1) + " · " +
+          "你：" + esc(user[i] || "（空）") + " ／ 对：<b>" + esc(a) + "</b></span>";
+      });
+      h += '<div class="big">' + (ok ? "✅ 全部正确" : "对照答案") + "</div>" +
+        '<div class="d-ans-list">' + per.join("") + "</div>";
+    }
+    return h + "</div>";
+  }
+
+  function dictNorm(s) {
+    // 判分归一：小写、去首尾空格、把多余空白折叠成单个空格
+    return String(s || "").toLowerCase().replace(/[.,;:!?"'()]/g, "").replace(/\s+/g, " ").trim();
+  }
+
+  function dictScore(item, ans) {
+    // 拼写：严格等
+    // 句子：整句归一后相等
+    // 短文：所有空都对
+    if (item.type === "word") {
+      return dictNorm(ans) === dictNorm(item.answer);
+    }
+    if (item.type === "sentence") {
+      return dictNorm(ans) === dictNorm(item.answer);
+    }
+    if (item.type === "passage") {
+      var a = ans || [];
+      return item.answers.every(function (x, i) {
+        return dictNorm(a[i]) === dictNorm(x);
+      });
+    }
+    return false;
+  }
+
+  function renderDictation() {
+    var st = { mode: "word", book: "all", unit: "all", topic: "all", level: "basic", q: "" };
+    DICT_STATE.st = st;
+    var root = document.createElement("div");
+    root.className = "dictation";
+    root.innerHTML = dictShell(st);
+    app.appendChild(root);
+    loadTtsMap();   // 预热 TTS
+
+    function rebuild() {
+      populateDictFilters(st);
+      var pool = dictPool(st);
+      // 洗牌取 10 题；如果池子不足就有多少用多少
+      pool.sort(function () { return Math.random() - 0.5; });
+      DICT_STATE.round = pool.slice(0, DICT_ROUND);
+      DICT_STATE.idx = 0;
+      DICT_STATE.ans = {};
+      DICT_STATE.right = 0;
+      DICT_STATE.wrong = [];
+      paintCard();
+    }
+    function paintCard() {
+      var total = DICT_STATE.round.length;
+      var idx = DICT_STATE.idx;
+      var item = DICT_STATE.round[idx];
+      var card = document.getElementById("d-card");
+      var totalEl = document.getElementById("d-total");
+      var idxEl = document.getElementById("d-idx");
+      var rightEl = document.getElementById("d-right");
+      var progEl = document.getElementById("d-prog");
+      var prevBtn = document.getElementById("d-prev");
+      var checkBtn = document.getElementById("d-check");
+      if (!card) return;
+      totalEl.textContent = total;
+      idxEl.textContent = idx + 1;
+      rightEl.textContent = DICT_STATE.right;
+      progEl.style.width = (idx / Math.max(1, total) * 100) + "%";
+      prevBtn.disabled = idx === 0;
+      checkBtn.textContent = (idx === total - 1) ? "判分并结束" : "判分 →";
+      if (!item) {
+        card.innerHTML = '<div class="big">🎉 完成</div>' +
+          '<p class="small">本轮共 ' + total + " 题，答对 " + DICT_STATE.right + " 题（" +
+          (total ? Math.round(DICT_STATE.right / total * 100) : 0) + "%）</p>";
+        paintWrong();
+        return;
+      }
+      card.innerHTML = dictCard(item, DICT_STATE.ans[idx]) +
+        (DICT_STATE.ans[idx + "_ok"] != null
+          ? dictFb(item, DICT_STATE.ans[idx + "_ok"]) : "");
+      var inp = card.querySelector('[data-key="0"]');
+      if (inp) {
+        inp.focus();
+        inp.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") { e.preventDefault(); doCheck(); }
+        });
+      } else {
+        // 短文：最后一个输入框回车触发
+        var inputs = card.querySelectorAll('input[data-key]');
+        inputs.forEach(function (inp, i) {
+          inp.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (i === inputs.length - 1) doCheck();
+            }
+          });
+        });
+      }
+    }
+    function paintWrong() {
+      var box = document.getElementById("d-wrong");
+      var n = document.getElementById("d-wrong-n");
+      var redoBtn = document.getElementById("d-redo");
+      if (!box) return;
+      n.textContent = DICT_STATE.wrong.length;
+      redoBtn.style.display = DICT_STATE.wrong.length ? "" : "none";
+      if (!DICT_STATE.wrong.length) {
+        box.innerHTML = '<p class="small">做错的题会留在这里，方便回头重做。</p>';
+        return;
+      }
+      box.innerHTML = DICT_STATE.wrong.slice(0, 30).map(function (w, i) {
+        var label = w.item.type === "word" ? "词" : (w.item.type === "sentence" ? "句" : "文");
+        return '<div class="w-item"><b>' + label + "</b> " +
+          esc(w.item.answer || w.item.answers.join(" / ")) + "</div>";
+      }).join("");
+    }
+    function collectAns() {
+      var card = document.getElementById("d-card");
+      if (!card) return null;
+      var item = DICT_STATE.round[DICT_STATE.idx];
+      if (!item) return null;
+      if (item.type === "passage") {
+        var inputs = card.querySelectorAll('input[data-key]');
+        var a = [];
+        inputs.forEach(function (inp) { a.push(inp.value); });
+        return a;
+      }
+      var inp = card.querySelector('[data-key="0"]');
+      return inp ? inp.value : "";
+    }
+    function doCheck() {
+      var ans = collectAns();
+      if (ans == null) return;
+      var item = DICT_STATE.round[DICT_STATE.idx];
+      DICT_STATE.ans[DICT_STATE.idx] = ans;
+      var ok = dictScore(item, ans);
+      DICT_STATE.ans[DICT_STATE.idx + "_ok"] = ok;
+      if (ok) DICT_STATE.right++;
+      else DICT_STATE.wrong.push({ item: item, userAns: ans });
+      paintCard();
+      paintWrong();
+      // 稍后自动跳到下一题
+      setTimeout(function () {
+        if (DICT_STATE.idx < DICT_STATE.round.length - 1) {
+          DICT_STATE.idx++;
+          paintCard();
+        }
+      }, 900);
+    }
+    // 事件绑定
+    root.addEventListener("click", function (e) {
+      var m = e.target.closest(".d-mode");
+      if (m) {
+        st.mode = m.dataset.m;
+        [].forEach.call(root.querySelectorAll(".d-mode"), function (b) {
+          b.classList.toggle("on", b === m);
+        });
+        rebuild();
+        return;
+      }
+      if (e.target.id === "d-check") { doCheck(); return; }
+      if (e.target.id === "d-prev") {
+        if (DICT_STATE.idx > 0) { DICT_STATE.idx--; paintCard(); }
+        return;
+      }
+      if (e.target.id === "d-skip") {
+        DICT_STATE.ans[DICT_STATE.idx] = null;
+        DICT_STATE.ans[DICT_STATE.idx + "_ok"] = false;
+        DICT_STATE.wrong.push({ item: DICT_STATE.round[DICT_STATE.idx], userAns: null });
+        DICT_STATE.idx = Math.min(DICT_STATE.round.length, DICT_STATE.idx + 1);
+        paintCard(); paintWrong();
+        return;
+      }
+      if (e.target.id === "d-new") { rebuild(); return; }
+      if (e.target.id === "d-redo") {
+        // 用错题组一轮新的
+        var items = DICT_STATE.wrong.map(function (w) { return w.item; });
+        items.sort(function () { return Math.random() - 0.5; });
+        DICT_STATE.round = items.slice(0, DICT_ROUND);
+        DICT_STATE.idx = 0;
+        DICT_STATE.ans = {};
+        DICT_STATE.right = 0;
+        DICT_STATE.wrong = [];
+        paintCard(); paintWrong();
+        return;
+      }
+    });
+    root.addEventListener("change", function (e) {
+      var t = e.target;
+      if (t.id === "d-book") st.book = t.value;
+      else if (t.id === "d-unit") st.unit = t.value;
+      else if (t.id === "d-topic") st.topic = t.value;
+      else if (t.id === "d-level") st.level = t.value;
+      else return;
+      rebuild();
+    });
+    root.addEventListener("input", function (e) {
+      if (e.target.id === "d-q") {
+        st.q = e.target.value.trim();
+        clearTimeout(root._t);
+        root._t = setTimeout(rebuild, 250);
+      }
+    });
+    rebuild();
+  }
+
   function renderSpeak() {
     var box = listBox();
     var fs = (D.functions || []).map(function (f) { return f[0]; });
@@ -2372,6 +2825,7 @@
   if (kind === "problem") renderProblem();
   else if (kind === "structure") renderStructure();
   else if (kind === "speak") renderSpeak();
+  else if (kind === "dictation") renderDictation();
   else if (subject === "math") renderMath();
   else if (subject === "chinese") renderChinese();
   else if (subject === "english") renderEnglish();

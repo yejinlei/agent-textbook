@@ -734,6 +734,10 @@ EN_PAGES = [
     ("speak", "开口说", "speak",
      "教材里每一组对话按角色摊开，一句一句推进；中文可遮住自测。"
      "另有项目任务：做出一样东西要说什么、要什么材料。敢开口，从有话可说开始。"),
+    ("dictation", "听写练习", "dictation",
+     "三种模式：拼写听写（看中文/音标听发音拼写）、句子听写（听整句照听打下来）、"
+     "短文填空（读短文听发音填关键词）。支持按册次/单元/话题/难度筛选，10 题一组，"
+     "错题保留在右侧错题本，方便回头重做。"),
 ]
 SUBJECTS = [("chinese", "语文", CN_PAGES),
             ("math", "数学", MATH_PAGES),
@@ -832,6 +836,11 @@ def _slice(key, kind, cn_d, math_d, en_d):
         return {"dialogues": en_d["dialogues"], "projects": en_d["projects"],
                 "exprs": en_d["exprs"], "functions": en_d["functions"],
                 "books": sorted({d["book"] for d in en_d["dialogues"]}, key=_book_sort_key)}
+    if kind == "dictation":
+        # 拼写/句子/短文三种模式分别需要 vocab / dialogues+passages / passages
+        return {"vocab": en_d["vocab"], "passages": en_d["passages"],
+                "dialogues": en_d["dialogues"], "exprs": en_d.get("exprs", []),
+                "themes": en_d["themes"], "books": books}
     keys = {"discourse": ["passages", "dialogues"], "vocab": ["vocab"],
             "grammar": ["grammar"], "phonics": ["phonics"],
             "use": ["songs", "projects", "revisions"]}
