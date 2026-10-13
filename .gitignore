@@ -53,3 +53,15 @@ data/tts/*/*.mp3
 # 本地开发临时采样（一次性试听样例，非交付物）
 tts-sample/
 tts_sample_gen.py
+
+# 语料抓取缓存 & 备份（可复现产物，不入库）
+data/readings/_cache/
+*.bak
+
+# 一次性格律/工具脚本
+t1.py
+t2.py
+t3.py
+t4.py
+t5.py
+gb11.txt

@@ -1,0 +1,6272 @@
+{
+  "_doc": "英文长文库抓取清单 + 多维分面标签（facets）",
+  "_updated": "2026-10-13",
+  "_license": "Public Domain (Gutenberg) + CC BY-SA (LibriVox)",
+  "_facets_schema": "data/readings/taxonomy.json",
+  "books": [
+    {
+      "id": "fable-ugly-duckling",
+      "title": "The Ugly Duckling",
+      "author": "Hans Christian Andersen",
+      "gutenberg_id": 32571,
+      "gutenberg_slug": "The Ugly Duckling",
+      "librivox_archive": "uglyduckling_librivox",
+      "librivox_url": "https://librivox.org/the-ugly-duckling-by-hans-christian-andersen/",
+      "primary_topic": "animal",
+      "secondary_topics": [
+        "identity",
+        "narrative.hero"
+      ],
+      "excerpt": {
+        "type": "full"
+      },
+      "facets": {
+        "grade": [
+          "3",
+          "4"
+        ],
+        "grade_band": "mid_primary",
+        "text_type": "folktale",
+        "themes": [
+          "self_acceptance",
+          "belonging",
+          "perseverance"
+        ],
+        "settings": [
+          "countryside",
+          "garden_park"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 300,
+          "max": 500,
+          "mean": 400,
+          "band": "elementary_low",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "Danish",
+        "time_period": "timeless_fantasy",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "vocabulary_extension"
+        ],
+        "text_role": [
+          "writing_trigger"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "tense.past_simple",
+          "prep.common",
+          "article.a_an",
+          "pron.possessive"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 4170,
+              "evidence": "The Ugly"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 3110,
+              "evidence": "and"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 2014,
+              "evidence": "was"
+            },
+            {
+              "id": "prep.common",
+              "count": 1795,
+              "evidence": "at"
+            },
+            {
+              "id": "article.a_an",
+              "count": 1305,
+              "evidence": "a story"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 1161,
+              "evidence": "his tales"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 996,
+              "evidence": "who love"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 832,
+              "evidence": "he writes"
+            },
+            {
+              "id": "negation",
+              "count": 626,
+              "evidence": "no"
+            },
+            {
+              "id": "be.contraction",
+              "count": 449,
+              "evidence": "were"
+            },
+            {
+              "id": "be.was_were",
+              "count": 400,
+              "evidence": "they were"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 337,
+              "evidence": "could"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 316,
+              "evidence": "There are some birds"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 288,
+              "evidence": "they are"
+            },
+            {
+              "id": "comparative",
+              "count": 200,
+              "evidence": "more"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 168,
+              "evidence": "should"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 153,
+              "evidence": "was\ngoing to"
+            },
+            {
+              "id": "imperative",
+              "count": 105,
+              "evidence": "help us"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 81,
+              "evidence": "These"
+            },
+            {
+              "id": "exclamation",
+              "count": 59,
+              "evidence": "Oh!"
+            },
+            {
+              "id": "there.be",
+              "count": 46,
+              "evidence": "there are"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 46,
+              "evidence": "Do\nyou"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 41,
+              "evidence": "is nothing"
+            },
+            {
+              "id": "pron.possessive_noun",
+              "count": 27,
+              "evidence": "child's"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 25,
+              "evidence": "Is it"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.017
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.014
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.36
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.003
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.07
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "tense.past_simple",
+            "prep.common",
+            "article.a_an",
+            "pron.possessive"
+          ],
+          "word_count": 57532
+        }
+      },
+      "pairs_with_unit": [
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "tense.past_simple",
+        "prep.common",
+        "article.a_an",
+        "pron.possessive"
+      ]
+    },
+    {
+      "id": "fable-lion-mouse",
+      "title": "The Lion and the Mouse",
+      "author": "Aesop",
+      "gutenberg_id": 11339,
+      "gutenberg_slug": "Aesop's Fables (Dryden)",
+      "librivox_archive": "aesop_librivox",
+      "librivox_url": "https://librivox.org/341/",
+      "primary_topic": "animal",
+      "secondary_topics": [
+        "friendship",
+        "animal.fable"
+      ],
+      "excerpt": {
+        "type": "story",
+        "stories": [
+          "The Lion and the Mouse"
+        ]
+      },
+      "facets": {
+        "grade": [
+          "3"
+        ],
+        "grade_band": "mid_primary",
+        "text_type": "fable",
+        "themes": [
+          "kindness",
+          "humility",
+          "loyalty"
+        ],
+        "settings": [
+          "forest_wild"
+        ],
+        "word_count_bucket": "very_short",
+        "lexile": {
+          "min": 200,
+          "max": 400,
+          "mean": 300,
+          "band": "elementary_low",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "Greek",
+        "time_period": "timeless_fantasy",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "critical_thinking"
+        ],
+        "text_role": [
+          "pre_reading"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "article.a_an",
+          "tense.past_simple",
+          "pron.possessive",
+          "prep.common"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 2643,
+              "evidence": "The Lion"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 1864,
+              "evidence": "and"
+            },
+            {
+              "id": "article.a_an",
+              "count": 1011,
+              "evidence": "A NEW"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 922,
+              "evidence": "had"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 860,
+              "evidence": "his fame"
+            },
+            {
+              "id": "prep.common",
+              "count": 829,
+              "evidence": "in"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 553,
+              "evidence": "who had"
+            },
+            {
+              "id": "negation",
+              "count": 332,
+              "evidence": "not"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 278,
+              "evidence": "he was"
+            },
+            {
+              "id": "be.contraction",
+              "count": 175,
+              "evidence": "were"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 156,
+              "evidence": "birds"
+            },
+            {
+              "id": "be.was_were",
+              "count": 142,
+              "evidence": "they were"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 108,
+              "evidence": "could"
+            },
+            {
+              "id": "comparative",
+              "count": 108,
+              "evidence": "more"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 101,
+              "evidence": "they are"
+            },
+            {
+              "id": "imperative",
+              "count": 73,
+              "evidence": "read the"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 71,
+              "evidence": "must"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 70,
+              "evidence": "is going to"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 25,
+              "evidence": "those"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 18,
+              "evidence": "do you"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 16,
+              "evidence": "is going"
+            },
+            {
+              "id": "exclamation",
+              "count": 16,
+              "evidence": "Oh,"
+            },
+            {
+              "id": "there.be",
+              "count": 15,
+              "evidence": "there is"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 10,
+              "evidence": "are you"
+            },
+            {
+              "id": "pron.possessive_noun",
+              "count": 5,
+              "evidence": "mother's"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.02
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.01
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.383
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.0
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.048
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "article.a_an",
+            "tense.past_simple",
+            "pron.possessive",
+            "prep.common"
+          ],
+          "word_count": 29908
+        }
+      },
+      "pairs_with_unit": [
+        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:004",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:003",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:006",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:003",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:006",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:004"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "article.a_an",
+        "tense.past_simple",
+        "pron.possessive",
+        "prep.common"
+      ]
+    },
+    {
+      "id": "fable-fox-crow",
+      "title": "The Fox and the Crow",
+      "author": "Aesop",
+      "gutenberg_id": 11339,
+      "gutenberg_slug": "Aesop's Fables (Dryden)",
+      "librivox_archive": "aesop_librivox",
+      "librivox_url": "https://librivox.org/341/",
+      "primary_topic": "animal",
+      "secondary_topics": [
+        "animal.fable"
+      ],
+      "excerpt": {
+        "type": "story",
+        "stories": [
+          "The Fox and the Crow"
+        ]
+      },
+      "facets": {
+        "grade": [
+          "3"
+        ],
+        "grade_band": "mid_primary",
+        "text_type": "fable",
+        "themes": [
+          "honesty",
+          "humility"
+        ],
+        "settings": [
+          "forest_wild"
+        ],
+        "word_count_bucket": "very_short",
+        "lexile": {
+          "min": 200,
+          "max": 400,
+          "mean": 300,
+          "band": "elementary_low",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "Greek",
+        "time_period": "timeless_fantasy",
+        "target_skills": [
+          "reading_comprehension",
+          "critical_thinking"
+        ],
+        "text_role": [
+          "bridge_text",
+          "consolidation",
+          "pre_reading",
+          "writing_trigger"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "article.a_an",
+          "tense.past_simple",
+          "pron.possessive",
+          "prep.common"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 2643,
+              "evidence": "The Fox"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 1864,
+              "evidence": "and"
+            },
+            {
+              "id": "article.a_an",
+              "count": 1011,
+              "evidence": "A NEW"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 922,
+              "evidence": "had"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 860,
+              "evidence": "his fame"
+            },
+            {
+              "id": "prep.common",
+              "count": 829,
+              "evidence": "in"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 553,
+              "evidence": "who had"
+            },
+            {
+              "id": "negation",
+              "count": 332,
+              "evidence": "not"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 278,
+              "evidence": "he was"
+            },
+            {
+              "id": "be.contraction",
+              "count": 175,
+              "evidence": "were"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 156,
+              "evidence": "birds"
+            },
+            {
+              "id": "be.was_were",
+              "count": 142,
+              "evidence": "they were"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 108,
+              "evidence": "could"
+            },
+            {
+              "id": "comparative",
+              "count": 108,
+              "evidence": "more"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 101,
+              "evidence": "they are"
+            },
+            {
+              "id": "imperative",
+              "count": 73,
+              "evidence": "read the"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 71,
+              "evidence": "must"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 70,
+              "evidence": "is going to"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 25,
+              "evidence": "those"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 18,
+              "evidence": "do you"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 16,
+              "evidence": "is going"
+            },
+            {
+              "id": "exclamation",
+              "count": 16,
+              "evidence": "Oh,"
+            },
+            {
+              "id": "there.be",
+              "count": 15,
+              "evidence": "there is"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 10,
+              "evidence": "are you"
+            },
+            {
+              "id": "pron.possessive_noun",
+              "count": 5,
+              "evidence": "mother's"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.02
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.01
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.383
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.0
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.048
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "article.a_an",
+            "tense.past_simple",
+            "pron.possessive",
+            "prep.common"
+          ],
+          "word_count": 29908
+        }
+      },
+      "pairs_with_unit": [
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "article.a_an",
+        "tense.past_simple",
+        "pron.possessive",
+        "prep.common"
+      ]
+    },
+    {
+      "id": "fable-tortoise-hare",
+      "title": "The Tortoise and the Hare",
+      "author": "Aesop",
+      "gutenberg_id": 11339,
+      "gutenberg_slug": "Aesop's Fables (Dryden)",
+      "librivox_archive": "aesop_librivox",
+      "librivox_url": "https://librivox.org/341/",
+      "primary_topic": "animal",
+      "secondary_topics": [
+        "animal.fable"
+      ],
+      "excerpt": {
+        "type": "story",
+        "stories": [
+          "The Tortoise and the Hare"
+        ]
+      },
+      "facets": {
+        "grade": [
+          "3",
+          "4"
+        ],
+        "grade_band": "mid_primary",
+        "text_type": "fable",
+        "themes": [
+          "perseverance",
+          "humility"
+        ],
+        "settings": [
+          "countryside"
+        ],
+        "word_count_bucket": "very_short",
+        "lexile": {
+          "min": 300,
+          "max": 500,
+          "mean": 400,
+          "band": "elementary_low",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "Greek",
+        "time_period": "timeless_fantasy",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "grammar_practice"
+        ],
+        "text_role": [
+          "bridge_text",
+          "pre_reading",
+          "writing_trigger"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "article.a_an",
+          "tense.past_simple",
+          "pron.possessive",
+          "prep.common"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 2643,
+              "evidence": "The Tortoise"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 1864,
+              "evidence": "and"
+            },
+            {
+              "id": "article.a_an",
+              "count": 1011,
+              "evidence": "A NEW"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 922,
+              "evidence": "had"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 860,
+              "evidence": "his fame"
+            },
+            {
+              "id": "prep.common",
+              "count": 829,
+              "evidence": "in"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 553,
+              "evidence": "who had"
+            },
+            {
+              "id": "negation",
+              "count": 332,
+              "evidence": "not"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 278,
+              "evidence": "he was"
+            },
+            {
+              "id": "be.contraction",
+              "count": 175,
+              "evidence": "were"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 156,
+              "evidence": "birds"
+            },
+            {
+              "id": "be.was_were",
+              "count": 142,
+              "evidence": "they were"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 108,
+              "evidence": "could"
+            },
+            {
+              "id": "comparative",
+              "count": 108,
+              "evidence": "more"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 101,
+              "evidence": "they are"
+            },
+            {
+              "id": "imperative",
+              "count": 73,
+              "evidence": "read the"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 71,
+              "evidence": "must"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 70,
+              "evidence": "is going to"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 25,
+              "evidence": "those"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 18,
+              "evidence": "do you"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 16,
+              "evidence": "is going"
+            },
+            {
+              "id": "exclamation",
+              "count": 16,
+              "evidence": "Oh,"
+            },
+            {
+              "id": "there.be",
+              "count": 15,
+              "evidence": "there is"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 10,
+              "evidence": "are you"
+            },
+            {
+              "id": "pron.possessive_noun",
+              "count": 5,
+              "evidence": "mother's"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.02
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.01
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.383
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.0
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.048
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "article.a_an",
+            "tense.past_simple",
+            "pron.possessive",
+            "prep.common"
+          ],
+          "word_count": 29908
+        }
+      },
+      "pairs_with_unit": [
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "article.a_an",
+        "tense.past_simple",
+        "pron.possessive",
+        "prep.common"
+      ]
+    },
+    {
+      "id": "fable-north-wind-sun",
+      "title": "The North Wind and the Sun",
+      "author": "Aesop",
+      "gutenberg_id": 11339,
+      "gutenberg_slug": "Aesop's Fables (Dryden)",
+      "librivox_archive": "aesop_librivox",
+      "librivox_url": "https://librivox.org/341/",
+      "primary_topic": "nature.cosmic",
+      "secondary_topics": [
+        "animal.fable"
+      ],
+      "excerpt": {
+        "type": "story",
+        "stories": [
+          "The North Wind and the Sun"
+        ]
+      },
+      "facets": {
+        "grade": [
+          "3"
+        ],
+        "grade_band": "mid_primary",
+        "text_type": "fable",
+        "themes": [
+          "reason",
+          "humility"
+        ],
+        "settings": [
+          "countryside"
+        ],
+        "word_count_bucket": "very_short",
+        "lexile": {
+          "min": 300,
+          "max": 400,
+          "mean": 350,
+          "band": "elementary_low",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "Greek",
+        "time_period": "timeless_fantasy",
+        "target_skills": [
+          "reading_comprehension",
+          "critical_thinking"
+        ],
+        "text_role": [
+          "bridge_text",
+          "pre_reading",
+          "writing_trigger"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "article.a_an",
+          "tense.past_simple",
+          "pron.possessive",
+          "prep.common"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 2643,
+              "evidence": "The North"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 1864,
+              "evidence": "and"
+            },
+            {
+              "id": "article.a_an",
+              "count": 1011,
+              "evidence": "A NEW"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 922,
+              "evidence": "had"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 860,
+              "evidence": "his fame"
+            },
+            {
+              "id": "prep.common",
+              "count": 829,
+              "evidence": "in"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 553,
+              "evidence": "who had"
+            },
+            {
+              "id": "negation",
+              "count": 332,
+              "evidence": "not"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 278,
+              "evidence": "he was"
+            },
+            {
+              "id": "be.contraction",
+              "count": 175,
+              "evidence": "were"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 156,
+              "evidence": "birds"
+            },
+            {
+              "id": "be.was_were",
+              "count": 142,
+              "evidence": "they were"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 108,
+              "evidence": "could"
+            },
+            {
+              "id": "comparative",
+              "count": 108,
+              "evidence": "more"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 101,
+              "evidence": "they are"
+            },
+            {
+              "id": "imperative",
+              "count": 73,
+              "evidence": "read the"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 71,
+              "evidence": "must"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 70,
+              "evidence": "is going to"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 25,
+              "evidence": "those"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 18,
+              "evidence": "do you"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 16,
+              "evidence": "is going"
+            },
+            {
+              "id": "exclamation",
+              "count": 16,
+              "evidence": "Oh,"
+            },
+            {
+              "id": "there.be",
+              "count": 15,
+              "evidence": "there is"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 10,
+              "evidence": "are you"
+            },
+            {
+              "id": "pron.possessive_noun",
+              "count": 5,
+              "evidence": "mother's"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.02
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.01
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.383
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.0
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.048
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "article.a_an",
+            "tense.past_simple",
+            "pron.possessive",
+            "prep.common"
+          ],
+          "word_count": 29909
+        }
+      },
+      "pairs_with_unit": [
+        "02736c70-9509-438f-8e16-2902feaf5ed8:005",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:006",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:003",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:003",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:003",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:003",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:003",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:003",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:005",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:005",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:005",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:005",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:006",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:004",
+        "dd6173ba-579a-356e-900c-cb53e152229c:004",
+        "dd6173ba-579a-356e-900c-cb53e152229c:004",
+        "dd6173ba-579a-356e-900c-cb53e152229c:005",
+        "dd6173ba-579a-356e-900c-cb53e152229c:005",
+        "dd6173ba-579a-356e-900c-cb53e152229c:005"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "article.a_an",
+        "tense.past_simple",
+        "pron.possessive",
+        "prep.common"
+      ]
+    },
+    {
+      "id": "peter-rabbit",
+      "title": "The Tale of Peter Rabbit",
+      "author": "Beatrix Potter",
+      "gutenberg_id": 14838,
+      "gutenberg_slug": "The Tale of Peter Rabbit",
+      "librivox_archive": "peterrabbit_librivox",
+      "librivox_url": "https://librivox.org/the-tale-of-peter-rabbit-by-beatrix-potter/",
+      "primary_topic": "animal",
+      "secondary_topics": [
+        "nature.plants",
+        "family.pets"
+      ],
+      "excerpt": {
+        "type": "full"
+      },
+      "facets": {
+        "grade": [
+          "3",
+          "4",
+          "5"
+        ],
+        "grade_band": "mid_primary",
+        "text_type": "realistic_fiction",
+        "themes": [
+          "disobedience",
+          "family",
+          "homecoming",
+          "love_loss"
+        ],
+        "settings": [
+          "countryside",
+          "garden_park",
+          "farm"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 400,
+          "max": 700,
+          "mean": 550,
+          "band": "elementary_mid",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "British",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "vocabulary_extension"
+        ],
+        "text_role": [
+          "compare_contrast"
+        ],
+        "supports_grammar": [
+          "conj.and_or_but",
+          "tense.past_simple",
+          "article.the",
+          "prep.common",
+          "article.a_an",
+          "pron.possessive"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "conj.and_or_but",
+              "count": 63,
+              "evidence": "and"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 57,
+              "evidence": "were"
+            },
+            {
+              "id": "article.the",
+              "count": 50,
+              "evidence": "The Tale"
+            },
+            {
+              "id": "prep.common",
+              "count": 34,
+              "evidence": "in"
+            },
+            {
+              "id": "article.a_an",
+              "count": 30,
+              "evidence": "a time"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 25,
+              "evidence": "their names"
+            },
+            {
+              "id": "negation",
+              "count": 12,
+              "evidence": "don't"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 10,
+              "evidence": "he was"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 9,
+              "evidence": "who were"
+            },
+            {
+              "id": "be.was_were",
+              "count": 8,
+              "evidence": "he was"
+            },
+            {
+              "id": "be.contraction",
+              "count": 5,
+              "evidence": "were"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 4,
+              "evidence": "can"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 4,
+              "evidence": "Rabbits"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 2,
+              "evidence": "I am"
+            },
+            {
+              "id": "imperative",
+              "count": 2,
+              "evidence": "put his"
+            },
+            {
+              "id": "comparative",
+              "count": 2,
+              "evidence": "more"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 1,
+              "evidence": "am going"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 1,
+              "evidence": "should"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.0
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.012
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.56
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.0
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.25
+            },
+            {
+              "id": "list_like",
+              "value": 0.418
+            }
+          ],
+          "top_ids": [
+            "conj.and_or_but",
+            "tense.past_simple",
+            "article.the",
+            "prep.common",
+            "article.a_an",
+            "pron.possessive"
+          ],
+          "word_count": 1057
+        }
+      },
+      "pairs_with_unit": [
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005"
+      ],
+      "supports_grammar": [
+        "conj.and_or_but",
+        "tense.past_simple",
+        "article.the",
+        "prep.common",
+        "article.a_an",
+        "pron.possessive"
+      ]
+    },
+    {
+      "id": "alice-wonderland",
+      "title": "Alice's Adventures in Wonderland",
+      "author": "Lewis Carroll",
+      "gutenberg_id": 11,
+      "gutenberg_slug": "Alice's Adventures in Wonderland",
+      "librivox_archive": "alicewndrm_10_librivox",
+      "librivox_url": "https://librivox.org/6142",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": [
+        "animal",
+        "friendship"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "facets": {
+        "grade": [
+          "5",
+          "6"
+        ],
+        "grade_band": "late_primary",
+        "text_type": "fantasy",
+        "themes": [
+          "imagination",
+          "curiosity",
+          "self_acceptance"
+        ],
+        "settings": [
+          "magical_world",
+          "forest_wild"
+        ],
+        "word_count_bucket": "medium",
+        "lexile": {
+          "min": 800,
+          "max": 1000,
+          "mean": 900,
+          "band": "elementary_high",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "British",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension",
+          "writing_inspiration"
+        ],
+        "text_role": [
+          "compare_contrast",
+          "culture_window",
+          "extension",
+          "writing_trigger"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "tense.past_simple",
+          "conj.and_or_but",
+          "prep.common",
+          "article.a_an",
+          "question.wh_words"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 88,
+              "evidence": "The Hatter"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 52,
+              "evidence": "went"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 50,
+              "evidence": "and"
+            },
+            {
+              "id": "prep.common",
+              "count": 47,
+              "evidence": "in"
+            },
+            {
+              "id": "article.a_an",
+              "count": 35,
+              "evidence": "a tea"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 17,
+              "evidence": "How I"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 16,
+              "evidence": "his head"
+            },
+            {
+              "id": "be.contraction",
+              "count": 12,
+              "evidence": "were"
+            },
+            {
+              "id": "be.was_were",
+              "count": 10,
+              "evidence": "they were"
+            },
+            {
+              "id": "negation",
+              "count": 9,
+              "evidence": "Not"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 7,
+              "evidence": "it was"
+            },
+            {
+              "id": "comparative",
+              "count": 7,
+              "evidence": "more"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 6,
+              "evidence": "can"
+            },
+            {
+              "id": "imperative",
+              "count": 4,
+              "evidence": "make it"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 2,
+              "evidence": "sisters"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 1,
+              "evidence": "these"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 1,
+              "evidence": "should"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.02
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.098
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.405
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.015
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.135
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "tense.past_simple",
+            "conj.and_or_but",
+            "prep.common",
+            "article.a_an",
+            "question.wh_words"
+          ],
+          "word_count": 1314
+        }
+      },
+      "pairs_with_unit": [
+        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "tense.past_simple",
+        "conj.and_or_but",
+        "prep.common",
+        "article.a_an",
+        "question.wh_words"
+      ]
+    },
+    {
+      "id": "alice-looking-glass",
+      "title": "Through the Looking-Glass",
+      "author": "Lewis Carroll",
+      "gutenberg_id": 12,
+      "gutenberg_slug": "Through the Looking Glass",
+      "librivox_archive": "lookingglass_04_librivox",
+      "librivox_url": "https://librivox.org/21182",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": [
+        "friendship"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1
+        ]
+      },
+      "facets": {
+        "grade": [
+          "6",
+          "7"
+        ],
+        "grade_band": "middle_school",
+        "text_type": "fantasy",
+        "themes": [
+          "imagination",
+          "curiosity"
+        ],
+        "settings": [
+          "magical_world"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 1000,
+          "max": 1200,
+          "mean": 1100,
+          "band": "middle_early",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "British",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension",
+          "critical_thinking"
+        ],
+        "text_role": [
+          "extension"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "article.a_an",
+          "prep.common",
+          "modal.can_could",
+          "tense.past_simple"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 46,
+              "evidence": "the Looking"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 32,
+              "evidence": "and"
+            },
+            {
+              "id": "article.a_an",
+              "count": 14,
+              "evidence": "a party"
+            },
+            {
+              "id": "prep.common",
+              "count": 13,
+              "evidence": "at"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 12,
+              "evidence": "can"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 11,
+              "evidence": "was"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 10,
+              "evidence": "what remains"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 8,
+              "evidence": "its temper"
+            },
+            {
+              "id": "negation",
+              "count": 7,
+              "evidence": "not"
+            },
+            {
+              "id": "imperative",
+              "count": 4,
+              "evidence": "Take a"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 3,
+              "evidence": "do I"
+            },
+            {
+              "id": "be.was_were",
+              "count": 2,
+              "evidence": "I was"
+            },
+            {
+              "id": "be.contraction",
+              "count": 2,
+              "evidence": "its"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 2,
+              "evidence": "it was"
+            },
+            {
+              "id": "there.be",
+              "count": 1,
+              "evidence": "there\nis"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 1,
+              "evidence": "must"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.028
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.093
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.5
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.025
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.099
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "article.a_an",
+            "prep.common",
+            "modal.can_could",
+            "tense.past_simple"
+          ],
+          "word_count": 809
+        }
+      },
+      "pairs_with_unit": [
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:003",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "article.a_an",
+        "prep.common",
+        "modal.can_could",
+        "tense.past_simple"
+      ]
+    },
+    {
+      "id": "winnie-pooh",
+      "title": "Winnie-the-Pooh",
+      "author": "A.A. Milne",
+      "gutenberg_id": 67098,
+      "gutenberg_slug": "Winnie-the-Pooh (1926)",
+      "librivox_archive": "winniethepooh_2201_librivox",
+      "librivox_url": "https://librivox.org/winnie-the-pooh-by-a-a-milne/",
+      "primary_topic": "animal",
+      "secondary_topics": [
+        "friendship"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          8
+        ]
+      },
+      "facets": {
+        "grade": [
+          "4",
+          "5"
+        ],
+        "grade_band": "mid_primary",
+        "text_type": "realistic_fiction",
+        "themes": [
+          "friendship",
+          "kindness",
+          "loyalty",
+          "humility"
+        ],
+        "settings": [
+          "forest_wild",
+          "countryside"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 500,
+          "max": 800,
+          "mean": 600,
+          "band": "elementary_mid",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "British",
+        "time_period": "early_20th",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "writing_inspiration"
+        ],
+        "text_role": [
+          "bridge_text",
+          "compare_contrast",
+          "consolidation",
+          "culture_window",
+          "extension",
+          "pre_reading",
+          "writing_trigger"
+        ],
+        "supports_grammar": [
+          "conj.and_or_but",
+          "tense.past_simple",
+          "article.a_an",
+          "article.the",
+          "prep.common",
+          "question.wh_words"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "conj.and_or_but",
+              "count": 134,
+              "evidence": "or"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 113,
+              "evidence": "had"
+            },
+            {
+              "id": "article.a_an",
+              "count": 91,
+              "evidence": "AN EXPOTITION"
+            },
+            {
+              "id": "article.the",
+              "count": 91,
+              "evidence": "THE NORTH"
+            },
+            {
+              "id": "prep.common",
+              "count": 88,
+              "evidence": "IN"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 54,
+              "evidence": "WHICH CHRISTOPHER"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 45,
+              "evidence": "his friend"
+            },
+            {
+              "id": "negation",
+              "count": 45,
+              "evidence": "didn't"
+            },
+            {
+              "id": "be.contraction",
+              "count": 44,
+              "evidence": "We're"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 20,
+              "evidence": "it rains"
+            },
+            {
+              "id": "be.was_were",
+              "count": 17,
+              "evidence": "they were"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 15,
+              "evidence": "We are"
+            },
+            {
+              "id": "exclamation",
+              "count": 11,
+              "evidence": "Oh!"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 8,
+              "evidence": "could"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 7,
+              "evidence": "Bears"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 6,
+              "evidence": "are we"
+            },
+            {
+              "id": "comparative",
+              "count": 5,
+              "evidence": "better"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 4,
+              "evidence": "was\ngoing to"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 4,
+              "evidence": "Do you"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 3,
+              "evidence": "is coming"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 3,
+              "evidence": "must"
+            },
+            {
+              "id": "imperative",
+              "count": 3,
+              "evidence": "sing it"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 2,
+              "evidence": "those"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.012
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.058
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.537
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.072
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.115
+            }
+          ],
+          "top_ids": [
+            "conj.and_or_but",
+            "tense.past_simple",
+            "article.a_an",
+            "article.the",
+            "prep.common",
+            "question.wh_words"
+          ],
+          "word_count": 3056
+        }
+      },
+      "pairs_with_unit": [
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003"
+      ],
+      "supports_grammar": [
+        "conj.and_or_but",
+        "tense.past_simple",
+        "article.a_an",
+        "article.the",
+        "prep.common",
+        "question.wh_words"
+      ]
+    },
+    {
+      "id": "jungle-book-white-seal",
+      "title": "Rikki-Tikki-Tavi (The Jungle Book excerpt)",
+      "author": "Rudyard Kipling",
+      "gutenberg_id": 57538,
+      "gutenberg_slug": "The Second Jungle Book",
+      "librivox_archive": "secondjunglebook_librivox",
+      "librivox_url": "https://librivox.org/the-second-jungle-book-by-rudyard-kipling/",
+      "primary_topic": "animal",
+      "secondary_topics": [
+        "nature.cosmic",
+        "narrative.hero"
+      ],
+      "excerpt": {
+        "type": "story",
+        "stories": [
+          "The White Seal"
+        ]
+      },
+      "facets": {
+        "grade": [
+          "5",
+          "6",
+          "7"
+        ],
+        "grade_band": "middle_school",
+        "text_type": "fantasy",
+        "themes": [
+          "courage",
+          "perseverance",
+          "loyalty",
+          "love_loss"
+        ],
+        "settings": [
+          "sea_nautical",
+          "jungle",
+          "arctic"
+        ],
+        "word_count_bucket": "medium",
+        "lexile": {
+          "min": 1000,
+          "max": 1200,
+          "mean": 1100,
+          "band": "middle_early",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "British_Indian",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension",
+          "writing_inspiration"
+        ],
+        "text_role": [
+          "extension",
+          "pre_reading",
+          "writing_trigger"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "pron.possessive",
+          "article.a_an",
+          "noun.plural_s",
+          "prep.common"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 31,
+              "evidence": "The Jungle"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 4,
+              "evidence": "and"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 2,
+              "evidence": "Her Majesty"
+            },
+            {
+              "id": "article.a_an",
+              "count": 2,
+              "evidence": "A DAY"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 1,
+              "evidence": "Elephants"
+            },
+            {
+              "id": "prep.common",
+              "count": 1,
+              "evidence": "AT"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.0
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.0
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.966
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.068
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.25
+            },
+            {
+              "id": "list_like",
+              "value": 0.576
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "pron.possessive",
+            "article.a_an",
+            "noun.plural_s",
+            "prep.common"
+          ],
+          "word_count": 189
+        }
+      },
+      "pairs_with_unit": [
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "pron.possessive",
+        "article.a_an",
+        "noun.plural_s",
+        "prep.common"
+      ]
+    },
+    {
+      "id": "wind-in-the-willows",
+      "title": "The Wind in the Willows (excerpt)",
+      "author": "Kenneth Grahame",
+      "gutenberg_id": 289,
+      "gutenberg_slug": "The Wind in the Willows",
+      "librivox_archive": "windinwillows_02_librivox",
+      "librivox_url": "https://librivox.org/the-wind-in-the-willows-by-kenneth-grahame/",
+      "primary_topic": "animal",
+      "secondary_topics": [
+        "friendship"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1
+        ]
+      },
+      "facets": {
+        "grade": [
+          "5",
+          "6"
+        ],
+        "grade_band": "late_primary",
+        "text_type": "fantasy",
+        "themes": [
+          "friendship",
+          "loyalty",
+          "courage"
+        ],
+        "settings": [
+          "countryside",
+          "forest_wild"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 900,
+          "max": 1100,
+          "mean": 1000,
+          "band": "elementary_high",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "British_Scottish",
+        "time_period": "early_20th",
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension",
+          "cultural_awareness"
+        ],
+        "text_role": [
+          "extension",
+          "pre_reading",
+          "writing_trigger"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "prep.common",
+          "tense.past_simple",
+          "pron.possessive",
+          "article.a_an"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 204,
+              "evidence": "The Wind"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 186,
+              "evidence": "or"
+            },
+            {
+              "id": "prep.common",
+              "count": 104,
+              "evidence": "in"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 96,
+              "evidence": "got"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 80,
+              "evidence": "your ideas"
+            },
+            {
+              "id": "article.a_an",
+              "count": 77,
+              "evidence": "a dig"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 41,
+              "evidence": "what I"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 31,
+              "evidence": "It was"
+            },
+            {
+              "id": "negation",
+              "count": 23,
+              "evidence": "no"
+            },
+            {
+              "id": "be.was_were",
+              "count": 18,
+              "evidence": "They were"
+            },
+            {
+              "id": "be.contraction",
+              "count": 18,
+              "evidence": "were"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 15,
+              "evidence": "people"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 9,
+              "evidence": "must"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 8,
+              "evidence": "can"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 6,
+              "evidence": "you are"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 6,
+              "evidence": "these"
+            },
+            {
+              "id": "exclamation",
+              "count": 4,
+              "evidence": "bye,"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 3,
+              "evidence": "will ever"
+            },
+            {
+              "id": "comparative",
+              "count": 3,
+              "evidence": "more"
+            },
+            {
+              "id": "there.be",
+              "count": 1,
+              "evidence": "there are"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 1,
+              "evidence": "are\nstanding"
+            },
+            {
+              "id": "imperative",
+              "count": 1,
+              "evidence": "make a"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 1,
+              "evidence": "is you"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.011
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.032
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.36
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.004
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.044
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "prep.common",
+            "tense.past_simple",
+            "pron.possessive",
+            "article.a_an"
+          ],
+          "word_count": 3276
+        }
+      },
+      "pairs_with_unit": [
+        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "prep.common",
+        "tense.past_simple",
+        "pron.possessive",
+        "article.a_an"
+      ]
+    },
+    {
+      "id": "heidi",
+      "title": "Heidi (Chapters 1-3)",
+      "author": "Johanna Spyri",
+      "gutenberg_id": 1448,
+      "gutenberg_slug": "Heidi",
+      "librivox_archive": "heidi_librivox",
+      "librivox_url": "https://librivox.org/heidi-by-johanna-spyri/",
+      "primary_topic": "family.pets",
+      "secondary_topics": [
+        "nature.cosmic",
+        "friendship"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1,
+          2,
+          3
+        ]
+      },
+      "facets": {
+        "grade": [
+          "4",
+          "5",
+          "6"
+        ],
+        "grade_band": "late_primary",
+        "text_type": "realistic_fiction",
+        "themes": [
+          "growing_up",
+          "family",
+          "friendship",
+          "resilience"
+        ],
+        "settings": [
+          "mountain",
+          "rural_village",
+          "city_urban"
+        ],
+        "word_count_bucket": "medium",
+        "lexile": {
+          "min": 700,
+          "max": 1000,
+          "mean": 800,
+          "band": "elementary_high",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "Swiss_German",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "vocabulary_extension"
+        ],
+        "text_role": [
+          "bridge_text",
+          "compare_contrast",
+          "consolidation",
+          "culture_window",
+          "extension",
+          "writing_trigger"
+        ],
+        "supports_grammar": [
+          "article.a_an",
+          "negation",
+          "conj.and_or_but",
+          "tense.present_simple",
+          "article.the",
+          "prep.common"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.a_an",
+              "count": 27,
+              "evidence": "a library"
+            },
+            {
+              "id": "negation",
+              "count": 5,
+              "evidence": "No"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 4,
+              "evidence": "or"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 3,
+              "evidence": "does"
+            },
+            {
+              "id": "article.the",
+              "count": 3,
+              "evidence": "the page"
+            },
+            {
+              "id": "prep.common",
+              "count": 2,
+              "evidence": "over"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 1,
+              "evidence": "our website"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 1,
+              "evidence": "How to"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 1,
+              "evidence": "books"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.0
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.013
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.878
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.0
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.25
+            },
+            {
+              "id": "list_like",
+              "value": 0.738
+            }
+          ],
+          "top_ids": [
+            "article.a_an",
+            "negation",
+            "conj.and_or_but",
+            "tense.present_simple",
+            "article.the",
+            "prep.common"
+          ],
+          "word_count": 807
+        }
+      },
+      "pairs_with_unit": [
+        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:003",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:003",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:004",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:004",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:005",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:005",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:006",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:006",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:003",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:003",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:006",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:006",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:004",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:004",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:003",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:003",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:003",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:003",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:006",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:006",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:003",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:003",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:003",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:006",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:006",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:003",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:003",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:004",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:004",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:005",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:005",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:006",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:006",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:003",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:003",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:003",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:004",
+        "dd6173ba-579a-356e-900c-cb53e152229c:004",
+        "dd6173ba-579a-356e-900c-cb53e152229c:006",
+        "dd6173ba-579a-356e-900c-cb53e152229c:006"
+      ],
+      "supports_grammar": [
+        "article.a_an",
+        "negation",
+        "conj.and_or_but",
+        "tense.present_simple",
+        "article.the",
+        "prep.common"
+      ]
+    },
+    {
+      "id": "secret-garden",
+      "title": "The Secret Garden",
+      "author": "Frances Hodgson Burnett",
+      "gutenberg_id": 113,
+      "gutenberg_slug": "The Secret Garden",
+      "librivox_archive": "secret_garden_librivox",
+      "librivox_url": "https://librivox.org/the-secret-garden-by-frances-hodgson-burnett/",
+      "primary_topic": "nature.plants",
+      "secondary_topics": [
+        "family.pets",
+        "friendship"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1,
+          2
+        ]
+      },
+      "facets": {
+        "grade": [
+          "5",
+          "6",
+          "7"
+        ],
+        "grade_band": "middle_school",
+        "text_type": "realistic_fiction",
+        "themes": [
+          "perseverance",
+          "curiosity",
+          "belonging",
+          "resilience"
+        ],
+        "settings": [
+          "countryside",
+          "garden_park"
+        ],
+        "word_count_bucket": "medium",
+        "lexile": {
+          "min": 1000,
+          "max": 1200,
+          "mean": 1100,
+          "band": "middle_early",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "British",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension",
+          "writing_inspiration"
+        ],
+        "text_role": [
+          "bridge_text",
+          "compare_contrast",
+          "extension"
+        ],
+        "supports_grammar": [
+          "tense.past_simple",
+          "conj.and_or_but",
+          "article.the",
+          "prep.common",
+          "article.a_an",
+          "pron.possessive"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "tense.past_simple",
+              "count": 536,
+              "evidence": "was"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 525,
+              "evidence": "and"
+            },
+            {
+              "id": "article.the",
+              "count": 374,
+              "evidence": "The Secret"
+            },
+            {
+              "id": "prep.common",
+              "count": 327,
+              "evidence": "At"
+            },
+            {
+              "id": "article.a_an",
+              "count": 303,
+              "evidence": "a fool"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 265,
+              "evidence": "her hands"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 201,
+              "evidence": "it was"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 194,
+              "evidence": "What a"
+            },
+            {
+              "id": "negation",
+              "count": 168,
+              "evidence": "not"
+            },
+            {
+              "id": "be.was_were",
+              "count": 117,
+              "evidence": "They were"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 63,
+              "evidence": "people"
+            },
+            {
+              "id": "be.contraction",
+              "count": 50,
+              "evidence": "were"
+            },
+            {
+              "id": "comparative",
+              "count": 33,
+              "evidence": "more"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 31,
+              "evidence": "could"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 30,
+              "evidence": "You are"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 22,
+              "evidence": "must"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 13,
+              "evidence": "was going to"
+            },
+            {
+              "id": "imperative",
+              "count": 12,
+              "evidence": "say it"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 7,
+              "evidence": "is it"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 6,
+              "evidence": "Do you"
+            },
+            {
+              "id": "there.be",
+              "count": 5,
+              "evidence": "There is"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 5,
+              "evidence": "are going"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 3,
+              "evidence": "Those"
+            },
+            {
+              "id": "exclamation",
+              "count": 2,
+              "evidence": "Oh,"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.02
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.023
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.463
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.009
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.062
+            }
+          ],
+          "top_ids": [
+            "tense.past_simple",
+            "conj.and_or_but",
+            "article.the",
+            "prep.common",
+            "article.a_an",
+            "pron.possessive"
+          ],
+          "word_count": 10880
+        }
+      },
+      "pairs_with_unit": [
+        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:005",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:005",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:005",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:006",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:003",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:003",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:003",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:005",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:005",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:005",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:006",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:003",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:004",
+        "dd6173ba-579a-356e-900c-cb53e152229c:004",
+        "dd6173ba-579a-356e-900c-cb53e152229c:004"
+      ],
+      "supports_grammar": [
+        "tense.past_simple",
+        "conj.and_or_but",
+        "article.the",
+        "prep.common",
+        "article.a_an",
+        "pron.possessive"
+      ]
+    },
+    {
+      "id": "little-prince",
+      "title": "The Little Prince (Chapters 1-3)",
+      "author": "Antoine de Saint-Exupéry",
+      "gutenberg_id": null,
+      "gutenberg_note": "No reliable Gutenberg English edition (public-domain US status since 2015, but no verified PG text). Fallback: LibriVox audio only, or translate from French source.",
+      "gutenberg_slug": null,
+      "librivox_archive": "littleprince_librivox",
+      "librivox_url": "https://librivox.org/the-little-prince-by-antoine-de-saint-exupery/",
+      "primary_topic": "identity",
+      "secondary_topics": [
+        "friendship",
+        "nature.cosmic"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1,
+          2,
+          3
+        ]
+      },
+      "facets": {
+        "grade": [
+          "4",
+          "5",
+          "6"
+        ],
+        "grade_band": "late_primary",
+        "text_type": "fantasy",
+        "themes": [
+          "imagination",
+          "love_loss",
+          "belonging",
+          "friendship"
+        ],
+        "settings": [
+          "space_outer",
+          "mountain",
+          "countryside"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 800,
+          "max": 1000,
+          "mean": 900,
+          "band": "elementary_high",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "French",
+        "time_period": "early_20th",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "critical_thinking"
+        ],
+        "text_role": [
+          "bridge_text",
+          "compare_contrast",
+          "consolidation",
+          "culture_window",
+          "extension",
+          "pre_reading",
+          "writing_trigger"
+        ]
+      },
+      "pairs_with_unit": [
+        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:004",
+        "dd6173ba-579a-356e-900c-cb53e152229c:004",
+        "dd6173ba-579a-356e-900c-cb53e152229c:004"
+      ]
+    },
+    {
+      "id": "wizard-of-oz",
+      "title": "The Wonderful Wizard of Oz (Chapter 1)",
+      "author": "L. Frank Baum",
+      "gutenberg_id": 55,
+      "gutenberg_slug": "The Wonderful Wizard of Oz",
+      "librivox_archive": "wizardofoz_1001_librivox",
+      "librivox_url": "https://librivox.org/the-wonderful-wizard-of-oz-by-l-frank-baum/",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": [
+        "friendship"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1
+        ]
+      },
+      "facets": {
+        "grade": [
+          "4",
+          "5",
+          "6"
+        ],
+        "grade_band": "mid_primary",
+        "text_type": "fantasy",
+        "themes": [
+          "courage",
+          "loyalty",
+          "homecoming",
+          "perseverance"
+        ],
+        "settings": [
+          "magical_world",
+          "countryside"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 800,
+          "max": 1000,
+          "mean": 900,
+          "band": "elementary_high",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "American",
+        "time_period": "early_20th",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "vocabulary_extension"
+        ],
+        "text_role": [
+          "extension",
+          "writing_trigger"
+        ]
+      },
+      "pairs_with_unit": [
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002"
+      ]
+    },
+    {
+      "id": "treasure-island",
+      "title": "Treasure Island",
+      "author": "Robert Louis Stevenson",
+      "gutenberg_id": 2701,
+      "gutenberg_slug": "Treasure Island",
+      "librivox_archive": "island10_librivox",
+      "librivox_url": "https://librivox.org/treasure-island-by-robert-louis-stevenson/",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": [
+        "nature.cosmic"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1
+        ]
+      },
+      "facets": {
+        "grade": [
+          "6",
+          "7"
+        ],
+        "grade_band": "middle_school",
+        "text_type": "adventure",
+        "themes": [
+          "courage",
+          "loyalty",
+          "perseverance"
+        ],
+        "settings": [
+          "sea_nautical"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 1000,
+          "max": 1300,
+          "mean": 1100,
+          "band": "middle_early",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "British_Scottish",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension",
+          "writing_inspiration"
+        ],
+        "text_role": [
+          "compare_contrast",
+          "culture_window",
+          "extension"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "tense.past_simple",
+          "prep.common",
+          "article.a_an",
+          "pron.possessive"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 236,
+              "evidence": "The Pequod"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 171,
+              "evidence": "or"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 124,
+              "evidence": "was"
+            },
+            {
+              "id": "prep.common",
+              "count": 119,
+              "evidence": "under"
+            },
+            {
+              "id": "article.a_an",
+              "count": 100,
+              "evidence": "a ship"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 86,
+              "evidence": "his hoisted"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 56,
+              "evidence": "He was"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 42,
+              "evidence": "who was"
+            },
+            {
+              "id": "be.was_were",
+              "count": 40,
+              "evidence": "they were"
+            },
+            {
+              "id": "negation",
+              "count": 33,
+              "evidence": "never"
+            },
+            {
+              "id": "be.contraction",
+              "count": 15,
+              "evidence": "were"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 9,
+              "evidence": "could"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 8,
+              "evidence": "boys"
+            },
+            {
+              "id": "comparative",
+              "count": 7,
+              "evidence": "more"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 6,
+              "evidence": "you are"
+            },
+            {
+              "id": "exclamation",
+              "count": 6,
+              "evidence": "Oh,"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 5,
+              "evidence": "must"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 4,
+              "evidence": "will tell"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 3,
+              "evidence": "those"
+            },
+            {
+              "id": "imperative",
+              "count": 3,
+              "evidence": "make it"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 2,
+              "evidence": "Do you"
+            },
+            {
+              "id": "there.be",
+              "count": 1,
+              "evidence": "there is"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.027
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.034
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.31
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.019
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.041
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "tense.past_simple",
+            "prep.common",
+            "article.a_an",
+            "pron.possessive"
+          ],
+          "word_count": 3782
+        }
+      },
+      "pairs_with_unit": [
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "tense.past_simple",
+        "prep.common",
+        "article.a_an",
+        "pron.possessive"
+      ]
+    },
+    {
+      "id": "robin-hood",
+      "title": "The Merry Adventures of Robin Hood (Chapters 1-2)",
+      "author": "Howard Pyle",
+      "gutenberg_id": 10148,
+      "gutenberg_slug": "The Merry Adventures of Robin Hood",
+      "librivox_archive": "robinhood_librivox",
+      "librivox_url": "https://librivox.org/the-merry-adventures-of-robin-hood-by-howard-pyle/",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": [
+        "job"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1,
+          2
+        ]
+      },
+      "facets": {
+        "grade": [
+          "5",
+          "6",
+          "7"
+        ],
+        "grade_band": "middle_school",
+        "text_type": "realistic_fiction",
+        "themes": [
+          "justice",
+          "courage",
+          "loyalty",
+          "generosity"
+        ],
+        "settings": [
+          "forest_wild",
+          "medieval"
+        ],
+        "word_count_bucket": "medium",
+        "lexile": {
+          "min": 900,
+          "max": 1200,
+          "mean": 1000,
+          "band": "elementary_high",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "American",
+        "time_period": "medieval",
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension",
+          "cultural_awareness"
+        ],
+        "text_role": [
+          "consolidation",
+          "extension"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "article.a_an",
+          "conj.and_or_but",
+          "pron.possessive",
+          "tense.future_going_to",
+          "question.wh_words"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 8,
+              "evidence": "The Merry"
+            },
+            {
+              "id": "article.a_an",
+              "count": 3,
+              "evidence": "A Dale"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 3,
+              "evidence": "And"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 2,
+              "evidence": "His Companions"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 2,
+              "evidence": "Will Stutely"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 2,
+              "evidence": "How Little"
+            },
+            {
+              "id": "prep.common",
+              "count": 2,
+              "evidence": "At"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.111
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.0
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.667
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.056
+            },
+            {
+              "id": "rhyme",
+              "value": 0.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.25
+            },
+            {
+              "id": "list_like",
+              "value": 0.056
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "article.a_an",
+            "conj.and_or_but",
+            "pron.possessive",
+            "tense.future_going_to",
+            "question.wh_words"
+          ],
+          "word_count": 106
+        }
+      },
+      "pairs_with_unit": [
+        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:001"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "article.a_an",
+        "conj.and_or_but",
+        "pron.possessive",
+        "tense.future_going_to",
+        "question.wh_words"
+      ]
+    },
+    {
+      "id": "anne-green-gables",
+      "title": "Anne of Green Gables",
+      "author": "L.M. Montgomery",
+      "gutenberg_id": 45,
+      "gutenberg_slug": "Anne of Green Gables",
+      "librivox_archive": "green-gables_32_librivox",
+      "librivox_url": "https://librivox.org/anne-of-green-gables-by-l-m-montgomery/",
+      "primary_topic": "family.pets",
+      "secondary_topics": [
+        "identity",
+        "friendship"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1
+        ]
+      },
+      "facets": {
+        "grade": [
+          "5",
+          "6",
+          "7"
+        ],
+        "grade_band": "middle_school",
+        "text_type": "realistic_fiction",
+        "themes": [
+          "self_acceptance",
+          "growing_up",
+          "friendship",
+          "belonging"
+        ],
+        "settings": [
+          "countryside",
+          "rural_village"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 1000,
+          "max": 1200,
+          "mean": 1100,
+          "band": "middle_early",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "Canadian",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension",
+          "writing_inspiration"
+        ],
+        "text_role": [
+          "bridge_text",
+          "compare_contrast",
+          "culture_window",
+          "extension"
+        ],
+        "supports_grammar": [
+          "conj.and_or_but",
+          "article.the",
+          "tense.past_simple",
+          "prep.common",
+          "article.a_an",
+          "pron.possessive"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "conj.and_or_but",
+              "count": 1571,
+              "evidence": "but"
+            },
+            {
+              "id": "article.the",
+              "count": 1382,
+              "evidence": "The Cæsar"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 1223,
+              "evidence": "Did"
+            },
+            {
+              "id": "prep.common",
+              "count": 1097,
+              "evidence": "at"
+            },
+            {
+              "id": "article.a_an",
+              "count": 865,
+              "evidence": "a note"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 800,
+              "evidence": "her more"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 664,
+              "evidence": "she\n  has"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 455,
+              "evidence": "who\nwas"
+            },
+            {
+              "id": "negation",
+              "count": 321,
+              "evidence": "not"
+            },
+            {
+              "id": "be.was_were",
+              "count": 269,
+              "evidence": "they\nwere"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 172,
+              "evidence": "can"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 142,
+              "evidence": "there are some things"
+            },
+            {
+              "id": "comparative",
+              "count": 139,
+              "evidence": "more"
+            },
+            {
+              "id": "be.contraction",
+              "count": 138,
+              "evidence": "were"
+            },
+            {
+              "id": "imperative",
+              "count": 106,
+              "evidence": "make\n   them"
+            },
+            {
+              "id": "exclamation",
+              "count": 103,
+              "evidence": "Oh,"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 91,
+              "evidence": "They are"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 86,
+              "evidence": "should"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 61,
+              "evidence": "is going to"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 38,
+              "evidence": "do you"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 36,
+              "evidence": "is\ncasting"
+            },
+            {
+              "id": "there.be",
+              "count": 33,
+              "evidence": "There is"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 28,
+              "evidence": "Those"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 13,
+              "evidence": "are you"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.017
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.006
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.447
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.005
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.048
+            }
+          ],
+          "top_ids": [
+            "conj.and_or_but",
+            "article.the",
+            "tense.past_simple",
+            "prep.common",
+            "article.a_an",
+            "pron.possessive"
+          ],
+          "word_count": 37642
+        }
+      },
+      "pairs_with_unit": [
+        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:003",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:003",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:003",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
+        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:003",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:003",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
+        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:003",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:003",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:003",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:003",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:003",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:003",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:003",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:001",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003"
+      ],
+      "supports_grammar": [
+        "conj.and_or_but",
+        "article.the",
+        "tense.past_simple",
+        "prep.common",
+        "article.a_an",
+        "pron.possessive"
+      ]
+    },
+    {
+      "id": "tom-sawyer",
+      "title": "The Adventures of Tom Sawyer (Chapter 1)",
+      "author": "Mark Twain",
+      "gutenberg_id": 74,
+      "gutenberg_slug": "The Adventures of Tom Sawyer",
+      "librivox_archive": "tomsawyer10_librivox",
+      "librivox_url": "https://librivox.org/tomsawyer10_librivox",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": [
+        "friendship"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1
+        ]
+      },
+      "facets": {
+        "grade": [
+          "5",
+          "6"
+        ],
+        "grade_band": "late_primary",
+        "text_type": "realistic_fiction",
+        "themes": [
+          "courage",
+          "loyalty",
+          "justice",
+          "homecoming"
+        ],
+        "settings": [
+          "rural_village",
+          "countryside"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 800,
+          "max": 1100,
+          "mean": 900,
+          "band": "elementary_high",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "American",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "vocabulary_extension"
+        ],
+        "text_role": [
+          "compare_contrast",
+          "extension"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "tense.past_simple",
+          "article.a_an",
+          "prep.common",
+          "pron.possessive"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 222,
+              "evidence": "The Adventures"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 219,
+              "evidence": "and"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 181,
+              "evidence": "were"
+            },
+            {
+              "id": "article.a_an",
+              "count": 114,
+              "evidence": "A Suspicious"
+            },
+            {
+              "id": "prep.common",
+              "count": 102,
+              "evidence": "In"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 100,
+              "evidence": "her spectacles"
+            },
+            {
+              "id": "negation",
+              "count": 44,
+              "evidence": "No"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 43,
+              "evidence": "she was"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 41,
+              "evidence": "What you"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 31,
+              "evidence": "could"
+            },
+            {
+              "id": "be.contraction",
+              "count": 29,
+              "evidence": "were"
+            },
+            {
+              "id": "comparative",
+              "count": 22,
+              "evidence": "more"
+            },
+            {
+              "id": "be.was_were",
+              "count": 21,
+              "evidence": "they were"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 21,
+              "evidence": "boys"
+            },
+            {
+              "id": "imperative",
+              "count": 17,
+              "evidence": "put them"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 11,
+              "evidence": "do it"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 6,
+              "evidence": "You are"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 5,
+              "evidence": "was going to"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 4,
+              "evidence": "must"
+            },
+            {
+              "id": "exclamation",
+              "count": 3,
+              "evidence": "Oh,"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 2,
+              "evidence": "Those"
+            },
+            {
+              "id": "there.be",
+              "count": 1,
+              "evidence": "there is"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 1,
+              "evidence": "is having"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.02
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.038
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.5
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.131
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.155
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "tense.past_simple",
+            "article.a_an",
+            "prep.common",
+            "pron.possessive"
+          ],
+          "word_count": 4484
+        }
+      },
+      "pairs_with_unit": [
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "tense.past_simple",
+        "article.a_an",
+        "prep.common",
+        "pron.possessive"
+      ]
+    },
+    {
+      "id": "gulliver-laputa",
+      "title": "Gulliver's Travels (Laputa Chapter)",
+      "author": "Jonathan Swift",
+      "gutenberg_id": 829,
+      "gutenberg_slug": "Gulliver's Travels",
+      "librivox_archive": "gullivers-travels_42_librivox",
+      "librivox_url": "https://librivox.org/gullivers-travels-by-jonathan-swift/",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": [
+        "nature.cosmic"
+      ],
+      "excerpt": {
+        "type": "story",
+        "stories": [
+          "Of Laputa"
+        ]
+      },
+      "facets": {
+        "grade": [
+          "5",
+          "6",
+          "7"
+        ],
+        "grade_band": "middle_school",
+        "text_type": "satire",
+        "themes": [
+          "reason",
+          "courage",
+          "curiosity"
+        ],
+        "settings": [
+          "sea_nautical",
+          "magical_world"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 1100,
+          "max": 1300,
+          "mean": 1200,
+          "band": "middle_late",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "British_Irish",
+        "time_period": "18th_century",
+        "target_skills": [
+          "reading_comprehension",
+          "critical_thinking",
+          "writing_inspiration"
+        ],
+        "text_role": [
+          "compare_contrast",
+          "culture_window",
+          "extension"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "pron.possessive",
+          "prep.common",
+          "tense.past_simple",
+          "article.a_an"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 4286,
+              "evidence": "THE COUNTRY"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 3292,
+              "evidence": "AND"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 2560,
+              "evidence": "HIS COUSIN"
+            },
+            {
+              "id": "prep.common",
+              "count": 2405,
+              "evidence": "in"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 2361,
+              "evidence": "made"
+            },
+            {
+              "id": "article.a_an",
+              "count": 1991,
+              "evidence": "A LETTER"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 1229,
+              "evidence": "where he"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 572,
+              "evidence": "it was"
+            },
+            {
+              "id": "negation",
+              "count": 564,
+              "evidence": "not"
+            },
+            {
+              "id": "be.was_were",
+              "count": 505,
+              "evidence": "you\nwere"
+            },
+            {
+              "id": "be.contraction",
+              "count": 389,
+              "evidence": "were"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 318,
+              "evidence": "could"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 286,
+              "evidence": "There are some laws"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 261,
+              "evidence": "these"
+            },
+            {
+              "id": "comparative",
+              "count": 261,
+              "evidence": "better"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 192,
+              "evidence": "should"
+            },
+            {
+              "id": "imperative",
+              "count": 146,
+              "evidence": "say his"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 129,
+              "evidence": "you are"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 40,
+              "evidence": "was going to"
+            },
+            {
+              "id": "there.be",
+              "count": 26,
+              "evidence": "there is"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 5,
+              "evidence": "do it"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 3,
+              "evidence": "are loading"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 1,
+              "evidence": "is he"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.014
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.0
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.229
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.0
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.024
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "pron.possessive",
+            "prep.common",
+            "tense.past_simple",
+            "article.a_an"
+          ],
+          "word_count": 72422
+        }
+      },
+      "pairs_with_unit": [
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "pron.possessive",
+        "prep.common",
+        "tense.past_simple",
+        "article.a_an"
+      ]
+    },
+    {
+      "id": "sherlock-scandal-bohemia",
+      "title": "A Scandal in Bohemia",
+      "author": "Arthur Conan Doyle",
+      "gutenberg_id": 1661,
+      "gutenberg_slug": "The Adventures of Sherlock Holmes",
+      "librivox_archive": "sherlockl_02_librivox",
+      "librivox_url": "https://librivox.org/the-adventures-of-sherlock-holmes-by-arthur-conan-doyle/",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": [
+        "job"
+      ],
+      "excerpt": {
+        "type": "story",
+        "stories": [
+          "A Scandal in Bohemia"
+        ]
+      },
+      "facets": {
+        "grade": [
+          "6",
+          "7"
+        ],
+        "grade_band": "middle_school",
+        "text_type": "detective",
+        "themes": [
+          "reason",
+          "justice",
+          "loyalty",
+          "kindness"
+        ],
+        "settings": [
+          "city_urban"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 1100,
+          "max": 1300,
+          "mean": 1200,
+          "band": "middle_late",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "British",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "critical_thinking",
+          "writing_inspiration"
+        ],
+        "text_role": [
+          "extension"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "pron.possessive",
+          "tense.past_simple",
+          "prep.common",
+          "article.a_an"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 5612,
+              "evidence": "The Adventures"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 3867,
+              "evidence": "and"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 3322,
+              "evidence": "her under"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 3307,
+              "evidence": "was"
+            },
+            {
+              "id": "prep.common",
+              "count": 3254,
+              "evidence": "in"
+            },
+            {
+              "id": "article.a_an",
+              "count": 2969,
+              "evidence": "A Scandal"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 2078,
+              "evidence": "she eclipses"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 2067,
+              "evidence": "which might"
+            },
+            {
+              "id": "negation",
+              "count": 1134,
+              "evidence": "not"
+            },
+            {
+              "id": "be.was_were",
+              "count": 756,
+              "evidence": "They were"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 750,
+              "evidence": "you are"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 516,
+              "evidence": "can"
+            },
+            {
+              "id": "be.contraction",
+              "count": 435,
+              "evidence": "were"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 371,
+              "evidence": "must"
+            },
+            {
+              "id": "comparative",
+              "count": 345,
+              "evidence": "more"
+            },
+            {
+              "id": "imperative",
+              "count": 260,
+              "evidence": "take it"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 254,
+              "evidence": "were going to"
+            },
+            {
+              "id": "there.be",
+              "count": 154,
+              "evidence": "there are"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 146,
+              "evidence": "those"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 137,
+              "evidence": "there are some thousands"
+            },
+            {
+              "id": "exclamation",
+              "count": 94,
+              "evidence": "Oh,"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 84,
+              "evidence": "do you"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 78,
+              "evidence": "is nothing"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 55,
+              "evidence": "is she"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.014
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.013
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.423
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.054
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.076
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "pron.possessive",
+            "tense.past_simple",
+            "prep.common",
+            "article.a_an"
+          ],
+          "word_count": 105872
+        }
+      },
+      "pairs_with_unit": [
+        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:004",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
+        "be6e00c8-0068-8453-927f-646f6f753a5a:004"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "pron.possessive",
+        "tense.past_simple",
+        "prep.common",
+        "article.a_an"
+      ]
+    },
+    {
+      "id": "rip-van-winkle",
+      "title": "Rip Van Winkle",
+      "author": "Washington Irving",
+      "gutenberg_id": 60976,
+      "gutenberg_slug": "Rip Van Winkle",
+      "librivox_archive": "ripvanwinkle_61_librivox",
+      "librivox_url": "https://librivox.org/rip-van-winkle-by-washington-irving/",
+      "primary_topic": "nature.cosmic",
+      "secondary_topics": [
+        "family.pets"
+      ],
+      "excerpt": {
+        "type": "full"
+      },
+      "facets": {
+        "grade": [
+          "5",
+          "6"
+        ],
+        "grade_band": "late_primary",
+        "text_type": "folktale",
+        "themes": [
+          "homecoming",
+          "love_loss",
+          "curiosity",
+          "belonging"
+        ],
+        "settings": [
+          "mountain",
+          "rural_village"
+        ],
+        "word_count_bucket": "long",
+        "lexile": {
+          "min": 800,
+          "max": 1100,
+          "mean": 900,
+          "band": "elementary_high",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "American",
+        "time_period": "18th_century",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "cultural_awareness"
+        ],
+        "text_role": [
+          "compare_contrast"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "prep.common",
+          "article.a_an",
+          "pron.possessive",
+          "tense.past_simple"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 538,
+              "evidence": "THE PROJECT"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 376,
+              "evidence": "AND"
+            },
+            {
+              "id": "prep.common",
+              "count": 292,
+              "evidence": "IN"
+            },
+            {
+              "id": "article.a_an",
+              "count": 280,
+              "evidence": "A CHRISTMAS"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 271,
+              "evidence": "its sessions"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 259,
+              "evidence": "were"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 115,
+              "evidence": "which held"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 92,
+              "evidence": "he was"
+            },
+            {
+              "id": "be.was_were",
+              "count": 53,
+              "evidence": "They were"
+            },
+            {
+              "id": "be.contraction",
+              "count": 41,
+              "evidence": "were"
+            },
+            {
+              "id": "negation",
+              "count": 40,
+              "evidence": "not"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 30,
+              "evidence": "children"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 22,
+              "evidence": "These"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 21,
+              "evidence": "They are"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 19,
+              "evidence": "cannot"
+            },
+            {
+              "id": "comparative",
+              "count": 17,
+              "evidence": "more"
+            },
+            {
+              "id": "imperative",
+              "count": 13,
+              "evidence": "tell the"
+            },
+            {
+              "id": "exclamation",
+              "count": 7,
+              "evidence": "Oh!"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 5,
+              "evidence": "should"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 3,
+              "evidence": "will keep"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 1,
+              "evidence": "are travelling"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 1,
+              "evidence": "are they"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.013
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.015
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.356
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.01
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.092
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "prep.common",
+            "article.a_an",
+            "pron.possessive",
+            "tense.past_simple"
+          ],
+          "word_count": 8568
+        }
+      },
+      "pairs_with_unit": [
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "prep.common",
+        "article.a_an",
+        "pron.possessive",
+        "tense.past_simple"
+      ]
+    },
+    {
+      "id": "call-of-the-wild",
+      "title": "The Call of the Wild (Chapters 1-2)",
+      "author": "Jack London",
+      "gutenberg_id": 215,
+      "gutenberg_slug": "The Call of the Wild",
+      "librivox_archive": "callwild_09_librivox",
+      "librivox_url": "https://librivox.org/the-call-of-the-wild-by-jack-london/",
+      "primary_topic": "animal",
+      "secondary_topics": [
+        "nature.cosmic",
+        "narrative.hero"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1,
+          2
+        ]
+      },
+      "facets": {
+        "grade": [
+          "6",
+          "7"
+        ],
+        "grade_band": "middle_school",
+        "text_type": "adventure",
+        "themes": [
+          "survival",
+          "loyalty",
+          "resilience",
+          "perseverance"
+        ],
+        "settings": [
+          "arctic",
+          "forest_wild"
+        ],
+        "word_count_bucket": "medium",
+        "lexile": {
+          "min": 1000,
+          "max": 1200,
+          "mean": 1100,
+          "band": "middle_early",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "American",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension",
+          "writing_inspiration"
+        ],
+        "text_role": [
+          "extension"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "tense.past_simple",
+          "prep.common",
+          "pron.possessive",
+          "article.a_an"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 2284,
+              "evidence": "The Call"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 1837,
+              "evidence": "and"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 1557,
+              "evidence": "did"
+            },
+            {
+              "id": "prep.common",
+              "count": 1131,
+              "evidence": "at"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 764,
+              "evidence": "its brumal"
+            },
+            {
+              "id": "article.a_an",
+              "count": 741,
+              "evidence": "a Man"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 403,
+              "evidence": "Who Has"
+            },
+            {
+              "id": "negation",
+              "count": 337,
+              "evidence": "not"
+            },
+            {
+              "id": "be.was_were",
+              "count": 311,
+              "evidence": "they were"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 308,
+              "evidence": "it was"
+            },
+            {
+              "id": "be.contraction",
+              "count": 255,
+              "evidence": "were"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 228,
+              "evidence": "men"
+            },
+            {
+              "id": "comparative",
+              "count": 120,
+              "evidence": "more"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 92,
+              "evidence": "could"
+            },
+            {
+              "id": "imperative",
+              "count": 38,
+              "evidence": "read the"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 27,
+              "evidence": "should"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 26,
+              "evidence": "These"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 11,
+              "evidence": "they are"
+            },
+            {
+              "id": "there.be",
+              "count": 6,
+              "evidence": "There is"
+            },
+            {
+              "id": "exclamation",
+              "count": 5,
+              "evidence": "Hey,"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 4,
+              "evidence": "will and"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 3,
+              "evidence": "do it"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 1,
+              "evidence": "is seeking"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.009
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.006
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.392
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.001
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.032
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "tense.past_simple",
+            "prep.common",
+            "pron.possessive",
+            "article.a_an"
+          ],
+          "word_count": 32441
+        }
+      },
+      "pairs_with_unit": [
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "tense.past_simple",
+        "prep.common",
+        "pron.possessive",
+        "article.a_an"
+      ]
+    },
+    {
+      "id": "peter-pan",
+      "title": "Peter and Wendy (excerpt: The Flight to Neverland)",
+      "author": "J.M. Barrie",
+      "gutenberg_id": 16,
+      "gutenberg_slug": "Peter and Wendy",
+      "librivox_archive": "peterandwendy_1_librivox",
+      "librivox_url": "https://librivox.org/peter-and-wendy-by-j-m-barry/",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": [
+        "friendship"
+      ],
+      "excerpt": {
+        "type": "chapters",
+        "chapters": [
+          4,
+          5,
+          6
+        ]
+      },
+      "facets": {
+        "grade": [
+          "5",
+          "6"
+        ],
+        "grade_band": "late_primary",
+        "text_type": "fantasy",
+        "themes": [
+          "imagination",
+          "courage",
+          "growing_up",
+          "loyalty"
+        ],
+        "settings": [
+          "magical_world",
+          "city_urban"
+        ],
+        "word_count_bucket": "medium",
+        "lexile": {
+          "min": 900,
+          "max": 1100,
+          "mean": 1000,
+          "band": "elementary_high",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "British",
+        "time_period": "early_20th",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "writing_inspiration"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "tense.past_simple",
+          "conj.and_or_but",
+          "prep.common",
+          "pron.possessive",
+          "article.a_an"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 1074,
+              "evidence": "The Flight"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 948,
+              "evidence": "was"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 830,
+              "evidence": "and"
+            },
+            {
+              "id": "prep.common",
+              "count": 635,
+              "evidence": "at"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 605,
+              "evidence": "her eggs"
+            },
+            {
+              "id": "article.a_an",
+              "count": 436,
+              "evidence": "a venture"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 382,
+              "evidence": "she was"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 366,
+              "evidence": "Why don"
+            },
+            {
+              "id": "negation",
+              "count": 329,
+              "evidence": "Never"
+            },
+            {
+              "id": "be.was_were",
+              "count": 217,
+              "evidence": "they were"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 134,
+              "evidence": "eggs"
+            },
+            {
+              "id": "be.contraction",
+              "count": 110,
+              "evidence": "were"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 109,
+              "evidence": "you\nare"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 82,
+              "evidence": "could"
+            },
+            {
+              "id": "comparative",
+              "count": 70,
+              "evidence": "more"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 52,
+              "evidence": "must"
+            },
+            {
+              "id": "imperative",
+              "count": 48,
+              "evidence": "make her"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 40,
+              "evidence": "was going to"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 31,
+              "evidence": "are you"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 26,
+              "evidence": "do you"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 19,
+              "evidence": "is coughing"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 16,
+              "evidence": "Those"
+            },
+            {
+              "id": "there.be",
+              "count": 14,
+              "evidence": "there is"
+            },
+            {
+              "id": "exclamation",
+              "count": 12,
+              "evidence": "Oh,"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.013
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.028
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.393
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.062
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.116
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "tense.past_simple",
+            "conj.and_or_but",
+            "prep.common",
+            "pron.possessive",
+            "article.a_an"
+          ],
+          "word_count": 21652
+        }
+      },
+      "supports_grammar": [
+        "article.the",
+        "tense.past_simple",
+        "conj.and_or_but",
+        "prep.common",
+        "pron.possessive",
+        "article.a_an"
+      ]
+    },
+    {
+      "id": "a-christmas-carol",
+      "title": "A Christmas Carol",
+      "author": "Charles Dickens",
+      "gutenberg_id": 46,
+      "gutenberg_slug": "A Christmas Carol",
+      "librivox_archive": "christmascarol1_1_librivox",
+      "librivox_url": "https://librivox.org/a-christmas-carol-by-charles-dickens/",
+      "primary_topic": "family.pets",
+      "secondary_topics": [
+        "money",
+        "identity"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1
+        ]
+      },
+      "facets": {
+        "grade": [
+          "6",
+          "7"
+        ],
+        "grade_band": "middle_school",
+        "text_type": "folktale",
+        "themes": [
+          "kindness",
+          "generosity",
+          "regret_reconciliation",
+          "family",
+          "money_wealth"
+        ],
+        "settings": [
+          "city_urban",
+          "winter_holiday"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 1000,
+          "max": 1200,
+          "mean": 1100,
+          "band": "middle_early",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "British",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "cultural_awareness",
+          "writing_inspiration"
+        ],
+        "text_role": [
+          "writing_trigger"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "tense.past_simple",
+          "article.a_an",
+          "prep.common",
+          "pron.possessive"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 170,
+              "evidence": "The Spirit"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 125,
+              "evidence": "and"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 110,
+              "evidence": "had"
+            },
+            {
+              "id": "article.a_an",
+              "count": 95,
+              "evidence": "A Christmas"
+            },
+            {
+              "id": "prep.common",
+              "count": 85,
+              "evidence": "in"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 74,
+              "evidence": "Its gentle"
+            },
+            {
+              "id": "negation",
+              "count": 54,
+              "evidence": "no"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 50,
+              "evidence": "what is"
+            },
+            {
+              "id": "be.contraction",
+              "count": 42,
+              "evidence": "were"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 36,
+              "evidence": "He was"
+            },
+            {
+              "id": "be.was_were",
+              "count": 24,
+              "evidence": "They were"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 10,
+              "evidence": "could"
+            },
+            {
+              "id": "comparative",
+              "count": 8,
+              "evidence": "more"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 8,
+              "evidence": "boys"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 7,
+              "evidence": "these"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 7,
+              "evidence": "do you"
+            },
+            {
+              "id": "pron.possessive_noun",
+              "count": 4,
+              "evidence": "man's"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 4,
+              "evidence": "should"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 3,
+              "evidence": "It is"
+            },
+            {
+              "id": "imperative",
+              "count": 3,
+              "evidence": "put it"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 2,
+              "evidence": "will fall"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 2,
+              "evidence": "are you"
+            },
+            {
+              "id": "there.be",
+              "count": 1,
+              "evidence": "there is"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 1,
+              "evidence": "is trembling"
+            },
+            {
+              "id": "exclamation",
+              "count": 1,
+              "evidence": "hey?"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.026
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.045
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.441
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.006
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.072
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "tense.past_simple",
+            "article.a_an",
+            "prep.common",
+            "pron.possessive"
+          ],
+          "word_count": 3041
+        }
+      },
+      "pairs_with_unit": [
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:002"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "tense.past_simple",
+        "article.a_an",
+        "prep.common",
+        "pron.possessive"
+      ]
+    },
+    {
+      "id": "jungle-book",
+      "title": "The Jungle Book (excerpt: Mowgli's Brothers)",
+      "author": "Rudyard Kipling",
+      "gutenberg_id": 236,
+      "gutenberg_slug": "The Jungle Book",
+      "librivox_archive": "junglesbooks_14_librivox",
+      "librivox_url": "https://librivox.org/the-jungle-book-by-rudyard-kipling/",
+      "primary_topic": "animal",
+      "secondary_topics": [
+        "narrative.hero",
+        "friendship"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1
+        ]
+      },
+      "facets": {
+        "grade": [
+          "5",
+          "6"
+        ],
+        "grade_band": "late_primary",
+        "text_type": "folktale",
+        "themes": [
+          "survival",
+          "belonging",
+          "courage",
+          "loyalty"
+        ],
+        "settings": [
+          "jungle",
+          "forest_wild"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 900,
+          "max": 1200,
+          "mean": 1050,
+          "band": "elementary_high",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "British_Indian",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "cultural_awareness"
+        ],
+        "text_role": [
+          "bridge_text",
+          "compare_contrast",
+          "culture_window",
+          "extension",
+          "writing_trigger"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "conj.and_or_but",
+          "prep.common",
+          "tense.past_simple",
+          "article.a_an",
+          "pron.possessive"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 1665,
+              "evidence": "The Jungle"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 1210,
+              "evidence": "and"
+            },
+            {
+              "id": "prep.common",
+              "count": 678,
+              "evidence": "in"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 585,
+              "evidence": "was"
+            },
+            {
+              "id": "article.a_an",
+              "count": 516,
+              "evidence": "a very"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 515,
+              "evidence": "Her Majesty"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 403,
+              "evidence": "It was"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 352,
+              "evidence": "when\nFather"
+            },
+            {
+              "id": "negation",
+              "count": 314,
+              "evidence": "never"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 222,
+              "evidence": "Brothers"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 166,
+              "evidence": "they are"
+            },
+            {
+              "id": "be.was_were",
+              "count": 110,
+              "evidence": "they were"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 110,
+              "evidence": "can"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 98,
+              "evidence": "was going to"
+            },
+            {
+              "id": "comparative",
+              "count": 83,
+              "evidence": "more"
+            },
+            {
+              "id": "be.contraction",
+              "count": 72,
+              "evidence": "were"
+            },
+            {
+              "id": "modal.should_must",
+              "count": 56,
+              "evidence": "must"
+            },
+            {
+              "id": "imperative",
+              "count": 49,
+              "evidence": "make our"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 27,
+              "evidence": "these"
+            },
+            {
+              "id": "there.be",
+              "count": 22,
+              "evidence": "there is"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 22,
+              "evidence": "is nothing"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 17,
+              "evidence": "are we"
+            },
+            {
+              "id": "exclamation",
+              "count": 12,
+              "evidence": "Oh,"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 10,
+              "evidence": "Does he"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.026
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.035
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.417
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.008
+            },
+            {
+              "id": "rhyme",
+              "value": 1.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.055
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "conj.and_or_but",
+            "prep.common",
+            "tense.past_simple",
+            "article.a_an",
+            "pron.possessive"
+          ],
+          "word_count": 24257
+        }
+      },
+      "pairs_with_unit": [
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005"
+      ],
+      "supports_grammar": [
+        "article.the",
+        "conj.and_or_but",
+        "prep.common",
+        "tense.past_simple",
+        "article.a_an",
+        "pron.possessive"
+      ]
+    },
+    {
+      "id": "huckleberry-finn",
+      "title": "Adventures of Huckleberry Finn (excerpt)",
+      "author": "Mark Twain",
+      "gutenberg_id": 76,
+      "gutenberg_slug": "Adventures of Huckleberry Finn",
+      "librivox_archive": "huck001_29_librivox",
+      "librivox_url": "https://librivox.org/adventures-of-huckleberry-finn-by-mark-twain/",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": [
+        "friendship"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1
+        ]
+      },
+      "facets": {
+        "grade": [
+          "7",
+          "8"
+        ],
+        "grade_band": "middle_school",
+        "text_type": "adventure",
+        "themes": [
+          "courage",
+          "justice",
+          "escape_freedom",
+          "friendship"
+        ],
+        "settings": [
+          "nature_outdoor",
+          "rural_village"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 1100,
+          "max": 1400,
+          "mean": 1250,
+          "band": "middle_late",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "American",
+        "time_period": "victorian",
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension",
+          "critical_thinking"
+        ]
+      }
+    }
+  ]
+}

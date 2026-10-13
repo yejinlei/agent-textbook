@@ -720,6 +720,65 @@ h3.grp::before { border-radius: 4px; transform: rotate(45deg); }
   to { opacity: 1; transform: none; }
 }
 
+/* ========================================================= 英语对话 · 教学层
+   rich 模式：左边对话（情境图 + 分角色 + 动作/表情），右边一栏生词 / 句型 / 语法。
+   非 rich 数据（没有 vocab_cards 也没有 sentence_patterns）时，走原来的单栏布局。 */
+.scene { display: flex; gap: 10px; align-items: center;
+  background: #f7f4ec; border: 1px dashed var(--line); border-radius: 10px;
+  padding: 8px 12px; margin: 8px 0 6px; }
+.scene .scenec { font-size: 26px; line-height: 1; flex: none; }
+.scene .scenet { font-size: 14px; color: var(--ink); }
+.item.dlg mark { background: #ffe9a8; color: #4a3200;
+  padding: 0 3px; border-radius: 3px; font-weight: 600; }
+
+.turnhead { display: flex; gap: 6px; align-items: baseline;
+  margin-bottom: 2px; font-size: 12px; color: var(--muted); }
+.turnhead .emo { color: var(--ink); }
+.turnhead .rlabel { background: #eef4fa; color: #2a6a9a;
+  border-radius: 999px; padding: 1px 8px; font-size: 12px; }
+.turnline { display: flex; align-items: baseline; gap: 4px; }
+.turn.hide { display: none; }
+
+.dt { display: grid; grid-template-columns: 1fr 300px; gap: 14px; margin-top: 8px; }
+.dt .dl { min-width: 0; }
+.dt aside.ds { display: flex; flex-direction: column; gap: 10px; }
+
+.sg { border: 1px solid var(--line); border-radius: 10px; background: #fff;
+  padding: 8px 10px; }
+.sg .sh { font-size: 13px; font-weight: 700; color: var(--c);
+  border-bottom: 1px solid var(--line); padding-bottom: 4px; margin-bottom: 6px; }
+
+.vc { padding: 4px 0; border-bottom: 1px dashed var(--line); }
+.vc:last-child { border-bottom: 0; }
+.vc b { font-size: 15px; color: var(--ink); }
+.vc i { color: var(--muted); font-style: normal; font-size: 12px; margin-left: 4px; }
+.vc em { color: var(--muted); font-style: normal; font-size: 12px; margin-left: 4px; }
+.vc .vzh { color: #196f3d; font-size: 13px; margin-left: 6px; }
+.vc .vnote { color: var(--muted); font-size: 12px; margin: 2px 0 0; }
+
+.sp { padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.sp:last-child { border-bottom: 0; }
+.sp .sptext { font-family: Consolas, "Courier New", monospace; font-size: 14px;
+  color: var(--ink); }
+.sp .sptext .blank { display: inline-block; min-width: 42px; height: 12px;
+  border-bottom: 2px solid var(--c); margin: 0 2px 0 0; vertical-align: 2px; }
+.sp .sptext .fillbox { background: #fff4c8; border-radius: 3px; padding: 0 4px; }
+.sp .spzh { color: var(--muted); font-size: 12px; margin-top: 1px; }
+.sp .spsp { margin-top: 3px; }
+.sp .spsp .var { display: inline-block; background: #eef4fa; color: #2a6a9a;
+  border-radius: 999px; padding: 1px 8px; font-size: 12px; margin: 1px 4px 1px 0; }
+
+.sg .pts { margin: 0; padding-left: 18px; font-size: 13px; color: var(--ink); }
+.sg .pts li { padding: 2px 0; }
+
+.item.dlg.nozh .turn .zh { visibility: hidden; }
+.item.dlg.nozh .vc .vzh { visibility: hidden; }
+.item.dlg.nozh .sp .spzh { visibility: hidden; }
+
+@media (max-width: 860px) {
+  .dt { grid-template-columns: 1fr; }
+}
+
 /* 圆头滚动条，键盘选中也有明显的圈 */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: #f0d6ae; border-radius: 999px; }

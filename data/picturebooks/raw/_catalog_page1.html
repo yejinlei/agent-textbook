@@ -1,0 +1,817 @@
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <title>African Storybook</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+
+    <link rel="stylesheet" href="css/framework7.material.min.css">
+    <link rel="stylesheet" href="css/framework7.material.colors.min.css">
+    <link
+        href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,300,100,700&subset=latin,greek,greek-ext,cyrillic-ext,cyrillic,latin-ext'
+        rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,500,300,400italic,100&subset=latin,latin-ext'
+        rel='stylesheet' type='text/css'>
+    <link href='css/app.6.0.css' rel='stylesheet' type='text/css'>
+    <link rel='stylesheet' href='css/fontsizes.css'>
+    <link rel="apple-touch-icon" sizes="57x57" href="images/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="images/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="images/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="images/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="images/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="images/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="images/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="images/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="images/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+<style>
+
+
+.menu {
+    padding-right: 42px;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D'0%200%2060%20120'%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%3E%3Cpath%20d%3D'm60%2061.5-38.25%2038.25-9.75-9.75%2029.25-28.5-29.25-28.5%209.75-9.75z'%20fill%3D'%23ffc107'%2F%3E%3C%2Fsvg%3E");
+    background-size: 10px 20px;
+    background-repeat: no-repeat;
+    background-position: 95% center;
+    background-position: -webkit-calc(100% - 16px) center;
+    background-position: calc(100% - 16px) center;
+}
+
+.drop {
+
+    background-image: none;
+    text-align:center;
+    font-weight: 500;
+}
+
+.menu:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    right: auto;
+    top: auto;
+    height: 1px;
+    width: 100%;
+    background-color: rgba(0,0,0,.12);
+    display: block;
+    z-index: 15;
+    -webkit-transform-origin: 50% 100%;
+    transform-origin: 50% 100%;
+}
+.bubble
+{
+   position: relative;
+   width: 240px;
+   height: 120px;
+   padding: 0px;
+   background: #3DB082;
+   -webkit-border-radius: 10px;
+   -moz-border-radius: 10px;
+   border-radius: 10px;
+   background-image: url(images/t4g.png);
+}
+
+.bubble:after
+{
+    content: '';
+    position: absolute;
+    border-style: solid;
+    border-width: 20px 20px 20px 0;
+    border-color: transparent #3DB082;
+    display: block;
+    width: 0;
+    z-index: 1;
+    left: -20px;
+    top: 40px;
+}
+</style>
+
+</head>
+
+<body class="theme-cyan" onload="onASbLoad();">
+    <div class="panel-overlay" style="z-index:11100;"></div>
+    <div class="panel panel-left panel-cover" style="z-index: 11200 !important;">
+        <div class="theme_darker panelBar">Menu</div>
+
+        <div class="list-block leftMenu">
+            <ul id="leftMainMenu">
+                <li>
+                    <a href="#" id="readItemM1" data-popover=".popover-links" class="open-popover item-link menu list-button" style="width:228px !important;">Read</a>
+                <li><a href="#" id="useItemM1" class="close-panel item-link menu list-button" style="width:228px !important;" onclick="displayUse();">Use</a>
+                </li>
+                <li><a href="#"  data-popover=".popover-guides"  class="open-popover item-link menu list-button" style="width:228px !important;">Guide</a></li>
+                <li><a style="border:none;height: 42px;padding-top: 6px;" class="external menu list-button" target="_blank" href="https://www.givengain.com/cc/laptop-for-ethiopian-library/"><img src="images/donate.png" alt="Donate via GivenGain"></a></li>
+                <!--https://www.givengain.com/cc/african-children-reading-and-writing-storybooks/-->
+            </ul>
+
+        </div>
+        <div class="theme-background panelSocial">
+            <a href="#" onclick="loadQueryPage('newsletter.php');">
+                <img src="images/news.png">
+            </a>                        
+            <a href="#footer">
+                <img src="images/mails.png">
+            </a>
+            <a href="https://www.facebook.com/africanstorybookorg/" class="external">
+                <img src="images/face.png">
+            </a>
+            <a href="https://twitter.com/africastorybook" class="external">
+                <img src="images/tube.png">
+            </a>
+            <a href="https://www.youtube.com/user/africanstorybookorg" class="external">
+                <img src="images/twitter.png">
+            </a>
+        </div>
+    </div>
+    <div class="panel panel-right panel-cover layout-dark" id="menuInsert" style="z-index: 11200 !important;">
+    </div>
+    <div class="views">
+        <div class="view view-main" style="overflow:hidden;">
+
+            <div class="pages">
+                <div id="indexPage" data-page="indexPage" class="page">
+                    <div class="navbar theme_darker">
+                        <div id="navbarControl" styless="opacity:0; transition:1s;" class="navbar-inner">
+                            <div class="left menuIconMobile"><a href="#" class="open-panel back link icon-only"><i
+                                        class="icon icon-bars"></i></a>
+                            </div>
+                            <div class="center">African Storybook</div>
+                            <div class="right button">
+                                <a href="#" class="open-panel link icon-only nopadding menuHelp"
+                                    data-panel="right"><span class="menu-text">Help</span><i
+                                        class="icon icon-more-white menu-icon"></i></a>
+                            </div>
+                        </div>
+
+                        <div class="menuBar theme-background menuDesktop" id="main-menu">
+                            <div id="menuControl" style="opacity:0; transition:1s;margin-top: 7px;" class="row">
+                                <a href="#"  data-popover=".popover-links"  class="open-popover button active">Read</a> 
+                                <a href="#" id="useItemM2" class="button" onclick="displayUse();">Use</a>
+                                <a href="#"  data-popover=".popover-guides"  class="open-popover button active">Guide</a> 
+                                <a href="#" id="myspaceItemM2" class="button" onclick="displayMySpace();">Make</a>
+                                <a style="border:none;" target="_blank" class="external" href="https://www.givengain.com/cc/laptop-for-ethiopian-library/"><img src="images/donate.png" alt="Donate via GivenGain"></a>
+                                <a href="#" id="logoutMain" class="button menuItemHide" onclick="logout();">Logout</a>
+                            </div>
+                            <div class="button" style="right: 0px;position: absolute; padding-right: 20px; padding-top:2px; height:48px;">
+                                    <a href="#" onclick="loadQueryPage('newsletter.php');">
+                                        <img class="ssimage" src="images/newsw.png">
+                                    </a>
+                                    <a href="#footer" class="external">
+                                        <img class="ssimage" src="images/mailw.png">
+                                    </a>
+                                    <a href="https://www.facebook.com/africanstorybookorg/" class="external">
+                                        <img class="ssimage" src="images/Facebookw.png">
+                                    </a>
+                                    <a href="https://twitter.com/africastorybook" class="external">
+                                        <img class="ssimage" src="images/Twitterw.png">
+                                    </a>
+                                    <a href="https://www.youtube.com/user/africanstorybookorg" class="external">
+                                        <img class="ssimage" src="images/YouTubew.png">
+                                    </a>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="page-content page-adjust-index" style="overflow-x:hidden;">
+                        <div style=" background-color: #F5F5F5; margin-bottom:8px;">
+                            <div class="row analytics-row  no-gutter">
+                                <div class="col-33 analysis">
+                                    <h3>261</h3>
+                                    <p>Languages</p>
+                                </div>
+                                <div class="col-33 analysis">
+                                    <h3>5504</h3>
+                                    <p>Storybooks</p>
+                                </div>
+                                <div class="col-33 analysis">
+                                    <h3>9216</h3>
+                                    <p>Translations</p>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <div class="vision-background">
+                            <div class="heading">Vision</div>
+                            <div class="subheading">Open access to picture storybooks in the languages of Africa.
+                                <br>For children’s literacy, enjoyment and imagination.
+                                <br>&nbsp;
+                            </div>
+                        </div>
+
+
+
+                        <div id="stories">
+                            <div class="heading">New Storybooks</div><div class="subheading">Storybooks approved by ASb<a href="#" class="open-approved"><img src="images/info.svg" style="cursor:pointer;"></a></div><div class="row story-row"><div class="col-50 tablet-25"><a href="#" onclick="loadBook(53493,1, false, 0);"><img border="0" src="https://www.africanstorybook.org/illustrations/covers/53493.png" class="story-centered card"></a></div><div class="col-50 tablet-25"><a href="#" onclick="loadBook(51311,1, false, 0);"><img border="0" src="https://www.africanstorybook.org/illustrations/covers/51311.png" class="story-centered card"></a></div><div class="col-50 tablet-25"><a href="#" onclick="loadBook(51331,1, false, 0);"><img border="0" src="https://www.africanstorybook.org/illustrations/covers/51331.png" class="story-centered card"></a></div><div class="col-50 tablet-25"><a href="#" onclick="loadBook(51363,1, false, 0);"><img border="0" src="https://www.africanstorybook.org/illustrations/covers/51363.png" class="story-centered card"></a></div></div>                        </div>
+                        <div id="use">
+                            <div class="heading">Use of Storybooks<a href="#" class="open_use"><img
+                                        src="images/info.svg" style="cursor:pointer;"></a></div>
+                            <div>&nbsp;</div>
+
+                            <div class="row story-row">
+                                <div class="col-100 tablet-25">
+                                </div>
+                                <div class="col-50 tablet-25">
+                                    <div class="story-centered card collection_card" style="cursor:pointer;" onclick="showUseStory(112);">
+                                        <div style="background-image: url(illustrations/pages/8667005638.png); background-size: contain; width:160px; height:160px;"></div>
+                                        <div style="overflow: hidden;text-overflow: ellipsis;display: -webkit-box;line-height: 16px; max-height: 32px;  -webkit-line-clamp: 2;  -webkit-box-orient: vertical; font-size:14px; font-weight: 500; text-align:left;margin:4px 6px;">From Keynotes to Classrooms: Empowering Educators with ASb Stories</div>
+                                        <div style="font-size:12px; font-weight: 300; text-align:left;margin:0 6px;">Mimi Werna, ASb Champion Coordinator, West Africa</div>
+                                    </div>
+                                </div>
+                                <div class="col-50 tablet-25">
+                                    <div class="story-centered card collection_card"  style="cursor:pointer;" onclick="showUseStory(111);">
+                                        <div style="background-image: url(illustrations/pages/8667005575.png); background-size: contain; width:160px; height:160px;"></div>
+                                        <div style="overflow: hidden;text-overflow: ellipsis;display: -webkit-box;line-height: 16px; max-height: 32px;  -webkit-line-clamp: 2;  -webkit-box-orient: vertical; font-size:14px; font-weight: 500; text-align:left;margin:4px 6px;">African Storybook Reader App Excites Mothers at a Hospital</div>
+                                        <div style="font-size:12px; font-weight: 300; text-align:left;margin:0 6px;">Evans Kofi Korletey-Tene</div>
+                                    </div>
+                                </div>
+                                <div class="col-100 tablet-25">
+                                </div>
+                            </div>
+                        </div>
+
+                        
+
+                        <div>&nbsp;</div>
+                        <div class="subheading" style="font-size:32px; padding-bottom:0;"> Read - Use - Guide - Make</div>
+                        <div class="row" style="width:60vw; margin: 0 auto;">
+                        
+                            <div class="col-100 tablet-50 actions" style="cursor:default;">
+                                <h2>Read</h2>
+                                <div style="float: left"><img
+                                            src="images/readicon.png" width="80" height="80" style="display:block;margin-top:-24px;">
+                                </div>
+                                <div style="margin-left: 90px;" >
+                                    <p>Find individual storybooks or themed storybook collections to <span
+                                            class="menuText">READ</span> with young children. Download to read offline
+                                        or to print.</p>
+                                </div>
+                            </div>
+                            <div class="col-100 tablet-50 actions" style="cursor:default;">
+                                <h2>Use</h2>
+                                <div style="float: left"><img src="images/useicon.png"
+                                            width="80" height="80" style="display:block;margin-top:-24px;"></div>
+                                <div style="margin-left: 90px;">
+                                    <p>In <span class="menuText">USE</span>, you can explore ways in which you might use
+                                        the African Storybooks.</p>
+                                </div>
+                            </div>
+                    
+                            </div>
+                            </row>
+                            <div class="row" style="width:60vw; margin: 0 auto;">
+                            <div class="col-100 tablet-50 actions" style="cursor:default;">
+                                <h2>Guide</h2>
+                                <div style="float: left"><img src="images/support.svg"
+                                            width="80" height="80" style="display:block;margin-top:-24px;"></div>
+                                <div style="margin-left: 90px;">
+                                    <p>In <span class="menuText">GUIDE</span>, you will find a number of video-, how to- and indepth guides that you might find useful in the use and development of picture storybooks.</p>
+                                </div>
+                            </div>
+                            <div class="col-100 tablet-50 actions"  style="cursor:default;">
+                                <h2>Make</h2>
+                                <div style="float: left"><img
+                                            src="images/createicon.png" width="80" height="80" style="display:block;margin-top:-24px;">
+                                </div>
+                                <div style="margin-left: 90px;">
+                                    <p>In <span class="menuText">MAKE</span>, you can create a new picture storybook,
+                                        translate a story, adapt a story for a different reading level<a href="#"
+                                            class="open-levels"><img src="images/info.svg"
+                                                style="cursor:pointer;vertical-align:middle;"></a> and build your own
+                                        storybook collection. </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>&nbsp;</div>
+                        <div>&nbsp;</div>
+                        <div class="subheading" style="font-size:32px;">African Storybook Maker App<a href="maker.php" title="Our newest app"><img src="images/arrow-right.svg" style="width:32px;height:32px"></a></div>
+                        <div style="text-align:center">
+                            <a class="external"
+                                href="https://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=1486568534"
+                                style="display:inline-block;overflow:hidden;background:url(images/istore-badge.svg) no-repeat;width:135px;height:40px;margin-bottom: 20px;"></a>
+                            <a class="external" href="https://www.tech4goodawards.com/finalist/african-storybook-maker/" 
+                                style="display:inline-block;overflow:hidden;background:url(images/t4g.png) no-repeat;width:160px;height:80px;background-size:cover;" title="Tech4Good Education Winner 2021"></a>
+                            <a class="external" href="https://play.google.com/store/apps/details?id=io.saide.asb.maker"
+                                style="display:inline-block;overflow:hidden;background:url(images/Google-Play-Icon.png) no-repeat;width:135px;height:40px;margin-bottom: 20px;"></a>
+                            
+                        </div>
+                        <div>&nbsp;</div>
+                        <div class="subheading" style="font-size:32px;">African Storybook Reader App</div>
+                        <div style="text-align:center">
+                            <a class="external"
+                                href="https://geo.itunes.apple.com/us/app/african-storybook-creator/id1116639549?mt=8"
+                                style="display:inline-block;overflow:hidden;background:url(images/istore-badge.svg) no-repeat;width:135px;height:40px;"></a>
+                            <a class="external" href="https://play.google.com/store/apps/details?id=org.saide.ASbReader"
+                                style="display:inline-block;overflow:hidden;background:url(images/Google-Play-Icon.png) no-repeat;width:135px;height:40px;"></a>
+                            
+                        </div>
+                        <div>&nbsp;</div>
+
+
+                        <a id="footer" name="footer"></a>
+                        <div class="layout-dark footer">
+
+                            <div class="row bottom-line-dark">
+
+                                <div class="col-100 tablet-40" style="text-align: left;">
+                                    <form name="maillistForm" id="maillistForm" method="post" action="mailinglist.php"
+                                        onsubmit="validateMailinglistForm();">
+                                        <div class="row">
+                                            <div class="col-100 tablet-50">
+                                                <input dir="auto" name="maillistName" id="maillistName" type="text"
+                                                    placeholder="Your first name">
+                                            </div>
+                                            <div class="col-100 tablet-50">
+                                                <input dir="auto" name="maillistLastName" id="maillistLastName"
+                                                    type="text" placeholder="Your last name">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-100 tablet-100">
+                                                <input name="maillistEmail" id="maillistEmail" type="email"
+                                                    placeholder="Your e-mail">
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <a href="#" class="button button-big button-fill button-raised color-amber"
+                                                onclick="validateMailinglistForm();">Join our mailing list</a>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="col-100 tablet-60" style="text-align: left;">
+                                    <div class="row">
+                                        <div class="col-100 tablet-50">
+                                            <h3 class="icon-home">Funding Support</h3>
+                                            <p>Lenovo Foundation
+                                                <br>MC2H Foundation
+                                                <br>Cameron Schrier USA
+                                                <br>Oppenheimer Memorial Trust
+                                                <br>Zenex Foundation
+                                                <br>Comic Relief UK
+                                                <br>Google.org
+                                            </p>
+                                            
+                                        </div>
+                                        <div class="col-100 tablet-50">
+                                            <h3 class="icon-home">Address</h3>
+                                            <p>Saide
+                                                <br>14th Floor,
+                                                <br>19 Ameshoff Street,
+                                                <br>Braamfontein Johannesburg,
+                                                <br>South Africa</p>
+                                            <h3 class="icon-phone">Phone us</h3>
+                                            <p>+27 11 403 2813</p>
+                                            <h3 class="icon-email">E-mail us</h3>
+                                            <p>africanstorybook@saide.org.za</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row  bottom-line-dark">
+                                <div class="col-100 tablet-33"><a href="#" class="color-amber link"
+                                        onclick="loadQueryPage('newsletter.php');">News flash</a>
+                                </div>
+                                <div class="col-100 tablet-33"><a href="#" class="color-amber link"
+                                        onclick="loadQueryPage('about.php');">About</a>
+                                </div>
+                                <div class="col-100 tablet-33"><a href="#" class="color-amber link"
+                                        onclick="loadQueryPage('terms.php');">Terms of use</a>
+                                </div>
+
+                            </div>
+                            <div class="copyright bottom-line-dark">© 2015-2026 Saide - <a href="https://creativecommons.org/licenses/" class="external" target="_blank" style="margin-left:0;">Creative Commons Licence CC-BY-4.0</a></div>
+
+                        </div>
+                    </div>
+                    <div id="mainPageBottonBar"
+                        style="position:fixed; height:44px; width:100%; background-color:#727272; bottom:0px;z-index: 5001;">
+                        <img src="images/asb120.png"
+                            style="position:absolute; left:5px; bottom:5px; width:80px; height:auto;">
+                        <img src="images/saidew.png"
+                            style="position:absolute; right:5px; bottom:0px; width:80px; height:auto;">
+                    </div>
+                </div>
+                <div data-page="controller" class="page cached">
+                    <div class="page-content">
+                        <iframe width="100" height="100" id="bookControl" src=""></iframe>
+                        <iframe width="100" height="100" id="downloadControl" src=""></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="overlay"></div>
+    <div class="loader theme-darker" id="progressBar"></div>
+    <div class="readWaitPage" id=readWaitPage>
+        <div class="spinnerContainer">
+            <svg class="spinner" width="32px" height="32px" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+                <circle class="path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30">
+                </circle>
+            </svg>
+        </div>
+    </div>
+    <div class="popup-overlay savebusy"></div>
+    <div id='connection'><span style="font-size:20px;color:green;">&#9679;</span>&nbsp;Connected</div>
+
+    <div class="popover popover-guides">
+        <div class="popover-inner">
+            <div class="list-block accordion-list">
+                <ul>
+                    <li class="accordion-item help-item homeHelpItems">
+                        <a href="#" class="item-content item-link">
+                            <div class="item-inner">
+                                <div class="item-title">Video guides</div>
+                            </div>
+                        </a>
+                        <div class="accordion-item-content">
+                            <div class="list-block">
+                                <ul>
+                                    <li class="item-content">
+                                        <a href="https://www.youtube.com/watch?v=oNX2SxE-dus" target="_blank"
+                                            class="item-link external">
+                                            <div class="item-inner" style="padding-left: 8px;">
+                                                <div class="item-title item-youtube">Web site introduction</div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li class="item-content">
+                                        <a href=" https://www.youtube.com/watch?v=s-eQItOPF9E" target="_blank"
+                                            class="item-link external">
+                                            <div class="item-inner" style="padding-left: 8px;">
+                                                <div class="item-title item-youtube">Use the Reader App</div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li class="item-content">
+                                        <a href="https://www.youtube.com/watch?v=O1Ksi7SGilY" target="_blank"
+                                            class="item-link external">
+                                            <div class="item-inner" style="padding-left: 8px;">
+                                                <div class="item-title item-youtube">Use the Maker App</div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li class="item-content">
+                                        <a href="https://www.youtube.com/watch?v=dx7OKtGlEQM" target="_blank"
+                                            class="item-link external">
+                                            <div class="item-inner" style="padding-left: 8px;">
+                                                <div class="item-title item-youtube">Create a Storybook</div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li class="item-content">
+                                        <a href="https://www.youtube.com/watch?v=O1Ksi7SGilY" target="_blank"
+                                            class="item-link external">
+                                            <div class="item-inner" style="padding-left: 8px;">
+                                                <div class="item-title item-youtube">Translate or Adapt a Storybook</div>
+                                            </div>
+                                        </a>
+                                    </li>
+
+
+
+                                    <li class="item-content">
+                                        <a href="https://youtu.be/idSRtp1H5ik" target="_blank"
+                                            class="item-link external">
+                                            <div class="item-inner" style="padding-left: 8px;">
+                                                <div class="item-title item-youtube">Reading offline</div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li class="item-content">
+                                        <a href="https://youtu.be/LosHeKNvDo8" target="_blank"
+                                            class="item-link external">
+                                            <div class="item-inner" style="padding-left: 8px;">
+                                                <div class="item-title item-youtube">Downloading and printing</div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li class="item-content">
+                                        <a href="https://youtu.be/Hy5WtMwVsGA" target="_blank"
+                                            class="item-link external">
+                                            <div class="item-inner" style="padding-left: 8px;">
+                                                <div class="item-title item-youtube">Registering and publishing</div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="accordion-item help-item homeHelpItems">
+                        <a href="#" class="item-content item-link">
+                            <div class="item-inner">
+                                <div class="item-title">How to guides</div>
+                            </div>
+                        </a>
+                        <div class="accordion-item-content">
+                            <div class="list-block">
+                                <ul>
+                                    <li class="item-content homeHelpItems"><a href="pdf.php?id=documents/howto/Create_ASb_Storybooks.pdf" class="item-link popover-close"><div class="item-inner"><div class="item-title item-pdf">Create ASb Storybooks</div></div></a></li><li class="item-content homeHelpItems"><a href="pdf.php?id=documents/howto/Introduction_to_ASb.pdf" class="item-link popover-close"><div class="item-inner"><div class="item-title item-pdf">Introduction to ASb</div></div></a></li><li class="item-content homeHelpItems"><a href="pdf.php?id=documents/howto/Translate_and_Adapt.pdf" class="item-link popover-close"><div class="item-inner"><div class="item-title item-pdf">Translate and Adapt</div></div></a></li><li class="item-content homeHelpItems"><a href="pdf.php?id=documents/howto/Use_the_Maker_App.pdf" class="item-link popover-close"><div class="item-inner"><div class="item-title item-pdf">Use the Maker App</div></div></a></li><li class="item-content homeHelpItems"><a href="pdf.php?id=documents/howto/Use_the_Reader_App.pdf" class="item-link popover-close"><div class="item-inner"><div class="item-title item-pdf">Use the Reader App</div></div></a></li>                                </ul>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="accordion-item help-item homeHelpItems">
+                        <a href="#" class="item-content item-link">
+                            <div class="item-inner">
+                                <div class="item-title">Indepth guides</div>
+                            </div>
+                        </a>
+                        <div class="accordion-item-content">
+                            <div class="list-block">
+                                <ul>
+                                    <li class="item-content homeHelpItems"><a href="pdf.php?id=documents/home/Creating_Storybooks_with_children.pdf" class="item-link popover-close"><div class="item-inner"><div class="item-title item-pdf">Creating Storybooks with children</div></div></a></li><li class="item-content homeHelpItems"><a href="pdf.php?id=documents/home/Developing_and_translating_African_Storybooks.pdf" class="item-link popover-close"><div class="item-inner"><div class="item-title item-pdf">Developing and translating African Storybooks</div></div></a></li><li class="item-content homeHelpItems"><a href="pdf.php?id=documents/home/Preparing_to_use_African_Storybooks_with_children.pdf" class="item-link popover-close"><div class="item-inner"><div class="item-title item-pdf">Preparing to use African Storybooks with children</div></div></a></li><li class="item-content homeHelpItems"><a href="pdf.php?id=documents/home/Translation.pdf" class="item-link popover-close"><div class="item-inner"><div class="item-title item-pdf">Translation</div></div></a></li><li class="item-content homeHelpItems"><a href="pdf.php?id=documents/home/Using_African_Storybooks_with_children.pdf" class="item-link popover-close"><div class="item-inner"><div class="item-title item-pdf">Using African Storybooks with children</div></div></a></li>                                </ul>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="popover popover-links">
+        <div class="popover-inner" syle="overflow:hidden;">
+            <div class="list-block">
+                <ul>
+                    <li><a href="#" class="list-button item-link close-popover menu" style="width:295px !important;"
+                            onclick="mainView.router.loadPage('read/index.approved.php');">
+                            <div style="padding-top:8px; padding-bottom: 4px; line-height: 16px; font-size: 16px;">
+                                Storybooks ASb approved
+                            </div>
+                            <div
+                                style="padding-top:4px; padding-bottom: 8px; line-height: 15px; font-size: 14px; color:#757575;">
+                                All storybooks checked by African Storybook (ASb) or by our partner organisations</div>
+                        </a></li>
+                    <li><a href="#" class="list-button item-link close-popover menu" style="width:285px !important;"
+                            onclick="mainView.router.loadPage('read/index.collection.php');">
+                            <div style="padding-top:8px; padding-bottom: 4px; line-height: 16px; font-size: 16px;">
+                                Storybook
+                                Collections</div>
+                            <div
+                                style="padding-top:4px; padding-bottom: 8px; line-height: 15px; font-size: 14px; color:#757575;">
+                                ASb approved storybooks in collections <br>about themes and topics</div>
+                        </a></li>
+
+                    </a></li>
+                    <li><a href="#" class="list-button item-link close-popover menu" style="width:285px !important;"
+                            onclick="mainView.router.loadPage('read/index.website.php');">
+                            <div style="padding-top:8px; padding-bottom: 4px; line-height: 16px; font-size: 16px;">
+                                Storybooks Website</div>
+                            <div
+                                style="padding-top:4px; padding-bottom: 8px; line-height: 15px; font-size: 14px; color:#757575;">
+                                Storybooks created on the ASb website <br>(not checked)</div>
+                        </a></li>
+                    <li><a href="#" class="list-button item-link close-popover menu" style="width:285px !important;"
+                            onclick="mainView.router.loadPage('read/index.maker.php');">
+                            <div style="padding-top:8px; padding-bottom: 4px; line-height: 16px; font-size: 16px;">
+                                Storybooks App</div>
+                            <div
+                                style="padding-top:4px; padding-bottom: 8px; line-height: 15px; font-size: 14px; color:#757575;">
+                                Storybooks created on the ASb Maker app (not checked)</div>
+                        </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="popup popup-reader tablet-fullscreen">
+        <div style="position:absolute; top:0; left:0; width:48px; height:48px; z-index:1200;cursor:pointer;background:url('images/goback.svg') no-repeat center center; background-size:36px;" class="link close-popup"></div>
+
+        <a href="#" data-popover=".popover-book-menu" class="link open-popover"
+            style="position:absolute; top:0; right:0; width:48px; height:48px; z-index:1200;cursor:pointer;background:url('images/menucircle.svg') no-repeat center center; background-size:32px;"></a>
+        <iframe id="reader-iframe" style="width:100%; height:100%; top:0; left:0; position:relative;" frameborder="0"
+            scrolling="on"></iframe>
+    </div>
+
+    <div class="popover popover-book-menu" style="max-height: 80%; overflow: auto;">
+        <div class="popover-inner" syle="overflow:hidden;">
+            <div class="list-block accordion-list">
+                <ul id="bookMenuPanel">
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="popupEditor" class="popup popup-editor">
+        <div class="navbar">
+            <div class="navbar-inner">
+                <div class="left"><a href="#" class="link close-popup icon-only"><i class="icon icon-back"></i></a>
+                </div>
+                <div class="center sliding">Editor</div>
+            </div>
+        </div>
+        <div class="content-block">
+            <textarea name="editorUse11" id="editorUse11"
+                style="height: 80%;position: fixed; width: calc(100% - 70px);"></textarea>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="js/framework7.min.js"></script>
+    <script type="text/javascript" src="js/enc.js"></script>
+    <script type="text/javascript" src="js/app.6.3.js?1695888729"></script>
+    <script type="text/javascript" src="js/hash.1.js"></script>
+    <script type="text/javascript" src="js/list.min.js"></script>
+    <script type="text/javascript" src="js/cookieconsent.js"></script>
+
+    <script>
+
+$$('.open-approved').on('click', function () {
+
+    var clickedLink = this;
+    var popoverHTML = '<div class="popover">' +
+        '<div class="popover-inner">' +
+        '<div class="content-block">' +
+        '"ASb-approved" storybooks have been checked by a language specialist and an African Storybook staff member.' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+    myApp.popover(popoverHTML, clickedLink);
+});
+window.onbeforeunload = function () {
+    return "Do you really want to close?";
+};
+
+var cc = initCookieConsent();
+
+// run plugin with config object
+cc.run({
+	autorun : true, 
+	delay : 0,
+	current_lang : 'en',
+	auto_language : false,
+	autoclear_cookies : true,
+	cookie_expiration : 365,
+	theme_css: 'css/cookieconsent.css',
+	force_consent: false,
+
+	onAccept: function(cookie){
+		console.log("onAccept fired ...");
+		if (cc.allowedCategory('analytics')) {
+		    (function (i, s, o, g, r, a, m) {
+		        i['GoogleAnalyticsObject'] = r;
+		        i[r] = i[r] || function () {
+		            (i[r].q = i[r].q || []).push(arguments)
+		        }, i[r].l = 1 * new Date();
+		        a = s.createElement(o),
+		            m = s.getElementsByTagName(o)[0];
+		        a.async = 1;
+		        a.src = g;
+		        m.parentNode.insertBefore(a, m)
+		    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+            cc.loadScript('https://www.google-analytics.com/analytics.js', function(){		
+				ga('create', 'UA-32856255-1', 'auto');
+		        ga('send', 'pageview');
+				console.log("analytics.js loaded");
+			});
+
+		    //ga('create', 'UA-32856255-1', 'auto');
+		    //ga('send', 'pageview');
+        }
+		if (cc.allowedCategory('necessary')) {
+            window.fbAsyncInit = function () {
+                FB.init({
+                    appId: '1685721771696342',
+                    xfbml: true,
+                    version: 'v2.5'
+                });
+            };
+            (function (d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) {
+                    return;
+                }
+                js = d.createElement(s);
+                js.id = id;
+                js.src = "//connect.facebook.net/en_US/sdk.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));
+        }
+
+
+	},
+
+
+	languages : {
+		'en' : {	
+			consent_modal : {
+				title :  "Cookies Consent",
+				description :  'This website uses essential cookies to ensure its proper operation and tracking cookies to understand how you interact with it. The latter will be set only after consent. <button type="button" data-cc="c-settings" class="cc-link">Cookie Settings</button>',
+				primary_btn: {
+					text: 'Accept',
+					role: 'accept_all'				//'accept_selected' or 'accept_all'
+				},
+				secondary_btn: {
+					text : 'Reject',
+					role : 'accept_necessary'				//'settings' or 'accept_necessary'
+				}
+			},
+			settings_modal : {
+				title : '<div>Cookie settings</div><div aria-hidden="true" style="font-size: .8em; font-weight: 200; color: #687278; margin-top: 5px;"></div>',
+				save_settings_btn : "Save settings",
+				accept_all_btn : "Accept all",
+				close_btn_label: "Close",
+				cookie_table_headers : [
+					{col1: "Name" }, 
+					{col2: "Domain" }, 
+					{col3: "Expiration" }, 
+					{col4: "Description" }, 
+					{col5: "Type" }
+				],
+				blocks : [
+					{
+						title : "Cookie usage",
+						description: 'We use cookies to ensure the basic functionalities of the website and to enhance your online experience. You can choose for each category to opt-in/out whenever you want. For more details relative to cookies and other sensitive data, please read our <a href="terms.html" class="cc-link external" target="_blank">privacy policy</a>.'
+					},{
+						title : "Strictly necessary cookies",
+						description: 'These cookies are essential for the proper functioning of my website. Without these cookies, the website would not work properly',
+						toggle : {
+							value : 'necessary',
+							enabled : true,
+							readonly: true							//cookie categories with readonly=true are all treated as "necessary cookies"
+						}
+					},{
+						title : "Preferences cookies",
+						description: 'These cookies allow the website to remember the choices you have made in the past',
+						toggle : {
+							value : 'preferences',	//there are no default categories => you specify them
+							enabled : true,
+							readonly: true
+						}
+					},{
+						title : "Analytics cookies",
+						description: 'These cookies collect information about how you use the website, which pages you visited and which links you clicked on. All of the data is anonymized and cannot be used to identify you',
+						toggle : {
+							value : 'analytics',
+							enabled : false,
+							readonly: false
+						},
+						cookie_table: [
+							{
+								col1: '_ga',
+								col2: 'google.com',
+								col3: '2 years',
+								col4: 'description ...' ,
+								col5: 'Permanent cookie'
+							},
+							{
+								col1: '_gat',
+								col2: 'google.com',
+								col3: '1 minute',
+								col4: 'description ...' ,
+								col5: 'Permanent cookie'
+							},
+							{
+								col1: '_gid',
+								col2: 'google.com',
+								col3: '1 day',
+								col4: 'description ...' ,
+								col5: 'Permanent cookie'
+							}
+						]
+					},{
+						title : "More information",
+						description: 'For any queries in relation to my policy on cookies and your choices, please contact us at africanstorybook@saide.org.za.',
+					}
+				]
+			}
+		}
+	}
+});
+
+
+        queryString = "page=1&sort_order=0&language=english&level=1";
+        var languages = "<option selected value='0' selected>All languages</option><option value='16522'>Acholi</option><option value='7433'>Afaan Oromo</option><option value='16625'>Afemai</option><option value='1136'>Afrikaans</option><option value='16703'>Akan</option><option value='16704'>Akan (Twi)</option><option value='16532'>Akuapem Twi</option><option value='1100'>Alur</option><option value='7432'>Amharic</option><option value='16540'>Anii</option><option value='9992'>Anywak</option><option value='8737'>Arabic</option><option value='1102'>Aringati</option><option value='15294'>Asante Twi</option><option value='1059'>Ateso</option><option value='16630'>Babanki</option><option value='16671'>Bamanakan </option><option value='16572'>Bambara</option><option value='16664'>Bari</option><option value='16624'>Bura</option><option value='16684'>Buwal</option><option value='3110'>Changana</option><option value='3947'>Chichewa</option><option value='16601'>ChiNambya</option><option value='16634'>ChiNdau</option><option value='16626'>ChiNkhonde</option><option value='9867'>ChiShona</option><option value='9869'>ChiTonga</option><option value='16628'>ChiTonga (Malawi)</option><option value='16590'>Chitumbuka</option><option value='16594'>Chrambo</option><option value='16649'>CiBemba</option><option value='3111'>Cicopi</option><option value='14324'>CiNyanja</option><option value='16604'>Cinyanja (Mozambique)</option><option value='16549'>Cinyungwe</option><option value='16553'>Cisena</option><option value='16629'>Citumbuka</option><option value='12961'>Ciyawo</option><option value='16633'>Ciyawo (Malawi)</option><option value='15289'>Dagaare</option><option value='15290'>Dagbani/Dagbanli</option><option value='15296'>Dangme</option><option value='16698'>Dendi Wangara</option><option value='16680'>Dɔgɔsɔ</option><option value='1068'>Dholuo</option><option value='12999'>Dhopadhola</option><option value='16591'>Dinka</option><option value='16566'>Ebira</option><option value='16576'>Echiziinza</option><option value='16545'>Echuwabo</option><option value='16567'>Efik</option><option value='16527'>Egyptian</option><option value='16528'>Egyptian (Latin)</option><option value='1069'>Ekegusii</option><option value='16632'>Ellomwe (Malawi)</option><option value='12966'>Elomwe</option><option value='16492'>Emakhuwa</option><option value='16690'>EMwinika</option><option value='1133'>English</option><option value='16689'>Etulo</option><option value='15291'>Ewe</option><option value='15299'>Fante</option><option value='16640'>Fongbe</option><option value='16687'>Frafra</option><option value='2004'>French</option><option value='6748'>Fulfulde</option><option value='16682'>Fulfulde (Mali)</option><option value='16674'>Fulfulde (Nigeria)</option><option value='16656'>Fulfulde Adamawa</option><option value='16583'>Fulfulde Mbororoore</option><option value='15295'>Ga</option><option value='16688'>Gbagyi</option><option value='8707'>German</option><option value='1072'>Gikuyu</option><option value='3109'>Gitonga</option><option value='15292'>Gonja</option><option value='16642'>Goungbe</option><option value='9953'>Gurene</option><option value='15922'>Hadiya</option><option value='6746'>Hausa (Niger)</option><option value='16516'>Hausa (Nigeria)</option><option value='16518'>Hyam (Northern Nigeria)</option><option value='16622'>Ibibio</option><option value='14323'>IciBemba</option><option value='16593'>IciBemba (school)</option><option value='16675'>Idoma</option><option value='16620'>Igala</option><option value='16533'>Igbo</option><option value='16693'>Igede</option><option value='16573'>Ikisimbëtë</option><option value='16619'>Ikwerre</option><option value='16514'>Imeetto</option><option value='16667'>isiMpondo</option><option value='1143'>isiNdebele</option><option value='16524'>IsiNdebele (Zimbabwe)</option><option value='1135'>isiXhosa</option><option value='1134'>isiZulu</option><option value='16598'>Jenjo</option><option value='16586'>Kabuverdianu</option><option value='1107'>Kakwa</option><option value='16574'>Kamuku</option><option value='6749'>Kanuri</option><option value='16648'>Kaonde</option><option value='15293'>Kasem</option><option value='16602'>Kῖmῖῖrũ </option><option value='16562'>Khoekhoegowab</option><option value='16530'>Kidawida</option><option value='16652'>Kiduruma</option><option value='16608'>KiGiryama</option><option value='1074'>Kikamba</option><option value='16700'>Kikongo</option><option value='2834'>Kinyarwanda</option><option value='16531'>Kinyarwanda (Uganda)</option><option value='16556'>Kirundi</option><option value='16685'>Kisaghala</option><option value='1079'>Kiswahili</option><option value='16655'>Kom</option><option value='16559'>Krio</option><option value='16651'>Kufo</option><option value='16519'>Kumam</option><option value='16595'>Kuteb</option><option value='16691'>Kuteb (Dialect: Rubur Nyim)</option><option value='16692'>Kuteb (Dialect: Tswaen)</option><option value='16697'>Kuteb Atswaen</option><option value='10580'>Lámnsoʼ</option><option value='1113'>Leblango</option><option value='16541'>Lhukonzo</option><option value='16265'>Likpakpaanl</option><option value='16668'>Limbùm</option><option value='16544'>Lingala</option><option value='1479'>Lubukusu</option><option value='1104'>Luganda</option><option value='1114'>Lugbarati</option><option value='4801'>Lugbarati (Official)</option><option value='1106'>Lugwere</option><option value='16523'>Lukenye</option><option value='16575'>Lulamoogi</option><option value='16614'>Lulogoli </option><option value='1117'>Lumasaaba</option><option value='1120'>Lunyole</option><option value='16627'>Lunyore</option><option value='1124'>Lusamia</option><option value='1125'>Lusoga</option><option value='10578'>Ma'di</option><option value='1086'>Maa</option><option value='16551'>Malagasy</option><option value='16596'>Mambilla (Nigeria)</option><option value='15911'>Mampruli</option><option value='16555'>Mashi</option><option value='16665'>Massa</option><option value='16589'>Moro</option><option value='16607'>Multilingual</option><option value='16599'>Mumuye</option><option value='14910'>Nandi</option><option value='13853'>Naro</option><option value='1108'>Ngakarimojong</option><option value='1089'>Ng’aturkana</option><option value='16686'>Nooni</option><option value='16623'>Nupe</option><option value='15297'>Nzema</option><option value='16618'>Obolo</option><option value='16585'>Olukabarasi</option><option value='1085'>Olukhayo</option><option value='10974'>Olunyala</option><option value='16554'>Olunyaneka</option><option value='16605'>OluSamia</option><option value='1478'>Oluwanga</option><option value='16539'>Oromiffa</option><option value='16560'>Oshikwanyama</option><option value='16561'>Oshindonga</option><option value='16597'>Otetela</option><option value='16563'>Otjiherero</option><option value='16588'>Otuho</option><option value='16658'>Pana</option><option value='16547'>Pidgin English (Nigeria)</option><option value='16609'>Pokomo</option><option value='2005'>Portuguese</option><option value='16520'>Rufumbira</option><option value='1103'>Rukiga</option><option value='16580'>Rukwangali</option><option value='16606'>Rumanyo</option><option value='1119'>Runyankore</option><option value='16521'>Runyoro</option><option value='16579'>Runyoro-Rutooro</option><option value='1128'>Rutooro</option><option value='1112'>Sabinyi</option><option value='1094'>Samburu</option><option value='1137'>Sepedi</option><option value='16701'>Sesotho</option><option value='1139'>Sesotho (Lesotho)</option><option value='11661'>Sesotho (South Africa)</option><option value='16526'>Sesotho (Zimbabwe)</option><option value='1138'>Setswana</option><option value='16669'>Setswana (Botswana)</option><option value='14325'>SiLozi</option><option value='16534'>Silte</option><option value='1141'>Siswati</option><option value='16679'>Soŋay</option><option value='16610'>Sola</option><option value='1095'>Somali</option><option value='10971'>Spanish</option><option value='16515'>Talen</option><option value='16676'>Tamasheq</option><option value='16546'>Themne</option><option value='16581'>Thimbukushu</option><option value='16657'>Thok Nath (Nuer)</option><option value='7434'>Tigrigna</option><option value='16613'>Tigun</option><option value='16550'>Tiv</option><option value='16525'>TjiKalanga</option><option value='16650'>Tshiluba</option><option value='1142'>Tshivenḓa</option><option value='13146'>Tunisian</option><option value='16672'>Tupuri</option><option value='16643'>Urdu</option><option value='16543'>Urhobo</option><option value='16592'>Wolaita</option><option value='16702'>Wolof</option><option value='16638'>Xingoni</option><option value='1140'>Xitsonga</option><option value='3108'>Xitswa</option><option value='16646'>Yom</option><option value='7193'>Yoruba</option><option value='9990'>Zande</option><option value='6747'>Zarma</option><option value='16673'>Zulgo</option>";
+        tracker = "";
+        gotoread = false ;
+        gotomyspace = false ;
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,173 @@
+{
+  "_doc": "英文长文库本体定义 - 与 picturebooks/ontology.json 并行独立",
+  "_version": "1.0",
+  "_updated": "2026-10-13",
+  "_scope": "小学英语 3-6 年级英文名著长文，含中英对照、生词音标、单词发音",
+  "_relations_to_textbook": "通过 data/attrs/section_text.jsonl 挂教材单元（复用 picturebooks 的 pair_units.py 逻辑，Lexile 加权）",
+
+  "classes": {
+    "Reading": {
+      "description": "英文长文（名著）实例",
+      "authoritative_source": "data/readings/catalog.json",
+      "required": ["id", "title", "author", "facets"],
+      "fields": {
+        "id": "string (slug)",
+        "title": "string",
+        "author": "string",
+        "gutenberg_id": "int",
+        "librivox_archive": "string (archive.org item id)",
+        "lexile_range": "string (旧字段，兼容保留；权威在 facets.lexile)",
+        "grade": "string (旧字段，兼容保留；权威在 facets.grade)",
+        "primary_topic": "string (对齐 picturebooks/topics.json)",
+        "secondary_topics": "array<string>",
+        "excerpt": "object {type, chapters|stories}",
+        "word_count": "int (抓取后统计)",
+        "unique_words": "int",
+        "reading_time_min": "int",
+        "text_path": "string (相对路径：readings/texts/{id}.txt)",
+        "audio_path": "string (相对路径：readings/audio/{id}.mp3)",
+        "translation_path": "string (readings/translations/{id}.json)",
+        "ipa_path": "string (readings/ipa/{id}.json)",
+        "covers_words": "array<string> (超过小学核心词表的生词，含 IPA)",
+        "pairs_with_unit": "array<string> (section_id:unit_no)",
+        "extended_activity": "array<string> (拓展任务名)",
+        "facets": "object (多维分面标签，见 facets_on_instance)"
+      }
+    },
+
+    "Facet": {
+      "description": "分面标签（Faceted Classification）；每本书挂一组 Facet 值",
+      "schema_source": "data/readings/taxonomy.json",
+      "field_spec": {
+        "grade": "array<string> 多档年级",
+        "grade_band": "string 年级分带 (early/mid/late_primary, middle_school)",
+        "text_type": "string 体裁",
+        "themes": "array<string> 情感/价值观主题",
+        "settings": "array<string> 故事背景",
+        "word_count_bucket": "string 词数分桶 (very_short/short/medium/long/very_long)",
+        "lexile": "object {min,max,mean,band,source}",
+        "cultural_origin": "string 作者文化",
+        "time_period": "string 故事时代",
+        "target_skills": "array<string> 教学目标"
+      }
+    },
+    "Chapter": {
+      "description": "章节实例（长文由若干 Chapter 组成）",
+      "required": ["reading_id", "index", "title", "text"],
+      "fields": {
+        "reading_id": "string",
+        "index": "int",
+        "title": "string",
+        "text": "string",
+        "word_count": "int",
+        "sentences": "array<Sentence>",
+        "audio_offset_sec": "float (可选，LibriVox 章节时间戳)"
+      }
+    },
+    "Sentence": {
+      "description": "句子实例（含中英对照）",
+      "required": ["en"],
+      "fields": {
+        "en": "string",
+        "zh": "string",
+        "index": "int",
+        "focus_words": "array<string> (本句重点生词，含音标)"
+      }
+    },
+    "VocabEntry": {
+      "description": "生词条目（超小学核心词表的词）",
+      "required": ["word"],
+      "fields": {
+        "word": "string",
+        "ipa": "string (国际音标，如 /ˈræb.ɪt/)",
+        "arpha": "string (ARPABET，如 R AE1 B IH0 T)",
+        "meaning_zh": "string",
+        "pos": "string (n/v/adj/adv)",
+        "difficulty": "int (1-3)",
+        "audio_url": "string (懒加载：Google TTS 拼接)",
+        "audio_cached_path": "string (可选缓存)"
+      }
+    },
+    "LibriVoxAudio": {
+      "description": "LibriVox 音频引用（archive.org 直链）",
+      "required": ["archive_id", "chapters"],
+      "fields": {
+        "archive_id": "string (e.g. 'wizardofoz_1001_librivox')",
+        "base_url": "string (https://archive.org/download/{archive_id}/)",
+        "chapters": "array<{index, title, mp3_url, duration_sec}>",
+        "total_duration_sec": "int"
+      }
+    }
+  },
+
+  "edges": {
+    "contains_chapters": {"from": "Reading", "to": "Chapter", "cardinality": "1:N"},
+    "has_sentences": {"from": "Chapter", "to": "Sentence", "cardinality": "1:N"},
+    "has_vocabulary": {"from": "Reading", "to": "VocabEntry", "cardinality": "1:N"},
+    "has_audio": {"from": "Reading", "to": "LibriVoxAudio", "cardinality": "1:1"},
+    "pairs_with_unit": {"from": "Reading", "to": "TextbookUnit", "cardinality": "1:N",
+                        "deprecated": true, "_note": "兼容保留；主挂载用 extension_pair"},
+    "extension_pair": {"from": "Reading", "to": "TextbookUnit", "cardinality": "N:N",
+                       "_note": "教材单元↔课外挂载，含 role/score/breakdown（见 ExtensionPair）"},
+    "shares_topic_with": {"from": "Reading", "to": "Book", "cardinality": "N:N",
+                          "_note": "与绘本库跨源关联（同 topic_id）"}
+  },
+
+  "extension_classes": {
+    "ExtensionRole": {
+      "description": "课外文本在教材单元里可承担的挂载角色",
+      "authoritative_source": "data/readings/extension_roles.json",
+      "enums": ["pre_reading", "bridge_text", "consolidation", "extension",
+                "compare_contrast", "writing_trigger", "culture_window"]
+    },
+    "ExtensionPair": {
+      "description": "教材 Unit × 课外 Reading 挂载实例，含 7 维打分分解",
+      "authoritative_source": "data/readings/pairings.json",
+      "generated_by": "tools/pair_extensions.py",
+      "primary_key": "id = '<reading_id>@<section_id>'",
+      "fields": {
+        "reading_id": "string",
+        "reading_title": "string",
+        "section_id": "string",
+        "unit_name": "string",
+        "unit_title": "string",
+        "grade": "string",
+        "term": "string",
+        "role": "ExtensionRole enum",
+        "match_score": "float 0-1",
+        "match_breakdown": "object {topic, skill, word, lexile, role_bonus}",
+        "match_reasons": "array<string>",
+        "source": "'auto' | 'manual'",
+        "created_at": "ISO date"
+      }
+    }
+  },
+
+  "pairing_pipeline": {
+    "inputs": ["data/readings/catalog.json",
+               "data/readings/extension_roles.json",
+               "data/attrs/section_text.jsonl"],
+    "script": "tools/pair_extensions.py",
+    "outputs": ["data/readings/pairings.json",
+                "catalog.json books[].facets.text_role (回写)",
+                "catalog.json books[].pairs_with_unit (回写)"],
+    "score_formula": "0.30*topic + 0.25*skill + 0.20*word + 0.15*lexile + 0.10*role_bonus",
+    "gates": {
+      "topic_hard_gate": 0.25,
+      "role_bonus_hard_gate": 0.20,
+      "min_pair_score": 0.55,
+      "same_pair_role_delta": 0.10
+    }
+  },
+
+  "data_pipeline": {
+    "step1_gutenberg": "抓 Gutenberg 全文 TXT → texts/{id}.txt",
+    "step2_chapter_split": "按 Chapter/Story 标题正则拆分 → chapters 数组",
+    "step3_librivox_audio": "抓 LibriVox archive.org 章节 MP3 直链（不下文件，仅存 URL）",
+    "step4_sentence_split": "分句 → Sentence 数组",
+    "step5_translation": "分句请求 Google Translate → translation_zh.json（本地 Ollama 兜底）",
+    "step6_ipa": "CMU Pronouncing Dictionary 查生词 → IPA → ipa/{id}.json",
+    "step7_pair_units": "run tools/pair_extensions.py（PairingV2：role-based 打分 + 5 维 breakdown + 硬门禁）→ data/readings/pairings.json",
+    "step8_word_tts": "懒加载：UI 端按需调 Google TTS URL"
+  }
+}

@@ -2213,26 +2213,132 @@
   /* ====================================================== 英语 · 开口说
      "哑巴英语"的根子不是单词量，是没地方说。教材每组对话本来就有角色、场景、
      功能，这里按角色摊开，可以一句一句推进，也可以遮住中文自测。 */
+  function highlightSent(en, words) {
+    if (!en) return "";
+    if (!words || !words.length) return esc(en);
+    // 按出现位置排序，逐个高亮，避免重叠
+    var ranges = [];
+    words.forEach(function (w) {
+      var re = new RegExp("\\b" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "gi");
+      var m;
+      while ((m = re.exec(en)) !== null) {
+        ranges.push({ s: m.index, e: m.index + m[0].length });
+      }
+    });
+    ranges.sort(function (a, b) { return a.s - b.s; });
+    // 去重叠（保留最长/最先）
+    var out = [], cur = 0;
+    ranges.forEach(function (r) {
+      if (r.s < cur) return;
+      out.push({ s: r.s, e: r.e });
+      cur = r.e;
+    });
+    var html = "", i = 0;
+    out.forEach(function (r) {
+      html += esc(en.slice(i, r.s)) + '<mark>' + esc(en.slice(r.s, r.e)) + "</mark>";
+      i = r.e;
+    });
+    html += esc(en.slice(i));
+    return html;
+  }
+
   function dlgItem(d) {
-    var h = '<div class="item dlg"><div class="top"><span class="name">' +
+    var rich = !!(d.vocab_cards && d.vocab_cards.length) ||
+               !!(d.sentence_patterns && d.sentence_patterns.length);
+    var h = '<div class="item dlg' + (rich ? " rich" : "") + '"><div class="top"><span class="name">' +
       esc(d.title || d.scene || "") + "</span>" + where(d, "") +
       (d.scene ? '<span class="tag">' + esc(d.scene) + "</span>" : "") +
       (d.function ? '<span class="tag d1">' + esc(d.function) + "</span>" : "") + "</div>";
+
+    // 情境图 + 情境旁白
+    if (d.scene_desc) {
+      var iconMap = { hello: "👋", family: "🏠", weather: "☀️", food: "🍎", numbers: "🔢", school: "🎒" };
+      var icon = iconMap[d.scene_icon] || "🎬";
+      h += '<div class="scene">' +
+        '<div class="scenec">' + icon + '</div>' +
+        '<div class="scenet">' + esc(d.scene_desc) + '</div>' +
+        '</div>';
+      if (d.usage_tags && d.usage_tags.length) {
+        h += '<div class="words">' + d.usage_tags.map(function (t) {
+          return '<span class="tag k">' + esc(t) + "</span>";
+        }).join("") + "</div>";
+      }
+    }
+
     if (d.patterns && d.patterns.length) {
       h += '<div class="words">' + d.patterns.map(function (p) {
         return '<span class="wb">' + spkBtn(String(p || "")) + esc(p) + "</span>";
       }).join("") + "</div>";
     }
-    h += '<div class="turns">' + (d.turns || []).map(function (t, i) {
+
+    var turnsHtml = '<div class="turns">' + (d.turns || []).map(function (t, i) {
       var sent = String(t.en || "");
-      return '<div class="turn r' + (t.s === "B" || (t.s || "").indexOf("B") >= 0 ? 2 : 1) +
-        (i ? " hide" : "") + '"><span class="sp">' + esc(t.s || "A") + "</span>" +
-        spkBtn(sent) + '<span class="en spk">' + esc(sent) + "</span>" +
-        '<span class="zh">' + esc(t.zh || "") + "</span></div>";
+      var side = t.s === "B" || (t.s || "").indexOf("B") >= 0 ? 2 : 1;
+      var emo = t.emo ? '<span class="emo">' + esc(t.emo) + "</span>" : "";
+      var rlabel = t.role_label ? '<span class="rlabel">' + esc(t.role_label) + "</span>" : "";
+      var enHtml = t.highlights ? highlightSent(sent, t.highlights) : esc(sent);
+      return '<div class="turn r' + side + (i ? " hide" : "") + '">' +
+        '<div class="turnhead">' +
+          '<span class="sp">' + esc(t.s || "A") + "</span>" +
+          rlabel + emo +
+        '</div>' +
+        '<div class="turnline">' + spkBtn(sent) +
+          '<span class="en spk">' + enHtml + "</span></div>" +
+        '<div class="zh">' + esc(t.zh || "") + "</div>" +
+        '</div>';
     }).join("") + "</div>";
-    h += '<div class="bar"><span class="btn next">下一句</span>' +
+
+    // 词汇 + 句型 + 语法侧栏
+    var sideHtml = "";
+    if (rich) {
+      var sideParts = [];
+      if (d.vocab_cards && d.vocab_cards.length) {
+        sideParts.push('<div class="sg"><div class="sh">📖 生词</div>' +
+          d.vocab_cards.map(function (c) {
+            return '<div class="vc">' +
+              '<b>' + esc(c.word) + '</b>' +
+              (c.ipa ? '<i>' + esc(c.ipa) + '</i>' : "") +
+              (c.pos ? '<em>' + esc(c.pos) + '</em>' : "") +
+              '<span class="vzh">' + esc(c.zh || "") + '</span>' +
+              (c.note ? '<p class="vnote">' + esc(c.note) + '</p>' : "") +
+              '</div>';
+          }).join("") + '</div>');
+      }
+      if (d.sentence_patterns && d.sentence_patterns.length) {
+        sideParts.push('<div class="sg"><div class="sh">✏️ 句型</div>' +
+          d.sentence_patterns.map(function (p) {
+            var fill = p.fill ? '<span class="fillbox">' + esc(p.fill) + '</span>' : "";
+            var variants = (p.variants || []).map(function (v) {
+              return '<span class="var">' + esc(v) + '</span>';
+            }).join("");
+            var full = p.en.indexOf("__") >= 0
+              ? p.en.replace(/_{2,}/g, "<span class='blank'></span>")
+              : esc(p.en);
+            return '<div class="sp">' +
+              '<div class="sptext">' + full + '</div>' +
+              '<div class="spzh">' + esc(p.zh || "") + '</div>' +
+              (variants ? '<div class="spsp">' + variants + '</div>' : "") +
+              '</div>';
+          }).join("") + '</div>');
+      }
+      if (d.grammar_points && d.grammar_points.length) {
+        sideParts.push('<div class="sg"><div class="sh">📚 语法</div>' +
+          '<ul class="pts">' + d.grammar_points.map(function (g) {
+            return "<li>" + esc(g) + "</li>";
+          }).join("") + '</ul></div>');
+      }
+      sideHtml = '<aside class="ds">' + sideParts.join("") + '</aside>';
+    }
+
+    var turnsBar = '<div class="bar"><span class="btn next">下一句</span>' +
       '<span class="btn all">全部展开</span>' +
       '<span class="btn zh">遮／显示中文</span></div>';
+
+    if (rich) {
+      h += '<div class="dt"><div class="dl">' + turnsHtml + turnsBar + '</div>' + sideHtml + '</div>';
+    } else {
+      h += turnsHtml + turnsBar;
+    }
     return h + "</div>";
   }
 
@@ -2433,7 +2539,7 @@
       '<button id="d-check" class="btn">判分 →</button>' +
       "</div></div>" +
       '<aside class="d-side">' +
-      "<h4>错题本 · <span id="d-wrong-n">0</span></h4>" +
+      '<h4>错题本 · <span id="d-wrong-n">0</span></h4>' +
       '<div id="d-wrong" class="d-wrong"><p class="small">做错的题会留在这里，方便回头重做。</p></div>' +
       '<button id="d-redo" class="btn-ghost">重做错题</button>' +
       '<button id="d-new" class="btn">新一组</button>' +

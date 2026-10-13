@@ -1,0 +1,136 @@
+{
+  "_doc": "绘本本体论：类(Class)/关系(Relation)/属性(Property)三元定义。所有绘本实例、挂载关系、授权信息都必须符合本 schema。",
+  "_version": "1.0",
+  "_updated": "2026-10-13",
+
+  "classes": {
+    "Book": {
+      "desc": "一本绘本实体",
+      "required": ["id", "title", "level", "primary_topic", "pages", "license"],
+      "optional": ["author", "translator", "illustrator", "secondary_topics",
+                    "source", "source_url", "year", "target_age",
+                    "reading_time_min", "word_count", "unique_words",
+                    "covers_words", "supports_grammar", "exercises_skill",
+                    "pairs_with_unit", "extends_activity", "tags",
+                    "cover_image", "is_parallel_to"]
+    },
+    "Page": {
+      "desc": "绘本的一页",
+      "required": ["n", "text"],
+      "optional": ["image", "audio_tts", "audio_raw", "audio_raw_source",
+                    "audio_raw_license", "word_ids"]
+    },
+    "AudioTrack": {
+      "desc": "音频轨道（合成或原版）",
+      "required": ["path", "kind"],
+      "optional": ["voice", "source", "duration_ms", "license", "attribution"]
+    },
+    "Image": {
+      "desc": "插图",
+      "required": ["path"],
+      "optional": ["width", "height", "license", "attribution"]
+    },
+    "Level": {
+      "desc": "PB 分级",
+      "required": ["id", "cefr", "label"],
+      "optional": ["book_codes", "vocab_range", "page_range", "target_age"]
+    },
+    "Topic": {
+      "desc": "话题树节点（可层级）",
+      "required": ["id", "label"],
+      "optional": ["parent", "path", "keywords_en", "keywords_zh"]
+    },
+    "GrammarPoint": {
+      "desc": "语法点",
+      "required": ["id", "name"],
+      "optional": ["level", "examples", "test_items"]
+    },
+    "Skill": {
+      "desc": "教学技能维度",
+      "required": ["id", "category"],
+      "optional": ["label"]
+    },
+    "TextbookUnit": {
+      "desc": "课本单元（外部引用，权威源在 data/attrs/section_text.jsonl）",
+      "required": ["section_id", "book_id"],
+      "optional": ["subject", "grade", "term", "unit_no", "unit_name",
+                    "title", "keywords_en", "keywords_zh"]
+    },
+    "PairingRule": {
+      "desc": "绘本挂教材的匹配规则；命中即建立 pairs_with_unit 边",
+      "required": ["id", "strategy"],
+      "optional": ["topic_ids", "grammar_ids", "word_ids",
+                    "level_range", "grade_range", "weight"]
+    },
+    "Pairing": {
+      "desc": "一本绘本挂一个教材单元（实例，非规则）",
+      "required": ["book_id", "section_id"],
+      "optional": ["match_score", "matched_by", "reason",
+                    "anchor_page_no", "extended_activity"]
+    },
+    "License": {
+      "desc": "授权类型",
+      "required": ["spdx"],
+      "optional": ["label", "commercial_ok", "sa_required", "attribution_required", "url"]
+    }
+  },
+
+  "relations": {
+    "has_page":           {"domain": "Book",       "range": "Page",          "card": "1:N", "desc": "书包含页"},
+    "has_audio_tts":      {"domain": "Page",       "range": "AudioTrack",    "card": "1:N", "desc": "页的多音色合成音频"},
+    "has_audio_raw":      {"domain": "Page",       "range": "AudioTrack",    "card": "1:1", "desc": "页的原版朗读音频"},
+    "has_image":          {"domain": "Page",       "range": "Image",         "card": "1:1", "desc": "页的插图"},
+    "mentions_word":      {"domain": "Page",       "range": "Word",          "card": "1:N", "desc": "页出现的词"},
+    "belongs_to_level":   {"domain": "Book",       "range": "Level",         "card": "N:1", "desc": "书属于某级"},
+    "has_primary_topic":  {"domain": "Book",       "range": "Topic",         "card": "N:1", "desc": "书的主话题"},
+    "has_secondary_topic":{"domain": "Book",       "range": "Topic",         "card": "N:N", "desc": "书的次话题"},
+    "covers_word":        {"domain": "Book",       "range": "Word",          "card": "N:N", "desc": "书覆盖的关键词表"},
+    "supports_grammar":   {"domain": "Book",       "range": "GrammarPoint",  "card": "N:N", "desc": "书支撑的语法点"},
+    "exercises_skill":    {"domain": "Book",       "range": "Skill",         "card": "N:N", "desc": "书锻炼的技能"},
+    "pairs_with_unit":    {"domain": "Book",       "range": "Pairing",       "card": "1:N", "desc": "书挂到某个课本单元的 Pairing 实例"},
+    "extends_activity":   {"domain": "Pairing",    "range": "string",        "card": "1:N", "desc": "该挂载提供的拓展任务（自然语言任务名）"},
+    "has_license":        {"domain": "*",          "range": "License",       "card": "N:1", "desc": "任一实体的授权"},
+    "attribution_to":     {"domain": "*",          "range": "Attribution",   "card": "N:1", "desc": "任一实体的署名"},
+    "is_parallel_to":     {"domain": "Book",       "range": "Book",          "card": "1:1", "desc": "双语文本对译"},
+    "next_page":          {"domain": "Page",       "range": "Page",          "card": "1:1", "desc": "下一页链"}
+  },
+
+  "levels": [
+    {"id": "PB0", "cefr": "Pre-A1", "label": "启蒙", "book_codes": ["P1"],
+     "unique_words": [40, 100], "words_per_page": [4, 10], "pages": [6, 10],
+     "target_age": "5-7"},
+    {"id": "PB1", "cefr": "A1.1",   "label": "入门", "book_codes": ["P1", "P2"],
+     "unique_words": [100, 180], "words_per_page": [10, 20], "pages": [8, 20],
+     "target_age": "7-9"},
+    {"id": "PB2", "cefr": "A1.2",   "label": "基础", "book_codes": ["P2", "P3"],
+     "unique_words": [180, 260], "words_per_page": [20, 32], "pages": [10, 22],
+     "target_age": "8-10"},
+    {"id": "PB3", "cefr": "A2.1",   "label": "提高", "book_codes": ["P3", "P4"],
+     "unique_words": [260, 380], "words_per_page": [32, 50], "pages": [12, 24],
+     "target_age": "9-11"},
+    {"id": "PB4", "cefr": "A2.2",   "label": "拓展", "book_codes": ["P4", "P5"],
+     "unique_words": [380, 520], "words_per_page": [50, 70], "pages": [14, 30],
+     "target_age": "10-12"},
+    {"id": "PB5", "cefr": "B1",     "label": "挑战", "book_codes": ["P5", "P6"],
+     "unique_words": [520, 999], "words_per_page": [70, 120], "pages": [20, 60],
+     "target_age": "11-14"}
+  ],
+
+  "skills": [
+    {"id": "reading.find",      "category": "reading", "label": "信息查找"},
+    {"id": "reading.sequence",  "category": "reading", "label": "顺序理解"},
+    {"id": "reading.infer",     "category": "reading", "label": "推测理解"},
+    {"id": "reading.summarize", "category": "reading", "label": "主旨概括"},
+    {"id": "vocab.noun",        "category": "vocab",   "label": "名词类词汇"},
+    {"id": "vocab.verb",        "category": "vocab",   "label": "动词类词汇"},
+    {"id": "vocab.adjective",   "category": "vocab",   "label": "形容词类词汇"},
+    {"id": "vocab.phrase",      "category": "vocab",   "label": "动词短语"},
+    {"id": "grammar.tense",     "category": "grammar", "label": "时态"},
+    {"id": "grammar.there_be",  "category": "grammar", "label": "there be 句型"},
+    {"id": "grammar.comparative","category": "grammar","label": "比较级"},
+    {"id": "output.retell",     "category": "output",  "label": "复述"},
+    {"id": "output.roleplay",   "category": "output",  "label": "角色扮演"},
+    {"id": "output.continue",   "category": "output",  "label": "续写"},
+    {"id": "output.describe",   "category": "output",  "label": "看图说话"}
+  ]
+}

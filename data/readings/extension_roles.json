@@ -1,0 +1,178 @@
+{
+  "_doc": "教材↔课外挂载本体：7 种挂载角色 + 打分公式。每对 (Reading × TextbookUnit) 生成一个 PairingV2 实例。",
+  "_updated": "2026-10-14",
+  "_version": "1.0",
+  "_authority": "data/attrs/section_text.jsonl 为教材侧权威；data/readings/catalog.json 为课外侧权威",
+
+  "roles": {
+    "pre_reading": {
+      "label_zh": "预热文",
+      "label_en": "Pre-reading hook",
+      "purpose": "课前三分钟，激活 Unit 主题背景知识",
+      "lexile_delta_target": "[-200, -50]",
+      "word_count_bucket_target": ["very_short", "short"],
+      "typical_duration_min": [2, 5]
+    },
+    "bridge_text": {
+      "label_zh": "桥梁文",
+      "label_en": "Bridge text",
+      "purpose": "教材正文偏难时作过渡，或教材文过短需扩展阅读体验",
+      "lexile_delta_target": "[-100, 100]",
+      "word_count_bucket_target": ["short", "medium"],
+      "typical_duration_min": [5, 10]
+    },
+    "consolidation": {
+      "label_zh": "巩固文",
+      "label_en": "Consolidation",
+      "purpose": "课上/课后同类文型或同技能的强化训练",
+      "lexile_delta_target": "[-100, 100]",
+      "word_count_bucket_target": ["short", "medium"],
+      "typical_duration_min": [5, 12]
+    },
+    "extension": {
+      "label_zh": "拓展文",
+      "label_en": "Extension",
+      "purpose": "拔高阅读，主题纵深或语篇难度上台阶",
+      "lexile_delta_target": "[80, 300]",
+      "word_count_bucket_target": ["medium", "long"],
+      "typical_duration_min": [8, 20]
+    },
+    "compare_contrast": {
+      "label_zh": "对比文",
+      "label_en": "Compare & contrast",
+      "purpose": "同主题不同视角/文化/时代，训练比较阅读",
+      "lexile_delta_target": "[-150, 200]",
+      "word_count_bucket_target": ["short", "medium", "long"],
+      "typical_duration_min": [5, 15]
+    },
+    "writing_trigger": {
+      "label_zh": "写作触发文",
+      "label_en": "Writing trigger",
+      "purpose": "供 Project / Writing Task 模仿文型、句式或主题",
+      "lexile_delta_target": "[-100, 150]",
+      "word_count_bucket_target": ["short", "medium"],
+      "typical_duration_min": [5, 10]
+    },
+    "culture_window": {
+      "label_zh": "文化窗口",
+      "label_en": "Culture window",
+      "purpose": "跨文化视角拓展，培养 international awareness",
+      "lexile_delta_target": "[-100, 200]",
+      "word_count_bucket_target": ["short", "medium"],
+      "typical_duration_min": [3, 10]
+    }
+  },
+
+  "score_formula": {
+    "total": "score = 0.28*topic + 0.20*skill + 0.10*word + 0.10*lexile + 0.05*role_bonus + 0.20*grammar + 0.07*writfeat",
+    "components": {
+      "topic": {
+        "weight": 0.28,
+        "desc": "教材 topic/keywords 与课外 primary_topic+secondary_topics 的重合度（Jaccard）",
+        "range": [0.0, 1.0]
+      },
+      "skill": {
+        "weight": 0.20,
+        "desc": "教材 keypoints 归一化后的技能标签与课外 target_skills 的重合度",
+        "range": [0.0, 1.0]
+      },
+      "word": {
+        "weight": 0.10,
+        "desc": "教材 words 数组与课外 covers_words/高频词的交集比例（教材视角）",
+        "range": [0.0, 1.0]
+      },
+      "lexile": {
+        "weight": 0.10,
+        "desc": "课外 lexile.mean 落在 role.lexile_delta_target 内得 1.0；偏离按 (1 - |delta-target_mid|/300) 线性衰减",
+        "range": [0.0, 1.0]
+      },
+      "role_bonus": {
+        "weight": 0.05,
+        "desc": "text_type / grade_band / cultural_origin 与 role 期望的一致性加分项",
+        "range": [0.0, 1.0]
+      },
+      "grammar": {
+        "weight": 0.20,
+        "desc": "教材 unit_grammar.top_ids 与课外 grammar_fingerprint.top_ids 的 Jaccard（剔除普适 article/conj/prep），再乘 role 权重（consolidation/writing_trigger 最看重，pre_reading/culture_window 最轻）",
+        "range": [0.0, 1.0]
+      },
+      "writing_feature": {
+        "weight": 0.07,
+        "desc": "教材 vs 课外 writing_features 的接近度（|v_u - v_b| <=0.3 视为 1.0），dialogue_heavy/short_sentence/list_like 权重高",
+        "range": [0.0, 1.0]
+      }
+    },
+    "thresholds": {
+      "min_pair": 0.50,
+      "strong_pair": 0.70,
+      "top_pick": 0.82
+    }
+  },
+
+  "role_compat_rules": {
+    "pre_reading": {
+      "text_type_preferred": ["fable", "folktale", "fantasy"],
+      "cultural_origin_preferred": [],
+      "note": "预热文求短求易求熟；寓言/童话故事最容易激活既有图式"
+    },
+    "bridge_text": {
+      "text_type_preferred": ["fable", "folktale", "realistic_fiction"],
+      "note": "桥梁文要与教材同文型或极近"
+    },
+    "consolidation": {
+      "text_type_preferred": [],
+      "note": "无偏好，纯按 topic/skill 匹配"
+    },
+    "extension": {
+      "text_type_preferred": ["fantasy", "adventure", "realistic_fiction", "detective"],
+      "note": "拓展文倾向长篇，可跨越教材文型"
+    },
+    "compare_contrast": {
+      "text_type_preferred": ["realistic_fiction", "folktale", "satire"],
+      "note": "跨文化/跨时代对比最有效"
+    },
+    "writing_trigger": {
+      "text_type_preferred": ["fable", "folktale", "essay"],
+      "note": "文型清晰、结构可复制"
+    },
+    "culture_window": {
+      "text_type_preferred": ["folktale", "mythological", "satire"],
+      "cultural_origin_differ_from_textbook": true,
+      "note": "要求 extracurricular.cultural_origin != textbook.cultural_origin"
+    }
+  },
+
+  "pairing_v2_schema": {
+    "id": "string (slug: reading_id@section_id)",
+    "reading_id": "string (catalog.json books[].id)",
+    "reading_title": "string",
+    "section_id": "string (book_id:unit_no)",
+    "unit_name": "string",
+    "unit_title": "string",
+    "grade": "string",
+    "term": "string",
+    "role": "string (roles 枚举)",
+    "match_score": "float 0-1",
+    "match_breakdown": {
+      "topic": "float",
+      "skill": "float",
+      "word": "float",
+      "lexile": "float",
+      "role_bonus": "float"
+    },
+    "match_reasons": "array<string> (可读的原因短语)",
+    "recommended_chapter": "int|null (对应 chapters[index])",
+    "teaching_hook": "string (一句话教学钩子，可人工编辑)",
+    "source": "auto|manual",
+    "created_at": "iso8601"
+  },
+
+  "pipeline": {
+    "step1": "读 section_text.jsonl → 抽英语 subject 的每个 section（=1 Unit）",
+    "step2": "读 catalog.json → 每本 Reading 展开 facets",
+    "step3": "对每 (Reading, Section, Role) 三元组计算 match_score",
+    "step4": "同一 (Reading, Section) 若多个 role 分数均 >=0.55，全部保留；否则只保留最高 role",
+    "step5": "输出 data/readings/pairings.json",
+    "step6": "回写 catalog.json books[].pairs_with_unit"
+  }
+}
