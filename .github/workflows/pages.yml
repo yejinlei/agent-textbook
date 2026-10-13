@@ -2,7 +2,9 @@ name: Deploy Pages
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - feature/english-tts-spelling
     paths:
       - pages/**
       - .github/workflows/pages.yml
