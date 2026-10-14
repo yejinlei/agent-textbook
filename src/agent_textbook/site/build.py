@@ -605,6 +605,9 @@ def build_english(con) -> dict:
 def _clean_reading_text(raw, limit=8000):
     """清洗 Gutenberg 纯文本：取 *** START / *** END 之间的正文。"""
     import re
+    # 如果原始文件是 404 网页，直接返回空
+    if re.search(r"404|Page Not Found|Not Found", raw[:500], re.I) and "<html" in raw[:500].lower():
+        return ""
     # 优先找 *** START OF ... *** 和 *** END OF ... *** 标记
     start_pat = re.compile(r"\*\*\* *START OF.*?\*\*\*", re.I)
     end_pat = re.compile(r"\*\*\* *(END|FINIS).*?\*\*\*", re.I)
@@ -628,6 +631,13 @@ def _clean_reading_text(raw, limit=8000):
                 continue
             out.append(line)
         body = "\n".join(out)
+    # 如果正文是 HTML 网页（404 等），提取纯文本
+    if re.search(r"<!DOCTYPE|<html|<body", body, re.I):
+        # 去掉 <script> 和 <style> 块
+        body = re.sub(r"<script[^>]*>.*?</script>", "", body, flags=re.I | re.S)
+        body = re.sub(r"<style[^>]*>.*?</style>", "", body, flags=re.I | re.S)
+        # 去掉所有 HTML 标签
+        body = re.sub(r"<[^>]+>", "", body)
     # 折叠多余空行，去掉 BOM
     body = body.replace("\ufeff", "").strip()
     # 去掉正文开头的制作信息（第一个段落块如果含制作关键词则跳过）
