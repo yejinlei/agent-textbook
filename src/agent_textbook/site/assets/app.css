@@ -488,6 +488,7 @@ details > summary {
 .turn { padding: 3px 0; border-bottom: 1px dashed var(--line); font-size: 16px; }
 .turn b { color: var(--en); margin-right: 4px; }
 .turn.reading { background: #fffde7; border-left: 3px solid #fdd835; padding-left: 8px; transition: background .2s; }
+.tw.on { background: #ff6f00; color: #fff; border-radius: 2px; padding: 0 2px; box-shadow: 0 0 4px rgba(255,111,0,.5); transition: background .15s; }
 .read-all-row { margin: 4px 0 6px; }
 .read-all-dlg.reading { background: var(--en); color: #fff; border-color: var(--en); }
 .pat { font-family: Consolas, "Courier New", monospace; font-size: 15px;

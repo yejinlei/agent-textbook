@@ -2639,9 +2639,45 @@
       var text = line ? line.textContent : "";
       var sp = turn.getAttribute("data-speaker") || "";
       var voiceKey = speakerMap[sp] || "alan";
+      /* 逐词高亮：将 .spk 内容拆成 <span class="tw"> 词 */
+      var wordSpans = [];
+      if (line) {
+        var orig = line.textContent;
+        var html = "";
+        var idx = 0;
+        orig.replace(/(\S+)/g, function (m) {
+          var off = orig.indexOf(m, idx);
+          /* 空格/标点保留 */
+          if (off > idx) html += esc(orig.slice(idx, off));
+          html += '<span class="tw" data-i="' + idx + '">' + esc(m) + '</span>';
+          idx = off + m.length;
+          return m;
+        });
+        if (idx < orig.length) html += esc(orig.slice(idx));
+        line.innerHTML = html;
+        wordSpans = [].slice.call(line.querySelectorAll(".tw"));
+      }
       speakWithVoice(text, voiceKey, function () {
+        /* 恢复原文 */
+        if (line) line.textContent = text;
         i++;
         _readAllTimer = setTimeout(playNext, 400);
+      }, function (charIdx, charLen) {
+        /* 逐词高亮：找到 charIndex 对应的 .tw */
+        wordSpans.forEach(function (s) { s.classList.remove("on"); });
+        var wi = parseInt(wordSpans[0] ? wordSpans[0].getAttribute("data-i") : "0", 10);
+        for (var j = 0; j < wordSpans.length; j++) {
+          var si = parseInt(wordSpans[j].getAttribute("data-i"), 10);
+          if (si <= charIdx) wi = j;
+        }
+        if (wordSpans[wi]) {
+          wordSpans[wi].classList.add("on");
+          /* 滚动到可见 */
+          var rect = wordSpans[wi].getBoundingClientRect();
+          if (rect.top < 60 || rect.bottom > window.innerHeight - 20) {
+            wordSpans[wi].scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
+        }
       });
     }
     playNext();
@@ -2654,10 +2690,16 @@
     if (btn) { btn.classList.remove("reading"); btn.textContent = "🔊 全文朗读（分角色音色）"; }
     [].forEach.call(document.querySelectorAll(".turn.reading"), function (t) {
       t.classList.remove("reading");
+      /* 恢复原文（去掉 .tw 词span） */
+      var spk = t.querySelector(".spk");
+      if (spk && spk.querySelector(".tw")) spk.textContent = spk.textContent;
+    });
+    [].forEach.call(document.querySelectorAll(".tw.on"), function (s) {
+      s.classList.remove("on");
     });
   }
   /* 用指定音色朗读一段文本（浏览器 speechSynthesis，支持回调） */
-  function speakWithVoice(text, voiceKey, onEnd) {
+  function speakWithVoice(text, voiceKey, onEnd, onWord) {
     text = String(text || "").trim();
     if (!text) { if (onEnd) onEnd(); return; }
     var meta = VOICE_META[voiceKey] || VOICE_META.alan;
@@ -2671,6 +2713,9 @@
         var picked = pickBrowserVoice(meta.lang);
         if (picked) u.voice = picked;
         if (onEnd) u.onend = onEnd;
+        if (onWord) u.onboundary = function (e) {
+          if (e.name === "word") onWord(e.charIndex, e.charLength || 0);
+        };
         window.speechSynthesis.speak(u);
         return;
       } catch (e) {}
