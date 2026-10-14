@@ -1311,6 +1311,69 @@
       ]
     },
     {
+      "id": "three-little-pigs",
+      "title": "The Three Little Pigs",
+      "author": "English Folktale (retold)",
+      "primary_topic": "animal",
+      "secondary_topics": ["animal.fable"],
+      "excerpt": {"type": "full"},
+      "facets": {
+        "grade": ["1", "2", "3"],
+        "grade_band": "early_primary",
+        "text_type": "folktale",
+        "themes": ["perseverance", "reason"],
+        "settings": ["countryside", "forest_wild"],
+        "word_count_bucket": "short",
+        "lexile": {"min": 250, "max": 500, "mean": 380, "band": "elementary_low", "source": "editor_estimate"},
+        "cultural_origin": "British",
+        "time_period": "timeless_fantasy",
+        "target_skills": ["reading_comprehension", "retelling"],
+        "text_role": ["pre_reading"]
+      }
+    },
+    {
+      "id": "goldilocks",
+      "title": "Goldilocks and the Three Bears",
+      "author": "English Folktale (retold)",
+      "primary_topic": "animal",
+      "secondary_topics": ["family.pets"],
+      "excerpt": {"type": "full"},
+      "facets": {
+        "grade": ["1", "2", "3"],
+        "grade_band": "early_primary",
+        "text_type": "folktale",
+        "themes": ["curiosity", "disobedience"],
+        "settings": ["forest_wild"],
+        "word_count_bucket": "short",
+        "lexile": {"min": 300, "max": 550, "mean": 420, "band": "elementary_low", "source": "editor_estimate"},
+        "cultural_origin": "British",
+        "time_period": "timeless_fantasy",
+        "target_skills": ["reading_comprehension", "retelling"],
+        "text_role": ["pre_reading"]
+      }
+    },
+    {
+      "id": "chicken-little",
+      "title": "Chicken Little",
+      "author": "English Folktale (retold)",
+      "primary_topic": "animal",
+      "secondary_topics": ["animal.fable"],
+      "excerpt": {"type": "full"},
+      "facets": {
+        "grade": ["1", "2", "3"],
+        "grade_band": "early_primary",
+        "text_type": "folktale",
+        "themes": ["reason", "courage"],
+        "settings": ["farm", "forest_wild"],
+        "word_count_bucket": "short",
+        "lexile": {"min": 300, "max": 550, "mean": 430, "band": "elementary_low", "source": "editor_estimate"},
+        "cultural_origin": "British",
+        "time_period": "timeless_fantasy",
+        "target_skills": ["reading_comprehension", "retelling", "critical_thinking"],
+        "text_role": ["pre_reading"]
+      }
+    },
+    {
       "id": "peter-rabbit",
       "title": "The Tale of Peter Rabbit",
       "author": "Beatrix Potter",
@@ -3771,7 +3834,7 @@
     },
     {
       "id": "robin-hood",
-      "title": "The Merry Adventures of Robin Hood (Chapters 1-2)",
+      "title": "The Merry Adventures of Robin Hood (Prologue)",
       "author": "Howard Pyle",
       "gutenberg_id": 10148,
       "gutenberg_slug": "The Merry Adventures of Robin Hood",
@@ -3926,6 +3989,54 @@
         "tense.future_going_to",
         "question.wh_words"
       ]
+    },
+    {
+      "id": "black-beauty",
+      "title": "Black Beauty (Chapter 1)",
+      "author": "Anna Sewell",
+      "gutenberg_id": 271,
+      "gutenberg_slug": "Black Beauty",
+      "librivox_url": "https://librivox.org/black-beauty-by-anna-sewell/",
+      "primary_topic": "animal",
+      "secondary_topics": ["friendship"],
+      "excerpt": {"type": "chapter", "chapters": [1]},
+      "facets": {
+        "grade": ["3", "4", "5"],
+        "grade_band": "mid_primary",
+        "text_type": "realistic_fiction",
+        "themes": ["kindness", "growing_up", "loyalty"],
+        "settings": ["farm", "countryside"],
+        "word_count_bucket": "short",
+        "lexile": {"min": 600, "max": 800, "mean": 700, "band": "elementary_mid", "source": "editor_estimate"},
+        "cultural_origin": "British",
+        "time_period": "victorian",
+        "target_skills": ["reading_comprehension", "vocabulary_extension"],
+        "text_role": ["extension", "writing_trigger"]
+      }
+    },
+    {
+      "id": "around-the-world",
+      "title": "Around the World in Eighty Days (Chapter 1)",
+      "author": "Jules Verne",
+      "gutenberg_id": 103,
+      "gutenberg_slug": "Around the World in Eighty Days",
+      "librivox_url": "https://librivox.org/around-the-world-in-80-days-by-jules-verne/",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": ["money"],
+      "excerpt": {"type": "chapter", "chapters": [1]},
+      "facets": {
+        "grade": ["5", "6"],
+        "grade_band": "late_primary",
+        "text_type": "adventure",
+        "themes": ["curiosity", "perseverance", "courage"],
+        "settings": ["city_urban"],
+        "word_count_bucket": "short",
+        "lexile": {"min": 950, "max": 1150, "mean": 1050, "band": "middle_early", "source": "editor_estimate"},
+        "cultural_origin": "French",
+        "time_period": "victorian",
+        "target_skills": ["reading_comprehension", "cultural_awareness"],
+        "text_role": ["extension", "culture_window"]
+      }
     },
     {
       "id": "anne-green-gables",
