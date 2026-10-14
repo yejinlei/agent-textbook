@@ -1417,25 +1417,7 @@
            (u.exercise ? 1 : 0) + (u.game ? 1 : 0);
   }
   function refreshUnitMapUI() {
-    var allEls = document.querySelectorAll(".umap-u");
-    var total = allEls.length * 4, done = 0;
-    [].forEach.call(allEls, function (el) {
-      var uk = el.getAttribute("data-uk");
-      if (!uk) return;
-      var n = unitDoneCount(uk);
-      done += n;
-      var bar = el.querySelector(".umap-bar");
-      if (bar) bar.style.width = Math.round(n * 25) + "%";
-      var tag = el.querySelector(".umap-n");
-      if (tag) tag.textContent = n + "/4";
-      el.classList.toggle("umap-full", n >= 4);
-    });
-    [].forEach.call(document.querySelectorAll(".umap-progress"), function (el) {
-      el.textContent = done + " / " + total;
-    });
-    [].forEach.call(document.querySelectorAll(".umap-done-count"), function (el) {
-      el.textContent = done;
-    });
+    refreshUnitMapStages();
   }
 
   /* 每日 3 分钟打卡：{ "YYYY-MM-DD": {items:[lessonKey], done:n} } */
@@ -1465,40 +1447,110 @@
 
   /* 单元地图：册 → 单元卡片，每卡显示四关灯（预习/跟读/练习/游戏）
      order/units/nameOf 由 enText 传入，与目录/正文同源，保证进度条对应得上。 */
+  /* ── 单元地图（游戏棋盘式蛇形路径）── */
+  var UMAP_COLS = 4;                       /* 每行节点数，蛇形折回 */
+  function unitUnlocked(order, i) {
+    if (i <= 0) return true;               /* 第一单元永远开 */
+    var prevDone = unitDoneCount(order[i - 1]);
+    return prevDone >= 2;                  /* 前一单元 ≥2 关即解锁 */
+  }
+  function currentUnitIndex(order) {
+    for (var i = 0; i < order.length; i++) {
+      if (unitUnlocked(order, i) && unitDoneCount(order[i]) < 4) return i;
+    }
+    return -1;                              /* 全部完成 */
+  }
   function renderUnitMap(order, units, nameOf) {
     var totalUnits = order.length;
     var totalStages = totalUnits * 4;
     var doneStages = 0;
     order.forEach(function (k) { doneStages += unitDoneCount(k); });
+    var pct = totalStages ? Math.round(doneStages / totalStages * 100) : 0;
+    var curIdx = currentUnitIndex(order);
+
     var h = '<div class="umap">';
-    h += '<div class="umap-h"><b>🗺 单元地图</b>' +
-         '<span class="small">每单元四关：预习 · 跟读 · 练习 · 游戏</span>' +
+    h += '<div class="umap-h"><b>🗺 单元闯关地图</b>' +
+         '<span class="small">每单元四关：预习 · 跟读 · 练习 · 游戏 · 前单元过 2 关解锁</span>' +
          '<span class="umap-progress small">已点亮 <b>' + doneStages +
-         '</b> / ' + totalStages + ' 关</span></div>';
-    h += '<div class="umap-grid">';
+         '</b> / ' + totalStages + ' 关 (' + pct + '%)</span></div>';
+    /* 总进度条 */
+    h += '<div class="umap-total"><div class="umap-total-bar" style="width:' + pct + '%"></div></div>';
+
+    /* 蛇形路径 */
+    h += '<div class="umap-path">';
     order.forEach(function (k, i) {
       var u = units[k];
       var nLessons = u.dlg.length + u.pas.length;
       var name = nameOf(u);
-      h += '<a class="umap-u" href="#eu' + i + '" data-uk="' + esc(k) + '">' +
-           '<div class="umap-t"><b>' + name + '</b>' +
-           '<span class="umap-n">' + unitDoneCount(k) + "/4</span></div>" +
-           '<div class="umap-stages">' +
-           '<span class="umap-s" data-s="preview">预习</span>' +
-           '<span class="umap-s" data-s="read">跟读</span>' +
-           '<span class="umap-s" data-s="exercise">练习</span>' +
-           '<span class="umap-s" data-s="game">游戏</span>' +
-           '</div>' +
-           '<div class="umap-bar-wrap"><div class="umap-bar"></div></div>' +
-           '<div class="umap-f small">' + nLessons + ' 课</div>' +
-           '</a>';
+      var n = unitDoneCount(k);
+      var unlocked = unitUnlocked(order, i);
+      var isCurrent = (i === curIdx);
+      var isDone = (n >= 4);
+      var row = Math.floor(i / UMAP_COLS);
+      var col = i % UMAP_COLS;
+      var reverse = (row % 2 === 1);         /* 奇数行从右到左 */
+
+      h += '<a class="umap-node' +
+           (unlocked ? "" : " locked") +
+           (isCurrent ? " current" : "") +
+           (isDone ? " done" : "") +
+           (reverse ? " rev" : "") +
+           '" href="#eu' + i + '" data-uk="' + esc(k) + '" data-idx="' + i + '">';
+
+      /* 节点编号圆牌 */
+      h += '<div class="umap-badge">' + (i + 1) + '</div>';
+
+      /* 勋章 / 锁 / 当前位置标记 */
+      if (isDone) h += '<div class="umap-medal">🏅</div>';
+      else if (!unlocked) h += '<div class="umap-lock">🔒</div>';
+      else if (isCurrent) h += '<div class="umap-here">📍</div>';
+
+      /* 单元名 */
+      h += '<div class="umap-t">' + esc(name) + '</div>';
+
+      /* 四关灯 */
+      h += '<div class="umap-stages">' +
+           '<span class="umap-s" data-s="preview" title="预习">预</span>' +
+           '<span class="umap-s" data-s="read" title="跟读">读</span>' +
+           '<span class="umap-s" data-s="exercise" title="练习">练</span>' +
+           '<span class="umap-s" data-s="game" title="游戏">游</span>' +
+           '</div>';
+
+      /* 进度文字 */
+      h += '<div class="umap-n">' + n + '/4 · ' + nLessons + '课</div>';
+
+      h += '</a>';
+
+      /* 连接线（非行末且非最后一个节点） */
+      if (i < totalUnits - 1) {
+        var nextCol = (i + 1) % UMAP_COLS;
+        if (nextCol === 0) {
+          h += '<div class="umap-turn ' + (reverse ? "tl" : "tr") + '"></div>';
+        } else {
+          h += '<div class="umap-link ' + (reverse ? "lr" : "rl") + '"></div>';
+        }
+      }
     });
-    h += '</div></div>';
+    h += '</div>';
+
+    /* 起点 / 终点标记 */
+    h += '<div class="umap-endpoints"><span class="umap-start">🏁 起点</span>';
+    if (curIdx < 0) h += '<span class="umap-finish done">🏆 全部通关！</span>';
+    else h += '<span class="umap-finish">🎯 目标：全部通关</span>';
+    h += '</div>';
+
+    h += '</div>';
     return h;
   }
   function refreshUnitMapStages() {
     var doneStages = 0, totalUnits = 0;
-    [].forEach.call(document.querySelectorAll(".umap-u"), function (el) {
+    var nodes = document.querySelectorAll(".umap-node");
+    var order = [];
+    [].forEach.call(nodes, function (el) {
+      var uk = el.getAttribute("data-uk");
+      order.push(uk);
+    });
+    [].forEach.call(nodes, function (el, i) {
       totalUnits++;
       var uk = el.getAttribute("data-uk");
       var u = UNITMAP[uk] || {};
@@ -1508,13 +1560,60 @@
       });
       var n = unitDoneCount(uk);
       doneStages += n;
-      el.querySelector(".umap-bar").style.width = (n * 25) + "%";
-      el.querySelector(".umap-n").textContent = n + "/4";
-      el.classList.toggle("umap-full", n >= 4);
+      el.classList.toggle("done", n >= 4);
+      var unlocked = unitUnlocked(order, i);
+      el.classList.toggle("locked", !unlocked);
+      /* 勋章 / 锁标记随状态切换 */
+      var medal = el.querySelector(".umap-medal");
+      var lock = el.querySelector(".umap-lock");
+      var here = el.querySelector(".umap-here");
+      if (n >= 4 && !medal) {
+        el.insertAdjacentHTML("afterbegin", '<div class="umap-medal">🏅</div>');
+        if (lock) lock.remove();
+        if (here) here.remove();
+      }
+      if (n < 4 && !unlocked && !lock) {
+        el.insertAdjacentHTML("afterbegin", '<div class="umap-lock">🔒</div>');
+        if (medal) medal.remove();
+        if (here) here.remove();
+      }
     });
+    /* 刷新当前位置 */
+    var curIdx = currentUnitIndex(order);
+    [].forEach.call(nodes, function (el, i) {
+      var isCur = (i === curIdx);
+      el.classList.toggle("current", isCur);
+      var here = el.querySelector(".umap-here");
+      if (isCur && !here && !el.classList.contains("done")) {
+        el.insertAdjacentHTML("afterbegin", '<div class="umap-here">📍</div>');
+      } else if (!isCur && here) {
+        here.remove();
+      }
+    });
+    /* 总进度 */
+    var total = totalUnits * 4;
+    var pct = total ? Math.round(doneStages / total * 100) : 0;
     [].forEach.call(document.querySelectorAll(".umap-progress b"), function (el) {
       el.textContent = doneStages;
     });
+    [].forEach.call(document.querySelectorAll(".umap-progress"), function (el) {
+      el.textContent = '已点亮 ' + doneStages + ' / ' + total + ' 关 (' + pct + '%)';
+      el.insertAdjacentHTML("afterbegin", "<b></b>");
+      el.querySelector("b").textContent = doneStages;
+    });
+    var bar = document.querySelector(".umap-total-bar");
+    if (bar) bar.style.width = pct + "%";
+    /* 终点状态 */
+    var fin = document.querySelector(".umap-finish");
+    if (fin) {
+      if (curIdx < 0) {
+        fin.textContent = "🏆 全部通关！";
+        fin.classList.add("done");
+      } else {
+        fin.textContent = "🎯 目标：全部通关";
+        fin.classList.remove("done");
+      }
+    }
   }
 
   /* 每日 3 分钟：从"错题本 + 生词本 + 未复习的课"里抽 3 张卡
