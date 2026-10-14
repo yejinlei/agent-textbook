@@ -1307,18 +1307,21 @@
     });
     // 课文页：每课学习中心的 tab/练习/游戏/打星都走这一套委托
     if (kind === "discourse") bindLessonHubs(box);
-    // 课外拓展页：chip 勾选控制卡片内容显示（复用语文/数学的 chip+kb 模式）
+    // 课外拓展页：ReadWorks 风格筛选
     if (kind === "extra") {
+      box.addEventListener("change", function (e) {
+        var cb = e.target.closest('input[type="checkbox"]');
+        if (!cb) return;
+        exToggle(cb.dataset.fcat, cb.dataset.fval);
+        cb.closest(".rw-ck").classList.toggle("checked", cb.checked);
+        t.fire();
+      });
       box.addEventListener("click", function (e) {
-        var chip = e.target.closest(".chip");
-        if (!chip) return;
-        var k = chip.dataset.ex;
-        var cur = exSecShow(k);
-        EX_ON[k] = !cur;
-        chip.classList.toggle("on", !cur);
-        [].forEach.call(box.querySelectorAll('.kb[data-kb="' + k + '"]'),
-                        function (d) { d.classList.toggle("show", !cur); });
-        try { localStorage.setItem("enExtraShow", JSON.stringify(EX_ON)); } catch (err) {}
+        var clr = e.target.closest(".rw-clear");
+        if (!clr) return;
+        EX_FILTER = {};
+        try { localStorage.setItem("enExtraFilter", "{}"); } catch (err) {}
+        t.fire();
       });
     }
   }
@@ -1974,95 +1977,119 @@
       .filter(function (s) { return s.length > 3; });
   }
 
-  /* 课外拓展：按话题分组，短文 + 对话混排
-     勾选分类（chip）控制每张卡片里显示哪些内容，状态记 localStorage
-     复用语文/数学的 chip + kb 模式（commit 494cbbe） */
-  var EX_EXTRA = [
-    ["zh", "译文"], ["words", "重点词"], ["lines", "对话原文"],
-    ["peek", "原文预览"]
-  ];
-  var EX_ON = {};
-  try { EX_ON = JSON.parse(localStorage.getItem("enExtraShow") || "{}"); } catch (e) { EX_ON = {}; }
-  var EX_DEFAULT = { zh: true, peek: true, lines: true, words: false };
-  function exSecShow(k) { return EX_ON[k] != null ? !!EX_ON[k] : !!EX_DEFAULT[k]; }
+  /* 课外拓展：ReadWorks 风格 — 左侧多选筛选 + 右侧卡片列表 */
+  var EX_FILTER = {};
+  try { EX_FILTER = JSON.parse(localStorage.getItem("enExtraFilter") || "{}"); } catch (e) { EX_FILTER = {}; }
+  function exChecked(cat, val) {
+    return EX_FILTER[cat] && EX_FILTER[cat].indexOf(val) >= 0;
+  }
+  function exToggle(cat, val) {
+    if (!EX_FILTER[cat]) EX_FILTER[cat] = [];
+    var i = EX_FILTER[cat].indexOf(val);
+    if (i >= 0) EX_FILTER[cat].splice(i, 1);
+    else EX_FILTER[cat].push(val);
+    if (!EX_FILTER[cat].length) delete EX_FILTER[cat];
+    try { localStorage.setItem("enExtraFilter", JSON.stringify(EX_FILTER)); } catch (e) {}
+  }
+  function exMatch(item) {
+    /* item = {kind, data}；每个筛选类别都满足才返回 true（AND），类别内多选 OR */
+    if (EX_FILTER.book && EX_FILTER.book.indexOf(item.data.book || "") < 0) return false;
+    if (EX_FILTER.genre && item.kind === "passage" &&
+        EX_FILTER.genre.indexOf(item.data.genre || "") < 0) return false;
+    if (EX_FILTER.genre && item.kind === "dialogue" &&
+        EX_FILTER.genre.indexOf(item.data.function || "") < 0) return false;
+    if (EX_FILTER.topic && EX_FILTER.topic.indexOf(item.data.topic || "") < 0) return false;
+    if (EX_FILTER.type && EX_FILTER.type.indexOf(item.kind) < 0) return false;
+    return true;
+  }
   function enExtra(st) {
     var dl = (D.dialogues || []).filter(pass(st, ["scene", "function", "patterns"]));
     var ps = (D.passages || []).filter(pass(st, ["name", "genre", "text", "topic"]));
-    var topics = {}, order = [];
-    function add(topic, item) {
-      if (!topics[topic]) { topics[topic] = []; order.push(topic); }
-      topics[topic].push(item);
-    }
-    ps.forEach(function (p) { add(p.topic || "（无主题）", { kind: "passage", data: p }); });
-    dl.forEach(function (d) { add(d.topic || "（无主题）", { kind: "dialogue", data: d }); });
-    order.sort(function (a, b) { return topics[b].length - topics[a].length; });
+    var all = [];
+    ps.forEach(function (p) { all.push({ kind: "passage", data: p }); });
+    dl.forEach(function (d) { all.push({ kind: "dialogue", data: d }); });
+    if (!all.length) return '<div class="empty">没有匹配的课外拓展内容</div>';
 
-    var nTotal = ps.length + dl.length;
-    if (!nTotal) return '<div class="empty">没有匹配的课外拓展内容</div>';
-
-    var h = '<p class="small">点下方标签勾选要显示的内容，全站通用。</p>';
-    order.forEach(function (topic) {
-      var items = topics[topic];
-      h += '<details class="toc" open><summary>' + esc(topic) +
-           ' <span class="small">(' + items.length + ' 篇)</span></summary>';
-      items.forEach(function (it) {
-        if (it.kind === "passage") {
-          var p = it.data;
-          var peek = (p.text || "").slice(0, 120);
-          h += '<div class="item"><div class="top"><span class="name">' +
-               esc(p.name || "短文") + '</span>' +
-               (p.genre ? '<span class="tag">' + esc(p.genre) + '</span>' : '') +
-               (p.book ? '<span class="tag d1">' + esc(p.book) + '</span>' : '') +
-               (p.unit ? '<span class="small">' + esc(p.unit) + '</span>' : '') +
-               '</div>';
-          /* chip 勾选区 */
-          h += '<div class="chips">' + EX_EXTRA.map(function (e) {
-            return '<span class="chip' + (exSecShow(e[0]) ? " on" : "") +
-                   '" data-ex="' + e[0] + '">' + e[1] + '</span>';
-          }).join("") + '</div>';
-          if (p.zh) h += '<div class="kb' + (exSecShow("zh") ? " show" : "") +
-                         '" data-kb="zh"><p class="kbp">' +
-                         esc(p.zh.slice(0, 150)) + (p.zh.length > 150 ? '…' : '') + '</p></div>';
-          h += '<div class="kb' + (exSecShow("peek") ? " show" : "") +
-               '" data-kb="peek"><p class="kbp">' + esc(peek) +
-               (p.text && p.text.length > 120 ? '…' : '') + '</p>' + spkBtn(peek) + '</div>';
-          if (p.words && p.words.length) {
-            h += '<div class="kb' + (exSecShow("words") ? " show" : "") +
-                 '" data-kb="words"><div class="words">' +
-                 p.words.slice(0, 6).map(function (w) {
-                   var word = typeof w === "string" ? w : (w.word || w.w || "");
-                   return '<span class="wb">' + spkBtn(word) + esc(word) + '</span>';
-                 }).join("") + '</div></div>';
-          }
-          h += '</div>';
-        } else {
-          var d = it.data;
-          h += '<div class="item"><div class="top"><span class="name">' +
-               esc(d.scene || d.title || "对话") + '</span>' +
-               (d.function ? '<span class="tag">' + esc(d.function) + '</span>' : '') +
-               (d.book ? '<span class="tag d1">' + esc(d.book) + '</span>' : '') +
-               (d.unit ? '<span class="small">' + esc(d.unit) + '</span>' : '') +
-               '</div>';
-          if (d.patterns) h += '<p class="small">句型：' + esc(d.patterns) + '</p>';
-          h += '<div class="chips">' + EX_EXTRA.filter(function (e) {
-            return e[0] !== "zh" && e[0] !== "peek";
-          }).map(function (e) {
-            return '<span class="chip' + (exSecShow(e[0]) ? " on" : "") +
-                   '" data-ex="' + e[0] + '">' + e[1] + '</span>';
-          }).join("") + '</div>';
-          if (d.lines) {
-            h += '<div class="kb' + (exSecShow("lines") ? " show" : "") +
-                 '" data-kb="lines">' + d.lines.slice(0, 4).map(function (l) {
-                   return '<p class="kbp">' + spkBtn(l.text || l) +
-                          '<span class="spk">' + esc(l.text || l) + '</span></p>';
-                 }).join("") + '</div>';
-          }
-          h += '</div>';
-        }
-      });
-      h += '</details>';
+    /* 收集筛选项 */
+    var books = {}, genres = {}, topics = {};
+    all.forEach(function (it) {
+      var d = it.data;
+      if (d.book) books[d.book] = (books[d.book] || 0) + 1;
+      var g = it.kind === "passage" ? (d.genre || "") : (d.function || "");
+      if (g) genres[g] = (genres[g] || 0) + 1;
+      if (d.topic) topics[d.topic] = (topics[d.topic] || 0) + 1;
     });
-    return h;
+    var bookList = Object.keys(books).sort();
+    var genreList = Object.keys(genres).sort();
+    var topicList = Object.keys(topics).sort(function (a, b) { return topics[b] - topics[a]; });
+
+    /* 左侧筛选栏 */
+    function filterGroup(cat, label, list, counts) {
+      if (!list.length) return "";
+      var h = '<div class="rw-filter-grp"><div class="rw-filter-h">' + label + '</div>';
+      list.forEach(function (v) {
+        var ck = exChecked(cat, v);
+        h += '<label class="rw-ck' + (ck ? " checked" : "") + '">' +
+             '<input type="checkbox" data-fcat="' + esc(cat) + '" data-fval="' + esc(v) + '"' +
+             (ck ? " checked" : "") + '>' +
+             '<span>' + esc(v) + '</span>' +
+             '<span class="rw-cnt">' + (counts[v] || 0) + '</span></label>';
+      });
+      return h + '</div>';
+    }
+    var sidebar = '<div class="rw-sidebar">' +
+      '<div class="rw-filter-h">筛选 <button class="rw-clear">清除全部</button></div>' +
+      filterGroup("type", "类型", ["passage", "dialogue"],
+        { passage: ps.length, dialogue: dl.length }) +
+      filterGroup("book", "册次", bookList, books) +
+      filterGroup("genre", "体裁", genreList, genres) +
+      filterGroup("topic", "话题", topicList.slice(0, 20), topics) +
+      '</div>';
+
+    /* 右侧卡片列表 */
+    var shown = all.filter(exMatch);
+    var cards = '<div class="rw-main">' +
+      '<div class="rw-count">共 ' + shown.length + ' 篇' +
+      (all.length !== shown.length ? '（已筛选，总共 ' + all.length + ' 篇）' : '') + '</div>';
+    if (!shown.length) cards += '<div class="empty">没有匹配的内容，试试清除部分筛选</div>';
+    shown.forEach(function (it) {
+      var d = it.data;
+      var isP = it.kind === "passage";
+      var title = isP ? (d.name || "短文") : (d.scene || d.title || "对话");
+      var peek = isP ? (d.text || "").slice(0, 200) : "";
+      cards += '<details class="rw-card"><summary>' +
+        '<span class="rw-card-title">' + esc(title) + '</span>' +
+        '<span class="rw-card-tags">' +
+        (isP && d.genre ? '<span class="tag">' + esc(d.genre) + '</span>' : '') +
+        (!isP && d.function ? '<span class="tag">' + esc(d.function) + '</span>' : '') +
+        (d.book ? '<span class="tag d1">' + esc(d.book) + '</span>' : '') +
+        (d.unit ? '<span class="tag d2">' + esc(d.unit) + '</span>' : '') +
+        (d.topic ? '<span class="tag d3">' + esc(d.topic) + '</span>' : '') +
+        '</span></summary>';
+      if (isP) {
+        if (d.zh) cards += '<p class="rw-zh">' + esc(d.zh.slice(0, 200)) +
+                           (d.zh.length > 200 ? '…' : '') + '</p>';
+        cards += '<p class="rw-text">' + esc(d.text || "") + '</p>' + spkBtn(d.text || "");
+        if (d.words && d.words.length) {
+          cards += '<div class="words">' + d.words.slice(0, 8).map(function (w) {
+            var word = typeof w === "string" ? w : (w.word || w.w || "");
+            return '<span class="wb">' + spkBtn(word) + esc(word) + '</span>';
+          }).join("") + '</div>';
+        }
+      } else {
+        if (d.patterns) cards += '<p class="small">句型：' + esc(d.patterns) + '</p>';
+        if (d.lines) {
+          cards += '<div class="rw-lines">' + d.lines.map(function (l) {
+            return '<p class="kbp">' + spkBtn(l.text || l) +
+                   '<span class="spk">' + esc(l.text || l) + '</span></p>';
+          }).join("") + '</div>';
+        }
+      }
+      cards += '</details>';
+    });
+    cards += '</div>';
+
+    return '<div class="rw-layout">' + sidebar + cards + '</div>';
   }
 
   function enText(st) {

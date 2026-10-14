@@ -1167,7 +1167,40 @@ details.aq .aa {
 .ok-t { color: #196f3d; font-weight: 600; }
 .no-t { color: #c62828; }
 
-/* ---- 课外拓展页（复用 .item/.chips/.chip/.kb 样式）---- */
+/* ---- 课外拓展页（ReadWorks 风格）---- */
+.rw-layout { display: grid; grid-template-columns: 200px 1fr; gap: 16px; align-items: start; }
+.rw-sidebar { position: sticky; top: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px; max-height: calc(100vh - 16px); overflow-y: auto; }
+.rw-filter-h { font-weight: 700; font-size: 13px; margin: 0 0 6px; display: flex; justify-content: space-between; align-items: center; }
+.rw-filter-h:first-child { margin-top: 0; }
+.rw-clear { font-size: 11px; color: var(--c); background: none; border: none; cursor: pointer; text-decoration: underline; }
+.rw-filter-grp { margin-bottom: 12px; }
+.rw-filter-grp > .rw-filter-h { margin-bottom: 4px; font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: .5px; }
+.rw-ck { display: flex; align-items: center; gap: 4px; padding: 3px 4px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.rw-ck:hover { background: var(--card-hover, #f5f5f5); }
+.rw-ck input { margin: 0; accent-color: var(--c); }
+.rw-ck.checked > span { font-weight: 600; color: var(--c); }
+.rw-cnt { margin-left: auto; font-size: 11px; color: #aaa; }
+.rw-main { min-width: 0; }
+.rw-count { font-size: 13px; color: #666; margin-bottom: 10px; }
+.rw-card { border: 1px solid var(--line); border-radius: 10px; background: #fff; margin-bottom: 8px; }
+.rw-card > summary { cursor: pointer; padding: 10px 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; list-style: none; }
+.rw-card > summary::-webkit-details-marker { display: none; }
+.rw-card > summary::before { content: "▸"; color: #999; font-size: 12px; }
+.rw-card[open] > summary::before { content: "▾"; }
+.rw-card-title { font-weight: 600; font-size: 15px; }
+.rw-card-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.rw-card-tags .tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; }
+.rw-card-tags .tag.d1 { background: #e8f5e9; color: #2e7d32; }
+.rw-card-tags .tag.d2 { background: #e3f2fd; color: #1565c0; }
+.rw-card-tags .tag.d3 { background: #fff3e0; color: #e65100; }
+.rw-zh { padding: 0 14px 6px; font-size: 13px; color: #666; line-height: 1.6; }
+.rw-text { padding: 0 14px 6px; font-size: 14px; line-height: 1.8; }
+.rw-lines { padding: 0 14px 8px; }
+.rw-lines .kbp { margin: 2px 0; }
+@media (max-width: 700px) {
+  .rw-layout { grid-template-columns: 1fr; }
+  .rw-sidebar { position: static; max-height: none; }
+}
 
 /* ---- 成就勋章 ---- */
 .badges { margin: 6px 0 12px; padding: 10px 14px; border: 2px solid #e8c97a; background: linear-gradient(180deg,#fff9e8,#fff); border-radius: 14px; }
