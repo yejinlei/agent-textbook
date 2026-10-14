@@ -602,6 +602,103 @@ def build_english(con) -> dict:
     }
 
 
+def _load_readings():
+    """长文库 catalog.json → 精简后供课外拓展页展示。"""
+    import os
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                        "data", "readings", "catalog.json")
+    if not os.path.exists(path):
+        return []
+    raw = json.load(open(path, encoding="utf-8"))
+    out = []
+    for b in raw.get("books", []):
+        f = b.get("facets", {})
+        out.append({
+            "id": b.get("id", ""), "title": b.get("title", ""),
+            "author": b.get("author", ""),
+            "primary_topic": b.get("primary_topic", ""),
+            "secondary_topics": b.get("secondary_topics", []),
+            "facets": {
+                "grade": f.get("grade", []), "grade_band": f.get("grade_band", ""),
+                "text_type": f.get("text_type", ""),
+                "themes": f.get("themes", []), "settings": f.get("settings", []),
+                "word_count_bucket": f.get("word_count_bucket", ""),
+                "lexile": f.get("lexile", {}),
+                "cultural_origin": f.get("cultural_origin", ""),
+                "time_period": f.get("time_period", ""),
+                "target_skills": f.get("target_skills", []),
+                "text_role": f.get("text_role", []),
+            },
+            "pairs_with_unit": b.get("pairs_with_unit", []),
+        })
+    return out
+
+
+def _load_picturebooks():
+    """绘本 books.json → 精简后供课外拓展页展示。"""
+    import os
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                        "data", "picturebooks", "books.json")
+    if not os.path.exists(path):
+        return []
+    raw = json.load(open(path, encoding="utf-8"))
+    out = []
+    for b in raw.get("books", []):
+        f = b.get("facets", {})
+        pages = b.get("pages", [])
+        out.append({
+            "id": b.get("id", ""), "title": b.get("title", ""),
+            "author": b.get("author", ""), "level": b.get("level", ""),
+            "primary_topic": b.get("primary_topic", ""),
+            "secondary_topics": b.get("secondary_topics", []),
+            "word_count": b.get("word_count", 0),
+            "reading_time_min": b.get("reading_time_min", 0),
+            "facets": {
+                "grade": f.get("grade", []), "grade_band": f.get("grade_band", ""),
+                "text_type": f.get("text_type", ""),
+                "themes": f.get("themes", []), "settings": f.get("settings", []),
+                "word_count_bucket": f.get("word_count_bucket", ""),
+                "lexile": f.get("lexile", {}),
+                "cultural_origin": f.get("cultural_origin", ""),
+                "time_period": f.get("time_period", ""),
+                "target_skills": f.get("target_skills", []),
+                "text_role": f.get("text_role", []),
+            },
+            "pages": [{"n": p.get("n"), "text": p.get("text", "")}
+                      for p in pages[:20]],
+        })
+    return out
+
+
+def _load_taxonomy():
+    """taxonomy.json 的分面定义 → 供 UI 渲染筛选项标签。"""
+    import os
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                        "data", "readings", "taxonomy.json")
+    if not os.path.exists(path):
+        return {}
+    raw = json.load(open(path, encoding="utf-8"))
+    dims = raw.get("dimensions", {})
+    # 精简：只保留 UI 需要的 label 映射
+    out = {}
+    for k, v in dims.items():
+        if v.get("type") == "single_enum" and isinstance(v.get("values"), dict):
+            out[k] = {"label": v.get("description", k),
+                      "values": {kk: vv for kk, vv in v["values"].items()}}
+        elif v.get("type") == "single_enum" and isinstance(v.get("values"), list):
+            out[k] = {"label": v.get("description", k), "values": v["values"]}
+        elif v.get("type") == "multi_enum" and isinstance(v.get("values"), dict):
+            out[k] = {"label": v.get("description", k),
+                      "values": {kk: vv for kk, vv in v["values"].items()}}
+        elif v.get("type") == "multi_enum" and isinstance(v.get("values"), list):
+            out[k] = {"label": v.get("description", k), "values": v["values"]}
+        elif v.get("type") == "range" and "bands" in v:
+            out[k] = {"label": v.get("description", k),
+                      "values": {kk: vv.get("grade_hint", kk)
+                                 for kk, vv in v["bands"].items()}}
+    return out
+
+
 def build_speak(con) -> dict:
     """开口说：情境对话（分角色、逐句带中文）+ 常用表达 + 项目任务。
 
@@ -939,6 +1036,11 @@ def _slice(key, kind, cn_d, math_d, en_d):
         d[k] = en_d[k]
     if kind == "discourse":
         d["hubs"] = build_lesson_hubs(en_d)   # 每课学习中心的单元级配套
+    if kind == "extra":
+        # 本体论课外拓展：加载长文库 + 绘本 + 分类标准
+        d["readings"] = _load_readings()
+        d["picturebooks"] = _load_picturebooks()
+        d["taxonomy"] = _load_taxonomy()
     if kind != "vocab":
         d["vocab"] = en_d["vocab"]      # 册次/话题下拉与课文重点词用得上
     return d

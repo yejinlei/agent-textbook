@@ -1167,14 +1167,13 @@ details.aq .aa {
 .ok-t { color: #196f3d; font-weight: 600; }
 .no-t { color: #c62828; }
 
-/* ---- 课外拓展页（ReadWorks 风格）---- */
-.rw-layout { display: grid; grid-template-columns: 200px 1fr; gap: 16px; align-items: start; }
+/* ---- 课外拓展页（本体论 + ReadWorks 风格）---- */
+.rw-layout { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; }
 .rw-sidebar { position: sticky; top: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px; max-height: calc(100vh - 16px); overflow-y: auto; }
-.rw-filter-h { font-weight: 700; font-size: 13px; margin: 0 0 6px; display: flex; justify-content: space-between; align-items: center; }
-.rw-filter-h:first-child { margin-top: 0; }
+.rw-fhd { font-weight: 700; font-size: 14px; margin: 0 0 8px; display: flex; justify-content: space-between; align-items: center; }
 .rw-clear { font-size: 11px; color: var(--c); background: none; border: none; cursor: pointer; text-decoration: underline; }
-.rw-filter-grp { margin-bottom: 12px; }
-.rw-filter-grp > .rw-filter-h { margin-bottom: 4px; font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: .5px; }
+.rw-fgrp { margin-bottom: 10px; }
+.rw-fh { margin-bottom: 4px; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
 .rw-ck { display: flex; align-items: center; gap: 4px; padding: 3px 4px; border-radius: 6px; cursor: pointer; font-size: 13px; }
 .rw-ck:hover { background: var(--card-hover, #f5f5f5); }
 .rw-ck input { margin: 0; accent-color: var(--c); }
@@ -1188,11 +1187,19 @@ details.aq .aa {
 .rw-card > summary::before { content: "▸"; color: #999; font-size: 12px; }
 .rw-card[open] > summary::before { content: "▾"; }
 .rw-card-title { font-weight: 600; font-size: 15px; }
+.rw-card-author { font-size: 12px; color: #999; }
 .rw-card-tags { display: flex; gap: 4px; flex-wrap: wrap; }
-.rw-card-tags .tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; }
+.rw-card-tags .tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; background: #f0f0f0; color: #555; }
 .rw-card-tags .tag.d1 { background: #e8f5e9; color: #2e7d32; }
 .rw-card-tags .tag.d2 { background: #e3f2fd; color: #1565c0; }
 .rw-card-tags .tag.d3 { background: #fff3e0; color: #e65100; }
+.rw-meta { padding: 4px 14px 6px; display: flex; gap: 8px; flex-wrap: wrap; }
+.rw-meta span { font-size: 12px; color: #888; }
+.rw-topics { padding: 0 14px 6px; display: flex; gap: 4px; flex-wrap: wrap; align-items: center; font-size: 12px; color: #888; }
+.rw-topics .tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; background: #e8f5e9; color: #2e7d32; }
+.rw-pages { padding: 0 14px 8px; }
+.rw-pg { margin: 4px 0; font-size: 14px; line-height: 1.8; }
+.rw-pgn { display: inline-block; min-width: 28px; font-size: 11px; color: #aaa; font-weight: 700; }
 .rw-zh { padding: 0 14px 6px; font-size: 13px; color: #666; line-height: 1.6; }
 .rw-text { padding: 0 14px 6px; font-size: 14px; line-height: 1.8; }
 .rw-lines { padding: 0 14px 8px; }

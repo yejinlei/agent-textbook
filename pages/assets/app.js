@@ -1977,7 +1977,61 @@
       .filter(function (s) { return s.length > 3; });
   }
 
-  /* 课外拓展：ReadWorks 风格 — 左侧多选筛选 + 右侧卡片列表 */
+  /* 课外拓展：本体论 + ReadWorks 风格
+     数据来源：D.readings（长文库 catalog.json）+ D.picturebooks（绘本 books.json）
+     筛选维度来自 taxonomy.json 的本体分面 */
+  var EX_FACETS = [
+    ["grade_band", "年级段"], ["text_type", "体裁"], ["themes", "主题"],
+    ["settings", "背景"], ["word_count_bucket", "篇幅"],
+    ["lexile", "难度"], ["cultural_origin", "文化"], ["time_period", "时代"],
+    ["target_skills", "技能"], ["text_role", "挂载角色"],
+  ];
+  var EX_FACET_LABELS = {
+    grade_band: { early_primary: "低段(1-2)", mid_primary: "中段(3-4)",
+                  late_primary: "高段(5-6)", middle_school: "初中(7-8)" },
+    text_type: { fable: "寓言", folktale: "民间故事", fantasy: "幻想",
+                 realistic_fiction: "现实主义", adventure: "冒险",
+                 detective: "侦探", satire: "讽刺", memoir: "回忆录", essay: "散文" },
+    themes: { courage: "勇气", kindness: "善良", honesty: "诚实", friendship: "友谊",
+              perseverance: "坚持", self_acceptance: "自我接纳", belonging: "归属感",
+              growing_up: "成长", imagination: "想象力", justice: "正义",
+              loyalty: "忠诚", resilience: "韧性", survival: "生存", homecoming: "归家",
+              generosity: "慷慨", humility: "谦逊", curiosity: "好奇",
+              love_loss: "爱与失去", disobedience: "违纪/后果", reason: "理性",
+              family: "家庭亲情", trade_sharing: "交易与分享", money_wealth: "金钱财富" },
+    settings: { countryside: "乡村", rural_village: "村庄", city_urban: "城市",
+                school: "学校", forest_wild: "森林", mountain: "山地",
+                sea_nautical: "海上", jungle: "丛林", arctic: "极地", farm: "农场",
+                garden_park: "花园", magical_world: "奇幻世界", space_outer: "太空",
+                medieval: "中世纪", nature_outdoor: "自然户外" },
+    word_count_bucket: { very_short: "极短(<500)", short: "短(500-1500)",
+                         medium: "中(1500-3000)", long: "长(3000-5000)",
+                         very_long: "很长(>5000)" },
+    lexile: { elementary_low: "200-500L", elementary_mid: "500-800L",
+              elementary_high: "800-1000L", middle_early: "1000-1200L",
+              middle_late: "1200-1500L" },
+    cultural_origin: { British: "英国", American: "美国", Danish: "丹麦",
+                       Greek: "希腊", Swiss_German: "瑞士/德国", French: "法国",
+                       British_Indian: "英印", British_Scottish: "苏格兰",
+                       British_Irish: "爱尔兰", Canadian: "加拿大",
+                       British_American: "英美", Kenyan: "肯尼亚",
+                       Ethiopian: "埃塞俄比亚", Ghanaian: "加纳",
+                       South_African: "南非", African_Oral: "非洲口传", Other: "其他" },
+    time_period: { timeless_fantasy: "奇幻/无时代", medieval: "中世纪",
+                   "18th_century": "18世纪", victorian: "维多利亚",
+                   early_20th: "20世纪初", modern: "现代" },
+    target_skills: { reading_comprehension: "阅读理解", vocabulary_extension: "词汇拓展",
+                     retelling: "复述", grammar_practice: "语法练习",
+                     writing_inspiration: "写作启发", cultural_awareness: "文化意识",
+                     critical_thinking: "批判思维" },
+    text_role: { pre_reading: "预热文", bridge_text: "桥梁文", consolidation: "巩固文",
+                 extension: "拓展文", compare_contrast: "对比文",
+                 writing_trigger: "写作触发", culture_window: "文化窗口" },
+  };
+  function exFacetLabel(cat, val) {
+    var m = EX_FACET_LABELS[cat];
+    return m && m[val] ? m[val] : val;
+  }
   var EX_FILTER = {};
   try { EX_FILTER = JSON.parse(localStorage.getItem("enExtraFilter") || "{}"); } catch (e) { EX_FILTER = {}; }
   function exChecked(cat, val) {
@@ -1991,105 +2045,174 @@
     if (!EX_FILTER[cat].length) delete EX_FILTER[cat];
     try { localStorage.setItem("enExtraFilter", JSON.stringify(EX_FILTER)); } catch (e) {}
   }
-  function exMatch(item) {
-    /* item = {kind, data}；每个筛选类别都满足才返回 true（AND），类别内多选 OR */
-    if (EX_FILTER.book && EX_FILTER.book.indexOf(item.data.book || "") < 0) return false;
-    if (EX_FILTER.genre && item.kind === "passage" &&
-        EX_FILTER.genre.indexOf(item.data.genre || "") < 0) return false;
-    if (EX_FILTER.genre && item.kind === "dialogue" &&
-        EX_FILTER.genre.indexOf(item.data.function || "") < 0) return false;
-    if (EX_FILTER.topic && EX_FILTER.topic.indexOf(item.data.topic || "") < 0) return false;
-    if (EX_FILTER.type && EX_FILTER.type.indexOf(item.kind) < 0) return false;
+  /* 从一本书的 facets 里取某个维度的值（数组或单值统一返回数组） */
+  function exFacetVals(book, cat) {
+    var f = book.facets || {};
+    var v = f[cat];
+    if (!v) return [];
+    if (cat === "lexile") return f.lexile && f.lexile.band ? [f.lexile.band] : [];
+    if (Array.isArray(v)) return v;
+    return [v];
+  }
+  function exMatch(book) {
+    for (var i = 0; i < EX_FACETS.length; i++) {
+      var cat = EX_FACETS[i][0];
+      if (!EX_FILTER[cat] || !EX_FILTER[cat].length) continue;
+      var vals = exFacetVals(book, cat);
+      var hit = false;
+      for (var j = 0; j < vals.length; j++) {
+        if (EX_FILTER[cat].indexOf(vals[j]) >= 0) { hit = true; break; }
+      }
+      if (!hit) return false;
+    }
+    /* 话题筛选（primary_topic + secondary_topics） */
+    if (EX_FILTER.topic && EX_FILTER.topic.length) {
+      var ts = [book.primary_topic || ""].concat(book.secondary_topics || []);
+      var th = false;
+      for (var k = 0; k < ts.length; k++) {
+        if (EX_FILTER.topic.indexOf(ts[k]) >= 0) { th = true; break; }
+      }
+      if (!th) return false;
+    }
+    /* 类型筛选：readings vs picturebooks */
+    if (EX_FILTER.source && EX_FILTER.source.length) {
+      if (EX_FILTER.source.indexOf(book._source) < 0) return false;
+    }
     return true;
   }
   function enExtra(st) {
-    var dl = (D.dialogues || []).filter(pass(st, ["scene", "function", "patterns"]));
-    var ps = (D.passages || []).filter(pass(st, ["name", "genre", "text", "topic"]));
+    var readings = D.readings || [];
+    var pbs = D.picturebooks || [];
     var all = [];
-    ps.forEach(function (p) { all.push({ kind: "passage", data: p }); });
-    dl.forEach(function (d) { all.push({ kind: "dialogue", data: d }); });
-    if (!all.length) return '<div class="empty">没有匹配的课外拓展内容</div>';
+    readings.forEach(function (b) { all.push(Object.assign({_source: "reading"}, b)); });
+    pbs.forEach(function (b) { all.push(Object.assign({_source: "picturebook"}, b)); });
+    if (!all.length) return '<div class="empty">课外拓展库暂无内容</div>';
 
-    /* 收集筛选项 */
-    var books = {}, genres = {}, topics = {};
-    all.forEach(function (it) {
-      var d = it.data;
-      if (d.book) books[d.book] = (books[d.book] || 0) + 1;
-      var g = it.kind === "passage" ? (d.genre || "") : (d.function || "");
-      if (g) genres[g] = (genres[g] || 0) + 1;
-      if (d.topic) topics[d.topic] = (topics[d.topic] || 0) + 1;
+    /* 收集每个维度的可用值 + 计数 */
+    var facetCounts = {};
+    EX_FACETS.forEach(function (f) { facetCounts[f[0]] = {}; });
+    facetCounts.topic = {};
+    facetCounts.source = {};
+    all.forEach(function (b) {
+      EX_FACETS.forEach(function (f) {
+        exFacetVals(b, f[0]).forEach(function (v) {
+          facetCounts[f[0]][v] = (facetCounts[f[0]][v] || 0) + 1;
+        });
+      });
+      [b.primary_topic || ""].concat(b.secondary_topics || []).forEach(function (t) {
+        if (t) facetCounts.topic[t] = (facetCounts.topic[t] || 0) + 1;
+      });
+      facetCounts.source[b._source] = (facetCounts.source[b._source] || 0) + 1;
     });
-    var bookList = Object.keys(books).sort();
-    var genreList = Object.keys(genres).sort();
-    var topicList = Object.keys(topics).sort(function (a, b) { return topics[b] - topics[a]; });
 
-    /* 左侧筛选栏 */
-    function filterGroup(cat, label, list, counts) {
-      if (!list.length) return "";
-      var h = '<div class="rw-filter-grp"><div class="rw-filter-h">' + label + '</div>';
-      list.forEach(function (v) {
+    /* 渲染筛选组 */
+    function filterGroup(cat, label, vals, counts) {
+      var keys = Object.keys(vals).sort(function (a, b) {
+        return (counts[b] || 0) - (counts[a] || 0);
+      }).filter(function (v) { return counts[v]; });
+      if (!keys.length) return "";
+      var h = '<div class="rw-fgrp"><div class="rw-fh">' + label + '</div>';
+      keys.forEach(function (v) {
         var ck = exChecked(cat, v);
+        var lbl = typeof vals === "object" && !Array.isArray(vals) ? (vals[v] || v) : v;
         h += '<label class="rw-ck' + (ck ? " checked" : "") + '">' +
              '<input type="checkbox" data-fcat="' + esc(cat) + '" data-fval="' + esc(v) + '"' +
              (ck ? " checked" : "") + '>' +
-             '<span>' + esc(v) + '</span>' +
+             '<span>' + esc(lbl) + '</span>' +
              '<span class="rw-cnt">' + (counts[v] || 0) + '</span></label>';
       });
       return h + '</div>';
     }
+    var tx = D.taxonomy || {};
+    /* 筛选栏 */
     var sidebar = '<div class="rw-sidebar">' +
-      '<div class="rw-filter-h">筛选 <button class="rw-clear">清除全部</button></div>' +
-      filterGroup("type", "类型", ["passage", "dialogue"],
-        { passage: ps.length, dialogue: dl.length }) +
-      filterGroup("book", "册次", bookList, books) +
-      filterGroup("genre", "体裁", genreList, genres) +
-      filterGroup("topic", "话题", topicList.slice(0, 20), topics) +
+      '<div class="rw-fhd">筛选 <button class="rw-clear">清除全部</button></div>' +
+      filterGroup("source", "来源", {reading: "长文", picturebook: "绘本"}, facetCounts.source) +
+      filterGroup("grade_band", "年级段", EX_FACET_LABELS.grade_band, facetCounts.grade_band) +
+      filterGroup("text_type", "体裁", EX_FACET_LABELS.text_type, facetCounts.text_type) +
+      filterGroup("themes", "主题", EX_FACET_LABELS.themes, facetCounts.themes) +
+      filterGroup("settings", "背景", EX_FACET_LABELS.settings, facetCounts.settings) +
+      filterGroup("word_count_bucket", "篇幅", EX_FACET_LABELS.word_count_bucket, facetCounts.word_count_bucket) +
+      filterGroup("lexile", "难度", EX_FACET_LABELS.lexile, facetCounts.lexile) +
+      filterGroup("cultural_origin", "文化", EX_FACET_LABELS.cultural_origin, facetCounts.cultural_origin) +
+      filterGroup("time_period", "时代", EX_FACET_LABELS.time_period, facetCounts.time_period) +
+      filterGroup("target_skills", "技能", EX_FACET_LABELS.target_skills, facetCounts.target_skills) +
+      filterGroup("text_role", "挂载角色", EX_FACET_LABELS.text_role, facetCounts.text_role) +
+      filterGroup("topic", "话题", {}, facetCounts.topic) +
       '</div>';
 
-    /* 右侧卡片列表 */
+    /* 卡片列表 */
     var shown = all.filter(exMatch);
-    var cards = '<div class="rw-main">' +
-      '<div class="rw-count">共 ' + shown.length + ' 篇' +
-      (all.length !== shown.length ? '（已筛选，总共 ' + all.length + ' 篇）' : '') + '</div>';
-    if (!shown.length) cards += '<div class="empty">没有匹配的内容，试试清除部分筛选</div>';
-    shown.forEach(function (it) {
-      var d = it.data;
-      var isP = it.kind === "passage";
-      var title = isP ? (d.name || "短文") : (d.scene || d.title || "对话");
-      var peek = isP ? (d.text || "").slice(0, 200) : "";
-      cards += '<details class="rw-card"><summary>' +
-        '<span class="rw-card-title">' + esc(title) + '</span>' +
-        '<span class="rw-card-tags">' +
-        (isP && d.genre ? '<span class="tag">' + esc(d.genre) + '</span>' : '') +
-        (!isP && d.function ? '<span class="tag">' + esc(d.function) + '</span>' : '') +
-        (d.book ? '<span class="tag d1">' + esc(d.book) + '</span>' : '') +
-        (d.unit ? '<span class="tag d2">' + esc(d.unit) + '</span>' : '') +
-        (d.topic ? '<span class="tag d3">' + esc(d.topic) + '</span>' : '') +
-        '</span></summary>';
-      if (isP) {
-        if (d.zh) cards += '<p class="rw-zh">' + esc(d.zh.slice(0, 200)) +
-                           (d.zh.length > 200 ? '…' : '') + '</p>';
-        cards += '<p class="rw-text">' + esc(d.text || "") + '</p>' + spkBtn(d.text || "");
-        if (d.words && d.words.length) {
-          cards += '<div class="words">' + d.words.slice(0, 8).map(function (w) {
-            var word = typeof w === "string" ? w : (w.word || w.w || "");
-            return '<span class="wb">' + spkBtn(word) + esc(word) + '</span>';
-          }).join("") + '</div>';
-        }
-      } else {
-        if (d.patterns) cards += '<p class="small">句型：' + esc(d.patterns) + '</p>';
-        if (d.lines) {
-          cards += '<div class="rw-lines">' + d.lines.map(function (l) {
-            return '<p class="kbp">' + spkBtn(l.text || l) +
-                   '<span class="spk">' + esc(l.text || l) + '</span></p>';
-          }).join("") + '</div>';
-        }
-      }
-      cards += '</details>';
-    });
-    cards += '</div>';
+    var main = '<div class="rw-main"><div class="rw-count">共 ' + shown.length + ' 本' +
+      (all.length !== shown.length ? '（已筛选，总共 ' + all.length + ' 本）' : '') + '</div>';
+    if (!shown.length) main += '<div class="empty">没有匹配的内容，试试清除部分筛选</div>';
 
-    return '<div class="rw-layout">' + sidebar + cards + '</div>';
+    shown.forEach(function (b) {
+      var f = b.facets || {};
+      var tags = [];
+      if (b._source === "picturebook" && b.level) tags.push(["d1", b.level]);
+      if (f.text_type) tags.push(["", exFacetLabel("text_type", f.text_type)]);
+      if (f.grade_band) tags.push(["d2", exFacetLabel("grade_band", f.grade_band)]);
+      if (f.word_count_bucket) tags.push(["d3", exFacetLabel("word_count_bucket", f.word_count_bucket)]);
+      if (f.lexile && f.lexile.band) tags.push(["d3", exFacetLabel("lexile", f.lexile.band)]);
+      if (b.primary_topic) tags.push(["d1", b.primary_topic]);
+      (f.themes || []).slice(0, 3).forEach(function (t) { tags.push(["d2", exFacetLabel("themes", t)]); });
+      (f.target_skills || []).slice(0, 2).forEach(function (t) { tags.push(["", exFacetLabel("target_skills", t)]); });
+
+      main += '<details class="rw-card"><summary>' +
+        '<span class="rw-card-title">' + esc(b.title) + '</span>' +
+        '<span class="rw-card-author">' + esc(b.author || "") + '</span>' +
+        '<span class="rw-card-tags">' +
+        tags.map(function (t) {
+          return '<span class="tag' + (t[0] ? " " + t[0] : "") + '">' + esc(t[1]) + '</span>';
+        }).join("") + '</span></summary>';
+
+      /* 元信息 */
+      main += '<div class="rw-meta">';
+      if (b._source === "picturebook") {
+        if (b.word_count) main += '<span>词数 ' + b.word_count + '</span>';
+        if (b.reading_time_min) main += '<span>约 ' + b.reading_time_min + ' 分钟</span>';
+      }
+      if (f.cultural_origin) main += '<span>' + exFacetLabel("cultural_origin", f.cultural_origin) + '</span>';
+      if (f.time_period) main += '<span>' + exFacetLabel("time_period", f.time_period) + '</span>';
+      (f.settings || []).forEach(function (s) {
+        main += '<span>📍' + exFacetLabel("settings", s) + '</span>';
+      });
+      (f.text_role || []).forEach(function (r) {
+        main += '<span>📎' + exFacetLabel("text_role", r) + '</span>';
+      });
+      main += '</div>';
+
+      /* 话题 */
+      var topics = [b.primary_topic || ""].concat(b.secondary_topics || []).filter(Boolean);
+      if (topics.length) {
+        main += '<div class="rw-topics">话题：' +
+          topics.map(function (t) { return '<span class="tag d1">' + esc(t) + '</span>'; }).join("") +
+          '</div>';
+      }
+
+      /* 绘本：展示页面文本 */
+      if (b._source === "picturebook" && b.pages && b.pages.length) {
+        main += '<div class="rw-pages">';
+        b.pages.forEach(function (p) {
+          if (p.text) {
+            main += '<p class="rw-pg"><span class="rw-pgn">P' + (p.n || "") + '</span>' +
+                    esc(p.text) + spkBtn(p.text) + '</p>';
+          }
+        });
+        main += '</div>';
+      }
+
+      /* 长文：如果有 pairs_with_unit 显示挂载信息 */
+      if (b._source === "reading" && b.pairs_with_unit && b.pairs_with_unit.length) {
+        main += '<p class="small">挂载教材单元：' + b.pairs_with_unit.length + ' 个</p>';
+      }
+
+      main += '</details>';
+    });
+    main += '</div>';
+
+    return '<div class="rw-layout">' + sidebar + main + '</div>';
   }
 
   function enText(st) {
