@@ -1307,6 +1307,20 @@
     });
     // 课文页：每课学习中心的 tab/练习/游戏/打星都走这一套委托
     if (kind === "discourse") bindLessonHubs(box);
+    // 课外拓展页：chip 勾选控制卡片内容显示
+    if (kind === "extra") {
+      box.addEventListener("click", function (e) {
+        var chip = e.target.closest(".ex-chip");
+        if (!chip) return;
+        var k = chip.dataset.ex;
+        var cur = exSecShow(k);
+        EX_ON[k] = !cur;
+        chip.classList.toggle("on", !!EX_ON[k]);
+        [].forEach.call(box.querySelectorAll('.ex-sec[data-ex="' + k + '"]'),
+                        function (d) { d.classList.toggle("show", !!EX_ON[k]); });
+        try { localStorage.setItem("enExtraShow", JSON.stringify(EX_ON)); } catch (err) {}
+      });
+    }
   }
 
   /* 课文：按册 → 单元（教材顺序）→ 对话 / 短文。
@@ -1960,7 +1974,16 @@
       .filter(function (s) { return s.length > 3; });
   }
 
-  /* 课外拓展：按话题分组，短文 + 对话混排，可筛选册次与话题 */
+  /* 课外拓展：按话题分组，短文 + 对话混排
+     勾选分类（chip）控制每张卡片里显示哪些内容，状态记 localStorage */
+  var EX_EXTRA = [
+    ["zh", "译文"], ["words", "重点词"], ["lines", "对话原文"],
+    ["peek", "原文预览"]
+  ];
+  var EX_ON = {};
+  try { EX_ON = JSON.parse(localStorage.getItem("enExtraShow") || "{}"); } catch (e) { EX_ON = {}; }
+  var EX_DEFAULT = { zh: true, peek: true, lines: true, words: false };
+  function exSecShow(k) { return EX_ON[k] != null ? !!EX_ON[k] : !!EX_DEFAULT[k]; }
   function enExtra(st) {
     var dl = (D.dialogues || []).filter(pass(st, ["scene", "function", "patterns"]));
     var ps = (D.passages || []).filter(pass(st, ["name", "genre", "text", "topic"]));
@@ -1971,14 +1994,11 @@
       topics[topic].push(item);
     }
     ps.forEach(function (p) {
-      add(p.topic || "（无主题）",
-          { kind: "passage", data: p });
+      add(p.topic || "（无主题）", { kind: "passage", data: p });
     });
     dl.forEach(function (d) {
-      add(d.topic || "（无主题）",
-          { kind: "dialogue", data: d });
+      add(d.topic || "（无主题）", { kind: "dialogue", data: d });
     });
-    /* 按话题内条目数降序 */
     order.sort(function (a, b) { return topics[b].length - topics[a].length; });
 
     var nTotal = ps.length + dl.length;
@@ -1986,6 +2006,15 @@
 
     var h = '<div class="extra-head"><b>📚 课外拓展</b>' +
             '<span class="small">' + nTotal + ' 篇 · ' + order.length + ' 个话题</span></div>';
+
+    /* 勾选分类：控制卡片内显示哪些内容
+       zh/peek/lines 默认显示（chip.on），words 默认隐藏 */
+    h += '<div class="chips">';
+    EX_EXTRA.forEach(function (e) {
+      h += '<span class="chip ex-chip' + (exSecShow(e[0]) ? " on" : "") +
+           '" data-ex="' + e[0] + '">' + e[1] + '</span>';
+    });
+    h += '</div>';
 
     order.forEach(function (topic) {
       var items = topics[topic];
@@ -2003,15 +2032,22 @@
                (p.book ? '<span class="tag d1">' + esc(p.book) + '</span>' : '') +
                (p.unit ? '<span class="small">' + esc(p.unit) + '</span>' : '') +
                '</div>';
-          if (p.zh) h += '<p class="small">' + esc(p.zh.slice(0, 150)) + (p.zh.length > 150 ? '…' : '') + '</p>';
-          h += '<p class="spk">' + esc(peek) + (p.text && p.text.length > 120 ? '…' : '') + '</p>';
+          /* 译文（默认显示，可关） */
+          if (p.zh) h += '<div class="kb ex-sec' + (exSecShow("zh") ? " show" : "") +
+                           '" data-ex="zh"><p class="small">' +
+                           esc(p.zh.slice(0, 150)) + (p.zh.length > 150 ? '…' : '') + '</p></div>';
+          h += '<div class="kb ex-sec' + (exSecShow("peek") ? " show" : "") +
+               '" data-ex="peek"><p class="spk">' + esc(peek) +
+               (p.text && p.text.length > 120 ? '…' : '') + '</p>' + spkBtn(peek) + '</div>';
           if (p.words && p.words.length) {
-            h += '<div class="words">' + p.words.slice(0, 6).map(function (w) {
-              var word = typeof w === "string" ? w : (w.word || w.w || "");
-              return '<span class="wb">' + spkBtn(word) + esc(word) + '</span>';
-            }).join("") + '</div>';
+            h += '<div class="kb ex-sec' + (exSecShow("words") ? " show" : "") +
+                 '" data-ex="words"><div class="words">' +
+                 p.words.slice(0, 6).map(function (w) {
+                   var word = typeof w === "string" ? w : (w.word || w.w || "");
+                   return '<span class="wb">' + spkBtn(word) + esc(word) + '</span>';
+                 }).join("") + '</div></div>';
           }
-          h += spkBtn(peek) + '</div>';
+          h += '</div>';
         } else {
           var d = it.data;
           h += '<div class="item extra-card">' +
@@ -2022,10 +2058,12 @@
                '</div>';
           if (d.patterns) h += '<p class="small">句型：' + esc(d.patterns) + '</p>';
           if (d.lines) {
-            h += '<div class="dl-lines">' + d.lines.slice(0, 4).map(function (l) {
-              return '<div class="lyr">' + spkBtn(l.text || l) +
-                     '<span class="spk">' + esc(l.text || l) + '</span></div>';
-            }).join("") + '</div>';
+            h += '<div class="kb ex-sec' + (exSecShow("lines") ? " show" : "") +
+                 '" data-ex="lines"><div class="dl-lines">' +
+                 d.lines.slice(0, 4).map(function (l) {
+                   return '<div class="lyr">' + spkBtn(l.text || l) +
+                          '<span class="spk">' + esc(l.text || l) + '</span></div>';
+                 }).join("") + '</div></div>';
           }
           h += '</div>';
         }
