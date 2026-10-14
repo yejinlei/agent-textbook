@@ -1443,6 +1443,76 @@
     return n;
   }
 
+  /* ── 错题本 ── */
+  var ERRBOOK = {};
+  try { ERRBOOK = JSON.parse(localStorage.getItem("enErrBook") || "{}"); } catch (e) { ERRBOOK = {}; }
+  function errBookSave() { try { localStorage.setItem("enErrBook", JSON.stringify(ERRBOOK)); } catch (e) {} }
+  function errAdd(lessonKey, q, a, kind) {
+    var k = lessonKey + "|" + kind + "|" + q;
+    if (!ERRBOOK[k]) ERRBOOK[k] = { q: q, a: a, kind: kind, lkey: lessonKey, wrong: 0, last: 0 };
+    ERRBOOK[k].wrong++;
+    ERRBOOK[k].last = Date.now();
+    errBookSave();
+  }
+  function errRemove(k) { delete ERRBOOK[k]; errBookSave(); }
+  function errList() {
+    return Object.keys(ERRBOOK).sort(function (a, b) {
+      return (ERRBOOK[b].last || 0) - (ERRBOOK[a].last || 0);
+    }).map(function (k) { return ERRBOOK[k]; });
+  }
+  function errCount() { return Object.keys(ERRBOOK).length; }
+
+  /* ── 成就勋章 ── */
+  var BADGES = [
+    { id: "firstStar",   icon: "⭐", name: "初露锋芒",   desc: "获得第一颗星", test: function () { return starTotal() >= 1; } },
+    { id: "firstUnit",  icon: "🏁", name: "首战告捷",   desc: "完成第一个单元全部四关", test: function () { return unitFullCount() >= 1; } },
+    { id: "threeUnits", icon: "🗺", name: "渐入佳境",   desc: "完成 3 个单元", test: function () { return unitFullCount() >= 3; } },
+    { id: "word10",     icon: "📖", name: "积少成多",   desc: "生词本收藏 10 个词", test: function () { return Object.keys(WORDBOOK).length >= 10; } },
+    { id: "word50",     icon: "📚", name: "词汇大师",   desc: "生词本收藏 50 个词", test: function () { return Object.keys(WORDBOOK).length >= 50; } },
+    { id: "streak3",    icon: "🔥", name: "三天打鱼",   desc: "连续打卡 3 天", test: function () { return checkinStreak() >= 3; } },
+    { id: "streak7",    icon: "🏅", name: "一周不落",   desc: "连续打卡 7 天", test: function () { return checkinStreak() >= 7; } },
+    { id: "streak30",   icon: "👑", name: "月度全勤",   desc: "连续打卡 30 天", test: function () { return checkinStreak() >= 30; } },
+    { id: "err10",      icon: "🔧", name: "错题收割机", desc: "错题本积累 10 题", test: function () { return errCount() >= 10; } },
+    { id: "halfMap",    icon: "🚀", name: "半程勇士",   desc: "单元地图点亮过半", test: function () {
+      var nodes = document.querySelectorAll(".umap-node");
+      if (!nodes.length) return false;
+      var done = 0; [].forEach.call(nodes, function (n) { if (n.classList.contains("done")) done++; });
+      return done >= nodes.length / 2;
+    } },
+    { id: "allDone",    icon: "🏆", name: "全部通关",   desc: "单元地图全部完成", test: function () {
+      var nodes = document.querySelectorAll(".umap-node");
+      if (!nodes.length) return false;
+      return [].every.call(nodes, function (n) { return n.classList.contains("done"); });
+    } },
+  ];
+  function starTotal() {
+    var n = 0;
+    for (var k in STARS) { for (var g in STARS[k]) { if (STARS[k][g]) n++; } }
+    return n;
+  }
+  function unitFullCount() {
+    var n = 0;
+    for (var k in UNITMAP) {
+      var u = UNITMAP[k];
+      if (u.preview && u.read && u.exercise && u.game) n++;
+    }
+    return n;
+  }
+  function earnedBadges() { return BADGES.filter(function (b) { return b.test(); }); }
+  function renderBadges() {
+    var earned = earnedBadges();
+    if (!earned.length) return "";
+    var h = '<div class="badges"><span class="badges-h">🎖 勋章 (' + earned.length + ')</span>';
+    h += '<div class="badges-row">';
+    BADGES.forEach(function (b) {
+      var has = b.test();
+      h += '<span class="badge' + (has ? " on" : "") + '" title="' + esc(b.desc) + '">' +
+           (has ? b.icon : "🔒") + '<span class="badge-n">' + esc(b.name) + '</span></span>';
+    });
+    h += '</div></div>';
+    return h;
+  }
+
   /* ---- 单元地图 / 每日 3 分钟 / 生词本：三个页面级组件 ---- */
 
   /* 单元地图：册 → 单元卡片，每卡显示四关灯（预习/跟读/练习/游戏）
@@ -1643,7 +1713,15 @@
       day.items.forEach(function (it, i) {
         var done_i = day.done >= i + 1;
         var card = "";
-        if (it.kind === "word") {
+        if (it.kind === "error") {
+          card = '<div class="today-card' + (done_i ? " done" : "") + '" data-i="' + i + '">' +
+                 '<span class="tag d1">错题</span>' +
+                 '<b>' + esc(it.q) + '</b>' +
+                 '<span class="small">正确：' + esc(it.a) + '</span>' +
+                 '<span class="small">类型：' + esc(it.errKind || "") + '</span>' +
+                 '<button class="btn today-ok">✅ 已搞懂</button>' +
+                 '<button class="btn today-wrong">❌ 还是不会</button></div>';
+        } else if (it.kind === "word") {
           card = '<div class="today-card' + (done_i ? " done" : "") + '" data-i="' + i + '">' +
                  '<span class="tag d1">生词</span>' +
                  '<b>' + esc(it.word) + '</b>' +
@@ -1670,6 +1748,12 @@
   /* 抽 3 张今日卡：生词本按 last 最久未复习优先，其次补未自评的课 */
   function pickTodayItems() {
     var items = [];
+    // 错题：最近的错题优先（取 1 条）
+    var errs = errList();
+    if (errs.length) {
+      var e0 = errs[0];
+      items.push({ kind: "error", q: e0.q, a: e0.a, errKind: e0.kind, lkey: e0.lkey });
+    }
     // 生词：按 last 升序（越久没复习越靠前）
     var wb = wbList().slice().sort(function (a, b) { return (a.last || 0) - (b.last || 0); });
     wb.forEach(function (w) {
@@ -1871,7 +1955,7 @@
     setTimeout(refreshUnitMapStages, 0);
     // 单元地图 + 每日 3 分钟：这两块要 LESSONS 全部注册后才能算候选
     // 放在末尾再插到顶部，保证 renderToday/pickTodayItems 拿到完整 LESSONS
-    var top = renderToday() + renderUnitMap(order, units, uname);
+    var top = renderToday() + renderUnitMap(order, units, uname) + renderBadges();
     return top + h;
   }
 
@@ -2254,7 +2338,7 @@
     return h;
   }
 
-  /* 拓展：本单元项目任务 + 本册歌谣 + 课外阅读入口 */
+  /* 拓展：本单元项目任务 + 本册歌谣 + 同主题课外短文 */
   function hubExtend(x) {
     var hub = unitHubOf(x);
     var projs = hub ? hub.projects : [];
@@ -2289,8 +2373,50 @@
           }).join("") + "</details>";
       }).join("");
     }
-    h += '<p class="small">还想读更多？去「<a href="../extensions/index.html">课外拓展</a>」' +
-      "找同主题的绘本与短文。</p>";
+    /* 同主题课外短文：从 D.passages 里找同 topic 但不在本课的短文 */
+    var topic = x.topic || "";
+    var extras = [];
+    if (topic) {
+      var myKey = lessonKey(x, "pas");
+      (D.passages || []).forEach(function (p) {
+        if (p.topic === topic && lessonKey(p, "pas") !== myKey) {
+          extras.push(p);
+        }
+      });
+    }
+    if (extras.length) {
+      h += '<p class="small">📖 同主题课外短文（' + esc(topic) + '）</p>';
+      extras.slice(0, 3).forEach(function (p) {
+        var peek = (p.text || "").slice(0, 80);
+        h += '<details class="aq"><summary>' + esc(p.name || "短文") +
+          (p.genre ? ' <span class="tag">' + esc(p.genre) + '</span>' : '') +
+          (p.book ? ' <span class="small">' + esc(p.book) + '</span>' : '') +
+          '</summary>' +
+          (p.zh ? '<p class="small">' + esc(p.zh.slice(0, 120)) + '</p>' : '') +
+          '<p class="spk">' + esc(peek) + (p.text && p.text.length > 80 ? '…' : '') + '</p>' +
+          spkBtn(peek) + '</details>';
+      });
+    }
+    /* 同主题课外对话 */
+    var extraDlg = [];
+    if (topic) {
+      (D.dialogues || []).forEach(function (d) {
+        if (d.topic === topic && lessonKey(d, "dlg") !== lessonKey(x, "dlg")) {
+          extraDlg.push(d);
+        }
+      });
+    }
+    if (extraDlg.length) {
+      h += '<p class="small">💬 同主题课外对话</p>';
+      extraDlg.slice(0, 2).forEach(function (d) {
+        h += '<details class="aq"><summary>' + esc(d.scene || d.title || "对话") +
+          (d.book ? ' <span class="small">' + esc(d.book) + '</span>' : '') +
+          '</summary></details>';
+      });
+    }
+    if (!extras.length && !extraDlg.length) {
+      h += '<p class="small">暂无同主题课外拓展内容。</p>';
+    }
     return h;
   }
 
@@ -2398,8 +2524,11 @@
         opt.classList.add(ok ? "ok" : "no");
         fq.querySelector(".fb").innerHTML = ok ? '<span class="ok-t">对</span>'
           : '<span class="no-t">答案：' + esc(fq.getAttribute("data-a") || "") + "</span>";
-        /* 选词填空（.ex-fill）与听力填词（.ex-cloze）共用同一套 .fq .opt 交互，
-           按 wrap 分别汇总进度；两处全对都算 fill 关，awardStar 幂等（只记一次）。 */
+        if (!ok) {
+          var detE = opt.closest("details.lesson");
+          var lkeyE = detE ? detE.getAttribute("data-lkey") : "";
+          errAdd(lkeyE, fq.getAttribute("data-q") || opt.textContent, fq.getAttribute("data-a") || "", "fill");
+        }
         var wrap = opt.closest(".ex-fill") || opt.closest(".ex-cloze");
         if (wrap) {
           var qs = wrap.querySelectorAll(".fq"), done = 0, right = 0;
@@ -2658,6 +2787,8 @@
             }
           } else {
             fb3.innerHTML = '<span class="no-t">再试试</span>';
+            var detS = g1.closest("details.lesson");
+            errAdd(detS ? detS.getAttribute("data-lkey") : "", want, got, "scramble");
             setTimeout(function () {
               st1.ans = [];
               [].forEach.call(g1.querySelectorAll(".slot"), function (s) {
@@ -2687,6 +2818,8 @@
           }
         } else {
           ol.classList.add("no");
+          var detO = g2.closest("details.lesson");
+          errAdd(detO ? detO.getAttribute("data-lkey") : "", st2.seq[st2.next], d2.t, "order");
           setTimeout(function () { ol.classList.remove("no"); }, 450);
         }
         return;
@@ -2715,6 +2848,8 @@
             }
           } else {
             b.classList.add("no");
+            var detM = g3.closest("details.lesson");
+            errAdd(detM ? detM.getAttribute("data-lkey") : "", a.textContent, b.textContent, "match");
             setTimeout(function () {
               a.classList.remove("on"); b.classList.remove("no");
             }, 500);

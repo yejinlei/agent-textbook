@@ -1167,6 +1167,20 @@ details.aq .aa {
 .ok-t { color: #196f3d; font-weight: 600; }
 .no-t { color: #c62828; }
 
+/* ---- 成就勋章 ---- */
+.badges { margin: 6px 0 12px; padding: 10px 14px; border: 2px solid #e8c97a; background: linear-gradient(180deg,#fff9e8,#fff); border-radius: 14px; }
+.badges-h { font-weight: 700; font-size: 14px; color: #b06a00; margin-bottom: 6px; display: block; }
+.badges-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.badge {
+  display: inline-flex; flex-direction: column; align-items: center;
+  width: 64px; padding: 6px 2px 4px;
+  border: 2px solid var(--line); border-radius: 10px; background: #fff;
+  text-align: center; opacity: .4;
+}
+.badge.on { opacity: 1; border-color: #e8a200; background: linear-gradient(180deg,#fff8e0,#fff); }
+.badge .badge-n { font-size: 10px; color: var(--muted); margin-top: 2px; line-height: 1.1; }
+.badge.on .badge-n { color: #b06a00; }
+
 @media (max-width: 860px) {
   .dt { grid-template-columns: 1fr; }
   .umap-node { width: calc(50% - 28px); }
