@@ -1397,6 +1397,30 @@
       }
     },
     {
+      "id": "emperors-new-clothes",
+      "title": "The Emperor's New Clothes (excerpt)",
+      "author": "Hans Christian Andersen",
+      "gutenberg_id": 1597,
+      "gutenberg_slug": "Andersen's Fairy Tales",
+      "librivox_url": "https://librivox.org/andersens-fairy-tales-by-hans-christian-andersen/",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": ["identity"],
+      "excerpt": {"type": "story", "stories": ["The Emperor's New Clothes"]},
+      "facets": {
+        "grade": ["3", "4", "5"],
+        "grade_band": "mid_primary",
+        "text_type": "folktale",
+        "themes": ["honesty", "courage"],
+        "settings": ["city_urban"],
+        "word_count_bucket": "short",
+        "lexile": {"min": 600, "max": 800, "mean": 700, "band": "elementary_mid", "source": "editor_estimate"},
+        "cultural_origin": "European",
+        "time_period": "victorian",
+        "target_skills": ["reading_comprehension", "critical_thinking"],
+        "text_role": ["extension"]
+      }
+    },
+    {
       "id": "peter-rabbit",
       "title": "The Tale of Peter Rabbit",
       "author": "Beatrix Potter",
@@ -2331,6 +2355,125 @@
         "time_period": "victorian",
         "target_skills": ["reading_comprehension", "vocabulary_extension", "critical_thinking"],
         "text_role": ["extension", "writing_trigger"]
+      }
+    },
+    {
+      "id": "just-so-whale",
+      "title": "How the Whale Got His Throat",
+      "author": "Rudyard Kipling",
+      "gutenberg_id": 2781,
+      "gutenberg_slug": "Just So Stories",
+      "librivox_url": "https://librivox.org/just-so-stories-by-rudyard-kipling/",
+      "primary_topic": "animal",
+      "secondary_topics": ["nature.cosmic"],
+      "excerpt": {"type": "story", "stories": ["How the Whale Got His Throat"]},
+      "facets": {
+        "grade": ["2", "3", "4"],
+        "grade_band": "mid_primary",
+        "text_type": "folktale",
+        "themes": ["curiosity", "courage"],
+        "settings": ["ocean_island"],
+        "word_count_bucket": "short",
+        "lexile": {"min": 500, "max": 800, "mean": 650, "band": "elementary_mid", "source": "editor_estimate"},
+        "cultural_origin": "British_Irish",
+        "time_period": "victorian",
+        "target_skills": ["reading_comprehension", "vocabulary_extension"],
+        "text_role": ["extension"]
+      }
+    },
+    {
+      "id": "mcguffey-second-lessons",
+      "title": "McGuffey's Second Reader (Selected Lessons)",
+      "author": "William Holmes McGuffey",
+      "gutenberg_id": 14668,
+      "gutenberg_slug": "McGuffey's Second Eclectic Reader",
+      "primary_topic": "identity",
+      "secondary_topics": ["nature.cosmic"],
+      "excerpt": {"type": "lessons", "lessons": [1, 2, 3, 4]},
+      "facets": {
+        "grade": ["2", "3", "4"],
+        "grade_band": "early_primary",
+        "text_type": "realistic_fiction",
+        "themes": ["family_love", "curiosity"],
+        "settings": ["home_family"],
+        "word_count_bucket": "very_short",
+        "lexile": {"min": 300, "max": 600, "mean": 450, "band": "elementary_low", "source": "editor_estimate"},
+        "cultural_origin": "American",
+        "time_period": "victorian",
+        "target_skills": ["reading_comprehension", "vocabulary_extension"],
+        "text_role": ["pre_reading", "consolidation"]
+      }
+    },
+    {
+      "id": "velveteen-rabbit",
+      "title": "The Velveteen Rabbit (excerpt)",
+      "author": "Margery Williams",
+      "gutenberg_id": 11757,
+      "gutenberg_slug": "The Velveteen Rabbit",
+      "librivox_url": "https://librivox.org/the-velveteen-rabbit-by-margery-williams/",
+      "primary_topic": "friendship",
+      "secondary_topics": ["identity"],
+      "excerpt": {"type": "story", "stories": ["The Velveteen Rabbit"]},
+      "facets": {
+        "grade": ["3", "4", "5"],
+        "grade_band": "mid_primary",
+        "text_type": "fantasy",
+        "themes": ["love_loss", "growing_up", "friendship"],
+        "settings": ["home_family"],
+        "word_count_bucket": "short",
+        "lexile": {"min": 700, "max": 950, "mean": 820, "band": "elementary_high", "source": "editor_estimate"},
+        "cultural_origin": "American",
+        "time_period": "modern_early",
+        "target_skills": ["reading_comprehension", "critical_thinking"],
+        "text_role": ["extension"]
+      }
+    },
+    {
+      "id": "pinocchio-ch1",
+      "title": "The Adventures of Pinocchio (Chapter 1)",
+      "author": "Carlo Collodi",
+      "gutenberg_id": 500,
+      "gutenberg_slug": "The Adventures of Pinocchio",
+      "librivox_url": "https://librivox.org/the-adventures-of-pinocchio-by-carlo-collodi/",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": ["family.pets"],
+      "excerpt": {"type": "chapters", "chapters": [1]},
+      "facets": {
+        "grade": ["4", "5"],
+        "grade_band": "mid_primary",
+        "text_type": "fantasy",
+        "themes": ["honesty", "growing_up"],
+        "settings": ["home_family"],
+        "word_count_bucket": "short",
+        "lexile": {"min": 800, "max": 1100, "mean": 950, "band": "elementary_high", "source": "editor_estimate"},
+        "cultural_origin": "European",
+        "time_period": "victorian",
+        "target_skills": ["reading_comprehension", "vocabulary_extension"],
+        "text_role": ["extension", "writing_trigger"]
+      }
+    },
+    {
+      "id": "prince-and-pauper-ch1",
+      "title": "The Prince and the Pauper (Chapter 1)",
+      "author": "Mark Twain",
+      "gutenberg_id": 1837,
+      "gutenberg_slug": "The Prince and the Pauper",
+      "librivox_url": "https://librivox.org/the-prince-and-the-pauper-by-mark-twain/",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": ["poverty"],
+      "excerpt": {"type": "chapters", "chapters": [1]},
+      "facets": {
+        "grade": ["5", "6"],
+        "grade_band": "senior",
+        "text_type": "adventure",
+        "themes": ["identity", "fairness_rules"],
+        "settings": ["city_urban"],
+        "word_count_bucket": "very_short",
+        "lexile": {"min": 900, "max": 1200, "mean": 1050, "band": "upper_elementary", "source": "editor_estimate"},
+        "cultural_origin": "American",
+        "time_period": "victorian",
+        "target_skills": ["reading_comprehension", "critical_thinking"],
+        "text_role": ["extension"]
       }
     },
     {
