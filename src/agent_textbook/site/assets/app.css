@@ -1167,18 +1167,7 @@ details.aq .aa {
 .ok-t { color: #196f3d; font-weight: 600; }
 .no-t { color: #c62828; }
 
-/* ---- 课外拓展页 ---- */
-.extra-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
-.extra-topic { margin-bottom: 8px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
-.extra-topic > summary { cursor: pointer; padding: 8px 12px; font-weight: 600; list-style: none; display: flex; align-items: baseline; gap: 8px; }
-.extra-topic > summary::-webkit-details-marker { display: none; }
-.extra-topic > summary::before { content: "📁"; }
-.extra-topic[open] > summary::before { content: "📂"; }
-.extra-list { padding: 4px 12px 10px; display: grid; grid-template-columns: repeat(auto-fill,minmax(300px,1fr)); gap: 8px; }
-.extra-card { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
-.extra-card .top { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; margin-bottom: 4px; }
-.extra-card .dl-lines { margin-top: 4px; }
-.ex-chip.on { background: var(--en); border-color: var(--en); color: #fff; }
+/* ---- 课外拓展页（复用 .item/.chips/.chip/.kb 样式）---- */
 
 /* ---- 成就勋章 ---- */
 .badges { margin: 6px 0 12px; padding: 10px 14px; border: 2px solid #e8c97a; background: linear-gradient(180deg,#fff9e8,#fff); border-radius: 14px; }
@@ -1336,8 +1325,8 @@ details.aq .aa {
   user-select: none;
 }
 .chip.on {
-  background: var(--zh);
-  border-color: var(--zh);
+  background: var(--c);
+  border-color: var(--c);
   color: #fff;
 }
 .kb {

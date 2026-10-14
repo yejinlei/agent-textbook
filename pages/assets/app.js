@@ -1307,17 +1307,17 @@
     });
     // 课文页：每课学习中心的 tab/练习/游戏/打星都走这一套委托
     if (kind === "discourse") bindLessonHubs(box);
-    // 课外拓展页：chip 勾选控制卡片内容显示
+    // 课外拓展页：chip 勾选控制卡片内容显示（复用语文/数学的 chip+kb 模式）
     if (kind === "extra") {
       box.addEventListener("click", function (e) {
-        var chip = e.target.closest(".ex-chip");
+        var chip = e.target.closest(".chip");
         if (!chip) return;
         var k = chip.dataset.ex;
         var cur = exSecShow(k);
         EX_ON[k] = !cur;
-        chip.classList.toggle("on", !!EX_ON[k]);
-        [].forEach.call(box.querySelectorAll('.ex-sec[data-ex="' + k + '"]'),
-                        function (d) { d.classList.toggle("show", !!EX_ON[k]); });
+        chip.classList.toggle("on", !cur);
+        [].forEach.call(box.querySelectorAll('.kb[data-kb="' + k + '"]'),
+                        function (d) { d.classList.toggle("show", !cur); });
         try { localStorage.setItem("enExtraShow", JSON.stringify(EX_ON)); } catch (err) {}
       });
     }
@@ -1975,7 +1975,8 @@
   }
 
   /* 课外拓展：按话题分组，短文 + 对话混排
-     勾选分类（chip）控制每张卡片里显示哪些内容，状态记 localStorage */
+     勾选分类（chip）控制每张卡片里显示哪些内容，状态记 localStorage
+     复用语文/数学的 chip + kb 模式（commit 494cbbe） */
   var EX_EXTRA = [
     ["zh", "译文"], ["words", "重点词"], ["lines", "对话原文"],
     ["peek", "原文预览"]
@@ -1987,61 +1988,47 @@
   function enExtra(st) {
     var dl = (D.dialogues || []).filter(pass(st, ["scene", "function", "patterns"]));
     var ps = (D.passages || []).filter(pass(st, ["name", "genre", "text", "topic"]));
-    /* 按话题聚合 */
     var topics = {}, order = [];
     function add(topic, item) {
       if (!topics[topic]) { topics[topic] = []; order.push(topic); }
       topics[topic].push(item);
     }
-    ps.forEach(function (p) {
-      add(p.topic || "（无主题）", { kind: "passage", data: p });
-    });
-    dl.forEach(function (d) {
-      add(d.topic || "（无主题）", { kind: "dialogue", data: d });
-    });
+    ps.forEach(function (p) { add(p.topic || "（无主题）", { kind: "passage", data: p }); });
+    dl.forEach(function (d) { add(d.topic || "（无主题）", { kind: "dialogue", data: d }); });
     order.sort(function (a, b) { return topics[b].length - topics[a].length; });
 
     var nTotal = ps.length + dl.length;
     if (!nTotal) return '<div class="empty">没有匹配的课外拓展内容</div>';
 
-    var h = '<div class="extra-head"><b>📚 课外拓展</b>' +
-            '<span class="small">' + nTotal + ' 篇 · ' + order.length + ' 个话题</span></div>';
-
-    /* 勾选分类：控制卡片内显示哪些内容
-       zh/peek/lines 默认显示（chip.on），words 默认隐藏 */
-    h += '<div class="chips">';
-    EX_EXTRA.forEach(function (e) {
-      h += '<span class="chip ex-chip' + (exSecShow(e[0]) ? " on" : "") +
-           '" data-ex="' + e[0] + '">' + e[1] + '</span>';
-    });
-    h += '</div>';
-
+    var h = '<p class="small">点下方标签勾选要显示的内容，全站通用。</p>';
     order.forEach(function (topic) {
       var items = topics[topic];
-      h += '<details class="extra-topic" open><summary>' +
-           '<b>' + esc(topic) + '</b>' +
-           '<span class="small">' + items.length + ' 篇</span></summary>';
-      h += '<div class="extra-list">';
+      h += '<details class="toc" open><summary>' + esc(topic) +
+           ' <span class="small">(' + items.length + ' 篇)</span></summary>';
       items.forEach(function (it) {
         if (it.kind === "passage") {
           var p = it.data;
           var peek = (p.text || "").slice(0, 120);
-          h += '<div class="item extra-card">' +
-               '<div class="top"><span class="name">' + esc(p.name || "短文") + '</span>' +
+          h += '<div class="item"><div class="top"><span class="name">' +
+               esc(p.name || "短文") + '</span>' +
                (p.genre ? '<span class="tag">' + esc(p.genre) + '</span>' : '') +
                (p.book ? '<span class="tag d1">' + esc(p.book) + '</span>' : '') +
                (p.unit ? '<span class="small">' + esc(p.unit) + '</span>' : '') +
                '</div>';
-          /* 译文（默认显示，可关） */
-          if (p.zh) h += '<div class="kb ex-sec' + (exSecShow("zh") ? " show" : "") +
-                           '" data-ex="zh"><p class="small">' +
-                           esc(p.zh.slice(0, 150)) + (p.zh.length > 150 ? '…' : '') + '</p></div>';
-          h += '<div class="kb ex-sec' + (exSecShow("peek") ? " show" : "") +
-               '" data-ex="peek"><p class="spk">' + esc(peek) +
+          /* chip 勾选区 */
+          h += '<div class="chips">' + EX_EXTRA.map(function (e) {
+            return '<span class="chip' + (exSecShow(e[0]) ? " on" : "") +
+                   '" data-ex="' + e[0] + '">' + e[1] + '</span>';
+          }).join("") + '</div>';
+          if (p.zh) h += '<div class="kb' + (exSecShow("zh") ? " show" : "") +
+                         '" data-kb="zh"><p class="kbp">' +
+                         esc(p.zh.slice(0, 150)) + (p.zh.length > 150 ? '…' : '') + '</p></div>';
+          h += '<div class="kb' + (exSecShow("peek") ? " show" : "") +
+               '" data-kb="peek"><p class="kbp">' + esc(peek) +
                (p.text && p.text.length > 120 ? '…' : '') + '</p>' + spkBtn(peek) + '</div>';
           if (p.words && p.words.length) {
-            h += '<div class="kb ex-sec' + (exSecShow("words") ? " show" : "") +
-                 '" data-ex="words"><div class="words">' +
+            h += '<div class="kb' + (exSecShow("words") ? " show" : "") +
+                 '" data-kb="words"><div class="words">' +
                  p.words.slice(0, 6).map(function (w) {
                    var word = typeof w === "string" ? w : (w.word || w.w || "");
                    return '<span class="wb">' + spkBtn(word) + esc(word) + '</span>';
@@ -2050,25 +2037,30 @@
           h += '</div>';
         } else {
           var d = it.data;
-          h += '<div class="item extra-card">' +
-               '<div class="top"><span class="name">' + esc(d.scene || d.title || "对话") + '</span>' +
+          h += '<div class="item"><div class="top"><span class="name">' +
+               esc(d.scene || d.title || "对话") + '</span>' +
                (d.function ? '<span class="tag">' + esc(d.function) + '</span>' : '') +
                (d.book ? '<span class="tag d1">' + esc(d.book) + '</span>' : '') +
                (d.unit ? '<span class="small">' + esc(d.unit) + '</span>' : '') +
                '</div>';
           if (d.patterns) h += '<p class="small">句型：' + esc(d.patterns) + '</p>';
+          h += '<div class="chips">' + EX_EXTRA.filter(function (e) {
+            return e[0] !== "zh" && e[0] !== "peek";
+          }).map(function (e) {
+            return '<span class="chip' + (exSecShow(e[0]) ? " on" : "") +
+                   '" data-ex="' + e[0] + '">' + e[1] + '</span>';
+          }).join("") + '</div>';
           if (d.lines) {
-            h += '<div class="kb ex-sec' + (exSecShow("lines") ? " show" : "") +
-                 '" data-ex="lines"><div class="dl-lines">' +
-                 d.lines.slice(0, 4).map(function (l) {
-                   return '<div class="lyr">' + spkBtn(l.text || l) +
-                          '<span class="spk">' + esc(l.text || l) + '</span></div>';
-                 }).join("") + '</div></div>';
+            h += '<div class="kb' + (exSecShow("lines") ? " show" : "") +
+                 '" data-kb="lines">' + d.lines.slice(0, 4).map(function (l) {
+                   return '<p class="kbp">' + spkBtn(l.text || l) +
+                          '<span class="spk">' + esc(l.text || l) + '</span></p>';
+                 }).join("") + '</div>';
           }
           h += '</div>';
         }
       });
-      h += '</div></details>';
+      h += '</details>';
     });
     return h;
   }
