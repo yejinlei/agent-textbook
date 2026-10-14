@@ -1335,15 +1335,332 @@
   function starStr(n) { return n > 0 ? "★" + n : ""; }
   function awardStar(key, game) {
     if (!STARS[key]) STARS[key] = {};
-    if (STARS[key][game]) return;
+    var isNew = !STARS[key][game];
     STARS[key][game] = 1;
     starSave();
     [].forEach.call(document.querySelectorAll(".lstars"), function (el) {
       if (el.getAttribute("data-stars") === key) el.textContent = starStr(starCount(key));
     });
+    // 星星同时也是"闯关进度"：练习与游戏分别点亮 练习/游戏 两关，
+    // 预习/跟读两关由用户手动点亮（在预习板块勾选目标、在音标板块点过录音）。
+    if (isNew) {
+      var stage = (game === "fill" || game === "order" || game === "match" ||
+                   game === "scramble") ? "exercise" : "game";
+      markUnitMap(key, stage);
+    }
   }
   function shuffle(a) { a.sort(function () { return Math.random() - 0.5; }); return a; }
   function sample(arr, n) { return shuffle(arr.slice()).slice(0, n); }
+
+  /* ---- 生词本 / 单元地图 / 每日打卡：三份 localStorage 数据 ---- */
+  /* 生词本：key = book#word，value = {word, ipa, zh, added, last, right, wrong} */
+  var WORDBOOK = {};
+  try { WORDBOOK = JSON.parse(localStorage.getItem("enWordBook") || "{}"); } catch (e) { WORDBOOK = {}; }
+  function wordBookSave() { try { localStorage.setItem("enWordBook", JSON.stringify(WORDBOOK)); } catch (e) {} }
+  function wbKey(book, word) { return (book || "") + "#" + String(word || "").toLowerCase(); }
+  function wbHas(book, word) { return !!WORDBOOK[wbKey(book, word)]; }
+  function wbAdd(book, word, meta) {
+    var k = wbKey(book, word);
+    if (!WORDBOOK[k]) {
+      WORDBOOK[k] = { word: String(word || ""), ipa: (meta && meta.ipa) || "",
+                      zh: (meta && meta.zh) || "", book: book || "",
+                      added: Date.now(), last: 0, right: 0, wrong: 0 };
+      wordBookSave();
+    }
+    refreshWordBookUI();
+    return WORDBOOK[k];
+  }
+  function wbRemove(book, word) {
+    delete WORDBOOK[wbKey(book, word)];
+    wordBookSave();
+    refreshWordBookUI();
+  }
+  function wbList() { return Object.keys(WORDBOOK).map(function (k) { return WORDBOOK[k]; }); }
+  function refreshWordBookUI() {
+    var box = document.querySelector(".wordbook .wb-list");
+    if (box) box.outerHTML = wordBookListInner();
+    [].forEach.call(document.querySelectorAll(".wb-count"), function (el) {
+      el.textContent = wbList().length;
+    });
+    [].forEach.call(document.querySelectorAll(".wb-badge"), function (el) {
+      el.textContent = "📖 " + wbList().length;
+    });
+    // 单词收藏按钮的选中态同步
+    [].forEach.call(document.querySelectorAll(".wb-toggle"), function (el) {
+      var k = el.getAttribute("data-wbkey");
+      if (k) el.classList.toggle("on", !!WORDBOOK[k]);
+    });
+  }
+
+  /* 单元进度：{unitKey: {preview,read,exercise,game}}
+     unitKey 与 HUBS.units 的键同格式："book#U3" 或 "book#Unit name" */
+  var UNITMAP = {};
+  try { UNITMAP = JSON.parse(localStorage.getItem("enUnitMap") || "{}"); } catch (e) { UNITMAP = {}; }
+  function unitMapSave() { try { localStorage.setItem("enUnitMap", JSON.stringify(UNITMAP)); } catch (e) {} }
+  /* lessonKey = book|unitKey|type|scene，其中 unitKey 已是 "U3" 或 "Unit name" 形式 */
+  function lessonUnitKey(lessonKey) {
+    var p = String(lessonKey).split("|");
+    return (p[0] || "") + "#" + (p[1] || "");
+  }
+  function markUnitMap(lessonKey, stage) {
+    var ukey = lessonUnitKey(lessonKey);
+    if (!UNITMAP[ukey]) UNITMAP[ukey] = {};
+    if (!UNITMAP[ukey][stage]) {
+      UNITMAP[ukey][stage] = 1;
+      unitMapSave();
+      refreshUnitMapUI();
+    }
+  }
+  function unitDoneCount(uk) {
+    var u = UNITMAP[uk] || {};
+    return (u.preview ? 1 : 0) + (u.read ? 1 : 0) +
+           (u.exercise ? 1 : 0) + (u.game ? 1 : 0);
+  }
+  function refreshUnitMapUI() {
+    var allEls = document.querySelectorAll(".umap-u");
+    var total = allEls.length * 4, done = 0;
+    [].forEach.call(allEls, function (el) {
+      var uk = el.getAttribute("data-uk");
+      if (!uk) return;
+      var n = unitDoneCount(uk);
+      done += n;
+      var bar = el.querySelector(".umap-bar");
+      if (bar) bar.style.width = Math.round(n * 25) + "%";
+      var tag = el.querySelector(".umap-n");
+      if (tag) tag.textContent = n + "/4";
+      el.classList.toggle("umap-full", n >= 4);
+    });
+    [].forEach.call(document.querySelectorAll(".umap-progress"), function (el) {
+      el.textContent = done + " / " + total;
+    });
+    [].forEach.call(document.querySelectorAll(".umap-done-count"), function (el) {
+      el.textContent = done;
+    });
+  }
+
+  /* 每日 3 分钟打卡：{ "YYYY-MM-DD": {items:[lessonKey], done:n} } */
+  var CHECKIN = {};
+  try { CHECKIN = JSON.parse(localStorage.getItem("enCheckin") || "{}"); } catch (e) { CHECKIN = {}; }
+  function checkinSave() { try { localStorage.setItem("enCheckin", JSON.stringify(CHECKIN)); } catch (e) {} }
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +
+           "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function checkinStreak() {
+    // 连续打卡天数（含今天）
+    var n = 0, d = new Date();
+    while (true) {
+      var s = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +
+              "-" + String(d.getDate()).padStart(2, "0");
+      if (CHECKIN[s] && CHECKIN[s].done >= 3) n++;
+      else break;
+      d.setDate(d.getDate() - 1);
+      if (n > 365) break;
+    }
+    return n;
+  }
+
+  /* ---- 单元地图 / 每日 3 分钟 / 生词本：三个页面级组件 ---- */
+
+  /* 单元地图：册 → 单元卡片，每卡显示四关灯（预习/跟读/练习/游戏）
+     order/units/nameOf 由 enText 传入，与目录/正文同源，保证进度条对应得上。 */
+  function renderUnitMap(order, units, nameOf) {
+    var totalUnits = order.length;
+    var totalStages = totalUnits * 4;
+    var doneStages = 0;
+    order.forEach(function (k) { doneStages += unitDoneCount(k); });
+    var h = '<div class="umap">';
+    h += '<div class="umap-h"><b>🗺 单元地图</b>' +
+         '<span class="small">每单元四关：预习 · 跟读 · 练习 · 游戏</span>' +
+         '<span class="umap-progress small">已点亮 <b>' + doneStages +
+         '</b> / ' + totalStages + ' 关</span></div>';
+    h += '<div class="umap-grid">';
+    order.forEach(function (k, i) {
+      var u = units[k];
+      var nLessons = u.dlg.length + u.pas.length;
+      var name = nameOf(u);
+      h += '<a class="umap-u" href="#eu' + i + '" data-uk="' + esc(k) + '">' +
+           '<div class="umap-t"><b>' + name + '</b>' +
+           '<span class="umap-n">' + unitDoneCount(k) + "/4</span></div>" +
+           '<div class="umap-stages">' +
+           '<span class="umap-s" data-s="preview">预习</span>' +
+           '<span class="umap-s" data-s="read">跟读</span>' +
+           '<span class="umap-s" data-s="exercise">练习</span>' +
+           '<span class="umap-s" data-s="game">游戏</span>' +
+           '</div>' +
+           '<div class="umap-bar-wrap"><div class="umap-bar"></div></div>' +
+           '<div class="umap-f small">' + nLessons + ' 课</div>' +
+           '</a>';
+    });
+    h += '</div></div>';
+    return h;
+  }
+  function refreshUnitMapStages() {
+    var doneStages = 0, totalUnits = 0;
+    [].forEach.call(document.querySelectorAll(".umap-u"), function (el) {
+      totalUnits++;
+      var uk = el.getAttribute("data-uk");
+      var u = UNITMAP[uk] || {};
+      [].forEach.call(el.querySelectorAll(".umap-s"), function (s) {
+        var st = s.getAttribute("data-s");
+        s.classList.toggle("on", !!u[st]);
+      });
+      var n = unitDoneCount(uk);
+      doneStages += n;
+      el.querySelector(".umap-bar").style.width = (n * 25) + "%";
+      el.querySelector(".umap-n").textContent = n + "/4";
+      el.classList.toggle("umap-full", n >= 4);
+    });
+    [].forEach.call(document.querySelectorAll(".umap-progress b"), function (el) {
+      el.textContent = doneStages;
+    });
+  }
+
+  /* 每日 3 分钟：从"错题本 + 生词本 + 未复习的课"里抽 3 张卡
+     错题本暂缺，用生词本 + 已打过星但未自评的课作候选池。 */
+  function renderToday() {
+    var today = todayStr();
+    var day = CHECKIN[today] || { items: [], done: 0 };
+    if (!day.items || day.items.length === 0) {
+      day.items = pickTodayItems();
+      CHECKIN[today] = day;
+      checkinSave();
+    }
+    var streak = checkinStreak();
+    var done = day.done || 0;
+    var h = '<details class="today"' + (done >= 3 ? "" : " open") + '>' +
+            '<summary><b>📅 每日 3 分钟</b>' +
+            '<span class="small">' + esc(today) + ' · 已完成 ' + done + '/3</span>' +
+            '<span class="today-streak small">🔥 连击 ' + streak + ' 天</span>' +
+            '<span class="wb-badge">📖 <span class="wb-count">' + wbList().length + '</span></span>' +
+            '<span class="small today-repick">换一批</span></summary>';
+    h += '<div class="today-body">';
+    h += '<p class="small">每天三张卡：先自己说，再点 <b>✅ 已记住</b> 打勾。</p>';
+    if (day.items.length === 0) {
+      h += '<p class="small">先把生词收藏进词本，明天就有卡可抽。</p>';
+    } else {
+      h += '<div class="today-items">';
+      day.items.forEach(function (it, i) {
+        var done_i = day.done >= i + 1;
+        var card = "";
+        if (it.kind === "word") {
+          card = '<div class="today-card' + (done_i ? " done" : "") + '" data-i="' + i + '">' +
+                 '<span class="tag d1">生词</span>' +
+                 '<b>' + esc(it.word) + '</b>' +
+                 (it.ipa ? ' <i>' + esc(it.ipa) + '</i>' : "") +
+                 (it.zh ? ' <em class="wzh">' + esc(it.zh) + '</em>' : "") +
+                 '<button class="btn today-ok">✅ 已记住</button>' +
+                 '<button class="btn today-wrong">❌ 再来</button></div>';
+        } else if (it.kind === "lesson") {
+          card = '<div class="today-card' + (done_i ? " done" : "") + '" data-i="' + i +
+                 '" data-lkey="' + esc(it.key) + '">' +
+                 '<span class="tag">复习</span>' +
+                 '<b>' + esc(it.title) + '</b>' +
+                 '<span class="small">' + esc(it.book) + '</span>' +
+                 '<button class="btn today-go">去复习</button>' +
+                 '<button class="btn today-ok">✅ 已复习</button></div>';
+        }
+        h += card;
+      });
+      h += '</div>';
+    }
+    h += '</div></details>';
+    return h;
+  }
+  /* 抽 3 张今日卡：生词本按 last 最久未复习优先，其次补未自评的课 */
+  function pickTodayItems() {
+    var items = [];
+    // 生词：按 last 升序（越久没复习越靠前）
+    var wb = wbList().slice().sort(function (a, b) { return (a.last || 0) - (b.last || 0); });
+    wb.forEach(function (w) {
+      if (items.length >= 3) return;
+      items.push({ kind: "word", word: w.word, ipa: w.ipa, zh: w.zh,
+                   key: wbKey(w.book, w.word) });
+    });
+    // 补未自评（rate === 0）的课，随机挑
+    var less = [];
+    Object.keys(LESSONS).forEach(function (key) {
+      var s = STARS[key] || {};
+      if (!s.rate) {
+        var x = LESSONS[key].data;
+        less.push({ key: key, book: x.book || "",
+                    title: LESSONS[key].type === "dlg"
+                      ? (x.scene || x.title || "对话")
+                      : (x.name || "短文") });
+      }
+    });
+    shuffle(less);
+    less.forEach(function (l) {
+      if (items.length >= 3) return;
+      items.push({ kind: "lesson", key: l.key, book: l.book, title: l.title });
+    });
+    return items.slice(0, 3);
+  }
+
+  /* 生词本：按遗忘曲线（1 天 / 3 天 / 7 天）挑该复习的词，其余词列后面 */
+  function renderWordBook() {
+    var items = wbList();
+    var now = Date.now();
+    var DAY = 86400000;
+    items.sort(function (a, b) {
+      // 到复习时点越早越靠前；从未复习按 last 排
+      var da = nextReview(a), db = nextReview(b);
+      return da - db;
+    });
+    var due = [], rest = [];
+    items.forEach(function (w) {
+      (nextReview(w) <= now ? due : rest).push(w);
+    });
+    var h = '<details class="wordbook">' +
+            '<summary><b>📖 我的生词本</b>' +
+            '<span class="small">收藏 ' + items.length + ' 词</span>' +
+            '<span class="small">待复习 <b>' + due.length + '</b> 词</span>' +
+            '</summary>';
+    h += '<div class="wb-list">';
+    if (items.length === 0) {
+      h += '<p class="small">还没有生词。去「预习」或「音标」板块，点生词旁的 <b>+ 收藏</b> 加入。</p>';
+    } else {
+      h += '<p class="small">🔔 待复习（1/3/7 天间隔）</p>';
+      h += wbListInnerRow(due.length ? due : items.slice(0, 3), true);
+      if (rest.length) {
+        h += '<p class="small">📚 其他生词</p>' + wbListInnerRow(rest);
+      }
+    }
+    h += '</div></details>';
+    return h;
+  }
+  function nextReview(w) {
+    // 忘了就提前回来；对了就拉长间隔（1 → 3 → 7 → 14 → 30）
+    if (!w.last) return w.added || 0;
+    var wrong = w.wrong > w.right;
+    var gap = 1;
+    var n = (w.right || 0);
+    if (n === 0) gap = 1;
+    else if (n === 1) gap = 3;
+    else if (n === 2) gap = 7;
+    else if (n === 3) gap = 14;
+    else gap = 30;
+    if (wrong) gap = Math.max(1, gap - 1);
+    return w.last + gap * 86400000;
+  }
+  function wordBookListInner() { return renderWordBook().replace(/^<details[^>]*>|<\/details>$/g, ""); }
+  function wbListInnerRow(items, isDue) {
+    return '<div class="wb-grid">' + items.map(function (w) {
+      var k = wbKey(w.book, w.word);
+      return '<div class="wb-card' + (isDue ? " due" : "") + '" data-k="' + esc(k) + '">' +
+             '<b>' + esc(w.word) + '</b>' +
+             (w.ipa ? ' <i>' + esc(w.ipa) + '</i>' : "") +
+             (w.zh ? '<br><span class="wzh">' + esc(w.zh) + '</span>' : "") +
+             '<span class="wb-meta small">' +
+             (w.right || 0) + '✓ / ' + (w.wrong || 0) + '✗</span>' +
+             '<span class="wb-act">' +
+             '<button class="btn wb-right">记住了</button>' +
+             '<button class="btn wb-wrong">忘了</button>' +
+             '<button class="btn wb-del">移除</button>' +
+             '</span></div>';
+    }).join("") + '</div>';
+  }
 
   /* 本课生词：对话取 vocab_cards（带 IPA/词性），短文取 words 并回查词汇表补音标。
      本课标注不足 3 个时用单元词汇表兜底，音标/游戏板块才不至于空转。 */
@@ -1430,8 +1747,10 @@
     }
     // 搜索/筛选时自动展开各课，否则默认折叠（课太多，全铺开找不到北）
     var filtering = !!(st.q || st.book !== "all" || (st.extra && st.extra !== "all"));
+    // 生词本（顶部固定位）：不依赖 LESSONS 顺序
+    var h = renderWordBook();
     // 课文目录：按册 → 单元列出，点单元直达
-    var h = '<details class="toc"' +
+    h += '<details class="toc"' +
       (order.length && filtering ? " open" : "") +
       '><summary>课文目录（' + (dl.length + ps.length) + " 课 · " + order.length +
       " 个单元 · 点单元直达）</summary><div class=\"toc-b\">" +
@@ -1449,7 +1768,12 @@
       u.pas.forEach(function (x) { h += enLesson(x, "pas", filtering); });
       h += "</div>";
     });
-    return h;
+    // 单元地图四关灯状态（进度条已由 renderUnitMap 算过，这里刷一次确保与 UNITMAP 一致）
+    setTimeout(refreshUnitMapStages, 0);
+    // 单元地图 + 每日 3 分钟：这两块要 LESSONS 全部注册后才能算候选
+    // 放在末尾再插到顶部，保证 renderToday/pickTodayItems 拿到完整 LESSONS
+    var top = renderToday() + renderUnitMap(order, units, uname);
+    return top + h;
   }
 
   /* 一课 = 一个折叠的学习中心 */
@@ -1521,12 +1845,18 @@
       goals.map(function (g) { return "<li>" + esc(g) + "</li>"; }).join("") + "</ul></div>";
     step++;
     if (words.length) {
-      h += '<div class="pstep"><b>② 生词先认识（点 🔊 听发音）</b>' +
+      h += '<div class="pstep"><b>② 生词先认识（点 🔊 听发音，点 ⭐ 收进生词本）</b>' +
         (words.own ? "" : '<span class="small">（本课未标注生词，先学本单元这些词）</span>') +
         '<div class="words">' + words.map(function (w) {
+          var k = wbKey(x.book, w.word);
           return '<span class="wb">' + spkBtn(w.word) + esc(w.word) +
             (w.ipa ? ' <i>' + esc(w.ipa) + "</i>" : "") +
-            (w.zh ? ' <em class="wzh">' + esc(w.zh) + "</em>" : "") + "</span>";
+            (w.zh ? ' <em class="wzh">' + esc(w.zh) + "</em>" : "") +
+            '<button class="btn wb-toggle' + (WORDBOOK[k] ? " on" : "") +
+              '" data-wbkey="' + esc(k) + '" data-book="' + esc(x.book || "") +
+              '" data-word="' + esc(w.word) + '" data-ipa="' + esc(w.ipa || "") +
+              '" data-zh="' + esc(w.zh || "") +
+              '" title="收进生词本">' + (WORDBOOK[k] ? "★" : "⭐") + '</button></span>';
         }).join("") + "</div></div>";
       step++;
     }
@@ -1547,18 +1877,75 @@
     return h;
   }
 
-  /* 音标：本课生词 IPA 对照表 */
+  /* ---- 录音跟读打分：用浏览器原生 SpeechRecognition（Chrome/Edge）----
+     识别英文，去掉标点/空格后与目标词比对；对得上 → 得 ★ 点亮"跟读"关。 */
+  function hasSpeechRecognition() {
+    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  }
+  var recSR = null, recState = null;
+  function startRecognition(target, onResult) {
+    if (!hasSpeechRecognition()) {
+      onResult({ ok: false, text: "", why: "不支持语音识别" });
+      return;
+    }
+    var C = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (recSR) { try { recSR.abort(); } catch (e) {} }
+    var sr = new C();
+    recSR = sr;
+    sr.lang = "en-US";
+    sr.interimResults = false;
+    sr.maxAlternatives = 3;
+    var done = false;
+    function finish(res) {
+      if (done) return;
+      done = true;
+      onResult(res);
+    }
+    sr.onresult = function (e) {
+      var alt = [];
+      try {
+        for (var i = 0; i < e.results[0].length; i++) alt.push(e.results[0][i].transcript);
+      } catch (err) {}
+      var txt = alt.join(" ").toLowerCase().replace(/[^a-z\s'-]/g, "");
+      var want = String(target).toLowerCase().replace(/[^a-z\s'-]/g, "");
+      var ok = alt.some(function (a) {
+        return a.toLowerCase().replace(/[^a-z\s'-]/g, "") === want;
+      });
+      finish({ ok: ok, text: alt[0] || "", target: target });
+    };
+    sr.onerror = function (e) {
+      finish({ ok: false, text: "", why: e.error === "no-speech"
+        ? "没听清，再大声说一次" : ("识别失败：" + e.error) });
+    };
+    sr.onend = function () {
+      finish({ ok: false, text: "", why: "请说一次单词" });
+    };
+    try { sr.start(); } catch (e) { finish({ ok: false, text: "", why: "开始失败" }); }
+  }
+
+  /* 音标：本课生词 IPA 对照表；每行带 🔊 跟读打分（浏览器支持时） */
   function hubIpa(x, type) {
     var words = lessonWords(x, type);
     if (!words.length) return '<div class="empty">这一课没有生词</div>';
+    var sr = hasSpeechRecognition();
     return '<p class="small">三步跟读：先看音标拼一拼，再点 🔊 听，最后自己读三遍。</p>' +
+      '<p class="small rec-tip">' +
+        (sr ? '点 <b>🎤 打分</b> 让浏览器听你说，说对了得一颗 ★。' :
+               '浏览器不支持语音识别（换 Chrome/Edge），只能听示范。') + '</p>' +
       (words.own ? "" : '<p class="small">（本课未标注生词，列出本单元词汇）</p>') +
-      '<table class="tbl ipa-t"><tr><th>单词</th><th>音标</th><th>词性</th><th>中文</th><th>读</th></tr>' +
+      '<table class="tbl ipa-t"><tr><th>单词</th><th>音标</th><th>词性</th><th>中文</th><th>读</th><th>跟读</th></tr>' +
       words.map(function (w) {
         return "<tr><td><b>" + esc(w.word) + "</b></td><td>" + esc(w.ipa || "—") +
           "</td><td>" + esc(w.pos || "—") + "</td><td>" + esc(w.zh || "—") +
-          "</td><td>" + spkBtn(w.word) + "</td></tr>";
-      }).join("") + "</table>";
+          "</td><td>" + spkBtn(w.word) + "</td><td>" +
+          (sr
+            ? '<button class="btn rec-btn" data-rec="' + esc(w.word) + '">🎤 打分</button>'
+              + '<span class="rec-res"></span>'
+            : '<span class="small muted">—</span>') +
+          "</td></tr>";
+      }).join("") + "</table>" +
+      '<p class="small rec-all"><button class="btn rec-all-btn" data-recall="1">🎤 全部跟读一遍</button>' +
+      '<span class="small">（逐个念，全对得 ★ 跟读关）</span></p>';
   }
 
   /* 自然拼读：本单元的字母组合发音（构建期按单元切片） */
@@ -1661,7 +2048,64 @@
           return '<div class="pat">' + spkBtn(String(p)) + hl(String(p)) + "</div>";
         }).join("");
     }
+    h += hubCloze(x, type);
     return h || '<div class="empty">这一课暂时没有可自动生成的练习</div>';
+  }
+
+  /* 听力填词：把课文里的词挖空，点 🔊 听整句，从 3 个候选里选。
+     与"练习一"的区别：练习一显示整句挖空 + 3 选 1；这里是听句子 → 填空，
+     不看文字。全对得 ★（与练习一共用 fill 关，取一次即可）。 */
+  function hubCloze(x, type) {
+    var words = lessonWords(x, type);
+    var lines = lessonLines(x, type);
+    if (words.length < 2 || lines.length < 1) return "";
+    // 挑 3 条句子，每条挖一个词
+    var picks = [];
+    var used = {};
+    var pool = lines.slice();
+    shuffle(pool);
+    pool.forEach(function (line) {
+      if (picks.length >= 3) return;
+      words.forEach(function (w) {
+        if (picks.length >= 3) return;
+        if (used[w.word]) return;
+        var re = new RegExp("\\b" + w.word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i");
+        if (re.test(line) && line.length <= 90) {
+          picks.push({ line: line, word: w.word, ipa: w.ipa });
+          used[w.word] = 1;
+        }
+      });
+    });
+    if (picks.length < 2) return "";
+    var other = words.map(function (w) { return w.word; });
+    var h = '<p class="small">练习三 · 听力填词（先看挖空句，听一遍再选）</p>' +
+            '<div class="ex-cloze">';
+    picks.forEach(function (it) {
+      var opts = [it.word];
+      var guard = 0;
+      while (opts.length < 3 && guard++ < 40) {
+        var w = other[Math.floor(Math.random() * other.length)];
+        if (opts.map(function (o) { return o.toLowerCase(); })
+              .indexOf(w.toLowerCase()) < 0) opts.push(w);
+      }
+      shuffle(opts);
+      var blanked = it.line.replace(
+        new RegExp("\\b" + it.word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i"),
+        "＿＿＿");
+      h += '<div class="fq cloze" data-a="' + esc(it.word) + '">' +
+        '<div class="fl"><span class="small">' + esc(blanked) + '</span></div>' +
+        '<div class="cloze-ctl">' +
+        '<button class="btn cloze-play" data-line="' + esc(it.line) +
+          '" data-slow="0">🔊 正常</button>' +
+        '<button class="btn cloze-play" data-line="' + esc(it.line) +
+          '" data-slow="1">🐢 慢速</button>' +
+        '</div>' +
+        opts.map(function (o) {
+          return '<span class="opt" data-w="' + esc(o) + '">' + esc(o) + "</span>";
+        }).join("") + '<span class="fb"></span></div>';
+    });
+    h += "</div>";
+    return h;
   }
 
   /* 游戏：拼词 / 句子排排队 / 中英对对碰，各得一颗 ★ */
@@ -1855,27 +2299,32 @@
         opt.classList.add(ok ? "ok" : "no");
         fq.querySelector(".fb").innerHTML = ok ? '<span class="ok-t">对</span>'
           : '<span class="no-t">答案：' + esc(fq.getAttribute("data-a") || "") + "</span>";
-        var wrap = opt.closest(".ex-fill");
-        var qs = wrap.querySelectorAll(".fq"), done = 0, right = 0;
-        [].forEach.call(qs, function (q) {
-          if (q._done) { done++; if (q.querySelector(".opt.ok")) right++; }
-        });
-        if (done === qs.length) {
-          var det1 = opt.closest("details.lesson");
-          if (right === qs.length) {
-            awardStar(det1.getAttribute("data-lkey"), "fill");
-            wrap.insertAdjacentHTML("beforeend",
-              '<div class="g-fb"><span class="ok-t">全对！得一颗 ★</span></div>');
-          } else {
-            wrap.insertAdjacentHTML("beforeend",
-              '<div class="g-fb"><span class="no-t">对 ' + right + " / " + qs.length +
-              ' 题</span> <span class="opt fq-reset">再做一次</span></div>');
+        /* 选词填空（.ex-fill）与听力填词（.ex-cloze）共用同一套 .fq .opt 交互，
+           按 wrap 分别汇总进度；两处全对都算 fill 关，awardStar 幂等（只记一次）。 */
+        var wrap = opt.closest(".ex-fill") || opt.closest(".ex-cloze");
+        if (wrap) {
+          var qs = wrap.querySelectorAll(".fq"), done = 0, right = 0;
+          [].forEach.call(qs, function (q) {
+            if (q._done) { done++; if (q.querySelector(".opt.ok")) right++; }
+          });
+          if (done === qs.length) {
+            var det1 = opt.closest("details.lesson");
+            if (right === qs.length) {
+              awardStar(det1.getAttribute("data-lkey"), "fill");
+              wrap.insertAdjacentHTML("beforeend",
+                '<div class="g-fb"><span class="ok-t">全对！得一颗 ★</span></div>');
+            } else {
+              wrap.insertAdjacentHTML("beforeend",
+                '<div class="g-fb"><span class="no-t">对 ' + right + " / " + qs.length +
+                ' 题</span> <span class="opt fq-reset">再做一次</span></div>');
+            }
           }
         }
         return;
       }
       if (e.target.closest(".fq-reset")) {
-        var wrap2 = e.target.closest(".ex-fill");
+        var wrap2 = e.target.closest(".ex-fill") || e.target.closest(".ex-cloze");
+        if (!wrap2) return;
         [].forEach.call(wrap2.querySelectorAll(".fq"), function (q) {
           q._done = false;
           q.querySelector(".fb").innerHTML = "";
@@ -1885,6 +2334,195 @@
         });
         var fb2 = wrap2.querySelector(".g-fb");
         if (fb2) fb2.parentNode.removeChild(fb2);
+        return;
+      }
+      /* 听力填词：点 🔊 播放整句（慢速 rate = 0.7） */
+      var cp = e.target.closest(".cloze-play");
+      if (cp) {
+        var line = cp.getAttribute("data-line") || "";
+        var slow = cp.getAttribute("data-slow") === "1";
+        if (line) speech(line, slow ? 0.7 : 1.0);
+        return;
+      }
+      /* 生词收藏按钮（预习板块每个词后面） */
+      var wbT = e.target.closest(".wb-toggle");
+      if (wbT) {
+        var k = wbT.getAttribute("data-wbkey");
+        var book = wbT.getAttribute("data-book") || "";
+        var word = wbT.getAttribute("data-word") || "";
+        if (WORDBOOK[k]) wbRemove(book, word);
+        else wbAdd(book, word, { ipa: wbT.getAttribute("data-ipa") || "",
+                                 zh: wbT.getAttribute("data-zh") || "" });
+        return;
+      }
+      /* 每日 3 分钟：换一批 / 打卡 / 复习 */
+      if (e.target.closest(".today-repick")) {
+        var today = todayStr();
+        var day2 = CHECKIN[today] || { items: [], done: 0 };
+        day2.items = pickTodayItems();
+        day2.done = 0;
+        CHECKIN[today] = day2;
+        checkinSave();
+        var todayBox = document.querySelector("details.today");
+        if (todayBox) todayBox.outerHTML = renderToday();
+        return;
+      }
+      var tOk = e.target.closest(".today-ok");
+      if (tOk) {
+        var card = tOk.closest(".today-card");
+        if (!card || card.classList.contains("done")) return;
+        var i = +card.getAttribute("data-i");
+        var day3 = CHECKIN[todayStr()] || { items: [], done: 0 };
+        if (i + 1 > day3.done) day3.done = i + 1;
+        CHECKIN[todayStr()] = day3;
+        checkinSave();
+        card.classList.add("done");
+        [].forEach.call(document.querySelectorAll(".today summary .small"), function (el) {
+          if (el.textContent.indexOf("已完成") >= 0) {
+            el.textContent = todayStr() + " · 已完成 " + day3.done + "/3";
+          }
+        });
+        var str2 = checkinStreak();
+        [].forEach.call(document.querySelectorAll(".today-streak"), function (el) {
+          el.textContent = "🔥 连击 " + str2 + " 天";
+        });
+        return;
+      }
+      var tWrong = e.target.closest(".today-wrong");
+      if (tWrong) {
+        /* 生词本里记一次错误：把 last 更新到当下，wrong++，下次优先抽它 */
+        var card2 = tWrong.closest(".today-card");
+        var today2 = todayStr();
+        var day4 = CHECKIN[today2];
+        var idx = +card2.getAttribute("data-i");
+        var it = day4.items[idx];
+        if (it && it.kind === "word") {
+          var wk = wbKey(it.book, it.word);
+          if (!WORDBOOK[wk]) {
+            /* 从今日 items 里补一下 meta */
+            WORDBOOK[wk] = { word: it.word, ipa: it.ipa || "", zh: it.zh || "",
+                             book: it.book || "", added: Date.now(),
+                             last: 0, right: 0, wrong: 0 };
+          }
+          WORDBOOK[wk].wrong = (WORDBOOK[wk].wrong || 0) + 1;
+          WORDBOOK[wk].last = Date.now();
+          wordBookSave();
+          refreshWordBookUI();
+        }
+        return;
+      }
+      var tGo = e.target.closest(".today-go");
+      if (tGo) {
+        var card3 = tGo.closest(".today-card");
+        var lkey = card3.getAttribute("data-lkey");
+        var detG = document.querySelector('details.lesson[data-lkey="' + lkey + '"]');
+        if (detG) {
+          detG.open = true;
+          detG.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        /* 打卡：复习完记得点右边的 ✅ 已复习 */
+        return;
+      }
+      /* 生词本：记住了 / 忘了 / 移除 */
+      var wRight = e.target.closest(".wb-right");
+      if (wRight) {
+        var cb = wRight.closest(".wb-card");
+        var wk2 = cb.getAttribute("data-k");
+        if (WORDBOOK[wk2]) {
+          WORDBOOK[wk2].right = (WORDBOOK[wk2].right || 0) + 1;
+          WORDBOOK[wk2].last = Date.now();
+          wordBookSave();
+          refreshWordBookUI();
+        }
+        return;
+      }
+      var wWrong = e.target.closest(".wb-wrong");
+      if (wWrong) {
+        var cb2 = wWrong.closest(".wb-card");
+        var wk3 = cb2.getAttribute("data-k");
+        if (WORDBOOK[wk3]) {
+          WORDBOOK[wk3].wrong = (WORDBOOK[wk3].wrong || 0) + 1;
+          WORDBOOK[wk3].last = Date.now();
+          wordBookSave();
+          refreshWordBookUI();
+        }
+        return;
+      }
+      var wDel = e.target.closest(".wb-del");
+      if (wDel) {
+        var cb3 = wDel.closest(".wb-card");
+        var wk4 = cb3.getAttribute("data-k");
+        var parts2 = String(wk4).split("#");
+        wbRemove(parts2[0], parts2.slice(1).join("#"));
+        return;
+      }
+      /* 跟读打分：点 🎤 触发浏览器语音识别 */
+      var recB = e.target.closest(".rec-btn");
+      if (recB) {
+        var rec = recB.getAttribute("data-rec");
+        var res = recB.parentElement.querySelector(".rec-res");
+        if (res) res.innerHTML = '<span class="small">… 正在听</span>';
+        recB.disabled = true;
+        recB.classList.add("rec-busy");
+        startRecognition(rec, function (r) {
+          recB.disabled = false;
+          recB.classList.remove("rec-busy");
+          if (res) {
+            if (r.ok) {
+              res.innerHTML = '<span class="ok-t">说对了 ✓</span>';
+              var detR = recB.closest("details.lesson");
+              if (detR) markUnitMap(detR.getAttribute("data-lkey"), "read");
+            } else {
+              var why = r.why || "";
+              var tip = r.text ? "（识别到：" + esc(r.text) + "）" : "";
+              res.innerHTML = '<span class="no-t">' + esc(why) + tip + "</span>";
+            }
+          }
+        });
+        return;
+      }
+      var recAll = e.target.closest(".rec-all-btn");
+      if (recAll) {
+        /* 全部跟读：逐个念，全部说对才点亮"跟读"关 */
+        var panel = recAll.closest(".hpanel");
+        if (!panel) return;
+        var btns = panel.querySelectorAll(".rec-btn");
+        if (!btns.length) return;
+        var n = btns.length, ok = 0, i = 0;
+        recAll.disabled = true;
+        [].forEach.call(btns, function (b) { b.disabled = true; });
+        function step() {
+          if (i >= n) {
+            [].forEach.call(btns, function (b) { b.disabled = false; });
+            recAll.disabled = false;
+            if (ok === n) {
+              var detA = recAll.closest("details.lesson");
+              if (detA) markUnitMap(detA.getAttribute("data-lkey"), "read");
+              var hint = recAll.parentElement.querySelector(".rec-all .small");
+              if (hint) hint.innerHTML = '<span class="ok-t">全对！跟读关已点亮 ✓</span>';
+            } else {
+              var hint2 = recAll.parentElement.querySelector(".rec-all .small");
+              if (hint2) hint2.innerHTML = '对了 ' + ok + " / " + n + " 个，再练一次";
+            }
+            return;
+          }
+          var b = btns[i];
+          b.classList.add("rec-cur");
+          var r = b.parentElement.querySelector(".rec-res");
+          if (r) r.innerHTML = '<span class="small">👂 现在说：' + esc(b.getAttribute("data-rec")) + "</span>";
+          startRecognition(b.getAttribute("data-rec"), function (res2) {
+            b.classList.remove("rec-cur");
+            if (res2.ok) {
+              ok++;
+              if (r) r.innerHTML = '<span class="ok-t">✓</span>';
+            } else {
+              if (r) r.innerHTML = '<span class="no-t">再来</span>';
+            }
+            i++;
+            setTimeout(step, 250);
+          });
+        }
+        step();
         return;
       }
       var gs = e.target.closest(".g-start");

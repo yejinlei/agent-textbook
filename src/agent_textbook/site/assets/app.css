@@ -984,8 +984,143 @@ details.aq .aa {
 .rstar.on { color: #e8a200; }
 .lyr { padding: 2px 0; font-size: 15px; }
 
+/* ---- 单元地图（英语·课文与语篇）---- */
+.umap { margin: 6px 0 14px; padding: 12px 14px; background: linear-gradient(180deg,#fbf8ef,#fff); border: 2px solid var(--line); border-radius: 14px; }
+.umap-h { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.umap-h .umap-progress { margin-left: auto; font-size: 13px; color: var(--muted); }
+.umap-h .umap-progress b { color: var(--c); }
+.umap-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap: 8px; }
+.umap-u { display: block; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; text-decoration: none; color: var(--ink); }
+.umap-u:hover { border-color: var(--c); }
+.umap-t { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+.umap-n { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.umap-stages { display: flex; gap: 4px; margin-bottom: 6px; }
+.umap-s {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: var(--muted);
+  background: #fff;
+}
+.umap-s.on { background: var(--c); border-color: var(--c); color: #fff; }
+.umap-bar-wrap { height: 6px; background: #eee7d5; border-radius: 4px; overflow: hidden; }
+.umap-bar { height: 100%; width: 0; background: linear-gradient(90deg,#8bc9a3,var(--c)); transition: width .3s; }
+.umap-full { border-color: #43a047 !important; background: #f1faf3 !important; }
+.umap-full .umap-n { color: #196f3d; }
+
+/* ---- 每日 3 分钟（打卡）---- */
+.today { margin: 6px 0 14px; border: 2px solid #f0c98a; background: linear-gradient(180deg,#fff8e8,#fff); border-radius: 14px; padding: 0; }
+.today > summary {
+  cursor: pointer;
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  padding: 10px 14px;
+  font-weight: 600;
+  list-style: none;
+}
+.today > summary::-webkit-details-marker { display: none; }
+.today > summary::before { content: "☀"; color: #e8a200; }
+.today .today-streak { margin-left: auto; color: #d18a00; font-weight: 700; font-size: 13px; }
+.today-repick {
+  font-weight: 400 !important;
+  color: var(--ma) !important;
+  cursor: pointer;
+  border: 1px solid var(--line); border-radius: 12px; padding: 1px 10px;
+  background: #fff;
+}
+.today-repick:hover { border-color: var(--ma); }
+.today-body { padding: 4px 14px 12px; }
+.today-items { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 8px; margin-top: 6px; }
+.today-card {
+  border: 1px solid var(--line); border-radius: 10px; background: #fff;
+  padding: 8px 10px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.today-card.done { opacity: .55; background: #f1faf3; }
+.today-card .tc-word { font-family: "Times New Roman", serif; font-size: 22px; font-weight: 700; }
+.today-card .tc-ipa { color: var(--muted); font-size: 13px; }
+.today-card .tc-zh { color: #196f3d; font-size: 13px; }
+.today-card .tc-src { color: var(--muted); font-size: 12px; }
+.today-card .tc-act { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+.today-ok {
+  background: #43a047; color: #fff; border-color: #43a047;
+  font-size: 12.5px; padding: 2px 10px;
+}
+.today-ok:hover { border-color: #2e7a32; background: #2e7a32; }
+.today-wrong {
+  background: #fff; color: #c62828; border-color: #e0a0a0;
+  font-size: 12.5px; padding: 2px 10px;
+}
+.today-wrong:hover { background: #fdecea; }
+.today-go {
+  background: #fff; color: var(--ma); border-color: var(--line);
+  font-size: 12.5px; padding: 2px 10px;
+}
+
+/* ---- 生词本 ---- */
+.wordbook { margin: 6px 0 14px; padding: 10px 14px 12px; border: 2px solid #b9d6c3; background: linear-gradient(180deg,#f4faf5,#fff); border-radius: 14px; }
+.wordbook .wb-h { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.wordbook .wb-count { color: var(--muted); font-size: 13px; }
+.wordbook .wb-count b { color: var(--c); }
+.wordbook .wb-hint { margin-left: auto; font-size: 12.5px; color: var(--muted); }
+.wb-list { display: grid; grid-template-columns: repeat(auto-fill,minmax(240px,1fr)); gap: 8px; }
+.wb-card {
+  border: 1px solid var(--line); border-radius: 10px; background: #fff;
+  padding: 8px 10px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.wb-card .wb-word { font-family: "Times New Roman", serif; font-size: 20px; font-weight: 700; }
+.wb-card .wb-ipa { color: var(--muted); font-size: 13px; }
+.wb-card .wb-zh { color: #196f3d; font-size: 13px; }
+.wb-card .wb-meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.wb-card .wb-meta .hit { color: #196f3d; }
+.wb-card .wb-meta .miss { color: #c62828; }
+.wb-act { display: flex; gap: 6px; margin-top: 4px; align-items: center; }
+.wb-act .btn { font-size: 12.5px; padding: 2px 8px; }
+.wb-right { background: #43a047; color: #fff; border-color: #43a047; }
+.wb-right:hover { border-color: #2e7a32; background: #2e7a32; }
+.wb-wrong { background: #fff; color: #c62828; border-color: #e0a0a0; }
+.wb-wrong:hover { background: #fdecea; }
+.wb-del { margin-left: auto; background: transparent; color: var(--muted); border-color: var(--line); }
+.wb-del:hover { color: #c62828; border-color: #e0a0a0; }
+.wb-toggle {
+  background: #fff; color: #e8a200; border-color: #f0c98a;
+  padding: 0 6px !important; font-size: 13px; line-height: 1.4;
+}
+.wb-toggle.on { background: #fff3d6; color: #b06a00; border-color: #e8a200; }
+.wb-toggle:hover { border-color: #e8a200; }
+
+/* ---- 跟读打分（录音打分）---- */
+.rec-tip { color: var(--muted); font-size: 12.5px; margin: 2px 0 8px; }
+.rec-btn {
+  background: #fff; color: var(--ma); border-color: var(--line);
+  font-size: 12.5px; padding: 2px 8px;
+}
+.rec-btn:hover { border-color: var(--ma); }
+.rec-btn[disabled] { opacity: .55; cursor: default; }
+.rec-btn.rec-busy { border-color: #e8a200; color: #b06a00; animation: pulseR 1s infinite; }
+.rec-btn.rec-cur { border-color: #43a047; color: #196f3d; background: #f1faf3; }
+@keyframes pulseR { 0%,100%{opacity:1} 50%{opacity:.6} }
+.rec-res { display: inline-block; min-width: 60px; margin-left: 6px; font-size: 12.5px; }
+.rec-all { margin-top: 8px; }
+.rec-all .rec-all-btn { font-size: 13px; padding: 3px 12px; }
+
+/* ---- 听力填词 ---- */
+.ex-cloze { margin-top: 10px; padding: 10px 12px; border: 1px dashed #b9d6c3; border-radius: 10px; background: #fbfaf3; }
+.ex-cloze .ex-h { color: var(--c); font-size: 14.5px; margin-bottom: 6px; }
+.cloze { margin: 8px 0; padding: 6px 10px; background: #fdfaf4; border-radius: 10px; }
+.cloze-ctl { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+.cloze-play { font-size: 13px; padding: 2px 8px; }
+
+/* ---- 复习里的答对了/答错了（生词本按钮复用）---- */
+.ok-t { color: #196f3d; font-weight: 600; }
+.no-t { color: #c62828; }
+
 @media (max-width: 860px) {
   .dt { grid-template-columns: 1fr; }
+  .umap-grid { grid-template-columns: 1fr; }
+  .today-items { grid-template-columns: 1fr; }
+  .wb-list { grid-template-columns: 1fr; }
 }
 
 /* 圆头滚动条，键盘选中也有明显的圈 */
