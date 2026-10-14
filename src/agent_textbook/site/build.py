@@ -610,14 +610,23 @@ def _load_readings():
     if not os.path.exists(path):
         return []
     raw = json.load(open(path, encoding="utf-8"))
+    texts_dir = os.path.join(os.path.dirname(path), "texts")
     out = []
     for b in raw.get("books", []):
         f = b.get("facets", {})
+        bid = b.get("id", "")
+        # 加载全文（截前 8000 字符，避免页面过大）
+        text = ""
+        tp = os.path.join(texts_dir, bid + ".txt")
+        if os.path.exists(tp):
+            with open(tp, encoding="utf-8", errors="replace") as fh:
+                text = fh.read(8000).strip()
         out.append({
-            "id": b.get("id", ""), "title": b.get("title", ""),
+            "id": bid, "title": b.get("title", ""),
             "author": b.get("author", ""),
             "primary_topic": b.get("primary_topic", ""),
             "secondary_topics": b.get("secondary_topics", []),
+            "text": text,
             "facets": {
                 "grade": f.get("grade", []), "grade_band": f.get("grade_band", ""),
                 "text_type": f.get("text_type", ""),

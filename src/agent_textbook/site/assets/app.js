@@ -2203,9 +2203,17 @@
         main += '</div>';
       }
 
-      /* 长文：如果有 pairs_with_unit 显示挂载信息 */
-      if (b._source === "reading" && b.pairs_with_unit && b.pairs_with_unit.length) {
-        main += '<p class="small">挂载教材单元：' + b.pairs_with_unit.length + ' 个</p>';
+      /* 长文：展示正文 + 挂载信息 */
+      if (b._source === "reading") {
+        if (b.text) {
+          main += '<div class="rw-pages"><p class="rw-pg">' +
+                  esc(b.text.slice(0, 3000)) +
+                  (b.text.length > 3000 ? '…' : '') + '</p>' +
+                  spkBtn(b.text.slice(0, 500)) + '</div>';
+        }
+        if (b.pairs_with_unit && b.pairs_with_unit.length) {
+          main += '<p class="small">挂载教材单元：' + b.pairs_with_unit.length + ' 个</p>';
+        }
       }
 
       main += '</details>';
