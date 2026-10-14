@@ -731,6 +731,9 @@ EN_PAGES = [
      "按范畴汇总，附“哪一册学了什么时态”的时态线，句型里可替换处高亮。"),
     ("phonics", "语音拼读", "phonics", "字母与字母组合的发音：见词能读、听音能写。"),
     ("use", "综合运用", "use", "歌谣、项目任务与复习板块。"),
+    ("extra", "课外拓展", "extra",
+     "教材之外的同主题阅读：按话题串起来，短文配译文与朗读，"
+     "对话配情景与功能。想多读几篇同一个话题的，来这里。"),
     ("speak", "开口说", "speak",
      "教材里每一组对话按角色摊开，一句一句推进；中文可遮住自测。"
      "另有项目任务：做出一样东西要说什么、要什么材料。敢开口，从有话可说开始。"),
@@ -929,7 +932,8 @@ def _slice(key, kind, cn_d, math_d, en_d):
                 "themes": en_d["themes"], "books": books}
     keys = {"discourse": ["passages", "dialogues"], "vocab": ["vocab"],
             "grammar": ["grammar"], "phonics": ["phonics"],
-            "use": ["songs", "projects", "revisions"]}
+            "use": ["songs", "projects", "revisions"],
+            "extra": ["passages", "dialogues"]}
     d = {"books": books, "themes": en_d["themes"], "domains": en_d["domains"]}
     for k in keys.get(kind, []):
         d[k] = en_d[k]

@@ -1283,20 +1283,21 @@
       else if (kind === "vocab") h = enVocab(st);
       else if (kind === "grammar") h = enGrammar(st);
       else if (kind === "phonics") h = enPhonics(st);
+      else if (kind === "extra") h = enExtra(st);
       else h = enUse(st);
       box.innerHTML = h || '<div class="empty">没有匹配的内容</div>';
       cnt.textContent = box.querySelectorAll(".item").length + " 组";
     }, { hint: { discourse: "如：family、weather", vocab: "如：job、doctor",
                  grammar: "如：can、there be、过去式", phonics: "如：sh、ai",
-                 use: "如：song、project" }[kind] || "关键词",
+                 use: "如：song、project", extra: "如：family、weather、school" }[kind] || "关键词",
          tags: (function () {
            var m = { discourse: [D.passages, "name"], vocab: [D.vocab, "topic"],
                      grammar: [D.grammar, "category"], phonics: [D.phonics, "letters"],
-                     use: [D.songs, "name"] }[kind] || [D.vocab, "topic"];
+                     use: [D.songs, "name"], extra: [D.passages, "topic"] }[kind] || [D.vocab, "topic"];
            return hotTags(m[0], m[1], 16);
          })(),
          zh: kind === "discourse",
-         extra: (kind === "vocab" || kind === "discourse")
+         extra: (kind === "vocab" || kind === "discourse" || kind === "extra")
            ? { label: "按话题", opts: topics } : null });
     t.fire();
     // 词汇卡：点一下才出中文（自测）
@@ -1957,6 +1958,81 @@
     return String(x.text || "").split(/\n+/)
       .map(function (s) { return s.trim(); })
       .filter(function (s) { return s.length > 3; });
+  }
+
+  /* 课外拓展：按话题分组，短文 + 对话混排，可筛选册次与话题 */
+  function enExtra(st) {
+    var dl = (D.dialogues || []).filter(pass(st, ["scene", "function", "patterns"]));
+    var ps = (D.passages || []).filter(pass(st, ["name", "genre", "text", "topic"]));
+    /* 按话题聚合 */
+    var topics = {}, order = [];
+    function add(topic, item) {
+      if (!topics[topic]) { topics[topic] = []; order.push(topic); }
+      topics[topic].push(item);
+    }
+    ps.forEach(function (p) {
+      add(p.topic || "（无主题）",
+          { kind: "passage", data: p });
+    });
+    dl.forEach(function (d) {
+      add(d.topic || "（无主题）",
+          { kind: "dialogue", data: d });
+    });
+    /* 按话题内条目数降序 */
+    order.sort(function (a, b) { return topics[b].length - topics[a].length; });
+
+    var nTotal = ps.length + dl.length;
+    if (!nTotal) return '<div class="empty">没有匹配的课外拓展内容</div>';
+
+    var h = '<div class="extra-head"><b>📚 课外拓展</b>' +
+            '<span class="small">' + nTotal + ' 篇 · ' + order.length + ' 个话题</span></div>';
+
+    order.forEach(function (topic) {
+      var items = topics[topic];
+      h += '<details class="extra-topic" open><summary>' +
+           '<b>' + esc(topic) + '</b>' +
+           '<span class="small">' + items.length + ' 篇</span></summary>';
+      h += '<div class="extra-list">';
+      items.forEach(function (it) {
+        if (it.kind === "passage") {
+          var p = it.data;
+          var peek = (p.text || "").slice(0, 120);
+          h += '<div class="item extra-card">' +
+               '<div class="top"><span class="name">' + esc(p.name || "短文") + '</span>' +
+               (p.genre ? '<span class="tag">' + esc(p.genre) + '</span>' : '') +
+               (p.book ? '<span class="tag d1">' + esc(p.book) + '</span>' : '') +
+               (p.unit ? '<span class="small">' + esc(p.unit) + '</span>' : '') +
+               '</div>';
+          if (p.zh) h += '<p class="small">' + esc(p.zh.slice(0, 150)) + (p.zh.length > 150 ? '…' : '') + '</p>';
+          h += '<p class="spk">' + esc(peek) + (p.text && p.text.length > 120 ? '…' : '') + '</p>';
+          if (p.words && p.words.length) {
+            h += '<div class="words">' + p.words.slice(0, 6).map(function (w) {
+              var word = typeof w === "string" ? w : (w.word || w.w || "");
+              return '<span class="wb">' + spkBtn(word) + esc(word) + '</span>';
+            }).join("") + '</div>';
+          }
+          h += spkBtn(peek) + '</div>';
+        } else {
+          var d = it.data;
+          h += '<div class="item extra-card">' +
+               '<div class="top"><span class="name">' + esc(d.scene || d.title || "对话") + '</span>' +
+               (d.function ? '<span class="tag">' + esc(d.function) + '</span>' : '') +
+               (d.book ? '<span class="tag d1">' + esc(d.book) + '</span>' : '') +
+               (d.unit ? '<span class="small">' + esc(d.unit) + '</span>' : '') +
+               '</div>';
+          if (d.patterns) h += '<p class="small">句型：' + esc(d.patterns) + '</p>';
+          if (d.lines) {
+            h += '<div class="dl-lines">' + d.lines.slice(0, 4).map(function (l) {
+              return '<div class="lyr">' + spkBtn(l.text || l) +
+                     '<span class="spk">' + esc(l.text || l) + '</span></div>';
+            }).join("") + '</div>';
+          }
+          h += '</div>';
+        }
+      });
+      h += '</div></details>';
+    });
+    return h;
   }
 
   function enText(st) {
