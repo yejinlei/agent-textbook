@@ -1323,7 +1323,75 @@
         try { localStorage.setItem("enExtraFilter", "{}"); } catch (err) {}
         t.fire();
       });
+      /* 课外拓展：分段精读交互 */
+      box.addEventListener("click", function (e) {
+        /* 词汇高亮点击 → 朗读 */
+        var vw = e.target.closest(".rw-vocab");
+        if (vw) { speech(vw.getAttribute("data-word") || vw.textContent); return; }
+        /* 词汇条目点击 → 朗读 */
+        var vi = e.target.closest(".rw-vocab-item");
+        if (vi) { speech(vi.getAttribute("data-word") || vi.textContent); return; }
+        /* 翻译按钮 */
+        var tr = e.target.closest(".rw-translate-btn");
+        if (tr) {
+          var trBox = tr.closest(".rw-para-body");
+          var trDiv = trBox ? trBox.querySelector(".rw-para-tr") : null;
+          if (trDiv) {
+            if (trDiv.getAttribute("data-loaded") === "1") {
+              trDiv.classList.toggle("hide");
+              return;
+            }
+            trDiv.textContent = "翻译中…";
+            trDiv.classList.remove("hide");
+            var q = tr.getAttribute("data-text") || "";
+            loadTranslation(q, function (zh) {
+              trDiv.innerHTML = '<p class="rw-para-zh">' + esc(zh) + '</p>';
+              trDiv.setAttribute("data-loaded", "1");
+              tr.textContent = "译✓";
+            }, function () {
+              trDiv.innerHTML = '<p class="small">翻译加载失败，<a href="https://translate.google.com/?sl=en&tl=zh&text=' +
+                encodeURIComponent(q) + '" target="_blank">点此用 Google 翻译</a></p>';
+              trDiv.setAttribute("data-loaded", "1");
+            });
+          }
+          return;
+        }
+        /* 词汇表开关 */
+        var vb = e.target.closest(".rw-vocab-btn");
+        if (vb) {
+          var vbb = vb.closest(".rw-para-body");
+          var vbl = vbb ? vbb.querySelector(".rw-vocab-list") : null;
+          if (vbl) vbl.classList.toggle("hide");
+          vb.classList.toggle("on");
+          return;
+        }
+      });
+      /* 段落展开 → 更新进度 */
+      box.addEventListener("toggle", function (e) {
+        var para = e.target.closest(".rw-para");
+        if (!para) return;
+        var read = para.closest(".rw-read");
+        if (!read) return;
+        var opened = read.querySelectorAll(".rw-para[open]").length;
+        var total = parseInt(read.getAttribute("data-total") || "0", 10);
+        var cnt = read.querySelector(".rw-read-count");
+        if (cnt) cnt.textContent = opened + "/" + total + " 段";
+        var fill = read.querySelector(".rw-read-fill");
+        if (fill) fill.style.width = (total ? (opened / total * 100) : 0) + "%";
+      }, true);
     }
+  }
+
+  /* Google Translate API：按需加载译文 */
+  function loadTranslation(text, onOk, onErr) {
+    var url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q=" +
+              encodeURIComponent(text);
+    fetch(url).then(function (r) { return r.json(); }).then(function (d) {
+      if (d && d[0]) {
+        var zh = d[0].map(function (s) { return s[0] || ""; }).join("");
+        onOk(zh);
+      } else { onErr(); }
+    }).catch(onErr);
   }
 
   /* 课文：按册 → 单元（教材顺序）→ 对话 / 短文。
@@ -2204,13 +2272,10 @@
         main += '</div>';
       }
 
-      /* 长文：展示正文 + 挂载信息 */
+      /* 长文：分段精读 + 词汇聚焦 + 翻译对照 + 朗读 + 进度 */
       if (b._source === "reading") {
         if (b.text) {
-          main += '<div class="rw-pages"><p class="rw-pg">' +
-                  esc(b.text.slice(0, 3000)) +
-                  (b.text.length > 3000 ? '…' : '') + '</p>' +
-                  spkBtn(b.text.slice(0, 500)) + '</div>';
+          main += renderReadingText(b.text, b.id);
         }
         if (b.pairs_with_unit && b.pairs_with_unit.length) {
           main += '<p class="small">挂载教材单元：' + b.pairs_with_unit.length + ' 个</p>';
@@ -2222,6 +2287,78 @@
     main += '</div>';
 
     return '<div class="rw-layout">' + sidebar + main + '</div>';
+  }
+
+  /* ---- 课外拓展：分段精读引擎 ---- */
+  var COMMON_WORDS = "the a an is was are were be been being have has had do does did will would could should may might must can shall to of in on at by for with from into onto upon about above below between through during before after since until as like than that this these those it its his her their our your my me him them us you they we i he she who whom whose what which where when why how not no nor so too very just only also but and or yet if then else when while because although though unless since until once more most many much few less least several both either neither each every all none some such own same other another here there everywhere nowhere somewhere anywhere now then always never often sometimes usually rarely soon later already still yet again ago away back down up off out over under around across along past behind beside beyond within without against toward towards amidst among amongst amidst".split(" ");
+  var _commonSet = {};
+  COMMON_WORDS.forEach(function (w) { _commonSet[w.toLowerCase()] = 1; });
+
+  function extractVocab(text) {
+    var words = text.toLowerCase().match(/[a-z]+/g) || [];
+    var freq = {}, seen = {};
+    words.forEach(function (w) {
+      if (w.length >= 4 && !_commonSet[w]) {
+        freq[w] = (freq[w] || 0) + 1;
+      }
+    });
+    return Object.keys(freq).sort(function (a, b) {
+      return freq[b] - freq[a];
+    }).slice(0, 8);
+  }
+
+  function highlightVocab(text, vocab) {
+    var html = esc(text);
+    vocab.forEach(function (w) {
+      var re = new RegExp("\\b(" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")\\b", "gi");
+      html = html.replace(re, '<span class="rw-vocab" data-word="$1">$1</span>');
+    });
+    return html;
+  }
+
+  function renderReadingText(text, bookId) {
+    var paras = text.split(/\n\n+/).filter(function (p) {
+      return p.trim().length > 20;
+    }).slice(0, 20);
+    if (!paras.length) return '<p class="small">暂无正文</p>';
+
+    var total = paras.length;
+    var h = '<div class="rw-read" data-total="' + total + '">';
+    h += '<div class="rw-read-bar"><span class="rw-read-count">0/' + total + ' 段</span>' +
+         '<div class="rw-read-progress"><div class="rw-read-fill" style="width:0"></div></div></div>';
+    paras.forEach(function (p, i) {
+      var vocab = extractVocab(p);
+      var highlighted = highlightVocab(p, vocab);
+      h += '<details class="rw-para" data-idx="' + i + '">';
+      h += '<summary class="rw-para-head">';
+      h += '<span class="rw-para-num">§' + (i + 1) + '</span>';
+      h += '<span class="rw-para-preview">' + esc(p.slice(0, 80)) + '…</span>';
+      h += '<span class="rw-para-meta">' + vocab.length + ' 词</span>';
+      h += '</summary>';
+      h += '<div class="rw-para-body">';
+      /* 工具栏 */
+      h += '<div class="rw-para-tools">';
+      h += spkBtn(p.slice(0, 500));
+      h += '<button class="btn rw-translate-btn" type="button" data-text="' + esc(p.slice(0, 800)) + '">译</button>';
+      h += '<button class="btn rw-vocab-btn on" type="button">词汇</button>';
+      h += '</div>';
+      /* 原文 */
+      h += '<p class="rw-para-text">' + highlighted + '</p>';
+      /* 词汇表 */
+      if (vocab.length) {
+        h += '<div class="rw-vocab-list">';
+        vocab.forEach(function (w) {
+          h += '<span class="rw-vocab-item" data-word="' + esc(w) + '">' +
+               esc(w) + spkBtn(w) + '</span>';
+        });
+        h += '</div>';
+      }
+      /* 译文区（按需加载） */
+      h += '<div class="rw-para-tr" data-loaded="0"></div>';
+      h += '</div></details>';
+    });
+    h += '</div>';
+    return h;
   }
 
   function enText(st) {

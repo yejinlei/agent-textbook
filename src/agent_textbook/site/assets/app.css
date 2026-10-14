@@ -1205,6 +1205,36 @@ details.aq .aa {
 .rw-pgn { display: inline-block; min-width: 28px; font-size: 11px; color: #aaa; font-weight: 700; }
 .rw-zh { padding: 0 14px 6px; font-size: 13px; color: #666; line-height: 1.6; }
 .rw-text { padding: 0 14px 6px; font-size: 14px; line-height: 1.8; }
+
+/* 分段精读 */
+.rw-read { padding: 0 14px 10px; }
+.rw-read-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.rw-read-count { font-size: 12px; color: #888; white-space: nowrap; }
+.rw-read-progress { flex: 1; height: 4px; background: #e0e0e0; border-radius: 2px; overflow: hidden; }
+.rw-read-fill { height: 100%; background: linear-gradient(90deg, #66bb6a, #42a5f5); border-radius: 2px; transition: width .3s; }
+.rw-para { border-left: 3px solid #e0e0e0; margin-bottom: 4px; border-radius: 0 6px 6px 0; transition: border-color .2s; }
+.rw-para[open] { border-left-color: #42a5f5; background: #f8fbff; }
+.rw-para-head { cursor: pointer; padding: 6px 10px; display: flex; align-items: center; gap: 6px; list-style: none; }
+.rw-para-head::-webkit-details-marker { display: none; }
+.rw-para-head::before { content: "▸"; color: #aaa; font-size: 11px; }
+.rw-para[open] .rw-para-head::before { content: "▾"; }
+.rw-para-num { font-size: 11px; color: #42a5f5; font-weight: 700; white-space: nowrap; }
+.rw-para-preview { font-size: 13px; color: #555; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rw-para-meta { font-size: 11px; color: #999; white-space: nowrap; }
+.rw-para-body { padding: 6px 10px 10px; }
+.rw-para-tools { display: flex; gap: 6px; margin-bottom: 6px; }
+.rw-para-tools .btn { font-size: 12px; padding: 2px 10px; border-radius: 4px; }
+.rw-vocab-btn.on { background: #e3f2fd; color: #1565c0; border-color: #90caf9; }
+.rw-para-text { font-size: 14px; line-height: 1.9; margin: 4px 0 8px; }
+.rw-vocab { background: #fff9c4; border-bottom: 1px dashed #fbc02d; cursor: pointer; padding: 0 1px; border-radius: 2px; }
+.rw-vocab:hover { background: #fff59d; }
+.rw-vocab-list { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 8px; padding: 6px; background: #f5f5f5; border-radius: 6px; }
+.rw-vocab-item { font-size: 12px; padding: 2px 8px; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 2px; }
+.rw-vocab-item:hover { border-color: #42a5f5; color: #1565c0; }
+.rw-vocab-item .btn { font-size: 10px; padding: 0 4px; min-width: auto; border: none; background: none; }
+.rw-para-tr { margin-top: 6px; }
+.rw-para-tr.hide { display: none; }
+.rw-para-zh { font-size: 13px; color: #555; line-height: 1.7; padding: 6px 10px; background: #f0f4c3; border-radius: 6px; border-left: 3px solid #c0ca33; }
 .rw-lines { padding: 0 14px 8px; }
 .rw-lines .kbp { margin: 2px 0; }
 @media (max-width: 700px) {
