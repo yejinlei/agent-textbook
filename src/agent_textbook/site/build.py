@@ -722,9 +722,9 @@ MATH_PAGES = [
 ]
 EN_PAGES = [
     ("index", "课文与语篇", "discourse",
-     "这一页可以当课本用：按册 → 单元，教材顺序排下来。情景对话逐句分行（角色、"
-     "原文、中文可遮住自测），短文原文 + 译文 + 重点词 + 理解题一并给出；"
-     "点右上角“中文对照”切换译文——纸质书做不到。"),
+     "每一课都是一个学习中心：课文默认折叠，点开就是预习、音标、自然拼读、语法、"
+     "练习、小游戏、复习自评与课外拓展。情景对话逐句分行（角色、原文、中文可遮住自测），"
+     "短文原文 + 译文 + 重点词 + 理解题一并给出；点右上角“中文对照”切换译文。"),
     ("vocab", "词汇", "vocab",
      "按话题成串收录，带音标与例句；点单词才出中文（自测），另有听写练习。"),
     ("grammar", "语法汇总", "grammar",
@@ -800,6 +800,92 @@ def _write(path, html):
         f.write(html)
 
 
+def build_lesson_hubs(en_d):
+    """课文与语篇页的「每课学习中心」单元级配套数据。
+
+    按 (book#U{unit_no}) 聚合：
+      grammar  —— 本单元语法条目（句型/规则/例句，瘦字段）
+      phonics  —— 本单元自然拼读（字母组合/发音/例词）
+      projects —— 本单元项目任务（课外拓展用）
+    按册聚合：
+      songs    —— 歌谣大多只标到册（unit="Songs"），挂到同册每个单元
+    前端键与 app.js 的 slot() 主键保持一致：book + "#" + ("U"+unit_no or unit)。
+    """
+    def ukey(x):
+        return (x.get("book") or "") + "#" + (
+            "U" + str(x["unit_no"]) if x.get("unit_no") else (x.get("unit") or ""))
+
+    # 入库时部分单元被重复导入过（同一 (letters,sound) / point 出现 2~3 份），
+    # 展示层按内容指纹去重，学习中心才不至于一屏翻三遍同一页。
+    units = {}
+    seen = {}
+    def slot(k):
+        return units.setdefault(k, {"grammar": [], "phonics": [], "projects": []})
+
+    for g in en_d.get("grammar", []):
+        if not g.get("unit_no"):
+            continue
+        fingerprint = (g.get("point") or "").strip().lower()
+        if not fingerprint:
+            continue
+        key = (ukey(g), fingerprint)
+        if seen.get(key):
+            continue
+        seen[key] = 1
+        slot(ukey(g))["grammar"].append({
+            "point": g.get("point") or "",
+            "pattern": g.get("pattern") or "",
+            "rule": g.get("rule") or "",
+            "examples": [{"en": e.get("en") or "", "zh": e.get("zh") or ""}
+                         for e in (g.get("examples") or [])[:3]],
+        })
+    for p in en_d.get("phonics", []):
+        if not p.get("unit_no"):
+            continue
+        fingerprint = ((p.get("letters") or "").strip() + "|" +
+                       (p.get("sound") or "").strip()).lower()
+        key = (ukey(p), fingerprint)
+        if seen.get(key):
+            continue
+        seen[key] = 1
+        slot(ukey(p))["phonics"].append({
+            "letters": p.get("letters") or "",
+            "sound": p.get("sound") or "",
+            "examples": [w for w in dict.fromkeys(p.get("examples") or [])][:8],
+            "chant": p.get("chant") or "",
+        })
+    for p in en_d.get("projects", []):
+        if not p.get("unit_no"):
+            continue
+        fingerprint = (p.get("name") or "").strip().lower()
+        if not fingerprint:
+            continue
+        key = (ukey(p), fingerprint)
+        if seen.get(key):
+            continue
+        seen[key] = 1
+        slot(ukey(p))["projects"].append({
+            "name": p.get("name") or "",
+            "type": p.get("type") or "",
+            "goal": p.get("goal") or "",
+            "steps": (p.get("steps") or [])[:6],
+            "language": (p.get("language") or [])[:8],
+            "product": p.get("product") or "",
+        })
+
+    songs = {}
+    for s in en_d.get("songs", []):
+        book = s.get("book") or ""
+        if not book:
+            continue
+        songs.setdefault(book, []).append({
+            "name": s.get("name") or "",
+            "lyrics": (s.get("lyrics") or [])[:12],
+            "topic": s.get("topic") or "",
+        })
+    return {"units": units, "songs": songs}
+
+
 def _slice(key, kind, cn_d, math_d, en_d):
     """子页只拿自己那一份数据——页面小、打开快。"""
     if key == "chinese":
@@ -847,6 +933,8 @@ def _slice(key, kind, cn_d, math_d, en_d):
     d = {"books": books, "themes": en_d["themes"], "domains": en_d["domains"]}
     for k in keys.get(kind, []):
         d[k] = en_d[k]
+    if kind == "discourse":
+        d["hubs"] = build_lesson_hubs(en_d)   # 每课学习中心的单元级配套
     if kind != "vocab":
         d["vocab"] = en_d["vocab"]      # 册次/话题下拉与课文重点词用得上
     return d
