@@ -1501,16 +1501,78 @@
   function earnedBadges() { return BADGES.filter(function (b) { return b.test(); }); }
   function renderBadges() {
     var earned = earnedBadges();
-    if (!earned.length) return "";
-    var h = '<div class="badges"><span class="badges-h">🎖 勋章 (' + earned.length + ')</span>';
+    var h = '<div class="badges"><span class="badges-h">🎖 勋章 (' + earned.length + '/' + BADGES.length + ')</span>';
     h += '<div class="badges-row">';
     BADGES.forEach(function (b) {
       var has = b.test();
-      h += '<span class="badge' + (has ? " on" : "") + '" title="' + esc(b.desc) + '">' +
-           (has ? b.icon : "🔒") + '<span class="badge-n">' + esc(b.name) + '</span></span>';
+      h += '<span class="badge' + (has ? " on" : "") + '" title="' + esc(b.desc) + '" data-bid="' + esc(b.id) + '">' +
+           '<span class="badge-ic">' + (has ? b.icon : "🔒") + '</span>' +
+           '<span class="badge-n">' + esc(b.name) + '</span></span>';
     });
     h += '</div></div>';
     return h;
+  }
+  /* ── 勋章解锁动画 ── */
+  var BADGE_UNLOCKED = {};
+  try { BADGE_UNLOCKED = JSON.parse(localStorage.getItem("enBadges") || "{}"); } catch (e) { BADGE_UNLOCKED = {}; }
+  function badgeSave() { try { localStorage.setItem("enBadges", JSON.stringify(BADGE_UNLOCKED)); } catch (e) {} }
+  function checkBadgeUnlock() {
+    var newly = [];
+    BADGES.forEach(function (b) {
+      if (b.test() && !BADGE_UNLOCKED[b.id]) {
+        BADGE_UNLOCKED[b.id] = Date.now();
+        newly.push(b);
+      }
+    });
+    if (newly.length) {
+      badgeSave();
+      newly.forEach(function (b, i) {
+        setTimeout(function () { showBadgePopup(b); }, i * 1600);
+      });
+    }
+  }
+  function showBadgePopup(b) {
+    /* 遮罩 + 弹窗 */
+    var overlay = document.createElement("div");
+    overlay.className = "badge-overlay";
+    overlay.innerHTML =
+      '<div class="badge-popup">' +
+        '<div class="badge-rays"></div>' +
+        '<div class="badge-pop-icon">' + b.icon + '</div>' +
+        '<div class="badge-pop-title">🏆 勋章解锁！</div>' +
+        '<div class="badge-pop-name">' + esc(b.name) + '</div>' +
+        '<div class="badge-pop-desc">' + esc(b.desc) + '</div>' +
+        '<button class="badge-pop-ok">太棒了</button>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    /* 点按钮或遮罩关闭 */
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay || e.target.closest(".badge-pop-ok")) {
+        overlay.classList.add("bye");
+        setTimeout(function () { overlay.remove(); }, 400);
+      }
+    });
+    /* 自动关闭（5 秒） */
+    setTimeout(function () {
+      if (overlay.parentNode) {
+        overlay.classList.add("bye");
+        setTimeout(function () { overlay.remove(); }, 400);
+      }
+    }, 5000);
+    /* 刷新勋章行：点亮新勋章 */
+    var node = document.querySelector('.badge[data-bid="' + b.id + '"]');
+    if (node) {
+      node.classList.add("on");
+      node.querySelector(".badge-ic").textContent = b.icon;
+      node.classList.add("badge-flash");
+      setTimeout(function () { node.classList.remove("badge-flash"); }, 2000);
+    }
+    /* 更新计数 */
+    var h = document.querySelector(".badges-h");
+    if (h) {
+      var n = earnedBadges().length;
+      h.textContent = "🎖 勋章 (" + n + "/" + BADGES.length + ")";
+    }
   }
 
   /* ---- 单元地图 / 每日 3 分钟 / 生词本：三个页面级组件 ---- */
@@ -1952,7 +2014,7 @@
       h += "</div>";
     });
     // 单元地图四关灯状态（进度条已由 renderUnitMap 算过，这里刷一次确保与 UNITMAP 一致）
-    setTimeout(refreshUnitMapStages, 0);
+    setTimeout(function () { refreshUnitMapStages(); checkBadgeUnlock(); }, 0);
     // 单元地图 + 每日 3 分钟：这两块要 LESSONS 全部注册后才能算候选
     // 放在末尾再插到顶部，保证 renderToday/pickTodayItems 拿到完整 LESSONS
     var top = renderToday() + renderUnitMap(order, units, uname) + renderBadges();
@@ -2581,6 +2643,7 @@
         if (WORDBOOK[k]) wbRemove(book, word);
         else wbAdd(book, word, { ipa: wbT.getAttribute("data-ipa") || "",
                                  zh: wbT.getAttribute("data-zh") || "" });
+        checkBadgeUnlock();
         return;
       }
       /* 每日 3 分钟：换一批 / 打卡 / 复习 */
@@ -2614,6 +2677,7 @@
         [].forEach.call(document.querySelectorAll(".today-streak"), function (el) {
           el.textContent = "🔥 连击 " + str2 + " 天";
         });
+        checkBadgeUnlock();
         return;
       }
       var tWrong = e.target.closest(".today-wrong");

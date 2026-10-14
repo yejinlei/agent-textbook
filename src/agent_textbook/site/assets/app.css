@@ -1181,6 +1181,113 @@ details.aq .aa {
 .badge .badge-n { font-size: 10px; color: var(--muted); margin-top: 2px; line-height: 1.1; }
 .badge.on .badge-n { color: #b06a00; }
 
+/* ---- 勋章解锁弹窗动画 ---- */
+.badge-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,.55); z-index: 99999;
+  display: flex; align-items: center; justify-content: center;
+  animation: ovFadeIn .3s ease;
+}
+.badge-overlay.bye { animation: ovFadeOut .4s ease forwards; }
+@keyframes ovFadeIn { from{opacity:0} to{opacity:1} }
+@keyframes ovFadeOut { from{opacity:1} to{opacity:0} }
+
+.badge-popup {
+  position: relative; text-align: center;
+  background: linear-gradient(180deg,#fffdf5,#fff8e0);
+  border: 3px solid #e8a200; border-radius: 20px;
+  padding: 28px 36px 24px; min-width: 260px; max-width: 360px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.3);
+  animation: popBounce .6s cubic-bezier(.34,1.56,.64,1);
+}
+.badge-popup.bye { animation: popShrink .4s ease forwards; }
+@keyframes popBounce {
+  0%   { transform: scale(.3) rotate(-10deg); opacity: 0 }
+  50%  { transform: scale(1.08) rotate(2deg); opacity: 1 }
+  100% { transform: scale(1) rotate(0); opacity: 1 }
+}
+@keyframes popShrink {
+  from { transform: scale(1); opacity: 1 }
+  to   { transform: scale(.5); opacity: 0 }
+}
+
+/* 旋转光芒 */
+.badge-rays {
+  position: absolute; top: 50%; left: 50%;
+  width: 160px; height: 160px; transform: translate(-50%,-55%);
+  background: conic-gradient(
+    transparent 0deg, rgba(255,215,0,.15) 15deg, transparent 30deg,
+    rgba(255,215,0,.15) 45deg, transparent 60deg,
+    rgba(255,215,0,.15) 75deg, transparent 90deg,
+    rgba(255,215,0,.15) 105deg, transparent 120deg,
+    rgba(255,215,0,.15) 135deg, transparent 150deg,
+    rgba(255,215,0,.15) 165deg, transparent 180deg,
+    rgba(255,215,0,.15) 195deg, transparent 210deg,
+    rgba(255,215,0,.15) 225deg, transparent 240deg,
+    rgba(255,215,0,.15) 255deg, transparent 270deg,
+    rgba(255,215,0,.15) 285deg, transparent 300deg,
+    rgba(255,215,0,.15) 315deg, transparent 330deg,
+    rgba(255,215,0,.15) 345deg, transparent 360deg
+  );
+  border-radius: 50%;
+  animation: raySpin 8s linear infinite;
+  pointer-events: none;
+}
+@keyframes raySpin { from{transform: translate(-50%,-55%) rotate(0)} to{transform: translate(-50%,-55%) rotate(360deg)} }
+
+.badge-pop-icon {
+  position: relative; z-index: 1;
+  font-size: 64px; line-height: 1;
+  animation: iconPop .8s ease, iconFloat 2s ease-in-out infinite .8s;
+}
+@keyframes iconPop {
+  0%   { transform: scale(0) rotate(180deg) }
+  60%  { transform: scale(1.3) rotate(-10deg) }
+  100% { transform: scale(1) rotate(0) }
+}
+@keyframes iconFloat {
+  0%,100% { transform: translateY(0) }
+  50%     { transform: translateY(-6px) }
+}
+
+.badge-pop-title {
+  position: relative; z-index: 1;
+  font-size: 18px; font-weight: 700; color: #b06a00;
+  margin-top: 10px;
+}
+.badge-pop-name {
+  position: relative; z-index: 1;
+  font-size: 22px; font-weight: 800; color: var(--ink);
+  margin: 4px 0 2px;
+}
+.badge-pop-desc {
+  position: relative; z-index: 1;
+  font-size: 13px; color: var(--muted);
+  margin-bottom: 14px;
+}
+.badge-pop-ok {
+  position: relative; z-index: 1;
+  font-size: 15px; font-weight: 600;
+  padding: 6px 24px; border: 2px solid #e8a200;
+  background: linear-gradient(180deg,#ffe580,#ffc107);
+  color: #5d4500; border-radius: 20px; cursor: pointer;
+  transition: transform .15s;
+}
+.badge-pop-ok:hover { transform: scale(1.05); }
+
+/* 勋章行里的点亮闪烁 */
+.badge.badge-flash {
+  animation: badgeFlash 2s ease;
+}
+@keyframes badgeFlash {
+  0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(232,162,0,0) }
+  10%  { transform: scale(1.3); box-shadow: 0 0 12px 4px rgba(232,162,0,.6) }
+  30%  { transform: scale(1.15); box-shadow: 0 0 8px 2px rgba(232,162,0,.4) }
+  50%  { transform: scale(1.2); box-shadow: 0 0 10px 3px rgba(232,162,0,.5) }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232,162,0,0) }
+}
+.badge-ic { font-size: 20px; line-height: 1; }
+
 @media (max-width: 860px) {
   .dt { grid-template-columns: 1fr; }
   .umap-node { width: calc(50% - 28px); }
