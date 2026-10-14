@@ -2386,6 +2386,86 @@
     return h;
   }
 
+  /* ---- 全文朗读（多角色多音色）----
+     将不同角色映射到不同 TTS 音色，逐句播放，高亮当前句。 */
+  var VOICE_ROSTER = ["alan", "jenny", "amy", "cori"];
+  var _readAllTimer = null;
+  function readAllDialogue(btn) {
+    var panel = btn.closest(".hpanel") || btn.closest(".les-item") || btn.parentElement;
+    if (!panel) return;
+    var turns = panel.querySelectorAll(".turn[data-speaker]");
+    if (!turns.length) return;
+    /* 正在朗读 → 停止 */
+    if (btn.classList.contains("reading")) {
+      stopReadAll();
+      return;
+    }
+    /* 角色映射到音色 */
+    var speakerMap = {}, next = 0;
+    turns.forEach(function (t) {
+      var sp = t.getAttribute("data-speaker") || "";
+      if (!(sp in speakerMap)) {
+        speakerMap[sp] = VOICE_ROSTER[next % VOICE_ROSTER.length];
+        next++;
+      }
+    });
+    btn.classList.add("reading");
+    btn.textContent = "⏹ 停止朗读";
+    var i = 0;
+    function playNext() {
+      if (i >= turns.length) { stopReadAll(); return; }
+      var turn = turns[i];
+      [].forEach.call(turns, function (t) { t.classList.remove("reading"); });
+      turn.classList.add("reading");
+      turn.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      var line = turn.querySelector(".spk");
+      var text = line ? line.textContent : "";
+      var sp = turn.getAttribute("data-speaker") || "";
+      var voiceKey = speakerMap[sp] || "alan";
+      speakWithVoice(text, voiceKey, function () {
+        i++;
+        _readAllTimer = setTimeout(playNext, 400);
+      });
+    }
+    playNext();
+  }
+  function stopReadAll() {
+    if (_readAllTimer) { clearTimeout(_readAllTimer); _readAllTimer = null; }
+    if (window.speechSynthesis) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+    stopTtsAudio();
+    var btn = document.querySelector(".read-all-dlg.reading");
+    if (btn) { btn.classList.remove("reading"); btn.textContent = "🔊 全文朗读（分角色音色）"; }
+    [].forEach.call(document.querySelectorAll(".turn.reading"), function (t) {
+      t.classList.remove("reading");
+    });
+  }
+  /* 用指定音色朗读一段文本（浏览器 speechSynthesis，支持回调） */
+  function speakWithVoice(text, voiceKey, onEnd) {
+    text = String(text || "").trim();
+    if (!text) { if (onEnd) onEnd(); return; }
+    var meta = VOICE_META[voiceKey] || VOICE_META.alan;
+    if (window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel();
+        var u = new SpeechSynthesisUtterance(text);
+        u.lang = meta.lang;
+        u.rate = 0.95;
+        u.pitch = meta.pitch;
+        var picked = pickBrowserVoice(meta.lang);
+        if (picked) u.voice = picked;
+        if (onEnd) u.onend = onEnd;
+        window.speechSynthesis.speak(u);
+        return;
+      } catch (e) {}
+    }
+    /* 降级：Google Translate 或无 TTS */
+    if (typeof window.ttsSpeak === "function") {
+      try { window.ttsSpeak(text, { lang: meta.lang }); } catch (e) {}
+    }
+    /* 无回调支持时模拟延时 */
+    if (onEnd) setTimeout(onEnd, Math.max(1500, text.length * 60));
+  }
+
   /* ---- 录音跟读打分：用浏览器原生 SpeechRecognition（Chrome/Edge）----
      识别英文，去掉标点/空格后与目标词比对；对得上 → 得 ★ 点亮"跟读"关。 */
   function hasSpeechRecognition() {
@@ -3037,6 +3117,9 @@
         });
         return;
       }
+      /* 全文朗读（多角色多音色） */
+      var readAll = e.target.closest(".read-all-dlg");
+      if (readAll) { readAllDialogue(readAll); return; }
       var recAll = e.target.closest(".rec-all-btn");
       if (recAll) {
         /* 全部跟读：逐个念，全部说对才点亮"跟读"关 */
@@ -3207,13 +3290,22 @@
     (x.patterns || []).forEach(function (p) {
       s += '<div class="pat">' + hl(String(p)) + "</div>";
     });
-    (x.turns || []).forEach(function (t) {
+    var turns = (x.turns || []).map(function (t) {
       var who = typeof t === "string" ? "" : (t.speaker || t.role || "");
       var line = typeof t === "string" ? t : (t.text || t.line || t.en || "");
       var zh = typeof t === "string" ? "" : (t.zh || t.translation || "");
-      s += '<div class="turn"><b>' + esc(who || "•") + "</b> " +
-        spkBtn(String(line || "")) + ' <span class="spk">' + esc(line) + "</span>" +
-        (zh ? '<span class="zh">' + esc(zh) + "</span>" : "") + "</div>";
+      return { who: who, line: line, zh: zh };
+    }).filter(function (t) { return t.line; });
+    /* 全文朗读按钮（多角色多音色） */
+    if (turns.length > 1) {
+      s += '<p class="small read-all-row"><button class="btn read-all-dlg" type="button">' +
+           '🔊 全文朗读（分角色音色）</button></p>';
+    }
+    turns.forEach(function (t) {
+      s += '<div class="turn" data-speaker="' + esc(t.who) + '">' +
+           '<b>' + esc(t.who || "•") + "</b> " +
+           spkBtn(String(t.line)) + ' <span class="spk">' + esc(t.line) + "</span>" +
+           (t.zh ? '<span class="zh">' + esc(t.zh) + "</span>" : "") + "</div>";
     });
     return s + "</div>";
   }
