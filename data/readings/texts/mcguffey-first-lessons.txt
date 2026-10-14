@@ -1,0 +1,53 @@
+# McGuffey's First Eclectic Reader (Lessons I-VIII) — William Holmes McGuffey
+# gutenberg_id: 14640
+
+LESSON I.
+dog  the  ran
+The dog.
+The dog ran.
+
+LESSON II.
+cat  mat  is  on
+The cat.  The mat.
+Is the cat on the mat?
+The cat is on the mat.
+
+LESSON III.
+it  his  pen  hand  has  man
+The man.  A pen.
+The man has a pen.
+Is the pen in his hand?
+It is in his hand.
+
+LESSON IV.
+hen  fat  rat  box  big  run  from  can
+A fat hen.  A big rat.
+The fat hen is on the box.
+The rat ran from the box.
+Can the hen run?
+
+LESSON V.
+Rab  Ann  hat  catch  see
+See Rab!  See Ann!
+See! Rab has the hat.
+Can Ann catch Rab?
+
+LESSON VI.
+she  pat  too  now  let  me
+Ann can catch Rab.
+See! She has the hat.
+Now Ann can pat Rab.
+Let me pat Rab, too.
+
+LESSON VII.
+Ned  eggs  black  left  fed  nest  them  get  will
+Ned has fed the hen.
+She is a black hen.
+She has left the nest.
+See the eggs in the nest!
+Will the hen let Ned get them?
+
+LESSON VIII.
+head  he  Nat  come  with  and
+Let me get the black hat. Now Ned has it on his head, and he is a big man.
+Come, Nat, see the big man with his black hat.

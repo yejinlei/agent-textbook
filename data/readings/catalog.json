@@ -1,6 +1,6 @@
 {
   "_doc": "英文长文库抓取清单 + 多维分面标签（facets）",
-  "_updated": "2026-10-13",
+  "_updated": "2026-10-15",
   "_license": "Public Domain (Gutenberg) + CC BY-SA (LibriVox)",
   "_facets_schema": "data/readings/taxonomy.json",
   "books": [
@@ -1374,6 +1374,29 @@
       }
     },
     {
+      "id": "mcguffey-first-lessons",
+      "title": "McGuffey's First Reader (Lessons I-VIII)",
+      "author": "William Holmes McGuffey",
+      "gutenberg_id": 14640,
+      "gutenberg_slug": "McGuffey's First Eclectic Reader",
+      "primary_topic": "animal",
+      "secondary_topics": ["family.pets"],
+      "excerpt": {"type": "lessons", "lessons": [1, 2, 3, 4, 5, 6, 7, 8]},
+      "facets": {
+        "grade": ["1", "2", "3"],
+        "grade_band": "early_primary",
+        "text_type": "realistic_fiction",
+        "themes": ["curiosity", "kindness"],
+        "settings": ["farm"],
+        "word_count_bucket": "very_short",
+        "lexile": {"min": 100, "max": 400, "mean": 250, "band": "elementary_low", "source": "editor_estimate"},
+        "cultural_origin": "American",
+        "time_period": "victorian",
+        "target_skills": ["reading_comprehension", "vocabulary_extension"],
+        "text_role": ["pre_reading", "consolidation"]
+      }
+    },
+    {
       "id": "peter-rabbit",
       "title": "The Tale of Peter Rabbit",
       "author": "Beatrix Potter",
@@ -2285,6 +2308,30 @@
         "prep.common",
         "question.wh_words"
       ]
+    },
+    {
+      "id": "happy-prince",
+      "title": "The Happy Prince (excerpt)",
+      "author": "Oscar Wilde",
+      "gutenberg_id": 902,
+      "gutenberg_slug": "The Happy Prince and Other Tales",
+      "librivox_url": "https://librivox.org/the-happy-prince-and-other-tales-by-oscar-wilde/",
+      "primary_topic": "narrative.hero",
+      "secondary_topics": ["poverty"],
+      "excerpt": {"type": "story", "stories": ["The Happy Prince"]},
+      "facets": {
+        "grade": ["4", "5"],
+        "grade_band": "mid_primary",
+        "text_type": "fantasy",
+        "themes": ["kindness", "generosity", "love_loss"],
+        "settings": ["city_urban"],
+        "word_count_bucket": "short",
+        "lexile": {"min": 700, "max": 950, "mean": 820, "band": "elementary_high", "source": "editor_estimate"},
+        "cultural_origin": "British_Irish",
+        "time_period": "victorian",
+        "target_skills": ["reading_comprehension", "vocabulary_extension", "critical_thinking"],
+        "text_role": ["extension", "writing_trigger"]
+      }
     },
     {
       "id": "jungle-book-white-seal",
