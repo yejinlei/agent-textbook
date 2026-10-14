@@ -1284,17 +1284,22 @@
       else if (kind === "grammar") h = enGrammar(st);
       else if (kind === "phonics") h = enPhonics(st);
       else if (kind === "extra") h = enExtra(st);
+      else if (kind === "writing") h = enWriting(st);
       else h = enUse(st);
       box.innerHTML = h || '<div class="empty">没有匹配的内容</div>';
       cnt.textContent = box.querySelectorAll(".item").length + " 组";
     }, { hint: { discourse: "如：family、weather", vocab: "如：job、doctor",
                  grammar: "如：can、there be、过去式", phonics: "如：sh、ai",
-                 use: "如：song、project", extra: "如：family、weather、school" }[kind] || "关键词",
+                 use: "如：song、project", extra: "如：family、weather、school",
+                 writing: "如：narrative、描写、看图写话" }[kind] || "关键词",
          tags: (function () {
            var m = { discourse: [D.passages, "name"], vocab: [D.vocab, "topic"],
                      grammar: [D.grammar, "category"], phonics: [D.phonics, "letters"],
-                     use: [D.songs, "name"], extra: [D.passages, "topic"] }[kind] || [D.vocab, "topic"];
-           return hotTags(m[0], m[1], 16);
+                     use: [D.songs, "name"], extra: [D.passages, "topic"],
+                     writing: [(D.writing && D.writing.genres) || [], "zh"] }[kind] || [D.vocab, "topic"];
+           var m1 = m[0] || [], m2 = m[1] || "zh";
+           if (kind === "writing") return (m[0] || []).map(function (g) { return g.zh; });
+           return hotTags(m1, m2, 16);
          })(),
          zh: kind === "discourse",
          extra: (kind === "vocab" || kind === "discourse" || kind === "extra")
@@ -2286,7 +2291,12 @@
     });
     main += '</div>';
 
-    return '<div class="rw-layout">' + sidebar + main + '</div>';
+    var html = '<div class="rw-layout" id="rw-layout-root">' + sidebar + main + '</div>';
+    setTimeout(function () {
+      var root = document.getElementById("rw-layout-root");
+      if (root) _bindRead(root);
+    }, 0);
+    return html;
   }
 
   /* ---- 课外拓展：分段精读引擎 ---- */
@@ -2395,49 +2405,416 @@
   }
 
   function renderReadingText(text, bookId) {
-    var paras = text.split(/\n\n+/).filter(function (p) {
-      return p.trim().length > 20;
-    }).slice(0, 20);
+    /* 连续段落版：按 \n\n 分自然段，保留原文排版，不打断阅读 */
+    var paras = text.split(/\n\n+/).filter(function (p) { return p.trim(); });
     if (!paras.length) return '<p class="small">暂无正文</p>';
+    var totalWords = (text.match(/[A-Za-z']+/g) || []).length;
 
-    var total = paras.length;
-    var h = '<div class="rw-read" data-total="' + total + '">';
-    h += '<div class="rw-read-bar"><span class="rw-read-count">0/' + total + ' 段</span>' +
-         '<div class="rw-read-progress"><div class="rw-read-fill" style="width:0"></div></div></div>';
-    paras.forEach(function (p, i) {
-      var vocab = extractVocab(p);
-      var highlighted = highlightVocab(p, vocab);
-      h += '<details class="rw-para" data-idx="' + i + '">';
-      h += '<summary class="rw-para-head">';
-      h += '<span class="rw-para-num">§' + (i + 1) + '</span>';
-      h += '<span class="rw-para-preview">' + esc(p.slice(0, 80)) + '…</span>';
-      h += '<span class="rw-para-meta">' + vocab.length + ' 词</span>';
-      h += '</summary>';
-      h += '<div class="rw-para-body">';
-      /* 工具栏 */
-      h += '<div class="rw-para-tools">';
-      h += spkBtn(p.slice(0, 500));
-      h += '<button class="btn rw-translate-btn" type="button" data-text="' + esc(p.slice(0, 800)) + '">译</button>';
-      h += '<button class="btn rw-vocab-btn on" type="button">词汇</button>';
-      h += '</div>';
-      /* 原文 */
-      h += '<p class="rw-para-text">' + highlighted + '</p>';
-      /* 词汇表 */
-      if (vocab.length) {
-        h += '<div class="rw-vocab-list">';
-        vocab.forEach(function (w) {
-          h += '<span class="rw-vocab-item" data-word="' + esc(w) + '">' +
-               esc(w) + '<i class="rw-vocab-ipa">' + esc(simpleIPA(w)) + '</i>' +
-               spkBtn(w) + '</span>';
-        });
-        h += '</div>';
+    /* 逐词切分：先把每段拆成 token（词 / 非词），标出词在"干净文本"
+       中的起点偏移，供播放时按 speechSynthesis.onboundary 的 charIndex 高亮。 */
+    var TOKEN_RE = /[A-Za-z']+(?:['-][A-Za-z']+)*|[^A-Za-z']+/g;
+    var clean = "";              // 与播放文本一致：段落内词用单空格，段落间用句号+换行
+    var wordOffsets = [];        // [[startOfs, wordText], ...]
+
+    function flatten(p) {
+      return p.replace(/\s+/g, " ").trim();
+    }
+    var segs = paras.map(flatten);
+    // 第一遍：构建 clean + wordOffsets（段落间用 ". " 分隔）
+    segs.forEach(function (seg, si) {
+      var re = new RegExp(TOKEN_RE.source, "g"), m;
+      var segStart = clean.length;
+      var cursor = 0;
+      while ((m = re.exec(seg)) !== null) {
+        var tok = m[0];
+        if (/[A-Za-z']/.test(tok.charAt(0))) {
+          wordOffsets.push([segStart + m.index, tok]);
+        }
+        cursor = m.index + tok.length;
       }
-      /* 译文区（按需加载） */
-      h += '<div class="rw-para-tr" data-loaded="0"></div>';
-      h += '</div></details>';
+      clean += seg;
+      if (si < segs.length - 1) clean += ". ";
     });
+
+    var h = '<div class="rw-read2" data-book="' + esc(bookId || "") + '">';
+    h += '<div class="rw-read2-bar">';
+    h += '<button class="btn rw-read-all" type="button">🔊 全文朗读</button>';
+    h += '<button class="btn rw-tr-all" type="button">全文翻译</button>';
+    h += '<span class="rw-read2-hint">选中单词或句子可查询含义</span>';
+    h += '<span class="rw-read2-meta">' + totalWords + ' 词</span>';
     h += '</div>';
+    h += '<div class="rw-read2-body">';
+    for (var s = 0; s < segs.length; s++) {
+      var seg = segs[s];
+      h += '<p class="rw-para-plain">';
+      var re2 = new RegExp(TOKEN_RE.source, "g"), m2;
+      while ((m2 = re2.exec(seg)) !== null) {
+        var tok2 = m2[0];
+        if (/[A-Za-z']/.test(tok2.charAt(0))) {
+          h += '<span class="rw-w" data-word="' + esc(tok2) + '">' + esc(tok2) + '</span>';
+        } else {
+          h += esc(tok2);
+        }
+      }
+      h += '</p>';
+    }
+    h += '</div>';
+    h += '<div class="rw-read2-tr"></div>';
+    h += '<div class="lookup-card" style="display:none"></div>';
+    h += '</div>';
+
+    /* 把干净文本与词偏移挂到根节点属性，供 _bindRead 播放时高亮。
+       属性用双引号包裹，JSON 里的 " 需转义成 &quot; 以免破坏属性边界。 */
+    var cleanAttr = esc(clean).replace(/"/g, "&quot;");
+    var offsAttr = esc(JSON.stringify(wordOffsets)).replace(/"/g, "&quot;");
+    h = h.replace('data-book="' + esc(bookId || "") + '"',
+                  'data-book="' + esc(bookId || "") + '" data-clean="' + cleanAttr +
+                  '" data-offs="' + offsAttr + '"');
     return h;
+  }
+
+  /* 从原文本中定位划词区间的起点，返回所属句子 */
+  function _sentenceAt(raw, idx) {
+    if (!raw || idx < 0) return "";
+    var re = /[^.!?。！？\n]+[.!?。！？]?/g, m, s0 = 0, s1 = 0;
+    while ((m = re.exec(raw)) !== null) {
+      if (idx >= m.index && idx < m.index + m[0].length) { s0 = m.index; s1 = m.index + m[0].length; break; }
+    }
+    return raw.slice(s0, s1).trim();
+  }
+  /* 全文翻译：按句子切分（句号/问号/感叹号/换行），返回句子数组 */
+  function _splitSentences(raw) {
+    if (!raw) return [];
+    var re = /[^.!?。！？\n]+[.!?。！？]?/g, m, out = [];
+    while ((m = re.exec(raw)) !== null) {
+      var s = m[0].trim();
+      if (s) out.push(s);
+    }
+    return out;
+  }
+  /* 单词原形还原（简易去 s/es/d/ed） */
+  function _normWord(w) {
+    w = w.toLowerCase();
+    if (w.length > 4 && /ing$/.test(w)) w = w.slice(0, -3);
+    else if (w.length > 4 && /ed$/.test(w)) w = w.slice(0, -2);
+    else if (w.length > 4 && w !== "is" && /s$/.test(w) && !/(ss|us|x|ch|sh)$/.test(w)) w = w.slice(0, -1);
+    return w;
+  }
+
+  /* ---- 本地语法提示（离线规则，不依赖网络） ----
+     单词：后缀/词法猜词性 + 常用搭配；
+     短语/句子：时态词检测 + 疑问/否定/存在句句型提示。 */
+  var _AUX = { is: true, am: true, are: true, was: true, were: true, be: true, been: true,
+               do: true, does: true, did: true, have: true, has: true, had: true,
+               will: true, would: true, can: true, could: true, shall: true, should: true,
+               may: true, might: true, must: true, need: true, dare: true, used: true };
+  var _PREP = { in:true, on:true, at:true, of:true, to:true, for:true, with:true, by:true,
+                from:true, into:true, under:true, over:true, about:true, without:true };
+  var _DET = { a:true, an:true, the:true, this:true, that:true, these:true, those:true,
+               my:true, your:true, his:true, her:true, its:true, our:true, their:true,
+               some:true, any:true, no:true, every:true, each:true };
+  var _CONJ = { and:true, or:true, but:true, because:true, when:true, if:true, so:true,
+                after:true, before:true, while:true, that:true, than:true, as:true };
+  var _PRON = { i:true, me:true, we:true, us:true, you:true, he:true, she:true, it:true,
+                they:true, them:true, who:true, whom:true, which:true, what:true,
+                my:true, mine:true, your:true, yours:true, our:true, their:true };
+  var _WH = [ /^wh[a-z]/, /^how/ ];
+  function _posGuess(w) {
+    w = w.toLowerCase();
+    if (_AUX[w]) return "助动词 / 情态动词";
+    if (_DET[w]) return "冠词 / 限定词";
+    if (_PREP[w]) return "介词";
+    if (_CONJ[w]) return "连词";
+    if (_PRON[w]) return "代词";
+    if (/ingly$/.test(w) || /ly$/.test(w)) return "副词";
+    if (/(tion|sion|ness|ment|ity|er|or|age|ance|ence|th)$/.test(w)) return "名词";
+    if (/ing$/.test(w)) return "动词（现在分词）";
+    if (/ed$/.test(w)) return "动词（过去式/过去分词）";
+    if (/(ful|ous|ive|able|ible|less|ic|ical)$/.test(w)) return "形容词";
+    if (/(ate|ize|ise|en)$/.test(w)) return "动词";
+    return "单词";
+  }
+  /* 迷你词典：给常见词配 词性解释 + 例句 + 派生/同反义词 + 儿童化小贴士 */
+  var _WDICT = {
+    "run":      { pos: "动词", ex: "I can run fast. 我能跑得很快。", derive: "running / runner（跑步的人）", syn: "jog / dash" },
+    "dog":      { pos: "名词", ex: "The dog is my friend. 小狗是我的朋友。", derive: "doggy（小狗）", syn: "puppy" },
+    "wild":     { pos: "形容词", ex: "Wild animals live in the forest. 野生动物住在森林里。", derive: "wildlife（野生动物）/ wilderness（荒野）", ant: "tame（驯养的）" },
+    "cold":     { pos: "形容词", ex: "The ice is cold. 冰是凉的。", derive: "coldly（冷漠地）/ coldness（寒冷）", syn: "cool / chilly", ant: "hot" },
+    "snow":     { pos: "名词/动词", ex: "Snow is white. 雪是白色的。", derive: "snowy（下雪的）/ snowman（雪人）" },
+    "come":     { pos: "动词", ex: "Come here, please. 请到这里来。", derive: "coming / came（过去式）", syn: "arrive", ant: "go / leave" },
+    "give":     { pos: "动词", ex: "Give me a hand. 帮我一把。", derive: "giving / gave / given", syn: "hand / offer" },
+    "love":     { pos: "动词/名词", ex: "I love my family. 我爱我的家人。", derive: "loving（爱的）/ lovely（可爱的）", syn: "like / enjoy", ant: "hate" },
+    "make":     { pos: "动词", ex: "Let's make a snowman. 我们来堆雪人吧。", derive: "making / made / maker（制作者）", syn: "build / create" },
+    "beautiful":{ pos: "形容词", ex: "The flowers are beautiful. 这些花真漂亮。", derive: "beauty（美丽）/ beautifully（美丽地）", syn: "pretty / lovely", ant: "ugly" },
+    "water":    { pos: "名词/动词", ex: "I drink water every day. 我每天喝水。", derive: "watery（水汪汪的）/ watermelon（西瓜）", syn: "liquid" },
+    "sleep":    { pos: "动词/名词", ex: "I sleep at night. 我晚上睡觉。", derive: "sleeping / sleepy（困的）/ slept（过去式）", ant: "wake" },
+    "night":    { pos: "名词", ex: "The moon shines at night. 月亮在夜里发光。", derive: "tonight（今晚）/ goodnight（晚安）", ant: "day" },
+    "day":      { pos: "名词", ex: "The sun is bright in the day. 白天太阳很亮。", derive: "today / daytime / daily（每日的）" },
+    "long":     { pos: "形容词", ex: "I have a long rope. 我有一根长绳子。", derive: "length（长度）/ lengthen（加长）", syn: "big in length", ant: "short" },
+    "fast":     { pos: "形容词/副词", ex: "The horse runs fast. 马跑得很快。", derive: "fastness", syn: "quick / quickly", ant: "slow" },
+    "big":      { pos: "形容词", ex: "An elephant is big. 大象很大。", derive: "bigness", syn: "large / huge", ant: "small / little" },
+    "small":    { pos: "形容词", ex: "A mouse is small. 老鼠很小。", derive: "smallness", syn: "little / tiny", ant: "big" },
+    "house":    { pos: "名词", ex: "We live in a house. 我们住在一栋房子里。", derive: "housework（家务）/ greenhouse（温室）", syn: "home" },
+    "world":    { pos: "名词", ex: "We live in this world together. 我们一同生活在这个世界上。", derive: "worldwide（全世界的）/ world-famous（闻名世界的）" },
+    "walk":     { pos: "动词/名词", ex: "I walk to school. 我走路去上学。", derive: "walking / walker（行人）", syn: "step", ant: "run" },
+    "angry":    { pos: "形容词", ex: "Don't be angry. 别生气。", derive: "angrily（生气地）/ anger（愤怒）", syn: "mad", ant: "happy" },
+    "happy":    { pos: "形容词", ex: "I am happy today. 我今天很开心。", derive: "happily（开心地）/ happiness（幸福）", syn: "glad / joyful", ant: "sad" },
+    "help":     { pos: "动词/名词", ex: "Can you help me? 你能帮我吗？", derive: "helpful（有用的）/ helping", syn: "aid" },
+    "friend":   { pos: "名词", ex: "She is my good friend. 她是我的好朋友。", derive: "friendly（友好的）/ friendship（友谊）" },
+    "brave":    { pos: "形容词", ex: "The brave boy saved the cat. 勇敢的男孩救了猫。", derive: "bravely（勇敢地）/ bravery（勇敢）", ant: "cowardly" },
+    "know":     { pos: "动词", ex: "I know the answer. 我知道答案。", derive: "knowing / known", syn: "understand" },
+    "see":      { pos: "动词", ex: "I can see the stars. 我能看见星星。", derive: "seeing / saw / seen", syn: "look at / watch" },
+    "want":     { pos: "动词", ex: "I want an apple. 我想要一个苹果。", derive: "wanting / wanted", syn: "wish / would like" }
+  };
+  function _wordCard(base) {
+    var d = _WDICT[base];
+    if (!d) return "";
+    var h = '<div class="lk-gram">';
+    h += '<span class="g-t">' + esc(d.pos) + "</span> 看看例句就懂了 ↓";
+    h += '<div class="g-ex">' + esc(d.ex) + "</div>";
+    if (d.derive) h += '<div class="g-more">🧩 派生：' + esc(d.derive) + "</div>";
+    if (d.syn) h += '<div class="g-more">🔄 近义：' + esc(d.syn) + "</div>";
+    if (d.ant) h += '<div class="g-more">⚖️ 反义：' + esc(d.ant) + "</div>";
+    h += "</div>";
+    return h;
+  }
+  function _grammarHint(text, isWord) {
+    if (isWord) {
+      var single = text.split(/\s+/).length === 1;
+      if (!single) return '<div class="lk-gram"><span class="g-t">短语</span> 两个词搭配在一起用，注意中间的介词哦，像 "look at"、"get up"。</div>';
+      var pos = _posGuess(text);
+      var card = _wordCard(_normWord(text).toLowerCase());
+      if (card) return card;
+      var ex = {
+        "名词": '用来叫出人、动物或东西的名字，比如 "a book"（一本书）。',
+        "动词": "表示做的动作，比如 run（跑）、eat（吃）。",
+        "形容词": "用来形容人或东西是什么样，比如 big（大的）、beautiful（漂亮的）。",
+        "副词": "说明动作怎么发生，比如 quickly（快速地）。",
+        "介词": "表示位置关系的小词，比如 in（在…里）、on（在…上）。",
+        "助动词 / 情态动词": "帮助主要动词组成句子的小帮手，比如 can、will。",
+        "冠词 / 限定词": "放在名词前的小词，比如 a、the。",
+        "连词": "用来把两个部分连起来，比如 and（和）、but（但是）。",
+        "代词": "代替名字的词，比如 I、you、he。",
+        "动词（现在分词）": "动词加了 -ing，表示正在做，比如 running（正在跑）。",
+        "动词（过去式/过去分词）": "动词加了 -ed，表示过去发生，比如 walked（走过了）。"
+      }[pos] || "这是个有意思的单词，查一查它什么意思吧！";
+      return '<div class="lk-gram"><span class="g-t">' + esc(pos) + "</span> " + esc(ex) + "</div>";
+    }
+    /* 句子：时态 + 句型 */
+    var words = (text.match(/[A-Za-z']+/g) || []).map(function (w) { return w.toLowerCase(); });
+    var tense = "";
+    var hasAux = words.some(function (w) { return _AUX[w]; });
+    var hasBe = words.some(function (w) { return _AUX[w] && w !== "do" && w !== "does" && w !== "did"; });
+    var hasHave = words.some(function (w) { return w === "have" || w === "has" || w === "had"; });
+    var hasWill = words.some(function (w) { return w === "will" || w === "would" || w === "shall"; });
+    var baseS = words.filter(function (w) { return /ing$/.test(w); }).length;
+    if (hasWill) tense = "一般将来";
+    else if (hasHave && baseS) tense = "现在完成";
+    else if (words.some(function (w) { return /ed$/.test(w); })) tense = "一般过去";
+    else if (hasBe || hasHave) tense = "一般现在";
+    else tense = (words.length ? "一般现在" : "");
+    var type = "陈述句";
+    var first = words[0];
+    if (first && (_WH.some(function (r) { return r.test(first); }))) type = "特殊疑问句";
+    else if (first === "do" || first === "does" || first === "did" || (_AUX[first] && !/ed$/.test(words[1] || ""))) type = "一般疑问句";
+    else if (words.indexOf("not") >= 0 && hasAux) type = "否定句";
+    else if (first === "there") type = "there be 存在句";
+    var parts = [];
+    if (tense) parts.push("时态：" + tense);
+    if (type) parts.push("句型：" + type);
+    if (hasAux) parts.push("含助动词");
+    return '<div class="lk-gram"><span class="g-t">语法</span> ' + esc(parts.join(" · ")) + "</div>";
+  }
+
+  /* 划词查询浮层：单词 → 音标 + 中文；短语/句子 → 中文翻译 */
+  var _lookupTransCache = {};
+  function _lookupShow(text, anchorRect, isWord, wordForm, ipa) {
+    var root = document.querySelector(".rw-read2 .lookup-card");
+    if (!root) return;
+    if (_lookupTransCache[text]) {
+      _lookupRender(text, anchorRect, isWord, wordForm, ipa, _lookupTransCache[text]);
+    } else {
+      root.innerHTML = '<div class="lk-tip">查询中…</div>';
+      root.style.display = "block";
+      var x = anchorRect ? Math.min(anchorRect.left + window.scrollX, window.innerWidth - 300) : 100;
+      root.style.left = Math.max(0, x) + "px";
+      root.style.top = (anchorRect ? (anchorRect.bottom + window.scrollY + 8) : 200) + "px";
+      loadTranslation(text, function (zh) {
+        _lookupTransCache[text] = zh;
+        _lookupRender(text, anchorRect, isWord, wordForm, ipa, zh);
+      }, function () {
+        root.innerHTML = '<div class="lk-tip">翻译失败，请重试</div>';
+      });
+    }
+  }
+  function _lookupRender(text, rect, isWord, wordForm, ipa, zh) {
+    var root = document.querySelector(".rw-read2 .lookup-card");
+    if (!root) return;
+    var h = '<div class="lk-hd">';
+    if (isWord) {
+      h += '<span class="lk-wd">' + esc(wordForm) + '</span>';
+      if (ipa) h += '<span class="lk-ipa">' + esc(ipa) + '</span>';
+    } else {
+      h += '<span class="lk-sentence">' + esc(text.length > 80 ? text.slice(0, 80) + "…" : text) + '</span>';
+    }
+    h += '<span class="lk-close" title="关闭">✕</span>';
+    h += '</div>';
+    h += '<div class="lk-trans">' + esc(zh) + '</div>';
+    h += _grammarHint(text, isWord);
+    h += '<div class="lk-acts">';
+    h += spkBtn(text);
+    if (isWord) h += '<button class="btn lk-add" type="button">📌 收藏</button>';
+    h += '</div>';
+    root.innerHTML = h;
+    root.style.display = "block";
+    var y = (rect ? (rect.bottom + window.scrollY + 8) : (window.scrollY + 100));
+    var x = (rect ? Math.min(rect.left + window.scrollX, window.innerWidth - 280) : 100);
+    root.style.left = Math.max(0, x) + "px";
+    root.style.top = Math.max(window.scrollY + 20, y) + "px";
+    var close = root.querySelector(".lk-close");
+    if (close) close.onclick = function () { root.style.display = "none"; };
+    var add = root.querySelector(".lk-add");
+    if (add) add.onclick = function () {
+      add.textContent = "✓ 已收藏";
+      add.classList.add("ok");
+    };
+  }
+
+  /* 全文翻译 + 划词查询：一次性绑定到当前 root 内的 .rw-read2 元素 */
+  function _bindRead(root) {
+    root.querySelectorAll(".rw-read2").forEach(function (rd) {
+      if (rd._bound) return;
+      rd._bound = 1;
+      var raw = rd.querySelector(".rw-read2-body").textContent || "";
+      /* 全文朗读 + 逐词高亮 */
+      var rdClean = rd.getAttribute("data-clean") || "";
+      var rdOffs = null;
+      try { rdOffs = JSON.parse(rd.getAttribute("data-offs") || "[]"); } catch (e) { rdOffs = null; }
+      var wordSpans = null;
+      function gatherSpans() {
+        if (wordSpans) return wordSpans;
+        wordSpans = Array.prototype.slice.call(rd.querySelectorAll(".rw-w"));
+        return wordSpans;
+      }
+      function highlightWord(idx) {
+        if (!rdOffs || !rdOffs.length) return;
+        var span = null;
+        for (var k = rdOffs.length - 1; k >= 0; k--) {
+          if (rdOffs[k][0] <= idx) { span = gatherSpans()[k]; break; }
+        }
+        gatherSpans().forEach(function (s) { s.classList.remove("hl"); });
+        if (span) span.classList.add("hl");
+      }
+      function clearHighlight() {
+        if (wordSpans) wordSpans.forEach(function (s) { s.classList.remove("hl"); });
+      }
+      rd.addEventListener("click", function (e) {
+        var rb = e.target.closest(".rw-read-all");
+        if (rb) {
+          if (rb.classList.contains("reading")) {
+            /* 再点一次停止 */
+            try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (err) {}
+            rb.classList.remove("reading");
+            rb.textContent = "🔊 全文朗读";
+            clearHighlight();
+            return;
+          }
+          var voiceKey = currentVoice || "alan";
+          rb.classList.add("reading");
+          rb.textContent = "🔊 朗读中…";
+          speakWithVoice(rdClean || raw, voiceKey, function () {
+            rb.classList.remove("reading");
+            rb.textContent = "🔊 全文朗读";
+            clearHighlight();
+          }, function (ci) {
+            highlightWord(ci);
+          });
+          return;
+        }
+        var b = e.target.closest(".rw-tr-all");
+        if (!b) return;
+        var tr = rd.querySelector(".rw-read2-tr");
+        if (tr.getAttribute("data-loaded") === "1") {
+          tr.classList.toggle("hide");
+          return;
+        }
+        tr.innerHTML = '<div class="rw-tr-tip">翻译中…</div>';
+        tr.classList.remove("hide");
+        /* 逐句切分：每句先渲染「英文行在上」，再异步逐句翻译，
+           中文填充在同一句下方，实现一句一对应，长文不翻页对照。 */
+        var sents = _splitSentences(raw);
+        if (!sents.length) {
+          tr.innerHTML = '<div class="rw-tr-tip">暂无可翻译的句子</div>';
+          tr.setAttribute("data-loaded", "1");
+          return;
+        }
+        var html = '<div class="rw-tr-para">';
+        sents.forEach(function (s) {
+          html += '<div class="rw-tr-line">' +
+                  '<div class="rw-tr-en">' + esc(s) + '</div>' +
+                  '<div class="rw-tr-zh">…</div>' +
+                  '</div>';
+        });
+        html += '</div>';
+        tr.innerHTML = html;
+        /* 串行逐句翻译，保持上下对应；失败置占位 */
+        var li = 0;
+        (function nextLine() {
+          if (li >= sents.length) { tr.setAttribute("data-loaded", "1"); return; }
+          var line = tr.querySelectorAll(".rw-tr-line")[li];
+          loadTranslation(sents[li], function (zh) {
+            if (line) line.querySelector(".rw-tr-zh").innerHTML = esc(zh);
+            li++; nextLine();
+          }, function () {
+            if (line) line.querySelector(".rw-tr-zh").innerHTML = '<span class="rw-tr-err">翻译失败</span>';
+            li++; nextLine();
+          });
+        })();
+      });
+      /* 划词：mouseup 检测选区 */
+      rd.addEventListener("mouseup", function () {
+        var sel = window.getSelection();
+        if (!sel || sel.isCollapsed) return;
+        var text = sel.toString().trim();
+        if (!text) return;
+        if (text.length > 300) return;
+        var range = sel.getRangeAt(0);
+        var rect = range.getBoundingClientRect();
+        if (rect.width < 3 && rect.height < 3) return;
+        /* 判断是单词还是句子 */
+        var isWord = /^[A-Za-z][A-Za-z' -]{0,30}$/.test(text) && text.split(/\s+/).length <= 3;
+        var ipa = "", wordForm = text;
+        if (isWord && text.split(/\s+/).length === 1) {
+          wordForm = _normWord(text);
+          ipa = simpleIPA(wordForm);
+        } else if (isWord) {
+          /* 短词组：拼合成完整音节的每个词 IPA */
+          wordForm = text;
+          ipa = text.split(/\s+/).map(function (w) { return simpleIPA(_normWord(w)); }).join(" ");
+        } else {
+          /* 句子：从原文中定位所属句子，用于显示上下文 */
+          var preLen = "";
+          try {
+            var p = range.cloneRange();
+            p.selectNodeContents(rd.querySelector(".rw-read2-body"));
+            p.setEnd(range.startContainer, range.startOffset);
+            preLen = p.toString();
+          } catch (err) {}
+          var idx = preLen.length;
+          var sent = _sentenceAt(raw, idx);
+          if (sent && sent.length > text.length + 5 && sent.indexOf(text) >= 0) text = sent;
+        }
+        _lookupShow(text, rect, isWord, wordForm, ipa);
+      });
+    });
+    /* 点击页外关闭浮层 */
+    document.addEventListener("click", function (e) {
+      var card = document.querySelector(".rw-read2 .lookup-card");
+      if (!card || card.style.display === "none") return;
+      if (card.contains(e.target)) return;
+      if (e.target.closest(".rw-read2")) return;
+      card.style.display = "none";
+    }, true);
   }
 
   function enText(st) {
@@ -3729,6 +4106,224 @@
       });
       return s + "</div>";
     }).join("");
+  }
+
+  /* 英语写作教学页：Writing Process / 6+1 Traits / 5 文体 / 句型+过渡词 / 检查表+练习 */
+  function enWriting(st) {
+    var W = D.writing || {};
+    var q = (st.q || "").trim().toLowerCase();
+    function match(s) { return !q || String(s).toLowerCase().indexOf(q) >= 0; }
+    var h = '<h2>英语写作 <span class="small">从构思到发表的完整写作流程</span></h2>';
+
+    /* 1. 写作流程 */
+    var proc = (W.process || []).filter(function (p) { return match(p.en + " " + p.zh); });
+    if (proc.length) {
+      h += '<details class="wrt-sec" open><summary>① 写作流程 <span class="small">Writing Process · 五步走</span></summary>';
+      h += '<div class="wrt-flow">';
+      proc.forEach(function (p, i) {
+        h += '<div class="wrt-step">';
+        h += '<div class="wrt-step-num">' + p.step + '</div>';
+        h += '<div class="wrt-step-en">' + esc(p.en) + '</div>';
+        h += '<div class="wrt-step-zh">' + esc(p.zh) + '</div>';
+        h += '<div class="wrt-step-desc">' + esc(p.desc) + '</div>';
+        if (p.tips && p.tips.length) {
+          h += '<ul class="wrt-tips">';
+          p.tips.forEach(function (t) { h += '<li>' + esc(t) + '</li>'; });
+          h += '</ul>';
+        }
+        h += '</div>';
+        if (i < proc.length - 1) h += '<div class="wrt-arrow">→</div>';
+      });
+      h += '</div></details>';
+    }
+
+    /* 2. 六要素 */
+    var traits = (W.traits || []).filter(function (t) { return match(t.en + " " + t.zh); });
+    if (traits.length) {
+      h += '<details class="wrt-sec" open><summary>② 写作七要素 <span class="small">6+1 Traits of Writing</span></summary>';
+      h += '<div class="wrt-trait-grid">';
+      traits.forEach(function (t) {
+        h += '<div class="wrt-trait">';
+        h += '<div class="wrt-trait-ic">' + (t.icon || "") + '</div>';
+        h += '<div class="wrt-trait-en">' + esc(t.en) + '</div>';
+        h += '<div class="wrt-trait-zh">' + esc(t.zh) + '</div>';
+        h += '<div class="wrt-trait-desc">' + esc(t.desc) + '</div>';
+        if (t.check && t.check.length) {
+          h += '<ul class="wrt-tips">';
+          t.check.forEach(function (c) { h += '<li>✓ ' + esc(c) + '</li>'; });
+          h += '</ul>';
+        }
+        h += '</div>';
+      });
+      h += '</div></details>';
+    }
+
+    /* 3. 文体分类 */
+    var genres = (W.genres || []).filter(function (g) { return match(g.en + " " + g.zh); });
+    if (genres.length) {
+      h += '<details class="wrt-sec" open><summary>③ 五种文体 <span class="small">Genre Approach</span></summary>';
+      h += '<div class="wrt-genre-list">';
+      genres.forEach(function (g) {
+        h += '<details class="wrt-genre">';
+        h += '<summary><span class="wrt-genre-ic">' + (g.icon || "") + '</span>' +
+             '<span class="wrt-genre-en">' + esc(g.en) + '</span>' +
+             '<span class="wrt-genre-zh">' + esc(g.zh) + '</span></summary>';
+        h += '<div class="wrt-genre-body">';
+        if (g.structure && g.structure.length) {
+          h += '<div class="wrt-sub">结构</div>';
+          h += '<ol class="wrt-steps">';
+          g.structure.forEach(function (s) { h += '<li>' + esc(s) + '</li>'; });
+          h += '</ol>';
+        }
+        if (g.frames && g.frames.length) {
+          h += '<div class="wrt-sub">句型支架</div>';
+          h += '<div class="wrt-frames">';
+          g.frames.forEach(function (f) {
+            h += '<span class="wrt-frame-item">' + spkBtn(f) + esc(f) + '</span>';
+          });
+          h += '</div>';
+        }
+        if (g.sample) {
+          h += '<div class="wrt-sub">完整范文</div>';
+          h += '<div class="wrt-eg-full">' + esc(g.sample) + spkBtn(g.sample) + '</div>';
+        }
+        else if (g.example) {
+          h += '<div class="wrt-sub">范例</div>';
+          h += '<div class="wrt-eg">' + esc(g.example) + spkBtn(g.example) + '</div>';
+        }
+        h += '</div></details>';
+      });
+      h += '</div></details>';
+    }
+
+    /* 4. 句型支架 + 过渡词 */
+    var frames = (W.sentence_frames || []).filter(function (f) { return match(f.level + " " + f.en); });
+    var trans = (W.transitions || []).filter(function (t) { return match(t.cat + " " + t.zh); });
+    h += '<details class="wrt-sec" open><summary>④ 句型支架 + 过渡词 <span class="small">Sentence Frames & Transitions</span></summary>';
+    h += '<div class="wrt-frames-cols">';
+    /* 左：句型支架 */
+    h += '<div class="wrt-col"><div class="wrt-col-hd">句型（由简到难）</div>';
+    frames.forEach(function (f) {
+      h += '<div class="wrt-frame-level" style="background:' + f.color + '">';
+      h += '<div class="wrt-frame-lv">' + esc(f.level) + ' <span class="small">' + esc(f.en) + '</span></div>';
+      h += '<div class="wrt-frames">';
+      (f.frames || []).forEach(function (fr) {
+        h += '<span class="wrt-frame-item">' + spkBtn(fr) + esc(fr) + '</span>';
+      });
+      h += '</div></div>';
+    });
+    h += '</div>';
+    /* 右：过渡词 */
+    h += '<div class="wrt-col"><div class="wrt-col-hd">过渡词（6 类）</div>';
+    trans.forEach(function (t) {
+      h += '<div class="wrt-tr-row">';
+      h += '<span class="wrt-tr-cat">' + esc(t.cat) + '<span class="small">' + esc(t.zh) + '</span></span>';
+      h += '<div class="wrt-tr-words">';
+      (t.words || []).forEach(function (w) {
+        h += '<span class="wrt-tr-w">' + esc(w) + '</span>';
+      });
+      h += '</div></div>';
+    });
+    h += '</div></div></details>';
+
+    /* 5. 检查表 + 练习提示 */
+    var chk = (W.checklist || []).filter(function (c) { return match(c.item + " " + c.cat); });
+    var prompts = (W.prompts || []).filter(function (p) { return match(p.type + " " + p.en + " " + p.zh); });
+    h += '<details class="wrt-sec" open><summary>⑤ 写作检查表 + 练习提示</summary>';
+    h += '<div class="wrt-check-cols">';
+    h += '<div class="wrt-col"><div class="wrt-col-hd">检查表（写完自查）</div>';
+    h += '<div class="wrt-check-list">';
+    chk.forEach(function (c) {
+      h += '<label class="wrt-check-item"><input type="checkbox"> ' +
+           '<span>' + esc(c.item) + '</span> <span class="wrt-check-cat">' + esc(c.cat) + '</span></label>';
+    });
+    h += '</div></div>';
+    h += '<div class="wrt-col"><div class="wrt-col-hd">练习提示（选一个开始写）</div>';
+    h += '<div class="wrt-prompt-list">';
+    prompts.forEach(function (p) {
+      h += '<div class="wrt-prompt">';
+      h += '<div class="wrt-prompt-type">' + esc(p.type) + ' <span class="small">' + esc(p.en) + '</span>' +
+           ' <span class="wrt-prompt-min">≥' + (p.min_words || 0) + ' 词</span></div>';
+      h += '<div class="wrt-prompt-text">' + esc(p.zh) + '</div>';
+      h += '</div>';
+    });
+    h += '</div></div></div></details>';
+
+    /* 6. 写作规范专项 */
+    var conv = (W.conventions || []).filter(function (c) { return match(c.topic); });
+    if (conv.length) {
+      h += '<details class="wrt-sec" open><summary>⑥ 写作规范专项 <span class="small">Conventions & Mechanics</span></summary>';
+      h += '<div class="wrt-conv-grid">';
+      conv.forEach(function (c) {
+        h += '<div class="wrt-conv">';
+        h += '<div class="wrt-conv-hd"><span>' + (c.icon || "") + '</span> ' + esc(c.topic) + '</div>';
+        if (c.rules && c.rules.length) {
+          h += '<ul class="wrt-tips">';
+          c.rules.forEach(function (r) { h += '<li>' + esc(r) + '</li>'; });
+          h += '</ul>';
+        }
+        if (c.example) h += '<div class="wrt-conv-ex">' + esc(c.example) + '</div>';
+        h += '</div>';
+      });
+      h += '</div></details>';
+    }
+
+    /* 7. 分年级写作指导 */
+    var grades = (W.grade_guide || []).filter(function (g) { return match(g.grade + " " + g.focus); });
+    if (grades.length) {
+      h += '<details class="wrt-sec" open><summary>⑦ 分年级写作指导 <span class="small">Grade-by-Grade Guide</span></summary>';
+      h += '<div class="wrt-grade-list">';
+      grades.forEach(function (g) {
+        h += '<div class="wrt-grade">';
+        h += '<div class="wrt-grade-hd"><span class="wrt-grade-ic">' + (g.icon || "") + '</span>' +
+             '<span class="wrt-grade-name">' + esc(g.grade) + '</span>' +
+             '<span class="wrt-grade-focus">' + esc(g.focus) + '</span></div>';
+        h += '<div class="wrt-grade-goal">目标：' + esc(g.goal) + '</div>';
+        h += '<div class="wrt-grade-len">篇幅：' + esc(g.length) + '</div>';
+        if (g.tips && g.tips.length) {
+          h += '<ul class="wrt-tips">';
+          g.tips.forEach(function (t) { h += '<li>' + esc(t) + '</li>'; });
+          h += '</ul>';
+        }
+        h += '</div>';
+      });
+      h += '</div></details>';
+    }
+
+    /* 8. 创意写作 */
+    var creatives = (W.creative || []).filter(function (c) { return match(c.cat); });
+    if (creatives.length) {
+      h += '<details class="wrt-sec" open><summary>⑧ 创意写作 <span class="small">Creative Writing · 工坊/游戏/诗歌/话题</span></summary>';
+      h += '<div class="wrt-creative">';
+      creatives.forEach(function (c) {
+        h += '<div class="wrt-creative-cat">';
+        h += '<div class="wrt-cat-hd"><span>' + (c.icon || "") + '</span> ' + esc(c.cat) + '</div>';
+        h += '<div class="wrt-creative-grid">';
+        (c.items || []).forEach(function (it) {
+          h += '<div class="wrt-creative-item">';
+          h += '<div class="wrt-cret-hd"><span class="wrt-cret-name">' + esc(it.name) + '</span>' +
+               '<span class="wrt-cret-en">' + esc(it.en) + '</span></div>';
+          h += '<div class="wrt-cret-desc">' + esc(it.desc) + '</div>';
+          if (it.frames && it.frames.length) {
+            h += '<div class="wrt-sub">句式支架</div>';
+            h += '<div class="wrt-frames">';
+            it.frames.forEach(function (f) {
+              h += '<span class="wrt-frame-item">' + esc(f) + '</span>';
+            });
+            h += '</div>';
+          }
+          if (it.example) {
+            h += '<div class="wrt-sub">范例</div>';
+            h += '<div class="wrt-eg">' + spkBtn(it.example) + esc(it.example) + '</div>';
+          }
+          h += '</div>';
+        });
+        h += '</div></div>';
+      });
+      h += '</div></details>';
+    }
+
+    return h;
   }
 
   function enUse(st) {

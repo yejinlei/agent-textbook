@@ -726,6 +726,223 @@ def _load_picturebooks():
     return out
 
 
+def _writing_data():
+    """英语写作教学数据：流程/六要素/文体/句型/连接词/检查表/练习。"""
+    return {
+        "process": [
+            {"step": 1, "en": "Prewriting", "zh": "构思",
+             "desc": "想清楚写什么、给谁看。用思维导图、关键词、提问列出想法。",
+             "tips": ["Who/What/When/Where/Why", "画思维导图", "列关键词"]},
+            {"step": 2, "en": "Drafting", "zh": "起草",
+             "desc": "先把想法写下来，不停笔修改。先求完整，不求完美。",
+             "tips": ["不停顿写完第一稿", "不会的词先空着或用中文", "写够字数再改"]},
+            {"step": 3, "en": "Revising", "zh": "修改",
+             "desc": "看内容与结构：顺序对不对？有没有多余的句子？开头结尾好不好？",
+             "tips": ["朗读自己的文章", "删掉重复的句子", "加连接词让更流畅"]},
+            {"step": 4, "en": "Editing", "zh": "校对",
+             "desc": "检查拼写、标点、大小写、语法。逐句检查，不放过小错误。",
+             "tips": ["检查大小写与句号", "拼写逐词核对", "时态是否一致"]},
+            {"step": 5, "en": "Publishing", "zh": "发表",
+             "desc": "工整誊抄或打字排版，加上标题，分享给同学或家人。",
+             "tips": ["标题居中加粗", "段落缩进", "分享给家人读"]}
+        ],
+        "traits": [
+            {"en": "Ideas", "zh": "思路", "icon": "💡",
+             "desc": "文章有没有一个明确的主意？细节是否支撑主旨？",
+             "check": ["我知道我要写什么", "每个段落都围绕主旨"]},
+            {"en": "Organization", "zh": "结构", "icon": "🏗",
+             "desc": "开头吸引人吗？中间有条理吗？结尾有总结吗？",
+             "check": ["开头引人入胜", "段落有逻辑顺序", "结尾呼应开头"]},
+            {"en": "Voice", "zh": "语气", "icon": "🎭",
+             "desc": "读起来像谁在说话？正式还是活泼？适合读者吗？",
+             "check": ["语气适合读者", "能感觉到作者的情感"]},
+            {"en": "Word Choice", "zh": "选词", "icon": "✏",
+             "desc": "用词准确吗？有没有重复？能不能换更好的词？",
+             "check": ["不用太多very/good/nice", "动词具体", "形容词生动"]},
+            {"en": "Sentence Fluency", "zh": "句子流畅", "icon": "🌊",
+             "desc": "句子长短搭配吗？读起来顺口吗？有没有太多流水句？",
+             "check": ["长短句搭配", "没有Run-on句", "开头不总是I/The"]},
+            {"en": "Conventions", "zh": "规范", "icon": "✓",
+             "desc": "拼写、标点、大小写、语法是否正确？",
+             "check": ["拼写正确", "标点用对", "主谓一致"]},
+            {"en": "Presentation", "zh": "呈现", "icon": "🎨",
+             "desc": "文章的版面和样子：标题、分段、字迹、插图、排版是否美观清楚？",
+             "check": ["有醒目的标题", "段落有缩进", "字迹/排版整齐", "有需要时配插图"]}
+        ],
+        "genres": [
+            {"en": "Narrative", "zh": "叙事", "icon": "📖",
+             "structure": ["开头：交代时间、地点、人物", "中间：发生了什么（按顺序）", "结尾：结果或感受"],
+             "frames": ["One day, ...", "Suddenly, ...", "Finally, ...", "In the end, ..."],
+             "example": "Last Sunday, I went to the park with my family. We played games and had a picnic. I felt very happy.",
+             "sample": "A Lucky Day on the Way to School\nLast Monday, I walked to school with my friend Ben. On the way, we saw a little dog sitting under a tree. It looked sad and hungry. We shared our bread with it and it ate quickly. Then the dog followed us to school. The teacher was surprised, but she smiled. We named the dog Lucky. At the end of the day, a kind lady came and took Lucky home. Ben and I were happy that we could help. That day, we learned that helping others makes us happy."},
+            {"en": "Descriptive", "zh": "描写", "icon": "🎨",
+             "structure": ["整体印象", "细节描写（看/听/闻/触）", "感受总结"],
+             "frames": ["It looks like ...", "I can see ...", "It smells like ...", "It makes me feel ..."],
+             "example": "My bedroom is small but cozy. The walls are light blue. There is a big window near my bed. I can hear birds singing every morning.",
+             "sample": "My Kitchen Garden\nAt the back of our house, there is a small kitchen garden. It is green and full of life. In the morning, I can see sunflowers turning their heads to the sun. I can hear bees buzzing around the flowers. When I touch the grass, it is soft and wet with dew. The tomatoes smell fresh and sweet. Sitting there, I feel calm and happy. This little garden is my favourite place at home."},
+            {"en": "Expository", "zh": "说明", "icon": "📋",
+             "structure": ["主题句：说明什么", "事实/步骤/原因", "总结句"],
+             "frames": ["First, ...", "Second, ...", "Also, ...", "In conclusion, ..."],
+             "example": "There are three things I do every morning. First, I brush my teeth. Second, I eat breakfast. Also, I read a book for ten minutes.",
+             "sample": "How to Keep My Desk Clean\nKeeping my desk clean is easy if I follow three steps. First, I put my books back on the shelf after I read them. Second, I put the pencils and erasers into my pencil case every evening. Also, I use a small box for my toys so they do not cover the desk. In conclusion, a clean desk helps me study better and find things quickly."},
+            {"en": "Persuasive", "zh": "议论", "icon": "💬",
+             "structure": ["观点：我认为……", "理由1 + 例子", "理由2 + 例子", "号召行动"],
+             "frames": ["I think ... because ...", "For example, ...", "Another reason is ...", "You should ..."],
+             "example": "I think students should have more PE classes. First, exercise keeps us healthy. Second, sports help us make friends. You should play sports every day!",
+             "sample": "We Should Read More Books\nI think every student should read more books. First, reading helps us learn new words and make our sentences better. For example, I learned many new words from a storybook. Second, reading is a fun way to rest after playing. Another reason is that a book can take us to faraway places without leaving home. You should try reading ten minutes every day!"},
+            {"en": "Letter/Email", "zh": "书信", "icon": "✉",
+             "structure": ["称呼 (Dear ...)", "正文：写什么事", "结尾问候 (Best wishes,)", "署名"],
+             "frames": ["Dear ...,", "How are you?", "I am writing to ...", "Best wishes,", "Yours, ..."],
+             "example": "Dear Tom,\nHow are you? I am writing to invite you to my birthday party. It is on Saturday at 3 pm. I hope you can come!\nBest wishes,\nLi Ming",
+             "sample": "A Thank-you Letter\nDear Grandma,\nThank you for the red gloves you sent me. They are warm and beautiful, and I wear them every day to school. The weather is getting cold here, so your gloves really help. I also love the drawings on them. I am writing to say thank you from my heart. Please come to visit us soon!\nLove,\nAmy"}
+        ],
+        "transitions": [
+            {"cat": "顺序", "zh": "Sequence", "words": ["first", "then", "next", "after that", "finally", "in the end"]},
+            {"cat": "补充", "zh": "Addition", "words": ["also", "too", "and", "besides", "what's more", "in addition"]},
+            {"cat": "对比", "zh": "Contrast", "words": ["but", "however", "although", "on the other hand", "while", "whereas"]},
+            {"cat": "因果", "zh": "Cause & Effect", "words": ["because", "so", "therefore", "as a result", "since", "due to"]},
+            {"cat": "举例", "zh": "Example", "words": ["for example", "for instance", "such as", "like", "namely"]},
+            {"cat": "总结", "zh": "Conclusion", "words": ["in conclusion", "to sum up", "in short", "all in all", "overall"]}
+        ],
+        "conventions": [
+            {"topic": "大写", "icon": "🔠",
+             "rules": ["句子开头第一个字母要大写", "专有名词要大写（人名、地名、星期、月份）", "人称代词 I 永远大写", "书名/标题的重要单词首字母大写"],
+             "example": "✓ My name is Lily.   ✗ my name is lily."},
+            {"topic": "标点", "icon": "❓",
+             "rules": ["陈述句结尾用 .", "疑问句结尾用 ?", "表达强烈情感用 !", "人名/地名字用逗号隔开（Dear Tom,）"],
+             "example": "✓ Are you ready?   ✗ Are you ready."},
+            {"topic": "拼写", "icon": "🔤",
+             "rules": ["先写完整再改拼写，别为修改打断思路", "写完逐词核对，用词典或朗读检查", "注意易混词：there / their / they're", "名词变复数别漏 s 或 es"],
+             "example": "✓ there is a book   ✗ their is a book"},
+            {"topic": "时态一致", "icon": "⏰",
+             "rules": ["同一件事不要一会儿现在时一会儿过去时", "现在经常发生用一般现在时", "上星期做的用一般过去时", "将来打算用 be going to / will"],
+             "example": "✓ Yesterday I went to the park.   ✗ Yesterday I go to the park."},
+            {"topic": "句子完整", "icon": "🧩",
+             "rules": ["每个句子都要有主语和谓语", "不要写半边句子（Fragment）", "不要一句话没写完就换行", "学会用 and / but / so 连接",
+              "例：把 I like dogs. They are cute. 连成 I like dogs because they are cute."],
+             "example": "✓ I like dogs because they are cute.   ✗ Dogs. Because cute."}
+        ],
+        "grade_guide": [
+            {"grade": "一二年级", "icon": "🌱",
+             "goal": "能写 3-5 个单词组成的简单句子", "length": "20-30 词",
+             "tips": ["会用 I like ... / I can ... 开头", "大写和句号正确", "看图写 1 句话", "抄写并工整誊写"],
+             "focus": "句子 → 简单书写"},
+            {"grade": "三年级", "icon": "🌿",
+             "goal": "能写 2-3 句连贯的简单句", "length": "30-50 词",
+             "tips": ["会给句子加 and / but", "按时间顺序写小事件", "学会问答式写作", "会写贺卡和简单信件"],
+             "focus": "段落雏形 → 书信"},
+            {"grade": "四年级", "icon": "🌲",
+             "goal": "能写 3-5 句的小段落", "length": "50-80 词",
+             "tips": ["有主题句和结尾", "按 First/Second 写步骤", "描写用感官词", "用连接词使句子连贯"],
+             "focus": "完整段落 → 说明"},
+            {"grade": "五年级", "icon": "🌳",
+             "goal": "能写多段落短文", "length": "80-120 词",
+             "tips": ["段落有结构（开头-中间-结尾）", "学会议论：观点+理由", "会写叙事故事", "检查表自查"],
+             "focus": "多段落 → 叙事/议论"},
+            {"grade": "六年级", "icon": "🏆",
+             "goal": "能写审题清晰、结构完整的短文", "length": "120-160 词",
+             "tips": ["审题：看清要求再写", "综合运用连接词与句型", "会用 there be / 比较级", "发表前做 Presentation 呈现"],
+             "focus": "审题立意 → 完整写作"}
+        ],
+        "sentence_frames": [
+            {"level": "简单句", "en": "Simple", "color": "#e8f5e9",
+             "frames": ["I like ___.", "He is ___.", "She can ___.", "They have ___.", "We went to ___."]},
+            {"level": "并列句", "en": "Compound", "color": "#e3f2fd",
+             "frames": ["I like ___, and he likes ___.", "She is tired, but she keeps going.", "We can go now, or we can wait.", "I was hungry, so I ate an apple."]},
+            {"level": "复合句", "en": "Complex", "color": "#fff3e0",
+             "frames": ["When I ___, I ___.", "Because ___, ___.", "If ___, ___.", "Although ___, ___."]}
+        ],
+        "checklist": [
+            {"item": "我的文章有标题", "cat": "结构"},
+            {"item": "每个段落只有一个主题", "cat": "结构"},
+            {"item": "开头能吸引读者", "cat": "结构"},
+            {"item": "结尾有总结或感受", "cat": "结构"},
+            {"item": "用了连接词让句子更流畅", "cat": "流畅"},
+            {"item": "没有太多重复的词", "cat": "选词"},
+            {"item": "动词用了具体词", "cat": "选词"},
+            {"item": "句子长短搭配", "cat": "流畅"},
+            {"item": "拼写都正确", "cat": "规范"},
+            {"item": "标点符号用对了", "cat": "规范"},
+            {"item": "大小写正确", "cat": "规范"},
+            {"item": "时态前后一致", "cat": "规范"}
+        ],
+        "prompts": [
+            {"type": "看图写话", "en": "Picture Description", "zh": "看图写 5 句话，描述你在图中看到了什么。", "min_words": 30},
+            {"type": "续写", "en": "Story Continuation", "zh": "It was a rainy day. Suddenly, I heard a strange sound... 续写这个故事。", "min_words": 50},
+            {"type": "仿写", "en": "Imitation", "zh": "仿写一篇 My Family 短文，介绍你的家庭（参照课文体裁）。", "min_words": 40},
+            {"type": "书信", "en": "Letter", "zh": "给你的好朋友写一封信，邀请他/她来你家玩。", "min_words": 50},
+            {"type": "议论", "en": "Opinion", "zh": "你认为小学生应该有作业吗？写出你的观点和理由。", "min_words": 40},
+            {"type": "描写", "en": "Description", "zh": "描写你最喜欢的地方（教室、公园、房间……），至少用 3 个感官词。", "min_words": 40},
+            {"type": "自由写作", "en": "Free Writing", "zh": "写任何你想写的话题，写满 5 分钟不停笔。", "min_words": 60}
+        ],
+        "creative": [
+            {"cat": "创意写作工坊", "icon": "🎭",
+             "items": [
+                 {"name": "看图写话", "en": "Picture Story", "desc": "看图先说出 5 个看到的名词，再加动作词，连成一个小故事。",
+                  "frames": ["I can see ___.", "There is a ___.", "The ___ is ___-ing.", "Suddenly, ___.", "In the end, ___."],
+                  "example": "I can see a boy and a dog. The dog is running. Suddenly, it stops and looks at me. In the end, we play together."},
+                 {"name": "故事续写", "en": "Story Extension", "desc": "给你一个开头，接着往下编，加入新角色和转折。",
+                  "frames": ["Then ___.", "After that, ___.", "But suddenly, ___.", "Finally, ___."],
+                  "example": "It was raining. Then the door opened. A tiny fox walked in. But suddenly, it spoke: 'Help me!' Finally, we became friends."},
+                 {"name": "五感描写", "en": "Five Senses", "desc": "用看/听/闻/尝/触摸五种感觉写同一个地方。",
+                  "frames": ["I can see ___.", "I can hear ___.", "It smells like ___.", "It tastes like ___.", "It feels ___-ing."],
+                  "example": "I can see a market. I can hear people talking. It smells like fresh bread. The juice tastes sweet. The fruit feels smooth."},
+                 {"name": "广告海报", "en": "Poster Ad", "desc": "为一样东西写一小段广告，把它的好处说得让人心动。",
+                  "frames": ["Come and try ___.", "It is ___.", "You will love it because ___.", "Don't miss it!", "Price: ___"],
+                   "example": "Come and try my magic eraser! It is small and cheap. You will love it because it cleans anything. Don't miss it!"},
+                 {"name": "漫画对话", "en": "Comic Talk", "desc": "写两人对话，句子短、带情绪，读起来像漫画。",
+                  "frames": ["\"Hi!\" said ___.", "\"Let's ___.\"", "\"Oh no! ___\"", "\"Haha, good idea!\""],
+                  "example": "\"Hi!\" said Tom. \"Let's fly a kite!\" \"Oh no! The kite is stuck!\" \"Don't worry. I have a ladder.\" \"Haha, good idea!\""}
+             ]},
+            {"cat": "写作小游戏", "icon": "🎲",
+             "items": [
+                 {"name": "故事接龙", "en": "Story Chain", "desc": "几个人轮流每人加一句，故事会越编越离奇。",
+                  "frames": ["Once ___.", "Then ___.", "But ___.", "And then ___.", "At last ___."],
+                  "example": "Once a cat wore shoes. Then it rode a bike. But it fell into a pond. And then a fish helped it up. At last they became friends."},
+                 {"name": "骰子造句", "en": "Dice Sentences", "desc": "掷骰子选 谁/在哪里/做什么，拼出一个滑稽句子。",
+                  "frames": ["___ (谁) ___ (在哪里) ___ (做什么).", "Suddenly, ___ (谁) ___ (做什么)."],
+                  "example": "A penguin in the kitchen sings a song. Suddenly, the penguin dances on the table."},
+                 {"name": "词云成篇", "en": "Word Cloud", "desc": "先圈 6-8 个词，再用一句话把它们全部用进去。",
+                  "frames": ["Today, I saw ___, ___, and ___ at ___.", "___ made me feel ___, so I ___."],
+                  "example": "Today, I saw a kite, an apple, and a dragonfly at the park. The dragonfly made me feel happy, so I ran after it."},
+                 {"name": "换头换尾", "en": "Swap Ending", "desc": "给一个老故事换一个新结尾，或者把主角换成动物。",
+                  "frames": ["Long ago, ___ was the hero.", "But this time, the ending was different: ___."],
+                  "example": "Long ago, a rabbit was the hero. But this time, the ending was different: the rabbit became a king!"}
+             ]},
+            {"cat": "诗歌与押韵", "icon": "🎵",
+             "items": [
+                 {"name": "押韵小诗", "en": "Rhyming Poem", "desc": "选一组押韵词（cat/bat、moon/soon）写 2-4 行小诗。",
+                  "frames": ["___ at ___", "And the ___ goes ___", "___ in the ___, / ___ and ___", "The ___ / makes us ___"],
+                  "example": "The cat sat on the mat. It chased a bat with a hat. The bat flew high, away to the sky. The cat said bye bye."},
+                 {"name": "俳句", "en": "Haiku", "desc": "日本短诗：三行，音节 5-7-5，写一处自然画面。",
+                  "frames": ["Line1 (5): ___ ___ ___ ___ ___", "Line2 (7): ___ ___ ___ ___ ___ ___ ___", "Line3 (5): ___ ___ ___ ___ ___"],
+                  "example": "Spring rain falls softly (5) / On the green leaves of the tree (7) / A bird starts to sing (5)."},
+                 {"name": "藏头诗", "en": "Acrostic", "desc": "把名字竖着写，每行以字母开头写一句。",
+                  "frames": ["S: ___", "U: ___", "N: ___", "..."],
+                  "example": "S: Summer brings sunshine. U: Under the trees we play. N: Night comes, we say goodbye."},
+                 {"name": "声音词诗", "en": "Onomatopoeia", "desc": "多用哗啦/叮咚/汪汪这类声音词，让诗「响」起来。",
+                  "frames": ["___ sounds ___", "___ goes ___", "All day, ___ and ___"],
+                  "example": "The rain goes drip drip. The bell goes ding dong. The dog says woof woof. All day we sing a noisy song."}
+             ]},
+            {"cat": "分话题创意提示库", "icon": "💡",
+             "items": [
+                 {"name": "旅行奇遇", "en": "Travel", "desc": "想象出发去一个没去过的地方。",
+                  "frames": ["I packed my bag with ___ and ___.", "When I arrived, I saw ___.", "The best part was ___."],
+                  "example": "I packed my bag with cookies and a map. When I arrived at the moon, I saw a green rabbit. The best part was hopping over craters."},
+                 {"name": "如果动物会说话", "en": "Talking Animals", "desc": "选一个你喜欢的小动物，写它第一天上学的故事。",
+                  "frames": ["I am a ___.", "On my first day, I met ___.", "We learned to ___."],
+                  "example": "I am a little duck. On my first day, I met a shy turtle. We learned to quack and swim together."},
+                 {"name": "梦想的职业", "en": "Dream Job", "desc": "写长大后想做什么，为什么，会怎样帮助别人。",
+                  "frames": ["When I grow up, I want to ___.", "Because ___.", "I will help ___."],
+                  "example": "When I grow up, I want to be a doctor. Because I can make sick kids feel better. I will help every child smile again."},
+                 {"name": "我的秘密基地", "en": "Secret Base", "desc": "写一个只有你知道的秘密角落，说清它长什么样。",
+                  "frames": ["My secret base is ___.", "It looks like ___.", "Only __ knows it.", "I go there when ___."],
+                  "example": "My secret base is under the big oak tree. It looks like a tent made of leaves. Only my cat knows it. I go there when I want to read."}
+             ]}
+        ]
+    }
+
+
 def _load_taxonomy():
     """taxonomy.json 的分面定义 → 供 UI 渲染筛选项标签。"""
     import os
@@ -894,6 +1111,10 @@ EN_PAGES = [
     ("extra", "课外拓展", "extra",
      "教材之外的同主题阅读：按话题串起来，短文配译文与朗读，"
      "对话配情景与功能。想多读几篇同一个话题的，来这里。"),
+    ("writing", "英语写作", "writing",
+     "从构思到发表的完整写作流程：六要素（思路/结构/语气/选词/句子/规范）、"
+     "文体类型（叙事/描写/说明/议论/书信）、句型支架与连接词、教材范文拆解、"
+     "看图写话与仿写练习。配合写作检查表，一步步把想法变成文章。"),
 ]
 SUBJECTS = [("chinese", "语文", CN_PAGES),
             ("math", "数学", MATH_PAGES),
@@ -1086,7 +1307,8 @@ def _slice(key, kind, cn_d, math_d, en_d):
     keys = {"discourse": ["passages", "dialogues"], "vocab": ["vocab"],
             "grammar": ["grammar"], "phonics": ["phonics"],
             "use": ["songs", "projects", "revisions"],
-            "extra": ["passages", "dialogues"]}
+            "extra": ["passages", "dialogues"],
+            "writing": ["passages", "dialogues", "vocab", "grammar"]}
     d = {"books": books, "themes": en_d["themes"], "domains": en_d["domains"]}
     for k in keys.get(kind, []):
         d[k] = en_d[k]
@@ -1097,6 +1319,8 @@ def _slice(key, kind, cn_d, math_d, en_d):
         d["readings"] = _load_readings()
         d["picturebooks"] = _load_picturebooks()
         d["taxonomy"] = _load_taxonomy()
+    if kind == "writing":
+        d["writing"] = _writing_data()
     if kind != "vocab":
         d["vocab"] = en_d["vocab"]      # 册次/话题下拉与课文重点词用得上
     return d

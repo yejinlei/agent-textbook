@@ -1242,6 +1242,150 @@ details.aq .aa {
 .rw-para-zh { font-size: 13px; color: #555; line-height: 1.7; padding: 6px 10px; background: #f0f4c3; border-radius: 6px; border-left: 3px solid #c0ca33; }
 .rw-lines { padding: 0 14px 8px; }
 .rw-lines .kbp { margin: 2px 0; }
+
+/* ---- 课外拓展：连续阅读视图（不打断排版）+ 划词查询 ---- */
+.rw-read2 { padding: 4px 14px 14px; }
+.rw-read2-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.rw-read2-bar .btn { font-size: 13px; padding: 3px 12px; border-radius: 6px; }
+.rw-read2-hint { font-size: 11px; color: #999; }
+.rw-read2-meta { font-size: 11px; color: #bbb; margin-left: auto; white-space: nowrap; }
+.rw-read2-body { font-size: 15px; line-height: 2; }
+.rw-para-plain { margin: 0 0 10px; text-align: justify; user-select: text; }
+.rw-w { border-radius: 3px; transition: background-color .08s linear; }
+.rw-w.hl { background: #ffd54f; color: #1a1a1a; box-shadow: 0 1px 0 rgba(0,0,0,.15); }
+.rw-tr-all.on { background: #d9ecff; color: #1565c0; border-color: #90caf9; }
+.rw-read2-tr { margin-top: 4px; }
+.rw-read2-tr.hide { display: none; }
+.rw-tr-tip { font-size: 13px; color: #888; padding: 6px 10px; background: #f5f5f5; border-radius: 6px; }
+.rw-tr-para { display: flex; flex-direction: column; gap: 4px; }
+.rw-tr-line { border: 1px solid #e6e6e6; border-radius: 6px; padding: 5px 8px; background: #fff; }
+.rw-tr-en { font-size: 13px; color: #333; line-height: 1.6; }
+.rw-tr-zh { margin-top: 2px; font-size: 13px; color: #b71c1c; line-height: 1.6; background: #fdf2f2; border-radius: 4px; padding: 2px 5px; }
+.rw-tr-err { color: #d32f2f; }
+
+/* 划词查询浮层 */
+.lookup-card {
+  position: absolute; z-index: 1000; max-width: 300px; min-width: 200px;
+  background: #fff; border: 1px solid #d9d9d9; border-radius: 10px;
+  box-shadow: 0 6px 22px rgba(0,0,0,.18); padding: 8px 10px; font-size: 13px;
+}
+.lk-hd { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.lk-wd { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+.lk-ipa { font-size: 12px; color: #666; font-style: normal; }
+.lk-sentence { font-size: 12px; color: #555; font-style: italic; max-width: 240px; }
+.lk-close { margin-left: auto; cursor: pointer; color: #999; padding: 0 2px; }
+.lk-close:hover { color: #333; }
+.lk-trans { margin-top: 6px; line-height: 1.6; color: #333; }
+.lk-gram { margin-top: 6px; line-height: 1.5; color: #555; font-size: 12px;
+  border-left: 3px solid #29b6f6; background: #f1fbff; border-radius: 4px; padding: 4px 6px; }
+.lk-gram .g-t { font-weight: 700; color: #0277bd; margin-right: 4px; }
+.lk-gram .g-ex { margin-top: 3px; line-height: 1.5; color: #333; font-style: normal; }
+.lk-gram .g-more { margin-top: 2px; font-size: 11px; color: #6b7a85; }
+.lk-acts { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.lk-acts .btn { font-size: 12px; padding: 2px 10px; border-radius: 5px; }
+.lk-add.ok { background: #d4edda; color: #1e7e34; border-color: #7bc88a; }
+
+/* ---- 英语写作教学页 ---- */
+.wrt-sec { margin: 6px 0; border: 1px solid #e3e3e3; border-radius: 10px; background: #fff; overflow: hidden; }
+.wrt-sec > summary { cursor: pointer; padding: 8px 12px; font-weight: 700; font-size: 14px; color: #1565c0; background: #f6faff; list-style: none; }
+.wrt-sec > summary .small { font-weight: 400; color: #888; font-size: 11px; }
+.wrt-sec > summary::before { content: "▸ "; color: #90a4ae; }
+.wrt-sec[open] > summary::before { content: "▾ "; }
+.wrt-sec > :not(summary) { padding: 8px 12px 12px; }
+
+/* ① 流程五步 */
+.wrt-flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; }
+.wrt-step { flex: 1 1 150px; min-width: 140px; padding: 8px; border: 1px solid #e0f2f1; border-radius: 8px; background: #f2fbfa; }
+.wrt-step-num { font-size: 12px; color: #fff; background: #00897b; border-radius: 50%; width: 20px; height: 20px; line-height: 20px; text-align: center; font-weight: 700; }
+.wrt-step-en { font-size: 14px; font-weight: 700; margin-top: 4px; }
+.wrt-step-zh { font-size: 12px; color: #555; }
+.wrt-step-desc { font-size: 12px; color: #444; margin-top: 4px; line-height: 1.5; }
+.wrt-arrow { align-self: center; color: #b0bec5; font-size: 16px; }
+.wrt-tips { margin: 4px 0 0; padding-left: 16px; font-size: 11px; color: #666; line-height: 1.6; }
+
+/* ② 六要素 */
+.wrt-trait-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 8px; }
+.wrt-trait { padding: 8px; border: 1px solid #e8eaf6; border-radius: 8px; background: #f5f6ff; }
+.wrt-trait-ic { font-size: 18px; }
+.wrt-trait-en { font-size: 14px; font-weight: 700; }
+.wrt-trait-zh { font-size: 12px; color: #555; }
+.wrt-trait-desc { font-size: 11px; color: #444; margin-top: 4px; line-height: 1.5; }
+
+/* ③ 文体 */
+.wrt-genre-list { display: flex; flex-direction: column; gap: 6px; }
+.wrt-genre { border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; }
+.wrt-genre > summary { cursor: pointer; padding: 6px 10px; display: flex; align-items: center; gap: 8px; list-style: none; }
+.wrt-genre-ic { font-size: 16px; }
+.wrt-genre-en { font-weight: 700; }
+.wrt-genre-zh { font-size: 12px; color: #777; }
+.wrt-genre-body { padding: 2px 10px 10px; }
+.wrt-sub { font-size: 12px; font-weight: 700; color: #666; margin: 6px 0 2px; }
+.wrt-steps { margin: 0; padding-left: 18px; font-size: 12px; color: #444; line-height: 1.7; }
+.wrt-frames { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 2px; }
+.wrt-frame-item { font-size: 12px; padding: 2px 8px; background: #eef7ff; border: 1px solid #cfe4ff; border-radius: 12px; }
+.wrt-eg { font-size: 13px; line-height: 1.8; padding: 6px 10px; background: #fffde7; border-left: 3px solid #f9a825; border-radius: 6px; }
+
+/* ④ 句型 + 过渡词 */
+.wrt-frames-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 700px) { .wrt-frames-cols { grid-template-columns: 1fr; } }
+.wrt-col-hd { font-size: 12px; font-weight: 700; color: #444; margin-bottom: 6px; }
+.wrt-frame-level { padding: 6px 8px; border: 1px solid #e3e3e3; border-radius: 8px; margin-bottom: 6px; }
+.wrt-frame-lv { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+.wrt-tr-row { margin: 2px 0 6px; }
+.wrt-tr-cat { font-size: 12px; font-weight: 700; color: #1565c0; display: block; margin-bottom: 2px; }
+.wrt-tr-words { display: flex; flex-wrap: wrap; gap: 4px; }
+.wrt-tr-w { font-size: 12px; padding: 2px 8px; background: #f1f8e9; border: 1px solid #c5e1a5; border-radius: 12px; }
+
+/* ⑤ 检查表 + 练习 */
+.wrt-check-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 700px) { .wrt-check-cols { grid-template-columns: 1fr; } }
+.wrt-check-list { display: flex; flex-direction: column; gap: 3px; }
+.wrt-check-item { display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 2px 4px; cursor: pointer; }
+.wrt-check-item input { cursor: pointer; }
+.wrt-check-cat { font-size: 10px; color: #999; background: #eee; border-radius: 8px; padding: 0 6px; }
+.wrt-prompt-list { display: flex; flex-direction: column; gap: 6px; }
+.wrt-prompt { padding: 6px 8px; border-left: 3px solid #42a5f5; background: #f5faff; border-radius: 4px; }
+.wrt-prompt-type { font-size: 12px; font-weight: 700; color: #1565c0; }
+.wrt-prompt-min { font-size: 10px; color: #fff; background: #42a5f5; border-radius: 8px; padding: 0 6px; }
+.wrt-prompt-text { font-size: 13px; color: #333; margin-top: 2px; line-height: 1.6; }
+
+/* ③ 完整范文（文体下） */
+.wrt-eg-full { font-size: 14px; line-height: 2; padding: 10px 12px; background: #f6fff9;
+  border: 1px solid #c8e6c9; border-left: 4px solid #43a047; border-radius: 6px; white-space: pre-line; }
+
+/* ⑥ 写作规范专项 */
+.wrt-conv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 700px) { .wrt-conv-grid { grid-template-columns: 1fr; } }
+.wrt-conv { padding: 8px 10px; border: 1px solid #e8eaf6; border-radius: 8px; background: #f5f7ff; }
+.wrt-conv-hd { font-size: 13px; font-weight: 700; color: #303f9f; margin-bottom: 4px; }
+.wrt-conv-ex { margin-top: 4px; font-size: 12px; line-height: 1.6; padding: 4px 8px;
+  background: #fff; border-left: 3px solid #9fa8da; border-radius: 4px; font-family: Consolas, monospace; }
+
+/* ⑦ 分年级写作指导 */
+.wrt-grade-list { display: flex; flex-direction: column; gap: 8px; }
+.wrt-grade { padding: 8px 10px; border: 1px solid #e0f2f1; border-radius: 8px; background: #f2fbfa; }
+.wrt-grade-hd { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.wrt-grade-ic { font-size: 16px; }
+.wrt-grade-name { font-size: 14px; font-weight: 700; color: #00695c; }
+.wrt-grade-focus { margin-left: auto; font-size: 11px; color: #fff; background: #00897b; border-radius: 8px; padding: 0 8px; }
+.wrt-grade-goal, .wrt-grade-len { font-size: 12px; color: #444; margin: 2px 0; }
+.wrt-grade-len { color: #888; }
+.wrt-grade .wrt-tips { margin-top: 3px; }
+
+/* ⑧ 创意写作 */
+.wrt-creative { display: flex; flex-direction: column; gap: 12px; }
+.wrt-creative-cat { border-top: 1px dashed #e3e3e3; padding-top: 8px; }
+.wrt-creative-cat:first-child { border-top: none; padding-top: 0; }
+.wrt-cat-hd { font-size: 14px; font-weight: 700; color: #6a1b9a; margin-bottom: 6px; }
+.wrt-creative-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (max-width: 700px) { .wrt-creative-grid { grid-template-columns: 1fr; } }
+.wrt-creative-item { padding: 8px 10px; border: 1px solid #ead9f2; border-radius: 8px; background: #fbf5ff; }
+.wrt-cret-hd { display: flex; align-items: baseline; gap: 6px; margin-bottom: 2px; }
+.wrt-cret-name { font-size: 13px; font-weight: 700; color: #4a148c; }
+.wrt-cret-en { font-size: 11px; color: #9c27b0; }
+.wrt-cret-desc { font-size: 12px; color: #555; line-height: 1.5; margin: 2px 0 4px; }
+.wrt-creative-item .wrt-frame-item { background: #fff; border-color: #e1bee7; }
+
 @media (max-width: 700px) {
   .rw-layout { grid-template-columns: 1fr; }
   .rw-sidebar { position: static; max-height: none; }
