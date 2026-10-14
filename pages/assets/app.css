@@ -1226,11 +1226,15 @@ details.aq .aa {
 .rw-para-tools .btn { font-size: 12px; padding: 2px 10px; border-radius: 4px; }
 .rw-vocab-btn.on { background: #e3f2fd; color: #1565c0; border-color: #90caf9; }
 .rw-para-text { font-size: 14px; line-height: 1.9; margin: 4px 0 8px; }
-.rw-vocab { background: #fff9c4; border-bottom: 1px dashed #fbc02d; cursor: pointer; padding: 0 1px; border-radius: 2px; }
+.rw-vocab { background: #fff9c4; border-bottom: 1px dashed #fbc02d; cursor: pointer; padding: 0 1px; border-radius: 2px; position: relative; }
 .rw-vocab:hover { background: #fff59d; }
+.rw-vocab-tip { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #333; color: #fff; font-size: 11px; font-style: normal; padding: 2px 8px; border-radius: 4px; white-space: nowrap; z-index: 10; margin-bottom: 4px; }
+.rw-vocab-tip::after { content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 4px solid transparent; border-top-color: #333; }
+.rw-vocab:hover .rw-vocab-tip { display: block; }
 .rw-vocab-list { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 8px; padding: 6px; background: #f5f5f5; border-radius: 6px; }
-.rw-vocab-item { font-size: 12px; padding: 2px 8px; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 2px; }
+.rw-vocab-item { font-size: 12px; padding: 2px 8px; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
 .rw-vocab-item:hover { border-color: #42a5f5; color: #1565c0; }
+.rw-vocab-ipa { font-size: 10px; color: #999; font-style: italic; }
 .rw-vocab-item .btn { font-size: 10px; padding: 0 4px; min-width: auto; border: none; background: none; }
 .rw-para-tr { margin-top: 6px; }
 .rw-para-tr.hide { display: none; }

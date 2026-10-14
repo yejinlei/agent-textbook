@@ -2307,11 +2307,89 @@
     }).slice(0, 8);
   }
 
+  /* 简易音标生成器：基于英语拼读规则，覆盖常见模式 */
+  var _ipaCache = {};
+  function simpleIPA(word) {
+    word = word.toLowerCase().trim();
+    if (!word) return "";
+    if (_ipaCache[word]) return _ipaCache[word];
+    var w = word, ipa = "";
+
+    /* 不规则常见词速查表 */
+    var IRREG = {
+      said: "/sed/", were: "/wɜː/", been: "/bɪn/", done: "/dʌn/", does: "/dʌz/",
+      would: "/wʊd/", should: "/ʃʊd/", could: "/kʊd/", come: "/kʌm/", some: "/sʌm/",
+      have: "/hæv/", give: "/ɡɪv/", live: "/lɪv/", love: "/lʌv/", move: "/muːv/",
+      water: "/ˈwɔːtə/", again: "/əˈɡen/", every: "/ˈevri/", woman: "/ˈwʊmən/",
+      women: "/ˈwɪmɪn/", child: "/tʃaɪld/", children: "/ˈtʃɪldrən/", people: "/ˈpiːpl/",
+      through: "/θruː/", although: "/ɔːlˈðoʊ/", enough: "/ɪˈnʌf/", though: "/ðoʊ/",
+      thought: "/θɔːt/", brought: "/brɔːt/", daughter: "/ˈdɔːtə/", laugh: "/læf/",
+      heart: "/hɑːt/", hear: "/hɪə/", heard: "/hɜːd/", earth: "/ɜːθ/",
+      beauty: "/ˈbjuːti/", build: "/bɪld/", guide: "/ɡaɪd/", guard: "/ɡɑːd/",
+      blood: "/blʌd/", floor: "/flɔː/", door: "/dɔː/", poor: "/pʊə/",
+      sure: "/ʃʊə/", sugar: "/ˈʃʊɡə/", ocean: "/ˈoʊʃn/", special: "/ˈspeʃl/",
+      machine: "/məˈʃiːn/", police: "/pəˈliːs/", nature: "/ˈneɪtʃə/", picture: "/ˈpɪktʃə/",
+      answer: "/ˈænsə/", often: "/ˈɒfn/", listen: "/ˈlɪsn/", castle: "/ˈkɑːsl/",
+      whole: "/hoʊl/", whose: "/huːz/", who: "/huː/", whom: "/huːm/"
+    };
+    if (IRREG[w]) { _ipaCache[w] = IRREG[w]; return IRREG[w]; }
+
+    /* 静音字母 */
+    w = w.replace(/^kn/, "n").replace(/^wr/, "r").replace(/^wh/, "w")
+         .replace(/^ps/, "s").replace(/^gn/, "n").replace(/^mn/, "n")
+         .replace(/mb$/, "m").replace(/bt$/, "t").replace(/ght/, "t");
+
+    /* 辅音组合 */
+    w = w.replace(/sh/g, "ʃ").replace(/ch/g, "tʃ").replace(/th/g, "θ")
+         .replace(/ph/g, "f").replace(/ng/g, "ŋ").replace(/ck/g, "k")
+         .replace(/qu/g, "kw").replace(/wh/g, "w").replace(/zh/g, "ʒ");
+
+    /* c/g 软化 */
+    w = w.replace(/c([ei])/g, "s$1").replace(/g([ei])/g, "dʒ$1");
+
+    /* 元音组合 */
+    w = w.replace(/ee/g, "iː").replace(/ea/g, "e")
+         .replace(/oo/g, "uː").replace(/ou/g, "aʊ").replace(/ow/g, "oʊ")
+         .replace(/ai/g, "eɪ").replace(/ay/g, "eɪ")
+         .replace(/oi/g, "ɔɪ").replace(/oy/g, "ɔɪ")
+         .replace(/au/g, "ɔː").replace(/aw/g, "ɔː")
+         .replace(/igh/g, "aɪ").replace(/ie/g, "aɪ")
+         .replace(/oa/g, "oʊ").replace(/ew/g, "juː")
+         .replace(/ar/g, "ɑː").replace(/er/g, "ə").replace(/ir/g, "ɜː")
+         .replace(/or/g, "ɔː").replace(/ur/g, "ɜː")
+         .replace(/air/g, "eə").replace(/ear/g, "ɪə");
+
+    /* a_e / i_e / o_e / u_e（magic e） */
+    w = w.replace(/a([^aeiou])e/g, "eɪ$1")
+         .replace(/i([^aeiou])e/g, "aɪ$1")
+         .replace(/o([^aeiou])e/g, "oʊ$1")
+         .replace(/u([^aeiou])e/g, "juː$1");
+
+    /* 剩余单元音 */
+    w = w.replace(/a/g, "æ").replace(/e/g, "e").replace(/i/g, "ɪ")
+         .replace(/o/g, "ɒ").replace(/u/g, "ʌ").replace(/y/g, "i");
+
+    /* 清理 */
+    w = w.replace(/e$/, "").replace(/ɪː/g, "iː");
+    ipa = "/" + w.replace(/[^a-zɪæɒʌəɔːˈˌʃʒŋθðβː]/g, "") + "/";
+
+    /* 简单音节切分：每个元音核一个音节，加重音符号 */
+    var vowels = ipa.match(/[æeɪɒʌəɔːiːuːʊaɪeɪɔɪaʊoʊeəɪə]/g);
+    if (vowels && vowels.length > 1) {
+      ipa = ipa.replace(/^\/([^/])/, "/ˈ$1");
+    }
+
+    _ipaCache[word] = ipa;
+    return ipa;
+  }
+
   function highlightVocab(text, vocab) {
     var html = esc(text);
     vocab.forEach(function (w) {
+      var ipa = simpleIPA(w);
       var re = new RegExp("\\b(" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")\\b", "gi");
-      html = html.replace(re, '<span class="rw-vocab" data-word="$1">$1</span>');
+      html = html.replace(re, '<span class="rw-vocab" data-word="$1" title="' +
+              esc(ipa) + '">$1<i class="rw-vocab-tip">' + esc(ipa) + '</i></span>');
     });
     return html;
   }
@@ -2349,7 +2427,8 @@
         h += '<div class="rw-vocab-list">';
         vocab.forEach(function (w) {
           h += '<span class="rw-vocab-item" data-word="' + esc(w) + '">' +
-               esc(w) + spkBtn(w) + '</span>';
+               esc(w) + '<i class="rw-vocab-ipa">' + esc(simpleIPA(w)) + '</i>' +
+               spkBtn(w) + '</span>';
         });
         h += '</div>';
       }
