@@ -602,6 +602,42 @@ def build_english(con) -> dict:
     }
 
 
+def _clean_reading_text(raw, limit=8000):
+    """清洗 Gutenberg 纯文本：取 *** START / *** END 之间的正文。"""
+    import re
+    # 优先找 *** START OF ... *** 和 *** END OF ... *** 标记
+    start_pat = re.compile(r"\*\*\* *START OF.*?\*\*\*", re.I)
+    end_pat = re.compile(r"\*\*\* *(END|FINIS).*?\*\*\*", re.I)
+    m_start = start_pat.search(raw)
+    m_end = end_pat.search(raw, m_start.end() if m_start else 0)
+    if m_start:
+        body = raw[m_start.end():]
+        if m_end:
+            body = body[:m_end.start() - m_start.end()]
+    else:
+        # 无标记：逐行跳过 # 元数据行、=== 分隔行、头部信息
+        lines = raw.split("\n")
+        out = []
+        for line in lines:
+            s = line.strip()
+            if s.startswith("#") or s.startswith("==="):
+                continue
+            if s.startswith("Title:") or s.startswith("Author:"):
+                continue
+            if s.startswith("Release Date") or s.startswith("Language:"):
+                continue
+            out.append(line)
+        body = "\n".join(out)
+    # 折叠多余空行，去掉 BOM
+    body = body.replace("\ufeff", "").strip()
+    # 去掉正文开头的制作信息（第一个段落块如果含制作关键词则跳过）
+    first_para = re.match(r"(.*?)(?:\n\n|\Z)", body, re.S)
+    if first_para and re.search(r"(Produced by|Proofreading|Internet Archive|Transcriber|gutenberg|pgdp\.net)", first_para.group(1), re.I):
+        body = body[first_para.end():].strip()
+    body = re.sub(r"\n{3,}", "\n\n", body)
+    return body[:limit] if len(body) > limit else body
+
+
 def _load_readings():
     """长文库 catalog.json → 精简后供课外拓展页展示。"""
     import os
@@ -615,12 +651,13 @@ def _load_readings():
     for b in raw.get("books", []):
         f = b.get("facets", {})
         bid = b.get("id", "")
-        # 加载全文（截前 8000 字符，避免页面过大）
+        # 加载全文：清洗 Gutenberg 头尾元数据，截前 8000 字符
         text = ""
         tp = os.path.join(texts_dir, bid + ".txt")
         if os.path.exists(tp):
             with open(tp, encoding="utf-8", errors="replace") as fh:
-                text = fh.read(8000).strip()
+                raw_txt = fh.read()
+            text = _clean_reading_text(raw_txt, 8000)
         out.append({
             "id": bid, "title": b.get("title", ""),
             "author": b.get("author", ""),
