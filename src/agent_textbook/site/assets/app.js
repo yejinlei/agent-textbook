@@ -2107,7 +2107,8 @@
 
     /* 渲染筛选组 */
     function filterGroup(cat, label, vals, counts) {
-      var keys = Object.keys(vals).sort(function (a, b) {
+      /* 从 counts 取可用值（vals 只提供 label 映射） */
+      var keys = Object.keys(counts).sort(function (a, b) {
         return (counts[b] || 0) - (counts[a] || 0);
       }).filter(function (v) { return counts[v]; });
       if (!keys.length) return "";
