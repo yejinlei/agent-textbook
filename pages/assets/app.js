@@ -2436,6 +2436,13 @@
       if (si < segs.length - 1) clean += ". ";
     });
 
+    /* 按句切分且完整保留字符（含分隔空白），保证正文文本与词偏移不变；
+       每句包一层 .rw-sent，供全文翻译时把中文插到该句正下方。 */
+    function splitSentKeep(seg) {
+      var re = /[^.!?。！？\n]+[.!?。！？]?\s*/g, m, out = [];
+      while ((m = re.exec(seg)) !== null) { if (m[0]) out.push(m[0]); }
+      return out;
+    }
     var h = '<div class="rw-read2" data-book="' + esc(bookId || "") + '">';
     h += '<div class="rw-read2-bar">';
     h += '<button class="btn rw-read-all" type="button">🔊 全文朗读</button>';
@@ -2445,21 +2452,24 @@
     h += '</div>';
     h += '<div class="rw-read2-body">';
     for (var s = 0; s < segs.length; s++) {
-      var seg = segs[s];
+      var sentChunks = splitSentKeep(segs[s]);
       h += '<p class="rw-para-plain">';
-      var re2 = new RegExp(TOKEN_RE.source, "g"), m2;
-      while ((m2 = re2.exec(seg)) !== null) {
-        var tok2 = m2[0];
-        if (/[A-Za-z']/.test(tok2.charAt(0))) {
-          h += '<span class="rw-w" data-word="' + esc(tok2) + '">' + esc(tok2) + '</span>';
-        } else {
-          h += esc(tok2);
+      for (var c = 0; c < sentChunks.length; c++) {
+        h += '<span class="rw-sent">';
+        var re2 = new RegExp(TOKEN_RE.source, "g"), m2;
+        while ((m2 = re2.exec(sentChunks[c])) !== null) {
+          var tok2 = m2[0];
+          if (/[A-Za-z']/.test(tok2.charAt(0))) {
+            h += '<span class="rw-w" data-word="' + esc(tok2) + '">' + esc(tok2) + '</span>';
+          } else {
+            h += esc(tok2);
+          }
         }
+        h += '</span>';
       }
       h += '</p>';
     }
     h += '</div>';
-    h += '<div class="rw-read2-tr"></div>';
     h += '<div class="lookup-card" style="display:none"></div>';
     h += '</div>';
 
@@ -2481,16 +2491,6 @@
       if (idx >= m.index && idx < m.index + m[0].length) { s0 = m.index; s1 = m.index + m[0].length; break; }
     }
     return raw.slice(s0, s1).trim();
-  }
-  /* 全文翻译：按句子切分（句号/问号/感叹号/换行），返回句子数组 */
-  function _splitSentences(raw) {
-    if (!raw) return [];
-    var re = /[^.!?。！？\n]+[.!?。！？]?/g, m, out = [];
-    while ((m = re.exec(raw)) !== null) {
-      var s = m[0].trim();
-      if (s) out.push(s);
-    }
-    return out;
   }
   /* 单词原形还原（简易去 s/es/d/ed） */
   function _normWord(w) {
@@ -2733,41 +2733,40 @@
         }
         var b = e.target.closest(".rw-tr-all");
         if (!b) return;
-        var tr = rd.querySelector(".rw-read2-tr");
-        if (tr.getAttribute("data-loaded") === "1") {
-          tr.classList.toggle("hide");
+        /* 已加载：切换中文显隐 */
+        if (rd.getAttribute("data-tr-loaded") === "1") {
+          rd.classList.toggle("rw-tr-off");
+          b.textContent = rd.classList.contains("rw-tr-off") ? "显示翻译" : "隐藏翻译";
           return;
         }
-        tr.innerHTML = '<div class="rw-tr-tip">翻译中…</div>';
-        tr.classList.remove("hide");
-        /* 逐句切分：每句先渲染「英文行在上」，再异步逐句翻译，
-           中文填充在同一句下方，实现一句一对应，长文不翻页对照。 */
-        var sents = _splitSentences(raw);
-        if (!sents.length) {
-          tr.innerHTML = '<div class="rw-tr-tip">暂无可翻译的句子</div>';
-          tr.setAttribute("data-loaded", "1");
-          return;
+        /* 首次：逐句把中文插到英文句子的正下方（句内联，不集中在结尾）。
+           zh 作为 .rw-sent 的兄弟节点插入，sp.textContent 不受污染。 */
+        var sentEls = rd.querySelectorAll(".rw-sent");
+        var queue = [];
+        for (var si2 = 0; si2 < sentEls.length; si2++) {
+          var sp = sentEls[si2];
+          var en = sp.textContent.replace(/\s+/g, " ").trim();
+          if (!en || !/[A-Za-z]/.test(en)) continue;
+          var zh = document.createElement("span");
+          zh.className = "rw-tr-zh";
+          zh.textContent = "翻译中…";
+          sp.parentNode.insertBefore(zh, sp.nextSibling);
+          queue.push([en, zh]);
         }
-        var html = '<div class="rw-tr-para">';
-        sents.forEach(function (s) {
-          html += '<div class="rw-tr-line">' +
-                  '<div class="rw-tr-en">' + esc(s) + '</div>' +
-                  '<div class="rw-tr-zh">…</div>' +
-                  '</div>';
-        });
-        html += '</div>';
-        tr.innerHTML = html;
+        if (!queue.length) return;
+        rd.setAttribute("data-tr-loaded", "1");
+        b.textContent = "隐藏翻译";
         /* 串行逐句翻译，保持上下对应；失败置占位 */
-        var li = 0;
-        (function nextLine() {
-          if (li >= sents.length) { tr.setAttribute("data-loaded", "1"); return; }
-          var line = tr.querySelectorAll(".rw-tr-line")[li];
-          loadTranslation(sents[li], function (zh) {
-            if (line) line.querySelector(".rw-tr-zh").innerHTML = esc(zh);
-            li++; nextLine();
+        var qi = 0;
+        (function nextSent() {
+          if (qi >= queue.length) return;
+          var item = queue[qi];
+          loadTranslation(item[0], function (zhText) {
+            item[1].textContent = zhText;
+            qi++; nextSent();
           }, function () {
-            if (line) line.querySelector(".rw-tr-zh").innerHTML = '<span class="rw-tr-err">翻译失败</span>';
-            li++; nextLine();
+            item[1].innerHTML = '<span class="rw-tr-err">翻译失败</span>';
+            qi++; nextSent();
           });
         })();
       });
