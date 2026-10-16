@@ -68,3 +68,5 @@ gb11.txt
 _*.ps1
 _*.log
 _*.err
+
+.trae-html-share-packages/
