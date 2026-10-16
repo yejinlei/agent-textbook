@@ -1312,6 +1312,26 @@
     });
     // 课文页：每课学习中心的 tab/练习/游戏/打星都走这一套委托
     if (kind === "discourse") bindLessonHubs(box);
+    /* 从课外拓展卡片跳来：#<册名>#U{n} → 打开该单元并展开课文 */
+    function applyUnitHash() {
+      if (kind !== "discourse") return;
+      var m = String(location.hash || "").match(/^#([^#]+)#U(\d+)$/);
+      if (!m) return;
+      var book = decodeURIComponent(m[1]);
+      var uno = parseInt(m[2], 10);
+      if (!book || !uno) return;
+      var det = box.querySelector(
+        '.lesson[data-lkey="' + book + "|" + uno + '|"]');
+      if (!det) {
+        var any = box.querySelector('.lesson[data-lkey^="' + book + "|" + uno + "|"]');
+        if (any) det = any;
+      }
+      if (!det) return;
+      det.open = true;
+      var par = det.closest(".unit");
+      if (par) par.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    setTimeout(applyUnitHash, 60);
     // 课外拓展页：ReadWorks 风格筛选
     if (kind === "extra") {
       box.addEventListener("change", function (e) {
@@ -1405,7 +1425,7 @@
      @CONSTRAINT 除课文板块外全部惰性渲染——708 课一次性铺开会卡，
      依赖 LESSONS 注册表在 tab 第一次点开时才生成内容。 */
   var LESSONS = {};   // lkey → {data, type}，惰性板块的数源（每次重渲染重建）
-  var HUBS = D.hubs || { units: {}, songs: {} };
+  var HUBS = D.hubs || { units: {}, songs: {}, extra: {} };
 
   function lessonKey(x, type) {
     return [x.book || "", x.unit_no || x.unit || "", type,
@@ -1414,6 +1434,21 @@
   function unitHubOf(x) {
     return HUBS.units[(x.book || "") + "#" +
       (x.unit_no ? "U" + x.unit_no : x.unit || "")] || null;
+  }
+  /* 本单元配套的课外书（pairs_with_unit 反向索引） */
+  function unitExtraOf(x) {
+    var k = (x.book || "") + "#U" + (x.unit_no || 0);
+    return (HUBS.extra || {})[k] || [];
+  }
+  /* 课外拓展页：从单元索引跳到教材课文页（课文页读 hash 定位并展开该课） */
+  function unitLink(u) {
+    var key = "#" + encodeURIComponent(u.book || "") + "#U" + (u.unit_no || 0);
+    return '<a class="rw-ulink" href="index.html' + key + '" title="' +
+      esc((u.grade || "") + " " + (u.term || "") + " " +
+          (u.unit_name || "") + " " + (u.unit_title || "")) + '">' +
+      esc(u.unit_name || "单元") +
+      (u.unit_title ? '<span class="rw-ut">' + esc(u.unit_title) + "</span>" : "") +
+      (u.grade ? '<span class="rw-ug">' + esc(u.grade) + "</span>" : "") + "</a>";
   }
   /* 星星：localStorage 持久化。键 lessonKey，值 {fill,scramble,order,match,rate} */
   var STARS = {};
@@ -2233,7 +2268,7 @@
       (f.themes || []).slice(0, 3).forEach(function (t) { tags.push(["d2", exFacetLabel("themes", t)]); });
       (f.target_skills || []).slice(0, 2).forEach(function (t) { tags.push(["", exFacetLabel("target_skills", t)]); });
 
-      main += '<details class="rw-card"><summary>' +
+      main += '<details class="rw-card" id="rw-' + esc(b.id) + '"><summary>' +
         '<span class="rw-card-title">' + esc(b.title) + '</span>' +
         '<span class="rw-card-author">' + esc(b.author || "") + '</span>' +
         '<span class="rw-card-tags">' +
@@ -2283,7 +2318,10 @@
           main += renderReadingText(b.text, b.id);
         }
         if (b.pairs_with_unit && b.pairs_with_unit.length) {
-          main += '<p class="small">挂载教材单元：' + b.pairs_with_unit.length + ' 个</p>';
+          var uls = (b.units || b.pairs_with_unit).map(function (u) {
+            return unitLink(u);
+          }).join("");
+          main += '<p class="small rw-ulinks">🔗 配套教材单元：' + uls + '</p>';
         }
       }
 
@@ -2291,6 +2329,19 @@
     });
     main += '</div>';
 
+    /* 从教材单元页跳来：#read=<id> → 打开并展开对应书籍卡片 */
+    function applyReadHash() {
+      var m = String(location.hash || "").match(/^#read=(.+)$/);
+      if (!m) return;
+      var el = document.getElementById("rw-" + decodeURIComponent(m[1]));
+      if (!el) return;
+      el.open = true;
+      setTimeout(function () {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
+    }
+    setTimeout(applyReadHash, 60);
+    window.addEventListener("hashchange", applyReadHash);
     var html = '<div class="rw-layout" id="rw-layout-root">' + sidebar + main + '</div>';
     setTimeout(function () {
       var root = document.getElementById("rw-layout-root");
@@ -3382,11 +3433,12 @@
     return h;
   }
 
-  /* 拓展：本单元项目任务 + 本册歌谣 + 同主题课外短文 */
+  /* 拓展：项目任务 / 歌谣 / 同主题短文 + 本单元配套的课外书 */
   function hubExtend(x) {
     var hub = unitHubOf(x);
     var projs = hub ? hub.projects : [];
     var songs = (HUBS.songs || {})[x.book || ""] || [];
+    var exbooks = unitExtraOf(x);
     var h = "";
     if (projs.length) {
       h += '<p class="small">动手做一做（教材里的项目任务）</p>' + projs.map(function (p) {
@@ -3416,6 +3468,18 @@
             return '<div class="lyr">' + spkBtn(l) + '<span class="spk">' + esc(l) + "</span></div>";
           }).join("") + "</details>";
       }).join("");
+    }
+    /* 配套课外书：本单元在课外拓展库里挑好的书（双向挂载的反向入口） */
+    if (exbooks.length) {
+      h += '<p class="small">📚 本单元配套的课外书（课外拓展库里按这单元挑的）</p>' +
+        '<div class="exbooks">' + exbooks.map(function (b) {
+          var s = '<a class="exbook" href="extra.html#read=' + esc(b.id) + '">';
+          s += '<b>' + esc(b.title || "课外阅读") + "</b>";
+          if (b.author) s += '<span class="small">' + esc(b.author) + "</span>";
+          if (b.topic) s += '<span class="tag d1">' + esc(b.topic) + "</span>";
+          s += '</a>';
+          return s;
+        }).join("") + "</div>";
     }
     /* 同主题课外短文：从 D.passages 里找同 topic 但不在本课的短文 */
     var topic = x.topic || "";

@@ -690,6 +690,151 @@ def _load_readings():
     return out
 
 
+def _load_pairings():
+    """data/readings/pairings.json → 精简双向挂载表（供卡片与反向入口共用）。"""
+    import os
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                        "data", "readings", "pairings.json")
+    if not os.path.exists(path):
+        return []
+    raw = json.load(open(path, encoding="utf-8"))
+    out = []
+    for p in raw.get("pairings", []):
+        out.append({
+            "reading_id": p.get("reading_id", ""),
+            "reading_title": p.get("reading_title", ""),
+            "section_id": p.get("section_id", ""),
+            "unit_name": p.get("unit_name", ""),
+            "unit_title": p.get("unit_title", ""),
+            "grade": p.get("grade", ""),
+            "term": p.get("term", ""),
+            "role": p.get("role", ""),
+            "match_score": p.get("match_score", 0),
+            "reasons": (p.get("match_reasons") or [])[:3],
+        })
+    return out
+
+
+def _load_unit_index():
+    """data/outline/*.jsonl → {outline lesson_id: 单元定位信息}。
+
+    单元数据存在 outline 的 meta + lesson 行里，教材前端（enText）用
+    「册名 # 第N单元」做主键，而 pairings / catalog 用 outline 的 lesson_id
+    （<book_id>:<seq>）。这里做一次对照，让课外拓展卡片能跳到正确单元。
+    """
+    import os, re
+    od = os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                      "data", "outline")
+    if not os.path.isdir(od):
+        return {}
+    GRADENUM = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6,
+                "一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6}
+    def grnum(g):
+        m = re.match(r"([一二三四五六])年级", g or "")
+        return GRADENUM.get(m.group(1), 0) if m else 0
+    idx = {}
+    for fn in sorted(os.listdir(od)):
+        if not fn.endswith(".jsonl"):
+            continue
+        path = os.path.join(od, fn)
+        recs = [json.loads(l) for l in open(path, encoding="utf-8") if l.strip()]
+        meta = next((r for r in recs if r.get("type") == "meta"), None)
+        if not meta:
+            continue
+        stage = meta.get("stage") or ""
+        grade = meta.get("grade") or ""
+        term = meta.get("term") or ""
+        # 教材册名 = 年级 + 学期（如 三年级上册），与 vocab/passages 的 book 字段一致
+        book = grade + term if (grade and term) else (meta.get("book_id") or "")[:8]
+        for r in recs:
+            if r.get("type") == "meta":
+                continue
+            nid = r.get("lesson_id") or ""
+            if not nid:
+                continue
+            un = r.get("unit_no")
+            idx[nid] = {
+                "book": book,
+                "unit_no": un,
+                "unit_name": r.get("unit_name") or ("Unit " + str(un) if un else ""),
+                "unit_title": r.get("title") or "",
+                "grade": grade,
+                "term": term,
+                "printed_start": r.get("printed_start"),
+                "gr": grnum(grade),
+                "tt": 1 if "上" in term else (2 if "下" in term else 0),
+                "vid": (meta.get("version") or "").replace("（", "("),
+            }
+    return idx
+
+
+def _enrich_readings(readings, pairings, unit_index):
+    """给每本课外书补 units（带教材单元定位信息）+ 反向索引。
+
+    catalog 的 pairs_with_unit 与 pairings 的 section_id 合并去重，
+    再用 outline 索引解析出年级/册名/单元名，让前端能显示与跳转。
+    """
+    pair_of = {}
+    for p in pairings:
+        pair_of.setdefault(p.get("section_id") or "", []).append(p)
+    read_of = {}
+    for p in pairings:
+        read_of.setdefault(p.get("reading_id") or "", []).append(p)
+    reverse = {}
+    for b in readings:
+        ids = []
+        for sid in (b.get("pairs_with_unit") or []):
+            if sid not in ids:
+                ids.append(sid)
+        for p in read_of.get(b.get("id") or "", []):
+            sid = p.get("section_id") or ""
+            if sid and sid not in ids:
+                ids.append(sid)
+        units = []
+        seen = set()
+        for sid in ids:
+            u = dict(unit_index.get(sid) or {})
+            pl = pair_of.get(sid, [])
+            if pl:
+                p0 = pl[0]
+                u.setdefault("unit_title", p0.get("unit_title") or "")
+                u.setdefault("unit_name", p0.get("unit_name") or "")
+                u.setdefault("grade", p0.get("grade") or "")
+                u.setdefault("term", p0.get("term") or "")
+                u["role"] = p0.get("role") or ""
+                u["match_score"] = p0.get("match_score") or 0
+                u["reasons"] = (p0.get("match_reasons") or [])[:2]
+            # 同一「册名#单元号」只留一条（一本书可能横跨同单元的多个 lesson_id）
+            key = (u.get("book") or sid, u.get("unit_no"), u.get("unit_name"))
+            if key in seen:
+                continue
+            seen.add(key)
+            units.append(u)
+        units.sort(key=lambda u: (u.get("gr") or 0, u.get("tt") or 0,
+                                  u.get("unit_no") or 0))
+        b["units"] = units
+        b["pairs_with_unit"] = ids
+        if units:
+            reverse[b.get("id") or ""] = {
+                "id": b.get("id") or "", "title": b.get("title") or "",
+                "author": b.get("author") or "",
+                "topic": b.get("primary_topic") or "",
+            }
+    by_unit = {}
+    for rid, meta in reverse.items():
+        for u in [x for x in readings if x.get("id") == rid][0]["units"]:
+            if not u.get("book"):
+                continue
+            k = u["book"] + "#U" + str(u.get("unit_no") or 0)
+            lst = by_unit.setdefault(k, [])
+            # 同一单元下同一本书只挂一次（一本书可能横跨同单元的多个 lesson_id）
+            if not any(m.get("id") == meta.get("id") for m in lst):
+                lst.append(meta)
+    for k in by_unit:
+        by_unit[k].sort(key=lambda m: m.get("title") or "")
+    return by_unit, reverse
+
+
 def _load_picturebooks():
     """绘本 books.json → 精简后供课外拓展页展示。"""
     import os
@@ -1313,10 +1458,18 @@ def _slice(key, kind, cn_d, math_d, en_d):
     for k in keys.get(kind, []):
         d[k] = en_d[k]
     if kind == "discourse":
-        d["hubs"] = build_lesson_hubs(en_d)   # 每课学习中心的单元级配套
+        # 每课学习中心的单元级配套 + 本单元配套的课外书（反向入口）
+        hubs = build_lesson_hubs(en_d)
+        extra_by_unit, _ = _enrich_readings(_load_readings(),
+                                            _load_pairings(),
+                                            _load_unit_index())
+        hubs["extra"] = extra_by_unit
+        d["hubs"] = hubs
     if kind == "extra":
         # 本体论课外拓展：加载长文库 + 绘本 + 分类标准
-        d["readings"] = _load_readings()
+        readings = _load_readings()
+        _enrich_readings(readings, _load_pairings(), _load_unit_index())
+        d["readings"] = readings
         d["picturebooks"] = _load_picturebooks()
         d["taxonomy"] = _load_taxonomy()
     if kind == "writing":

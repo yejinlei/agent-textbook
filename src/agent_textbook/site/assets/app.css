@@ -1201,6 +1201,20 @@ details.aq .aa {
 .rw-meta span { font-size: 12px; color: #888; }
 .rw-topics { padding: 0 14px 6px; display: flex; gap: 4px; flex-wrap: wrap; align-items: center; font-size: 12px; color: #888; }
 .rw-topics .tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; background: #e8f5e9; color: #2e7d32; }
+
+/* 配套教材单元链接（pairs_with_unit 双向打通） */
+.rw-ulinks { padding: 0 14px 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--muted); margin: 4px 0; }
+.rw-ulinks .rw-ulink { display: inline-flex; gap: 5px; align-items: center; padding: 3px 9px; border-radius: 6px; background: #e7f0ff; color: #1a56c4; text-decoration: none; font-size: 12px; line-height: 1.4; border: 1px solid #cfe0ff; transition: background .15s; }
+.rw-ulinks .rw-ulink:hover { background: #d6e6ff; border-color: #a9c9ff; }
+.rw-ulinks .rw-ulink .rw-ut { color: #4a6fa5; font-size: 11px; }
+.rw-ulinks .rw-ulink .rw-ug { margin-left: 2px; padding: 0 5px; border-radius: 3px; background: #dce8ff; color: #2f5ea8; font-size: 10px; }
+/* 教材单元页 → 配套课外书（反向入口） */
+.exbooks { display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 0 10px; }
+.exbook { display: inline-flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 8px; background: #eef4ff; border: 1px solid #d3e0ff; text-decoration: none; color: #123a7a; min-width: 150px; transition: background .15s, border-color .15s; }
+.exbook:hover { background: #e2ecff; border-color: #9fc0f5; }
+.exbook b { font-size: 14px; color: #0f2f66; }
+.exbook .small { font-size: 12px; color: #5b7bb0; }
+.exbook .tag { align-self: flex-start; }
 .rw-pages { padding: 0 14px 8px; }
 .rw-pg { margin: 4px 0; font-size: 14px; line-height: 1.8; }
 .rw-pgn { display: inline-block; min-width: 28px; font-size: 11px; color: #aaa; font-weight: 700; }

@@ -740,12 +740,6 @@
       },
       "pairs_with_unit": [
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
         "dd6173ba-579a-356e-900c-cb53e152229c:003"
       ],
       "supports_grammar": [
@@ -989,12 +983,8 @@
       "pairs_with_unit": [
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
         "c5180299-d288-46e2-a0df-9f04c94fd922:004",
         "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
         "dd6173ba-579a-356e-900c-cb53e152229c:003"
       ],
       "supports_grammar": [
@@ -1237,68 +1227,32 @@
         "02736c70-9509-438f-8e16-2902feaf5ed8:005",
         "02736c70-9509-438f-8e16-2902feaf5ed8:006",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:003",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:003",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:003",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:003",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:003",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:003",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:005",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:005",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:005",
         "be6e00c8-0068-8453-927f-646f6f753a5a:005",
         "be6e00c8-0068-8453-927f-646f6f753a5a:006",
         "c5180299-d288-46e2-a0df-9f04c94fd922:002",
         "c5180299-d288-46e2-a0df-9f04c94fd922:005",
         "dd6173ba-579a-356e-900c-cb53e152229c:001",
-        "dd6173ba-579a-356e-900c-cb53e152229c:001",
-        "dd6173ba-579a-356e-900c-cb53e152229c:001",
-        "dd6173ba-579a-356e-900c-cb53e152229c:002",
-        "dd6173ba-579a-356e-900c-cb53e152229c:002",
         "dd6173ba-579a-356e-900c-cb53e152229c:002",
         "dd6173ba-579a-356e-900c-cb53e152229c:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
         "dd6173ba-579a-356e-900c-cb53e152229c:004",
-        "dd6173ba-579a-356e-900c-cb53e152229c:004",
-        "dd6173ba-579a-356e-900c-cb53e152229c:004",
-        "dd6173ba-579a-356e-900c-cb53e152229c:005",
-        "dd6173ba-579a-356e-900c-cb53e152229c:005",
         "dd6173ba-579a-356e-900c-cb53e152229c:005"
       ],
       "supports_grammar": [
@@ -1315,63 +1269,141 @@
       "title": "The Three Little Pigs",
       "author": "English Folktale (retold)",
       "primary_topic": "animal",
-      "secondary_topics": ["animal.fable"],
-      "excerpt": {"type": "full"},
+      "secondary_topics": [
+        "animal.fable"
+      ],
+      "excerpt": {
+        "type": "full"
+      },
       "facets": {
-        "grade": ["1", "2", "3"],
+        "grade": [
+          "1",
+          "2",
+          "3"
+        ],
         "grade_band": "early_primary",
         "text_type": "folktale",
-        "themes": ["perseverance", "reason"],
-        "settings": ["countryside", "forest_wild"],
+        "themes": [
+          "perseverance",
+          "reason"
+        ],
+        "settings": [
+          "countryside",
+          "forest_wild"
+        ],
         "word_count_bucket": "short",
-        "lexile": {"min": 250, "max": 500, "mean": 380, "band": "elementary_low", "source": "editor_estimate"},
+        "lexile": {
+          "min": 250,
+          "max": 500,
+          "mean": 380,
+          "band": "elementary_low",
+          "source": "editor_estimate"
+        },
         "cultural_origin": "British",
         "time_period": "timeless_fantasy",
-        "target_skills": ["reading_comprehension", "retelling"],
-        "text_role": ["pre_reading"]
-      }
+        "target_skills": [
+          "reading_comprehension",
+          "retelling"
+        ],
+        "text_role": [
+          "pre_reading"
+        ]
+      },
+      "pairs_with_unit": []
     },
     {
       "id": "goldilocks",
       "title": "Goldilocks and the Three Bears",
       "author": "English Folktale (retold)",
       "primary_topic": "animal",
-      "secondary_topics": ["family.pets"],
-      "excerpt": {"type": "full"},
+      "secondary_topics": [
+        "family.pets"
+      ],
+      "excerpt": {
+        "type": "full"
+      },
       "facets": {
-        "grade": ["1", "2", "3"],
+        "grade": [
+          "1",
+          "2",
+          "3"
+        ],
         "grade_band": "early_primary",
         "text_type": "folktale",
-        "themes": ["curiosity", "disobedience"],
-        "settings": ["forest_wild"],
+        "themes": [
+          "curiosity",
+          "disobedience"
+        ],
+        "settings": [
+          "forest_wild"
+        ],
         "word_count_bucket": "short",
-        "lexile": {"min": 300, "max": 550, "mean": 420, "band": "elementary_low", "source": "editor_estimate"},
+        "lexile": {
+          "min": 300,
+          "max": 550,
+          "mean": 420,
+          "band": "elementary_low",
+          "source": "editor_estimate"
+        },
         "cultural_origin": "British",
         "time_period": "timeless_fantasy",
-        "target_skills": ["reading_comprehension", "retelling"],
-        "text_role": ["pre_reading"]
-      }
+        "target_skills": [
+          "reading_comprehension",
+          "retelling"
+        ],
+        "text_role": [
+          "pre_reading"
+        ]
+      },
+      "pairs_with_unit": []
     },
     {
       "id": "chicken-little",
       "title": "Chicken Little",
       "author": "English Folktale (retold)",
       "primary_topic": "animal",
-      "secondary_topics": ["animal.fable"],
-      "excerpt": {"type": "full"},
+      "secondary_topics": [
+        "animal.fable"
+      ],
+      "excerpt": {
+        "type": "full"
+      },
       "facets": {
-        "grade": ["1", "2", "3"],
+        "grade": [
+          "1",
+          "2",
+          "3"
+        ],
         "grade_band": "early_primary",
         "text_type": "folktale",
-        "themes": ["reason", "courage"],
-        "settings": ["farm", "forest_wild"],
+        "themes": [
+          "reason",
+          "courage"
+        ],
+        "settings": [
+          "farm",
+          "forest_wild"
+        ],
         "word_count_bucket": "short",
-        "lexile": {"min": 300, "max": 550, "mean": 430, "band": "elementary_low", "source": "editor_estimate"},
+        "lexile": {
+          "min": 300,
+          "max": 550,
+          "mean": 430,
+          "band": "elementary_low",
+          "source": "editor_estimate"
+        },
         "cultural_origin": "British",
         "time_period": "timeless_fantasy",
-        "target_skills": ["reading_comprehension", "retelling", "critical_thinking"],
-        "text_role": ["pre_reading"]
-      }
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "critical_thinking"
+        ],
+        "text_role": [
+          "pre_reading"
+        ]
+      },
+      "pairs_with_unit": []
     },
     {
       "id": "mcguffey-first-lessons",
@@ -1380,21 +1412,57 @@
       "gutenberg_id": 14640,
       "gutenberg_slug": "McGuffey's First Eclectic Reader",
       "primary_topic": "animal",
-      "secondary_topics": ["family.pets"],
-      "excerpt": {"type": "lessons", "lessons": [1, 2, 3, 4, 5, 6, 7, 8]},
+      "secondary_topics": [
+        "family.pets"
+      ],
+      "excerpt": {
+        "type": "lessons",
+        "lessons": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      },
       "facets": {
-        "grade": ["1", "2", "3"],
+        "grade": [
+          "1",
+          "2",
+          "3"
+        ],
         "grade_band": "early_primary",
         "text_type": "realistic_fiction",
-        "themes": ["curiosity", "kindness"],
-        "settings": ["farm"],
+        "themes": [
+          "curiosity",
+          "kindness"
+        ],
+        "settings": [
+          "farm"
+        ],
         "word_count_bucket": "very_short",
-        "lexile": {"min": 100, "max": 400, "mean": 250, "band": "elementary_low", "source": "editor_estimate"},
+        "lexile": {
+          "min": 100,
+          "max": 400,
+          "mean": 250,
+          "band": "elementary_low",
+          "source": "editor_estimate"
+        },
         "cultural_origin": "American",
         "time_period": "victorian",
-        "target_skills": ["reading_comprehension", "vocabulary_extension"],
-        "text_role": ["pre_reading", "consolidation"]
-      }
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension"
+        ],
+        "text_role": [
+          "pre_reading",
+          "consolidation"
+        ]
+      },
+      "pairs_with_unit": []
     },
     {
       "id": "emperors-new-clothes",
@@ -1404,21 +1472,49 @@
       "gutenberg_slug": "Andersen's Fairy Tales",
       "librivox_url": "https://librivox.org/andersens-fairy-tales-by-hans-christian-andersen/",
       "primary_topic": "narrative.hero",
-      "secondary_topics": ["identity"],
-      "excerpt": {"type": "story", "stories": ["The Emperor's New Clothes"]},
+      "secondary_topics": [
+        "identity"
+      ],
+      "excerpt": {
+        "type": "story",
+        "stories": [
+          "The Emperor's New Clothes"
+        ]
+      },
       "facets": {
-        "grade": ["3", "4", "5"],
+        "grade": [
+          "3",
+          "4",
+          "5"
+        ],
         "grade_band": "mid_primary",
         "text_type": "folktale",
-        "themes": ["honesty", "courage"],
-        "settings": ["city_urban"],
+        "themes": [
+          "honesty",
+          "courage"
+        ],
+        "settings": [
+          "city_urban"
+        ],
         "word_count_bucket": "short",
-        "lexile": {"min": 600, "max": 800, "mean": 700, "band": "elementary_mid", "source": "editor_estimate"},
+        "lexile": {
+          "min": 600,
+          "max": 800,
+          "mean": 700,
+          "band": "elementary_mid",
+          "source": "editor_estimate"
+        },
         "cultural_origin": "European",
         "time_period": "victorian",
-        "target_skills": ["reading_comprehension", "critical_thinking"],
-        "text_role": ["extension"]
-      }
+        "target_skills": [
+          "reading_comprehension",
+          "critical_thinking"
+        ],
+        "text_role": [
+          "extension"
+        ]
+      },
+      "pairs_with_unit": []
     },
     {
       "id": "peter-rabbit",
@@ -1830,27 +1926,18 @@
         "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
         "be6e00c8-0068-8453-927f-646f6f753a5a:002",
         "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
         "c5180299-d288-46e2-a0df-9f04c94fd922:005",
         "dd6173ba-579a-356e-900c-cb53e152229c:001",
         "dd6173ba-579a-356e-900c-cb53e152229c:003"
@@ -2288,40 +2375,16 @@
       },
       "pairs_with_unit": [
         "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
         "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
         "c5180299-d288-46e2-a0df-9f04c94fd922:005",
         "dd6173ba-579a-356e-900c-cb53e152229c:001",
-        "dd6173ba-579a-356e-900c-cb53e152229c:001",
-        "dd6173ba-579a-356e-900c-cb53e152229c:001",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
         "dd6173ba-579a-356e-900c-cb53e152229c:003"
       ],
       "supports_grammar": [
@@ -2341,21 +2404,51 @@
       "gutenberg_slug": "The Happy Prince and Other Tales",
       "librivox_url": "https://librivox.org/the-happy-prince-and-other-tales-by-oscar-wilde/",
       "primary_topic": "narrative.hero",
-      "secondary_topics": ["poverty"],
-      "excerpt": {"type": "story", "stories": ["The Happy Prince"]},
+      "secondary_topics": [
+        "poverty"
+      ],
+      "excerpt": {
+        "type": "story",
+        "stories": [
+          "The Happy Prince"
+        ]
+      },
       "facets": {
-        "grade": ["4", "5"],
+        "grade": [
+          "4",
+          "5"
+        ],
         "grade_band": "mid_primary",
         "text_type": "fantasy",
-        "themes": ["kindness", "generosity", "love_loss"],
-        "settings": ["city_urban"],
+        "themes": [
+          "kindness",
+          "generosity",
+          "love_loss"
+        ],
+        "settings": [
+          "city_urban"
+        ],
         "word_count_bucket": "short",
-        "lexile": {"min": 700, "max": 950, "mean": 820, "band": "elementary_high", "source": "editor_estimate"},
+        "lexile": {
+          "min": 700,
+          "max": 950,
+          "mean": 820,
+          "band": "elementary_high",
+          "source": "editor_estimate"
+        },
         "cultural_origin": "British_Irish",
         "time_period": "victorian",
-        "target_skills": ["reading_comprehension", "vocabulary_extension", "critical_thinking"],
-        "text_role": ["extension", "writing_trigger"]
-      }
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension",
+          "critical_thinking"
+        ],
+        "text_role": [
+          "extension",
+          "writing_trigger"
+        ]
+      },
+      "pairs_with_unit": []
     },
     {
       "id": "just-so-whale",
@@ -2365,21 +2458,49 @@
       "gutenberg_slug": "Just So Stories",
       "librivox_url": "https://librivox.org/just-so-stories-by-rudyard-kipling/",
       "primary_topic": "animal",
-      "secondary_topics": ["nature.cosmic"],
-      "excerpt": {"type": "story", "stories": ["How the Whale Got His Throat"]},
+      "secondary_topics": [
+        "nature.cosmic"
+      ],
+      "excerpt": {
+        "type": "story",
+        "stories": [
+          "How the Whale Got His Throat"
+        ]
+      },
       "facets": {
-        "grade": ["2", "3", "4"],
+        "grade": [
+          "2",
+          "3",
+          "4"
+        ],
         "grade_band": "mid_primary",
         "text_type": "folktale",
-        "themes": ["curiosity", "courage"],
-        "settings": ["ocean_island"],
+        "themes": [
+          "curiosity",
+          "courage"
+        ],
+        "settings": [
+          "ocean_island"
+        ],
         "word_count_bucket": "short",
-        "lexile": {"min": 500, "max": 800, "mean": 650, "band": "elementary_mid", "source": "editor_estimate"},
+        "lexile": {
+          "min": 500,
+          "max": 800,
+          "mean": 650,
+          "band": "elementary_mid",
+          "source": "editor_estimate"
+        },
         "cultural_origin": "British_Irish",
         "time_period": "victorian",
-        "target_skills": ["reading_comprehension", "vocabulary_extension"],
-        "text_role": ["extension"]
-      }
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension"
+        ],
+        "text_role": [
+          "extension"
+        ]
+      },
+      "pairs_with_unit": []
     },
     {
       "id": "mcguffey-second-lessons",
@@ -2388,21 +2509,53 @@
       "gutenberg_id": 14668,
       "gutenberg_slug": "McGuffey's Second Eclectic Reader",
       "primary_topic": "identity",
-      "secondary_topics": ["nature.cosmic"],
-      "excerpt": {"type": "lessons", "lessons": [1, 2, 3, 4]},
+      "secondary_topics": [
+        "nature.cosmic"
+      ],
+      "excerpt": {
+        "type": "lessons",
+        "lessons": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
       "facets": {
-        "grade": ["2", "3", "4"],
+        "grade": [
+          "2",
+          "3",
+          "4"
+        ],
         "grade_band": "early_primary",
         "text_type": "realistic_fiction",
-        "themes": ["family_love", "curiosity"],
-        "settings": ["home_family"],
+        "themes": [
+          "family_love",
+          "curiosity"
+        ],
+        "settings": [
+          "home_family"
+        ],
         "word_count_bucket": "very_short",
-        "lexile": {"min": 300, "max": 600, "mean": 450, "band": "elementary_low", "source": "editor_estimate"},
+        "lexile": {
+          "min": 300,
+          "max": 600,
+          "mean": 450,
+          "band": "elementary_low",
+          "source": "editor_estimate"
+        },
         "cultural_origin": "American",
         "time_period": "victorian",
-        "target_skills": ["reading_comprehension", "vocabulary_extension"],
-        "text_role": ["pre_reading", "consolidation"]
-      }
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension"
+        ],
+        "text_role": [
+          "pre_reading",
+          "consolidation"
+        ]
+      },
+      "pairs_with_unit": []
     },
     {
       "id": "velveteen-rabbit",
@@ -2412,21 +2565,50 @@
       "gutenberg_slug": "The Velveteen Rabbit",
       "librivox_url": "https://librivox.org/the-velveteen-rabbit-by-margery-williams/",
       "primary_topic": "friendship",
-      "secondary_topics": ["identity"],
-      "excerpt": {"type": "story", "stories": ["The Velveteen Rabbit"]},
+      "secondary_topics": [
+        "identity"
+      ],
+      "excerpt": {
+        "type": "story",
+        "stories": [
+          "The Velveteen Rabbit"
+        ]
+      },
       "facets": {
-        "grade": ["3", "4", "5"],
+        "grade": [
+          "3",
+          "4",
+          "5"
+        ],
         "grade_band": "mid_primary",
         "text_type": "fantasy",
-        "themes": ["love_loss", "growing_up", "friendship"],
-        "settings": ["home_family"],
+        "themes": [
+          "love_loss",
+          "growing_up",
+          "friendship"
+        ],
+        "settings": [
+          "home_family"
+        ],
         "word_count_bucket": "short",
-        "lexile": {"min": 700, "max": 950, "mean": 820, "band": "elementary_high", "source": "editor_estimate"},
+        "lexile": {
+          "min": 700,
+          "max": 950,
+          "mean": 820,
+          "band": "elementary_high",
+          "source": "editor_estimate"
+        },
         "cultural_origin": "American",
         "time_period": "modern_early",
-        "target_skills": ["reading_comprehension", "critical_thinking"],
-        "text_role": ["extension"]
-      }
+        "target_skills": [
+          "reading_comprehension",
+          "critical_thinking"
+        ],
+        "text_role": [
+          "extension"
+        ]
+      },
+      "pairs_with_unit": []
     },
     {
       "id": "pinocchio-ch1",
@@ -2436,21 +2618,49 @@
       "gutenberg_slug": "The Adventures of Pinocchio",
       "librivox_url": "https://librivox.org/the-adventures-of-pinocchio-by-carlo-collodi/",
       "primary_topic": "narrative.hero",
-      "secondary_topics": ["family.pets"],
-      "excerpt": {"type": "chapters", "chapters": [1]},
+      "secondary_topics": [
+        "family.pets"
+      ],
+      "excerpt": {
+        "type": "chapters",
+        "chapters": [
+          1
+        ]
+      },
       "facets": {
-        "grade": ["4", "5"],
+        "grade": [
+          "4",
+          "5"
+        ],
         "grade_band": "mid_primary",
         "text_type": "fantasy",
-        "themes": ["honesty", "growing_up"],
-        "settings": ["home_family"],
+        "themes": [
+          "honesty",
+          "growing_up"
+        ],
+        "settings": [
+          "home_family"
+        ],
         "word_count_bucket": "short",
-        "lexile": {"min": 800, "max": 1100, "mean": 950, "band": "elementary_high", "source": "editor_estimate"},
+        "lexile": {
+          "min": 800,
+          "max": 1100,
+          "mean": 950,
+          "band": "elementary_high",
+          "source": "editor_estimate"
+        },
         "cultural_origin": "European",
         "time_period": "victorian",
-        "target_skills": ["reading_comprehension", "vocabulary_extension"],
-        "text_role": ["extension", "writing_trigger"]
-      }
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension"
+        ],
+        "text_role": [
+          "extension",
+          "writing_trigger"
+        ]
+      },
+      "pairs_with_unit": []
     },
     {
       "id": "prince-and-pauper-ch1",
@@ -2460,21 +2670,48 @@
       "gutenberg_slug": "The Prince and the Pauper",
       "librivox_url": "https://librivox.org/the-prince-and-the-pauper-by-mark-twain/",
       "primary_topic": "narrative.hero",
-      "secondary_topics": ["poverty"],
-      "excerpt": {"type": "chapters", "chapters": [1]},
+      "secondary_topics": [
+        "poverty"
+      ],
+      "excerpt": {
+        "type": "chapters",
+        "chapters": [
+          1
+        ]
+      },
       "facets": {
-        "grade": ["5", "6"],
+        "grade": [
+          "5",
+          "6"
+        ],
         "grade_band": "senior",
         "text_type": "adventure",
-        "themes": ["identity", "fairness_rules"],
-        "settings": ["city_urban"],
+        "themes": [
+          "identity",
+          "fairness_rules"
+        ],
+        "settings": [
+          "city_urban"
+        ],
         "word_count_bucket": "very_short",
-        "lexile": {"min": 900, "max": 1200, "mean": 1050, "band": "upper_elementary", "source": "editor_estimate"},
+        "lexile": {
+          "min": 900,
+          "max": 1200,
+          "mean": 1050,
+          "band": "upper_elementary",
+          "source": "editor_estimate"
+        },
         "cultural_origin": "American",
         "time_period": "victorian",
-        "target_skills": ["reading_comprehension", "critical_thinking"],
-        "text_role": ["extension"]
-      }
+        "target_skills": [
+          "reading_comprehension",
+          "critical_thinking"
+        ],
+        "text_role": [
+          "extension"
+        ]
+      },
+      "pairs_with_unit": []
     },
     {
       "id": "jungle-book-white-seal",
@@ -2621,20 +2858,14 @@
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
         "c5180299-d288-46e2-a0df-9f04c94fd922:002",
         "c5180299-d288-46e2-a0df-9f04c94fd922:004",
         "c5180299-d288-46e2-a0df-9f04c94fd922:005",
         "c5180299-d288-46e2-a0df-9f04c94fd922:006",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
         "dd6173ba-579a-356e-900c-cb53e152229c:003"
       ],
       "supports_grammar": [
@@ -2870,37 +3101,19 @@
       "pairs_with_unit": [
         "02736c70-9509-438f-8e16-2902feaf5ed8:002",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
         "be6e00c8-0068-8453-927f-646f6f753a5a:002",
         "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
         "c5180299-d288-46e2-a0df-9f04c94fd922:005",
         "c5180299-d288-46e2-a0df-9f04c94fd922:006",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
         "dd6173ba-579a-356e-900c-cb53e152229c:003"
       ],
       "supports_grammar": [
@@ -3074,161 +3287,63 @@
       },
       "pairs_with_unit": [
         "02736c70-9509-438f-8e16-2902feaf5ed8:001",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
         "02736c70-9509-438f-8e16-2902feaf5ed8:002",
         "02736c70-9509-438f-8e16-2902feaf5ed8:003",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:003",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:004",
         "02736c70-9509-438f-8e16-2902feaf5ed8:004",
         "02736c70-9509-438f-8e16-2902feaf5ed8:005",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:005",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:006",
         "02736c70-9509-438f-8e16-2902feaf5ed8:006",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:003",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:003",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:006",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:006",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:004",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:004",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:003",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:003",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:003",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:003",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:006",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:006",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:003",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:003",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:003",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:006",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:006",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
         "be6e00c8-0068-8453-927f-646f6f753a5a:001",
         "be6e00c8-0068-8453-927f-646f6f753a5a:002",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:003",
         "be6e00c8-0068-8453-927f-646f6f753a5a:003",
         "be6e00c8-0068-8453-927f-646f6f753a5a:004",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:004",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:005",
         "be6e00c8-0068-8453-927f-646f6f753a5a:005",
         "be6e00c8-0068-8453-927f-646f6f753a5a:006",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:006",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
         "c5180299-d288-46e2-a0df-9f04c94fd922:001",
         "c5180299-d288-46e2-a0df-9f04c94fd922:002",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:003",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:003",
         "c5180299-d288-46e2-a0df-9f04c94fd922:003",
         "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
         "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
         "c5180299-d288-46e2-a0df-9f04c94fd922:006",
         "dd6173ba-579a-356e-900c-cb53e152229c:001",
-        "dd6173ba-579a-356e-900c-cb53e152229c:001",
-        "dd6173ba-579a-356e-900c-cb53e152229c:002",
         "dd6173ba-579a-356e-900c-cb53e152229c:002",
         "dd6173ba-579a-356e-900c-cb53e152229c:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
         "dd6173ba-579a-356e-900c-cb53e152229c:004",
-        "dd6173ba-579a-356e-900c-cb53e152229c:004",
-        "dd6173ba-579a-356e-900c-cb53e152229c:006",
         "dd6173ba-579a-356e-900c-cb53e152229c:006"
       ],
       "supports_grammar": [
@@ -3472,54 +3587,25 @@
       },
       "pairs_with_unit": [
         "02736c70-9509-438f-8e16-2902feaf5ed8:001",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
         "02736c70-9509-438f-8e16-2902feaf5ed8:002",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:005",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:005",
         "02736c70-9509-438f-8e16-2902feaf5ed8:005",
         "02736c70-9509-438f-8e16-2902feaf5ed8:006",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:003",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:003",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
@@ -3528,23 +3614,11 @@
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
         "be6e00c8-0068-8453-927f-646f6f753a5a:001",
         "be6e00c8-0068-8453-927f-646f6f753a5a:002",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:005",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:005",
         "be6e00c8-0068-8453-927f-646f6f753a5a:005",
         "be6e00c8-0068-8453-927f-646f6f753a5a:006",
         "c5180299-d288-46e2-a0df-9f04c94fd922:001",
@@ -3554,16 +3628,8 @@
         "c5180299-d288-46e2-a0df-9f04c94fd922:005",
         "c5180299-d288-46e2-a0df-9f04c94fd922:006",
         "dd6173ba-579a-356e-900c-cb53e152229c:001",
-        "dd6173ba-579a-356e-900c-cb53e152229c:001",
-        "dd6173ba-579a-356e-900c-cb53e152229c:001",
-        "dd6173ba-579a-356e-900c-cb53e152229c:002",
-        "dd6173ba-579a-356e-900c-cb53e152229c:002",
         "dd6173ba-579a-356e-900c-cb53e152229c:002",
         "dd6173ba-579a-356e-900c-cb53e152229c:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:004",
-        "dd6173ba-579a-356e-900c-cb53e152229c:004",
         "dd6173ba-579a-356e-900c-cb53e152229c:004"
       ],
       "supports_grammar": [
@@ -3643,81 +3709,34 @@
       },
       "pairs_with_unit": [
         "02736c70-9509-438f-8e16-2902feaf5ed8:002",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:004",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
         "be6e00c8-0068-8453-927f-646f6f753a5a:002",
         "c5180299-d288-46e2-a0df-9f04c94fd922:001",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
         "c5180299-d288-46e2-a0df-9f04c94fd922:002",
         "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:006",
         "c5180299-d288-46e2-a0df-9f04c94fd922:006",
         "dd6173ba-579a-356e-900c-cb53e152229c:001",
         "dd6173ba-579a-356e-900c-cb53e152229c:002",
-        "dd6173ba-579a-356e-900c-cb53e152229c:004",
-        "dd6173ba-579a-356e-900c-cb53e152229c:004",
         "dd6173ba-579a-356e-900c-cb53e152229c:004"
       ]
     },
@@ -3780,12 +3799,8 @@
       "pairs_with_unit": [
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "c5180299-d288-46e2-a0df-9f04c94fd922:001",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
         "c5180299-d288-46e2-a0df-9f04c94fd922:002"
       ]
     },
@@ -4007,8 +4022,6 @@
       "pairs_with_unit": [
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
         "c5180299-d288-46e2-a0df-9f04c94fd922:002"
@@ -4167,8 +4180,6 @@
       },
       "pairs_with_unit": [
         "02736c70-9509-438f-8e16-2902feaf5ed8:001",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
         "be6e00c8-0068-8453-927f-646f6f753a5a:001"
       ],
       "supports_grammar": [
@@ -4188,21 +4199,52 @@
       "gutenberg_slug": "Black Beauty",
       "librivox_url": "https://librivox.org/black-beauty-by-anna-sewell/",
       "primary_topic": "animal",
-      "secondary_topics": ["friendship"],
-      "excerpt": {"type": "chapter", "chapters": [1]},
+      "secondary_topics": [
+        "friendship"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1
+        ]
+      },
       "facets": {
-        "grade": ["3", "4", "5"],
+        "grade": [
+          "3",
+          "4",
+          "5"
+        ],
         "grade_band": "mid_primary",
         "text_type": "realistic_fiction",
-        "themes": ["kindness", "growing_up", "loyalty"],
-        "settings": ["farm", "countryside"],
+        "themes": [
+          "kindness",
+          "growing_up",
+          "loyalty"
+        ],
+        "settings": [
+          "farm",
+          "countryside"
+        ],
         "word_count_bucket": "short",
-        "lexile": {"min": 600, "max": 800, "mean": 700, "band": "elementary_mid", "source": "editor_estimate"},
+        "lexile": {
+          "min": 600,
+          "max": 800,
+          "mean": 700,
+          "band": "elementary_mid",
+          "source": "editor_estimate"
+        },
         "cultural_origin": "British",
         "time_period": "victorian",
-        "target_skills": ["reading_comprehension", "vocabulary_extension"],
-        "text_role": ["extension", "writing_trigger"]
-      }
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension"
+        ],
+        "text_role": [
+          "extension",
+          "writing_trigger"
+        ]
+      },
+      "pairs_with_unit": []
     },
     {
       "id": "around-the-world",
@@ -4212,21 +4254,50 @@
       "gutenberg_slug": "Around the World in Eighty Days",
       "librivox_url": "https://librivox.org/around-the-world-in-80-days-by-jules-verne/",
       "primary_topic": "narrative.hero",
-      "secondary_topics": ["money"],
-      "excerpt": {"type": "chapter", "chapters": [1]},
+      "secondary_topics": [
+        "money"
+      ],
+      "excerpt": {
+        "type": "chapter",
+        "chapters": [
+          1
+        ]
+      },
       "facets": {
-        "grade": ["5", "6"],
+        "grade": [
+          "5",
+          "6"
+        ],
         "grade_band": "late_primary",
         "text_type": "adventure",
-        "themes": ["curiosity", "perseverance", "courage"],
-        "settings": ["city_urban"],
+        "themes": [
+          "curiosity",
+          "perseverance",
+          "courage"
+        ],
+        "settings": [
+          "city_urban"
+        ],
         "word_count_bucket": "short",
-        "lexile": {"min": 950, "max": 1150, "mean": 1050, "band": "middle_early", "source": "editor_estimate"},
+        "lexile": {
+          "min": 950,
+          "max": 1150,
+          "mean": 1050,
+          "band": "middle_early",
+          "source": "editor_estimate"
+        },
         "cultural_origin": "French",
         "time_period": "victorian",
-        "target_skills": ["reading_comprehension", "cultural_awareness"],
-        "text_role": ["extension", "culture_window"]
-      }
+        "target_skills": [
+          "reading_comprehension",
+          "cultural_awareness"
+        ],
+        "text_role": [
+          "extension",
+          "culture_window"
+        ]
+      },
+      "pairs_with_unit": []
     },
     {
       "id": "anne-green-gables",
@@ -4460,121 +4531,46 @@
       },
       "pairs_with_unit": [
         "02736c70-9509-438f-8e16-2902feaf5ed8:001",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:001",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:002",
         "02736c70-9509-438f-8e16-2902feaf5ed8:002",
         "02736c70-9509-438f-8e16-2902feaf5ed8:003",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:003",
-        "02736c70-9509-438f-8e16-2902feaf5ed8:003",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:001",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:002",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
-        "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
         "10b11234-3b0a-4b3e-b4b4-db3013774529:005",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:002",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:002",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:006",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:001",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:003",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:003",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:004",
         "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:006",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:001",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:002",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
-        "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
         "9eb54ff2-1c7b-4441-abff-c44b714a2302:005",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:003",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:003",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:004",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:005",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:001",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
         "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:001",
         "be6e00c8-0068-8453-927f-646f6f753a5a:001",
         "be6e00c8-0068-8453-927f-646f6f753a5a:002",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:002",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:003",
-        "be6e00c8-0068-8453-927f-646f6f753a5a:003",
         "be6e00c8-0068-8453-927f-646f6f753a5a:003",
         "c5180299-d288-46e2-a0df-9f04c94fd922:001",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
         "c5180299-d288-46e2-a0df-9f04c94fd922:002",
         "c5180299-d288-46e2-a0df-9f04c94fd922:003",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:003",
         "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
         "c5180299-d288-46e2-a0df-9f04c94fd922:005",
         "c5180299-d288-46e2-a0df-9f04c94fd922:006",
         "dd6173ba-579a-356e-900c-cb53e152229c:001",
-        "dd6173ba-579a-356e-900c-cb53e152229c:001",
-        "dd6173ba-579a-356e-900c-cb53e152229c:001",
         "dd6173ba-579a-356e-900c-cb53e152229c:002",
-        "dd6173ba-579a-356e-900c-cb53e152229c:002",
-        "dd6173ba-579a-356e-900c-cb53e152229c:002",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
-        "dd6173ba-579a-356e-900c-cb53e152229c:003",
         "dd6173ba-579a-356e-900c-cb53e152229c:003"
       ],
       "supports_grammar": [
@@ -4809,14 +4805,9 @@
       },
       "pairs_with_unit": [
         "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
-        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:003",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:002",
         "c5180299-d288-46e2-a0df-9f04c94fd922:001",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:001",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:002",
         "c5180299-d288-46e2-a0df-9f04c94fd922:002"
       ],
       "supports_grammar": [
@@ -5052,10 +5043,6 @@
       },
       "pairs_with_unit": [
         "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9e2878bf-964d-47fb-85ba-937cf61159a5:005",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:006"
       ],
       "supports_grammar": [
@@ -6007,7 +5994,8 @@
         "prep.common",
         "pron.possessive",
         "article.a_an"
-      ]
+      ],
+      "pairs_with_unit": []
     },
     {
       "id": "a-christmas-carol",
@@ -6485,27 +6473,10 @@
       },
       "pairs_with_unit": [
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:001",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:003",
         "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
-        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
-        "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
         "9f1cda77-2dc7-442b-82f1-97243f7ec39d:001",
         "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:004",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
-        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
         "c5180299-d288-46e2-a0df-9f04c94fd922:005"
       ],
       "supports_grammar": [
@@ -6567,7 +6538,8 @@
           "vocabulary_extension",
           "critical_thinking"
         ]
-      }
+      },
+      "pairs_with_unit": []
     }
   ]
 }
