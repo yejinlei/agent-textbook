@@ -1312,7 +1312,7 @@
     });
     // 课文页：每课学习中心的 tab/练习/游戏/打星都走这一套委托
     if (kind === "discourse") bindLessonHubs(box);
-    /* 从课外拓展卡片跳来：#<册名>#U{n} → 打开该单元并展开课文 */
+    /* 从课外拓展卡片跳来：#<册名>#U{n} → 展开该单元全部课并滚到单元顶部 */
     function applyUnitHash() {
       if (kind !== "discourse") return;
       var m = String(location.hash || "").match(/^#([^#]+)#U(\d+)$/);
@@ -1320,18 +1320,18 @@
       var book = decodeURIComponent(m[1]);
       var uno = parseInt(m[2], 10);
       if (!book || !uno) return;
-      var det = box.querySelector(
-        '.lesson[data-lkey="' + book + "|" + uno + '|"]');
-      if (!det) {
-        var any = box.querySelector('.lesson[data-lkey^="' + book + "|" + uno + "|"]');
-        if (any) det = any;
+      // 一课 = book|unit_no|type|scene；展开该单元所有课（对话+短文）
+      var dets = box.querySelectorAll(
+        '.lesson[data-lkey^="' + book + '|' + uno + '|"]');
+      if (!dets.length) return;
+      var par = null;
+      for (var i = 0; i < dets.length; i++) {
+        dets[i].open = true;
+        if (!par) par = dets[i].closest(".unit");
       }
-      if (!det) return;
-      det.open = true;
-      var par = det.closest(".unit");
       if (par) par.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-    setTimeout(applyUnitHash, 60);
+    setTimeout(applyUnitHash, 80);
     // 课外拓展页：ReadWorks 风格筛选
     if (kind === "extra") {
       box.addEventListener("change", function (e) {
@@ -2317,10 +2317,10 @@
         if (b.text) {
           main += renderReadingText(b.text, b.id);
         }
-        if (b.pairs_with_unit && b.pairs_with_unit.length) {
-          var uls = (b.units || b.pairs_with_unit).map(function (u) {
-            return unitLink(u);
-          }).join("");
+        /* 配套教材单元：b.units 是解析后的对象（带 book/unit_no/unit_name/grade），
+           b.pairs_with_unit 是裸 id 列表（无定位信息），只信任前者 */
+        if (b.units && b.units.length) {
+          var uls = b.units.map(function (u) { return unitLink(u); }).join("");
           main += '<p class="small rw-ulinks">🔗 配套教材单元：' + uls + '</p>';
         }
       }
