@@ -4453,10 +4453,15 @@
 
   /* 教材拼读卡片：大字符 + 音标 + 例词（字母组合高亮）+ chant */
   function phCard(x, i) {
+    var demo = "";
+    if (x.examples && x.examples.length) {
+      var w0 = x.examples[0];
+      demo = String(typeof w0 === "string" ? w0 : (w0.word || w0) || "");
+    }
     var h = '<div class="ph-card" style="--i:' + i + '">';
     h += '<div class="ph-card-h">';
-    h += '<span class="ph-big">' + esc(x.letters || "") + "</span>";
-    h += '<span class="ph-sound">' + esc(x.sound || "") + "</span>";
+    h += '<span class="ph-big">' + (demo ? spkBtn(demo) : "") + esc(x.letters || "") + "</span>";
+    h += '<span class="ph-sound spk" data-spk="' + (demo ? String(demo).replace(/"/g, "&quot;") : "") + '">' + esc(x.sound || "") + "</span>";
     h += "</div>";
     if (x.examples && x.examples.length) {
       h += '<div class="ph-words">';
@@ -4475,10 +4480,11 @@
     return h;
   }
 
-  /* 国际音标卡片：符号 + 名称 + 发音要诀 + 例词 */
+  /* 国际音标卡片：符号 + 名称 + 发音要诀 + 例词（符号可点击听示范例词） */
   function ipaCard(x) {
+    var demo = (x.examples && x.examples.length) ? String(x.examples[0]) : "";
     var h = '<div class="ipa-card">';
-    h += '<div class="ipa-sym">' + esc(x.symbol) + "</div>";
+    h += '<div class="ipa-sym">' + (demo ? spkBtn(demo) : "") + esc(x.symbol) + "</div>";
     h += '<div class="ipa-name">' + esc(x.name) + "</div>";
     h += '<div class="ipa-mouth">' + esc(x.mouth) + "</div>";
     if (x.examples && x.examples.length) {
@@ -4495,11 +4501,14 @@
     return h;
   }
 
-  /* 自然拼读规则卡片：字母组合 + 发音 + 规则说明 + 例词 */
+  /* 自然拼读规则卡片：字母组合 + 发音 + 规则说明 + 例词（字母组合可点击听示范） */
   function natCard(x) {
+    var demo = (x.examples && x.examples.length) ? String(x.examples[0]) : "";
     var h = '<div class="nat-card">';
-    h += '<div class="nat-head"><span class="nat-l">' + esc(x.letter) + "</span>" +
-      '<span class="nat-s">' + esc(x.sound) + "</span></div>";
+    h += '<div class="nat-head"><span class="nat-l">' + (demo ? spkBtn(demo) : "") +
+      esc(x.letter) + "</span>" +
+      '<span class="nat-s spk"' + (demo ? ' data-spk="' + String(demo).replace(/"/g, "&quot;") + '"' : "") +
+      '>' + esc(x.sound) + "</span></div>";
     h += '<div class="nat-rule">' + esc(x.rule) + "</div>";
     h += '<div class="nat-tip">' + esc(x.tip) + "</div>";
     if (x.examples && x.examples.length) {
