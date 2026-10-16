@@ -499,6 +499,12 @@ details > summary {
 .zh { display: none; color: #4b5563; }
 body.show-zh .zh { display: block; }
 body.show-zh .turn .zh { display: inline; margin-left: 8px; }
+/* 课文内就近的中英对照开关：只影响本课的 .lbody */
+.tl-bar { margin-bottom: 6px; }
+.tl-bar .zh-toggle { font-size: 13px; padding: 3px 12px; border-radius: 6px; }
+.lbody.show-zh .zh { display: block; }
+.lbody.show-zh .turn .zh { display: inline; margin-left: 8px; }
+.lbody.show-zh .tl-bar .zh-toggle { background: var(--c); border-color: var(--c); color: #fff; }
 .en { font-size: 16.5px; line-height: 1.85; }
 
 .tbl { border-collapse: collapse; font-size: 14px; width: 100%; }

@@ -2958,6 +2958,8 @@
             t[0] + '">' + t[1] + "</span>";
         }).join("") + "</div>" +
       '<div class="hpanel on" data-p="text">' +
+        '<div class="tl-bar"><button class="btn zh-toggle" type="button" ' +
+        'title="显示/隐藏中文对照">🌐 中英对照</button></div>' +
         (type === "dlg" ? enDialogue(x) : enPassage(x)) + "</div>";
     ["preview", "vocab", "ipa", "phonics", "grammar", "exercise", "game", "review", "extend"]
       .forEach(function (p) {
@@ -3629,6 +3631,13 @@
   /* 学习中心事件委托：tab 切换 / 单元展开 / 练习作答 / 游戏 / 打星 */
   function bindLessonHubs(box) {
     box.addEventListener("click", function (e) {
+      /* 中英对照：就近开关，只切换本课的 .lbody，不影响全局 */
+      var zt = e.target.closest(".zh-toggle");
+      if (zt) {
+        zt.closest(".lbody").classList.toggle("show-zh");
+        zt.classList.toggle("on");
+        return;
+      }
       var uf = e.target.closest(".u-fold");
       if (uf) {
         var unit = uf.closest(".unit");
