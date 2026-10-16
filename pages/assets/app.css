@@ -1278,6 +1278,10 @@ details.aq .aa {
 .rw-tr-zh { display: block; margin: 2px 0 6px; font-size: 13px; color: #b71c1c; line-height: 1.6; background: #fdf2f2; border-radius: 4px; padding: 2px 5px; }
 .rw-read2.rw-tr-off .rw-tr-zh { display: none; }
 .rw-tr-err { color: #d32f2f; }
+/* 绘本单页译文：跟 .rw-tr-zh 同款，内联在该页英文下方 */
+.rw-pg-tr { margin-left: 6px; padding: 0 8px; font-size: 12px; line-height: 1.6; }
+.rw-pg-zh { display: block; margin: 2px 0 6px 28px; font-size: 13px; color: #b71c1c; line-height: 1.6; background: #fdf2f2; border-radius: 4px; padding: 2px 5px; }
+.rw-pg-zh.hide { display: none; }
 
 /* 划词查询浮层 */
 .lookup-card {

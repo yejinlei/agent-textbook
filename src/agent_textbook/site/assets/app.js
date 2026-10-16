@@ -1356,29 +1356,36 @@
         /* 词汇条目点击 → 朗读 */
         var vi = e.target.closest(".rw-vocab-item");
         if (vi) { speech(vi.getAttribute("data-word") || vi.textContent); return; }
-        /* 翻译按钮 */
-        var tr = e.target.closest(".rw-translate-btn");
-        if (tr) {
-          var trBox = tr.closest(".rw-para-body");
-          var trDiv = trBox ? trBox.querySelector(".rw-para-tr") : null;
-          if (trDiv) {
-            if (trDiv.getAttribute("data-loaded") === "1") {
-              trDiv.classList.toggle("hide");
-              return;
-            }
-            trDiv.textContent = "翻译中…";
-            trDiv.classList.remove("hide");
-            var q = tr.getAttribute("data-text") || "";
-            loadTranslation(q, function (zh) {
-              trDiv.innerHTML = '<p class="rw-para-zh">' + esc(zh) + '</p>';
-              trDiv.setAttribute("data-loaded", "1");
-              tr.textContent = "译✓";
-            }, function () {
-              trDiv.innerHTML = '<p class="small">翻译加载失败，<a href="https://translate.google.com/?sl=en&tl=zh&text=' +
-                encodeURIComponent(q) + '" target="_blank">点此用 Google 翻译</a></p>';
-              trDiv.setAttribute("data-loaded", "1");
-            });
+        /* 绘本单页翻译 */
+        var pgTr = e.target.closest(".rw-pg-tr");
+        if (pgTr) {
+          var zhSpan = pgTr.parentNode.querySelector(".rw-pg-zh");
+          if (!zhSpan) return;
+          if (zhSpan.getAttribute("data-loaded") === "1") {
+            zhSpan.classList.toggle("hide");
+            return;
           }
+          var bkId = pgTr.getAttribute("data-book") || "";
+          var pgN = parseInt(pgTr.getAttribute("data-pg") || "0", 10);
+          var pgTxt = "";
+          (D.picturebooks || []).forEach(function (pb) {
+            if (pb.id === bkId && pb.pages) {
+              pb.pages.forEach(function (pp) {
+                if ((pp.n || 0) === pgN) pgTxt = pp.text || "";
+              });
+            }
+          });
+          if (!pgTxt) return;
+          zhSpan.textContent = "翻译中…";
+          zhSpan.classList.remove("hide");
+          loadTranslation(pgTxt, function (zh) {
+            zhSpan.textContent = zh;
+            zhSpan.setAttribute("data-loaded", "1");
+            pgTr.textContent = "译✓";
+          }, function () {
+            zhSpan.textContent = "翻译加载失败";
+            zhSpan.setAttribute("data-loaded", "1");
+          });
           return;
         }
         /* 词汇表开关 */
@@ -1407,8 +1414,11 @@
     }
   }
 
-  /* Google Translate API：按需加载译文 */
+  /* 译文加载：先查预生成库（window.ZH_TRANS，课外拓展页随 zh_trans.js 加载），
+     本地没有再走 Google Translate API。 */
   function loadTranslation(text, onOk, onErr) {
+    var T = window.ZH_TRANS || null;
+    if (T && T[text]) { onOk(T[text]); return; }
     var url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q=" +
               encodeURIComponent(text);
     fetch(url).then(function (r) { return r.json(); }).then(function (d) {
@@ -2306,7 +2316,10 @@
         b.pages.forEach(function (p) {
           if (p.text) {
             main += '<p class="rw-pg"><span class="rw-pgn">P' + (p.n || "") + '</span>' +
-                    esc(p.text) + spkBtn(p.text) + '</p>';
+                    esc(p.text) + spkBtn(p.text) +
+                    ' <button class="btn rw-pg-tr" type="button" data-book="' + esc(b.id) +
+                    '" data-pg="' + (p.n || 0) + '">译</button>' +
+                    '<span class="rw-pg-zh hide"></span></p>';
           }
         });
         main += '</div>';

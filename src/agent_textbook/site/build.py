@@ -648,6 +648,20 @@ def _clean_reading_text(raw, limit=8000):
     return body[:limit] if len(body) > limit else body
 
 
+def _load_zh_trans():
+    """data/readings/zh_trans.json → {en: zh} 课外拓展预生成译文（无则 {}）。"""
+    import os
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                        "data", "readings", "zh_trans.json")
+    if not os.path.exists(path):
+        return {}
+    try:
+        raw = json.load(open(path, encoding="utf-8"))
+        return raw.get("trans", {}) or {}
+    except Exception:
+        return {}
+
+
 def _load_readings():
     """长文库 catalog.json → 精简后供课外拓展页展示。"""
     import os
@@ -1290,7 +1304,7 @@ PAGE = """<!DOCTYPE html>
 <footer>由教材解析流水线生成 · 内容取自义务教育教科书（人教版）·
 数据本地生成，不出本机</footer>
 <script>window.DATA={data};</script>
-<script src="{base}assets/app.js"></script>
+{xscripts}<script src="{base}assets/app.js"></script>
 </body></html>
 """
 
@@ -1490,6 +1504,18 @@ def build_pages(out_dir: str = None, verbose: bool = True) -> dict:
         for fn in os.listdir(ASSETS_SRC):
             shutil.copy(os.path.join(ASSETS_SRC, fn), os.path.join(out, "assets", fn))
 
+    # 课外拓展预生成译文：data/readings/zh_trans.json → assets/zh_trans.js
+    # （仅 english/extra.html 引用；运行时翻译先查它，没有才走 Google）
+    zh_trans = _load_zh_trans()
+    if zh_trans:
+        with open(os.path.join(out, "assets", "zh_trans.js"), "w",
+                  encoding="utf-8") as f:
+            f.write("window.ZH_TRANS="
+                    + json.dumps(zh_trans, ensure_ascii=False).replace("</", "<\\/")
+                    + ";\n")
+        if verbose:
+            print(f"→ 课外译文: {len(zh_trans)} 条 → assets/zh_trans.js")
+
     # 英语点读音频：把 data/tts/ 合并进 pages/tts/（含 index.json 与 4 个音色子目录）
     # 注意：pages/tts 可能已经有构建时未覆盖的批量生成音频（如 fa5563f4 的 6318x4 音色），
     # 这里必须用增量合并，不能 rmtree —— 否则 pages/tts 会被 data/tts（只有 1500 多份）
@@ -1570,19 +1596,23 @@ def build_pages(out_dir: str = None, verbose: bool = True) -> dict:
 
     _write(os.path.join(out, "index.html"), PAGE.format(
         title="总览", page="index", base="", subnav="", nav=_nav("index"),
-        body=index_body, data=_esc({"stats": stats})))
+        body=index_body, data=_esc({"stats": stats}), xscripts=""))
 
     for key, name, pages in SUBJECTS:
         os.makedirs(os.path.join(out, key), exist_ok=True)
         for slug, title, kind, desc in pages:
             # 数学页额外挂 Manim 动画（渲染过才有，没渲染不影响页面）
             vids = anim.video_block(kind, out) if key == "math" else ""
+            # 课外拓展页额外挂预生成译文库（window.ZH_TRANS，见 app.js loadTranslation）
+            xscripts = ('<script src="../assets/zh_trans.js"></script>\n'
+                        if (key, slug) == ("english", "extra") else "")
             _write(os.path.join(out, key, slug + ".html"), PAGE.format(
                 title="%s · %s" % (name, title), page="%s-%s" % (key, kind),
                 base="../", nav=_nav(key, "../"), subnav=_subnav(slug, pages),
                 body='<h2>%s · %s</h2><p class="lead">%s</p>%s'
                      % (name, title, desc, vids),
-                data=_esc(_slice(key, kind, cn_d, math_d, en_d))))
+                data=_esc(_slice(key, kind, cn_d, math_d, en_d)),
+                xscripts=xscripts))
 
     # 分页之前的单页文件不留，免得两套并存
     for f in ("chinese.html", "math.html", "english.html"):
