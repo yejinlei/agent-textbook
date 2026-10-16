@@ -1305,10 +1305,10 @@
          extra: (kind === "vocab" || kind === "discourse" || kind === "extra")
            ? { label: "按话题", opts: topics } : null });
     t.fire();
-    // 词汇卡：点一下才出中文（自测）
+    // 词汇卡：点一下才出中文（自测），点发音/生词本按钮不触发展开
     box.addEventListener("click", function (e) {
       var c = e.target.closest(".vcard");
-      if (c) c.classList.toggle("open");
+      if (c && !e.target.closest(".spkbtn") && !e.target.closest(".wb-toggle")) c.classList.toggle("open");
     });
     // 课文页：每课学习中心的 tab/练习/游戏/打星都走这一套委托
     if (kind === "discourse") bindLessonHubs(box);
@@ -2949,16 +2949,17 @@
       "</summary>";
     s += '<div class="lbody">' +
       '<div class="htabs">' +
-      [["text", "📖 课文"], ["preview", "🎯 预习"], ["ipa", "🔤 音标"],
-       ["phonics", "🧩 拼读"], ["grammar", "📐 语法"], ["exercise", "✏️ 练习"],
-       ["game", "🎮 游戏"], ["review", "🔁 复习"], ["extend", "🌱 拓展"]]
+      [["text", "📖 课文"], ["preview", "🎯 预习"], ["vocab", "📗 词汇"],
+       ["ipa", "🔤 音标"], ["phonics", "🧩 拼读"], ["grammar", "📐 语法"],
+       ["exercise", "✏️ 练习"], ["game", "🎮 游戏"], ["review", "🔁 复习"],
+       ["extend", "🌱 拓展"]]
         .map(function (t, i) {
           return '<span class="htab' + (i === 0 ? " on" : "") + '" data-p="' +
             t[0] + '">' + t[1] + "</span>";
         }).join("") + "</div>" +
       '<div class="hpanel on" data-p="text">' +
         (type === "dlg" ? enDialogue(x) : enPassage(x)) + "</div>";
-    ["preview", "ipa", "phonics", "grammar", "exercise", "game", "review", "extend"]
+    ["preview", "vocab", "ipa", "phonics", "grammar", "exercise", "game", "review", "extend"]
       .forEach(function (p) {
         s += '<div class="hpanel" data-p="' + p + '"></div>';
       });
@@ -2969,6 +2970,7 @@
   function buildPanel(el, p, x, type) {
     var h = "";
     if (p === "preview") h = hubPreview(x, type);
+    else if (p === "vocab") h = hubVocab(x, type);
     else if (p === "ipa") h = hubIpa(x, type);
     else if (p === "phonics") h = hubPhonics(x);
     else if (p === "grammar") h = hubGrammar(x, type);
@@ -3430,6 +3432,39 @@
       }).join("") + "</div>";
     h += '<p class="small">本课已得星星：练习与游戏共 ' + starCount(key) + " 颗" +
       (rate ? "，自评 " + rate + " 星" : "") + "。</p>";
+    return h;
+  }
+
+  /* 单元词汇：从 en_vocab 取本单元所有词，自测卡 + 发音 + 生词本 */
+  function hubVocab(x, type) {
+    var rows = (D.vocab || []).filter(function (v) {
+      return v.book === x.book && (v.unit_no || 0) === (x.unit_no || 0);
+    });
+    var h = "";
+    if (!rows.length) {
+      h = '<div class="empty">本单元教材词表尚未录入（数据补充中）。' +
+        '可先在「📖 课文」点单词查发音，或去「<a href="vocab.html">词汇总表</a>」浏览已收录词汇。</div>';
+      return h;
+    }
+    h = '<p class="small">本单元共 ' + rows.length +
+      ' 个词 · 点卡片显示中文（自测）· 点 🔊 朗读 · 点 ⭐ 收进生词本</p>';
+    h += '<div class="words">' + rows.map(function (v) {
+      var k = wbKey(x.book, v.word);
+      var ph = v.phonetic || "";
+      if (ph && ph.charAt(0) !== "/") ph = "/" + ph + "/";
+      return '<span class="vcard"><b>' + esc(v.word) + "</b>" +
+        (ph ? " <i>" + esc(ph) + "</i>" : "") +
+        spkBtn(String(v.word || "")) +
+        '<button class="btn wb-toggle' + (WORDBOOK[k] ? " on" : "") +
+          '" data-wbkey="' + esc(k) + '" data-book="' + esc(x.book || "") +
+          '" data-word="' + esc(v.word || "") + '" data-ipa="' + esc(v.phonetic || "") +
+          '" data-zh="' + esc(v.meaning || "") +
+          '" title="收进生词本">' + (WORDBOOK[k] ? "★" : "⭐") + '</button>' +
+        '<span class="zh">' + esc(v.meaning || "") + "</span>" +
+        (v.example ? '<span class="ex-s">' + spkBtn(String(v.example || "")) +
+          esc(v.example) + "</span>" : "") +
+        "</span>";
+    }).join("") + "</div>";
     return h;
   }
 
