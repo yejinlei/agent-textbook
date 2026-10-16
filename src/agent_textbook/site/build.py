@@ -546,6 +546,14 @@ def build_english(con) -> dict:
                     examples=_j(r.get("examples"))[:8], chant=r.get("chant"))
                for r in pick("en_phonics", ["grade", "term", "unit_name", "letters",
                                             "sound", "examples", "chant"])]
+    # 语音拼读扩展：国际音标全表 + 自然拼读规则总览，与教材数据分离
+    phonics_ext = {"ipa": [], "nat_rules": []}
+    _pext = os.path.join(config.ATTRS_DIR, "en_phonics_ext.json")
+    if os.path.exists(_pext):
+        with open(_pext, encoding="utf-8") as _f:
+            _d = json.load(_f)
+            phonics_ext["ipa"] = _d.get("ipa", [])
+            phonics_ext["nat_rules"] = _d.get("nat_rules", [])
     # 语篇即英语的"课文"：原文 + 译文 + 阅读理解题 + 重点词
     passages = [dict(base(r), name=r.get("name"), genre=r.get("genre"),
                      source=r.get("source"), text=(r.get("text") or "")[:2000],
@@ -607,6 +615,7 @@ def build_english(con) -> dict:
         "domains": [{"key": d["key"], "name": d["name"], "desc": d["desc"]}
                     for d in goals.EN_DOMAINS],
         "vocab": vocab, "grammar": grammar, "phonics": phonics,
+        "phonics_ext": phonics_ext,
         "passages": passages, "dialogues": dialogues, "songs": songs,
         "projects": projects, "revisions": revisions,
         "themes": ["人与自我", "人与社会", "人与自然"],
@@ -1475,7 +1484,7 @@ def _slice(key, kind, cn_d, math_d, en_d):
                 "dialogues": en_d["dialogues"], "exprs": en_d.get("exprs", []),
                 "themes": en_d["themes"], "books": books}
     keys = {"discourse": ["passages", "dialogues"], "vocab": ["vocab"],
-            "grammar": ["grammar"], "phonics": ["phonics"],
+            "grammar": ["grammar"], "phonics": ["phonics", "phonics_ext"],
             "use": ["songs", "projects", "revisions"],
             "extra": ["passages", "dialogues"],
             "writing": ["passages", "dialogues", "vocab", "grammar"]}

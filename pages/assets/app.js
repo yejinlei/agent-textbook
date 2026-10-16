@@ -1289,6 +1289,7 @@
       box.innerHTML = h || '<div class="empty">没有匹配的内容</div>';
       cnt.textContent = box.querySelectorAll(kind === "grammar" ? ".dk-sec" : ".item").length + " 组";
       if (kind === "grammar") dkReveal(box);
+      if (kind === "phonics") phTabInit();
     }, { hint: { discourse: "如：family、weather", vocab: "如：job、doctor",
                  grammar: "如：can、there be、过去式", phonics: "如：sh、ai",
                  use: "如：song、project", extra: "如：family、weather、school",
@@ -4372,28 +4373,180 @@
     try { return JSON.parse(s); } catch (e) { return []; }
   }
 
+  /* 语音拼读：教材拼读卡片 + 国际音标全表 + 自然拼读规则总览 */
   function enPhonics(st) {
     var rows = (D.phonics || []).filter(pass(st, ["letters", "sound", "chant"]));
-    var h = "<h2>语音与拼读</h2>";
-    var by = {};
-    rows.forEach(function (x) { (by[x.book] = by[x.book] || []).push(x); });
-    return h + Object.keys(by).sort().map(function (b) {
-      var s = '<div class="item"><div class="top"><span class="name">' + esc(b) +
-        "</span></div>";
-      by[b].forEach(function (x) {
-        s += '<div class="step"><b>' + esc(x.letters || "") + "</b> <i>" +
-          esc(x.sound || "") + "</i>" +
-          ((x.examples || []).length ? ' <span class="words">' +
-            x.examples.slice(0, 6).map(function (e) {
-              var ew = typeof e === "string" ? e : (e.word || e);
-              return '<span class="wb">' + spkBtn(String(ew || "")) +
-                esc(ew) + "</span>";
-            }).join("") + "</span>" : "") + "</div>";
-        if (x.chant) s += '<div class="pat">' + spkBtn(String(x.chant || "")) +
-          esc(x.chant.slice(0, 140)) + "</div>";
+    var ext = D.phonics_ext || { ipa: [], nat_rules: [] };
+    var h = '<h2>语音与拼读 <span class="small">见词能读、听音能写</span></h2>';
+
+    /* 顶部标签导航 */
+    h += '<div class="ph-tabs">' +
+      '<button class="ph-tab on" data-tab="textbook">教材拼读</button>' +
+      '<button class="ph-tab" data-tab="ipa">国际音标</button>' +
+      '<button class="ph-tab" data-tab="nat">自然拼读规则</button>' +
+      '</div>';
+
+    /* 一、教材拼读（按发音类型分组卡片） */
+    h += '<div class="ph-pane" data-pane="textbook">';
+    var byType = {};
+    rows.forEach(function (x) {
+      var t = phTypeOf(x.sound, x.letters);
+      (byType[t] = byType[t] || []).push(x);
+    });
+    var typeOrder = ["短元音", "长元音", "双元音", "辅音组合", "其他组合"];
+    typeOrder.forEach(function (t) {
+      var list = byType[t];
+      if (!list || !list.length) return;
+      h += '<details class="ph-sec" open><summary>' + esc(t) +
+        ' <span class="ph-sec-n">' + list.length + " 组</span></summary>";
+      h += '<div class="ph-grid">';
+      list.forEach(function (x, i) { h += phCard(x, i); });
+      h += "</div></details>";
+    });
+    h += "</div>";
+
+    /* 二、国际音标 48 全表 */
+    h += '<div class="ph-pane" data-pane="ipa" hidden>';
+    h += '<p class="ph-intro">48 个国际音标：20 个元音 + 28 个辅音。点击音标听发音，点击例词听单词。</p>';
+    var ipaGroups = [
+      { name: "前元音", items: ext.ipa.filter(function (x) { return x.kind === "前元音"; }) },
+      { name: "中元音", items: ext.ipa.filter(function (x) { return x.kind === "中元音"; }) },
+      { name: "后元音", items: ext.ipa.filter(function (x) { return x.kind === "后元音"; }) },
+      { name: "双元音", items: ext.ipa.filter(function (x) { return x.kind === "双元音"; }) },
+      { name: "爆破音", items: ext.ipa.filter(function (x) { return x.kind === "爆破音"; }) },
+      { name: "摩擦音", items: ext.ipa.filter(function (x) { return x.kind === "摩擦音"; }) },
+      { name: "破擦音", items: ext.ipa.filter(function (x) { return x.kind === "破擦音"; }) },
+      { name: "鼻音", items: ext.ipa.filter(function (x) { return x.kind === "鼻音"; }) },
+      { name: "舌边音与半元音", items: ext.ipa.filter(function (x) { return x.kind === "舌边音" || x.kind === "半元音"; }) }
+    ];
+    ipaGroups.forEach(function (g) {
+      if (!g.items.length) return;
+      h += '<details class="ph-sec" open><summary>' + esc(g.name) +
+        ' <span class="ph-sec-n">' + g.items.length + " 个</span></summary>";
+      h += '<div class="ipa-grid">';
+      g.items.forEach(function (x) { h += ipaCard(x); });
+      h += "</div></details>";
+    });
+    h += "</div>";
+
+    /* 三、自然拼读规则总览 */
+    h += '<div class="ph-pane" data-pane="nat" hidden>';
+    h += '<p class="ph-intro">常见字母与字母组合的发音规则总览，从拼写到发音的映射表。</p>';
+    var natGroups = [
+      { name: "短元音", items: ext.nat_rules.filter(function (x) { return x.category === "短元音"; }) },
+      { name: "长元音（魔法 e）", items: ext.nat_rules.filter(function (x) { return x.category === "长元音"; }) },
+      { name: "元音组合", items: ext.nat_rules.filter(function (x) { return x.category === "元音组合"; }) },
+      { name: "辅音组合", items: ext.nat_rules.filter(function (x) { return x.category === "辅音组合"; }) }
+    ];
+    natGroups.forEach(function (g) {
+      if (!g.items.length) return;
+      h += '<details class="ph-sec" open><summary>' + esc(g.name) +
+        ' <span class="ph-sec-n">' + g.items.length + " 条</span></summary>";
+      h += '<div class="nat-grid">';
+      g.items.forEach(function (x) { h += natCard(x); });
+      h += "</div></details>";
+    });
+    h += "</div>";
+
+    return h;
+  }
+
+  /* 教材拼读卡片：大字符 + 音标 + 例词（字母组合高亮）+ chant */
+  function phCard(x, i) {
+    var h = '<div class="ph-card" style="--i:' + i + '">';
+    h += '<div class="ph-card-h">';
+    h += '<span class="ph-big">' + esc(x.letters || "") + "</span>";
+    h += '<span class="ph-sound">' + esc(x.sound || "") + "</span>";
+    h += "</div>";
+    if (x.examples && x.examples.length) {
+      h += '<div class="ph-words">';
+      x.examples.slice(0, 6).forEach(function (w) {
+        var word = String(typeof w === "string" ? w : (w.word || w) || "");
+        var hlWord = phHighlight(word, x.letters);
+        h += '<span class="ph-wb">' + spkBtn(word) + hlWord + "</span>";
       });
-      return s + "</div>";
-    }).join("");
+      h += "</div>";
+    }
+    if (x.chant) {
+      h += '<div class="ph-chant">' + spkBtn(String(x.chant || "")) +
+        '<span class="spk">' + esc(x.chant.slice(0, 140)) + "</span></div>";
+    }
+    h += "</div>";
+    return h;
+  }
+
+  /* 国际音标卡片：符号 + 名称 + 发音要诀 + 例词 */
+  function ipaCard(x) {
+    var h = '<div class="ipa-card">';
+    h += '<div class="ipa-sym">' + esc(x.symbol) + "</div>";
+    h += '<div class="ipa-name">' + esc(x.name) + "</div>";
+    h += '<div class="ipa-mouth">' + esc(x.mouth) + "</div>";
+    if (x.examples && x.examples.length) {
+      h += '<div class="ipa-ex">';
+      x.examples.slice(0, 4).forEach(function (w) {
+        h += '<span class="ph-wb">' + spkBtn(w) + esc(w) + "</span>";
+      });
+      h += "</div>";
+    }
+    if (x.letters && x.letters.length) {
+      h += '<div class="ipa-letters">常见字母：' + esc(x.letters.join(" / ")) + "</div>";
+    }
+    h += "</div>";
+    return h;
+  }
+
+  /* 自然拼读规则卡片：字母组合 + 发音 + 规则说明 + 例词 */
+  function natCard(x) {
+    var h = '<div class="nat-card">';
+    h += '<div class="nat-head"><span class="nat-l">' + esc(x.letter) + "</span>" +
+      '<span class="nat-s">' + esc(x.sound) + "</span></div>";
+    h += '<div class="nat-rule">' + esc(x.rule) + "</div>";
+    h += '<div class="nat-tip">' + esc(x.tip) + "</div>";
+    if (x.examples && x.examples.length) {
+      h += '<div class="nat-ex">';
+      x.examples.slice(0, 5).forEach(function (w) {
+        h += '<span class="ph-wb">' + spkBtn(w) + esc(w) + "</span>";
+      });
+      h += "</div>";
+    }
+    h += "</div>";
+    return h;
+  }
+
+  /* 根据 sound / letters 推断教材拼读类型 */
+  function phTypeOf(sound, letters) {
+    var s = (sound || "").toLowerCase();
+    var l = (letters || "").toLowerCase();
+    if (/æ|e|ɪ|ɒ|ʌ/.test(s) && l.length === 1) return "短元音";
+    if (/iː|eɪ|aɪ|əʊ|juː|uː/.test(s)) return "长元音";
+    if (/aʊ|ɔɪ|ɪə|eə|ʊə/.test(s)) return "双元音";
+    if (/tʃ|ʃ|θ|ð|f|k|ŋ|w|kw/.test(s) || l.length > 1) return "辅音组合";
+    return "其他组合";
+  }
+
+  /* 高亮例词中的字母组合 */
+  function phHighlight(word, letters) {
+    if (!letters || !word) return esc(word);
+    var lw = word.toLowerCase(), ll = letters.toLowerCase();
+    var idx = lw.indexOf(ll);
+    if (idx < 0) return esc(word);
+    return esc(word.slice(0, idx)) + '<span class="ph-hl">' +
+      esc(word.slice(idx, idx + letters.length)) + "</span>" +
+      esc(word.slice(idx + letters.length));
+  }
+
+  /* 标签页切换 */
+  function phTabInit() {
+    document.querySelectorAll(".ph-tab").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll(".ph-tab").forEach(function (b) { b.classList.remove("on"); });
+        btn.classList.add("on");
+        var tab = btn.getAttribute("data-tab");
+        document.querySelectorAll(".ph-pane").forEach(function (p) {
+          p.hidden = p.getAttribute("data-pane") !== tab;
+        });
+      });
+    });
   }
 
   /* 英语写作教学页：Writing Process / 6+1 Traits / 5 文体 / 句型+过渡词 / 检查表+练习 */

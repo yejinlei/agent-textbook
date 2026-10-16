@@ -883,6 +883,69 @@ details.lesson .les-item:hover { transform: none; box-shadow: none; }
 .ph-s { color: var(--muted); font-family: "Times New Roman", serif; font-size: 16px; }
 .chant { color: var(--muted); font-size: 14px; margin: 2px 0 8px; }
 
+/* 语音拼读 DK 可视化 */
+.ph-tabs { display: flex; gap: 6px; margin: 12px 0 16px; }
+.ph-tab {
+  padding: 6px 14px; border: 1px solid var(--line); border-radius: 20px;
+  background: #fff; cursor: pointer; font-size: 14px; transition: all .2s;
+}
+.ph-tab:hover { background: #f3f4f6; }
+.ph-tab.on { background: var(--c); color: #fff; border-color: var(--c); }
+.ph-pane { margin-bottom: 20px; }
+.ph-intro { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+.ph-sec { margin-bottom: 16px; border: 1px solid var(--line); border-radius: 12px; background: #fffdf8; }
+.ph-sec summary { padding: 10px 14px; font-weight: 600; cursor: pointer; list-style: none; }
+.ph-sec summary::after { content: "▸"; float: right; color: var(--muted); }
+.ph-sec[open] summary::after { content: "▾"; }
+.ph-sec-n { color: var(--muted); font-size: 13px; font-weight: 400; }
+.ph-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; padding: 12px; }
+.ph-card {
+  border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+  background: #fff; animation: phIn .4s ease both; animation-delay: calc(var(--i, 0) * 0.05s);
+}
+@keyframes phIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.ph-card-h { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.ph-big {
+  font-size: 28px; font-weight: 800; color: var(--c); line-height: 1;
+  background: #f3f4f6; border-radius: 10px; padding: 4px 12px;
+}
+.ph-sound { font-family: "Times New Roman", serif; font-size: 18px; color: var(--muted); }
+.ph-words { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.ph-wb {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #f8fafc; border-radius: 6px; padding: 2px 8px; font-size: 14px;
+}
+.ph-hl { color: #dc2626; font-weight: 700; }
+.ph-chant { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+/* 国际音标网格 */
+.ipa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding: 12px; }
+.ipa-card {
+  border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+  background: #fff; text-align: center;
+}
+.ipa-sym {
+  font-family: "Times New Roman", serif; font-size: 32px; font-weight: 700;
+  color: var(--c); margin-bottom: 4px;
+}
+.ipa-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.ipa-mouth { font-size: 12px; color: var(--muted); line-height: 1.4; margin-bottom: 8px; min-height: 34px; }
+.ipa-ex { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 6px; }
+.ipa-letters { font-size: 11px; color: var(--muted); }
+
+/* 自然拼读规则 */
+.nat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; padding: 12px; }
+.nat-card {
+  border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+  background: #fff;
+}
+.nat-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.nat-l { font-size: 20px; font-weight: 800; color: var(--c); }
+.nat-s { font-family: "Times New Roman", serif; font-size: 16px; color: var(--muted); }
+.nat-rule { font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px; }
+.nat-tip { font-size: 12px; color: var(--muted); line-height: 1.4; margin-bottom: 8px; }
+.nat-ex { display: flex; flex-wrap: wrap; gap: 6px; }
+
 /* 语法卡 / 项目卡 */
 .g-card {
   border: 1px solid var(--line);
