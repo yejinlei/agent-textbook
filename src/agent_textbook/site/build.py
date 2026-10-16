@@ -1490,19 +1490,21 @@ def build_pages(out_dir: str = None, verbose: bool = True) -> dict:
         for fn in os.listdir(ASSETS_SRC):
             shutil.copy(os.path.join(ASSETS_SRC, fn), os.path.join(out, "assets", fn))
 
-    # 英语点读音频：把 data/tts/ 整目录拷到 pages/tts/（含 index.json 与 4 个音色子目录）
+    # 英语点读音频：把 data/tts/ 合并进 pages/tts/（含 index.json 与 4 个音色子目录）
+    # 注意：pages/tts 可能已经有构建时未覆盖的批量生成音频（如 fa5563f4 的 6318x4 音色），
+    # 这里必须用增量合并，不能 rmtree —— 否则 pages/tts 会被 data/tts（只有 1500 多份）
+    # 反向覆盖，把已有的 25k+ MP3 删光。
     from . import tts as _tts
     if os.path.isdir(_tts.TTS_DIR):
         tts_out = os.path.join(out, "tts")
-        if os.path.isdir(tts_out):
-            shutil.rmtree(tts_out)
-        shutil.copytree(_tts.TTS_DIR, tts_out)
+        os.makedirs(tts_out, exist_ok=True)
+        shutil.copytree(_tts.TTS_DIR, tts_out, dirs_exist_ok=True)
         n_mp3 = sum(len([f for f in os.listdir(os.path.join(tts_out, v))
                          if f.endswith(".mp3")])
                     for v in os.listdir(tts_out)
                     if os.path.isdir(os.path.join(tts_out, v)))
         if verbose:
-            print(f"→ TTS: {n_mp3} MP3 从 {_tts.TTS_DIR} 拷到 {tts_out}")
+            print(f"→ TTS: {n_mp3} MP3 已同步到 {tts_out}")
 
     con = duckdb.connect(DB_PATH, read_only=True)
     try:
