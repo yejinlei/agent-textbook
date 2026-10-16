@@ -4140,7 +4140,15 @@
   }
 
   /* ================= DK 风语法图解：积木句构 + 例句着色 + 时态轴 ================= */
-  var DK_TENSES = ["一般现在时", "现在进行时", "一般将来时", "be going to", "一般过去时"];
+  var DK_TENSES = ["一般现在时", "一般过去时", "一般将来时", "过去将来时",
+    "现在进行时", "过去进行时", "将来进行时", "过去将来进行时",
+    "现在完成时", "过去完成时", "将来完成时", "过去将来完成时",
+    "现在完成进行时", "过去完成进行时", "将来完成进行时", "过去将来完成进行时"];
+  /* 16 时态网格坐标：[行(体), 列(时)] 行=一般/进行/完成/完成进行，列=过去/现在/将来/过去将来 */
+  var DK_TGRID = { "一般过去时": [0, 0], "一般现在时": [0, 1], "一般将来时": [0, 2], "过去将来时": [0, 3],
+    "过去进行时": [1, 0], "现在进行时": [1, 1], "将来进行时": [1, 2], "过去将来进行时": [1, 3],
+    "过去完成时": [2, 0], "现在完成时": [2, 1], "将来完成时": [2, 2], "过去将来完成时": [2, 3],
+    "过去完成进行时": [3, 0], "现在完成进行时": [3, 1], "将来完成进行时": [3, 2], "过去将来完成进行时": [3, 3] };
 
   function enGrammar(st) {
     var rows = (D.grammar || []).filter(pass(st, ["point", "pattern", "rule", "category"]));
@@ -4155,7 +4163,11 @@
       if (!byCat[k]) { byCat[k] = []; cOrder.push(k); }
       byCat[k].push(g);
     });
-    cOrder.sort(function (a, b) { return byCat[b].length - byCat[a].length; });
+    cOrder.sort(function (a, b) {
+      if (a === "时态") return -1;
+      if (b === "时态") return 1;
+      return byCat[b].length - byCat[a].length;
+    });
     h += '<div class="dk-nav">' + cOrder.map(function (k, i) {
       return '<a href="#dkc' + i + '">' + esc(k) + " <b>" + byCat[k].length + "</b></a>";
     }).join("") + "</div>";
@@ -4178,40 +4190,43 @@
     }).join("") + "</div>";
   }
 
-  /* 时态全景条：每个时态一张小卡，标注条数与覆盖册数 */
+  /* 时态全景：16 时态 4×4 网格（行=体，列=时），每格标条数，点击跳到时态区块 */
   function dkTenseMap(rows) {
-    var st = {}, order = [];
+    var st = {};
     rows.forEach(function (g) {
       if (!g.tense) return;
-      if (!st[g.tense]) { st[g.tense] = { n: 0, books: {} }; order.push(g.tense); }
-      st[g.tense].n++; st[g.tense].books[g.book] = 1;
+      if (!st[g.tense]) st[g.tense] = 0;
+      st[g.tense]++;
     });
-    if (!order.length) return "";
-    order.sort(function (a, b) {
-      var ia = DK_TENSES.indexOf(a), ib = DK_TENSES.indexOf(b);
-      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    var aspects = ["一般", "进行", "完成", "完成进行"];
+    var times = ["过去", "现在", "将来", "过去将来"];
+    var names = [
+      ["一般过去时", "一般现在时", "一般将来时", "过去将来时"],
+      ["过去进行时", "现在进行时", "将来进行时", "过去将来进行时"],
+      ["过去完成时", "现在完成时", "将来完成时", "过去将来完成时"],
+      ["过去完成进行时", "现在完成进行时", "将来完成进行时", "过去将来完成进行时"]];
+    var h = '<div class="dk-tgrid"><div class="dk-tg0"></div>';
+    times.forEach(function (t) { h += '<div class="dk-tgc">' + t + "</div>"; });
+    aspects.forEach(function (a, r) {
+      h += '<div class="dk-tgr">' + a + "</div>";
+      names[r].forEach(function (tn) {
+        var n = st[tn] || 0;
+        h += '<a class="dk-cell' + (n ? "" : " off") + '" href="#dkc0"><b>' + esc(tn) + "</b>" +
+          "<span>" + (n ? n + " 条" : "—") + "</span></a>";
+      });
     });
-    return '<div class="dk-tmap">' + order.map(function (t) {
-      return '<div class="dk-tm"><div class="dk-tm-h">' + dkTlSvg(t) + "</div>" +
-        '<div class="dk-tm-name">' + esc(t) + '</div><div class="dk-tm-meta">' +
-        st[t].n + " 条 · " + Object.keys(st[t].books).length + " 册</div></div>";
-    }).join("") + "</div>";
+    return h + "</div>";
   }
 
-  /* 小时态轴：过去 —— 现在 —— 将来，高亮本时态位置 */
+  /* 迷你 4×4 时态网格：红点标出本时态位置（行=体，列=时） */
   function dkTlSvg(tense) {
-    var x = { "一般过去时": 46, "一般现在时": 150, "现在进行时": 150,
-              "一般将来时": 254, "be going to": 254 }[tense] || 150;
-    var s = '<svg class="dk-tl" viewBox="0 0 300 60" width="210" height="42" aria-hidden="true">';
-    s += '<line x1="20" y1="26" x2="280" y2="26" stroke="#ddd5c2" stroke-width="3" stroke-linecap="round"/>';
-    [[46, "过去"], [150, "现在"], [254, "将来"]].forEach(function (m) {
-      var on = m[0] === x;
-      s += '<line x1="' + m[0] + '" y1="19" x2="' + m[0] + '" y2="33" stroke="' +
-        (on ? "#e5534b" : "#c9c0aa") + '" stroke-width="3" stroke-linecap="round"/>';
-      s += '<text x="' + m[0] + '" y="50" text-anchor="middle" class="dk-tl-lab' +
-        (on ? " on" : "") + '">' + m[1] + "</text>";
-      if (on) s += '<circle cx="' + m[0] + '" cy="26" r="7" fill="#e5534b"/>';
-    });
+    var p = DK_TGRID[tense];
+    var s = '<svg class="dk-tl" viewBox="0 0 124 124" width="52" height="52" aria-hidden="true">';
+    for (var r = 0; r < 4; r++) for (var c = 0; c < 4; c++) {
+      var on = p && p[0] === r && p[1] === c;
+      s += '<circle cx="' + (20 + c * 28) + '" cy="' + (20 + r * 28) + '" r="' +
+        (on ? 9 : 4.5) + '" fill="' + (on ? "#e5534b" : "#ddd5c2") + '"/>';
+    }
     return s + "</svg>";
   }
 
@@ -4229,7 +4244,10 @@
     });
     var n = 0;
     return order.map(function (t) {
-      var cards = by[t].map(function (g) { n++; return dkCard(g, n); }).join("");
+      /* 扩展语法库的总览卡（无册次）排在各时态组最前 */
+      var cards = by[t].slice().sort(function (a, b) {
+        return (a.book ? 1 : 0) - (b.book ? 1 : 0);
+      }).map(function (g) { n++; return dkCard(g, n); }).join("");
       return '<div class="dk-tg"><div class="dk-tg-h">' + dkTlSvg(t) + "<b>" + esc(t) +
         '</b><span class="dk-tg-n">' + by[t].length + " 条</span></div>" + cards + "</div>";
     }).join("");
@@ -4237,7 +4255,7 @@
 
   function dkCard(g, n) {
     var s = '<div class="dk-card"><div class="dk-ch"><span class="dk-num">' + n + "</span>" +
-      "<h3>" + esc(g.point || "") + "</h3>" + where(g) + "</div>";
+      "<h3>" + esc(g.point || "") + "</h3>" + (g.book ? where(g) : "") + "</div>";
     if (g.rule) s += '<div class="dk-rule">' + esc(g.rule) + "</div>";
     s += dkTiles(g.pattern);
     var exs = typeof g.examples === "string" ? safeJson(g.examples) : (g.examples || []);
@@ -4277,14 +4295,18 @@
     var s = seg.toLowerCase();
     if (!/[一-鿿]/.test(seg) && seg.length > 16) return { cls: "misc", tag: "句型" };
     if (/^(who|what|where|when|why|whose|which|how)\b|疑问词/.test(s)) return { cls: "q", tag: "疑问词" };
+    if (/关系代词|关系副词|关系词/.test(seg)) return { cls: "q", tag: "关系词" };
+    if (/连词/.test(seg)) return { cls: "prep", tag: "连词" };
     if (/^(do|does|did|can|could|will|would|shall|should|may|might|must|won)n't$|\bnot\b|\bno\b|never|否定/.test(s))
       return { cls: "neg", tag: "否定" };
     if (/^(do|does|did|can|could|will|would|shall|should|may|might|must)\b|助动词|情态|have to|has to/.test(s))
       return { cls: "aux", tag: "助动词" };
     if (/^there (is|are|was|were)\b/.test(s)) return { cls: "verb", tag: "There be" };
     if (/^(am|is|are|was|were|be)\b|系动词|be ?动词/.test(s)) return { cls: "verb", tag: "系动词" };
+    if (/过去分词/.test(seg)) return { cls: "verb", tag: "过去分词" };
     if (/过去式/.test(seg)) return { cls: "verb", tag: "谓语·过去式" };
-    if (/进行时|动名词|ing$/.test(s)) return { cls: "verb", tag: "谓语·ing" };
+    if (/进行时|动名词|ing$|现在分词/.test(s)) return { cls: "verb", tag: "谓语·ing" };
+    if (/分词/.test(seg)) return { cls: "verb", tag: "分词" };
     if (/动词|谓语/.test(seg)) return { cls: "verb", tag: "谓语" };
     if (/主语/.test(seg)) return { cls: "subj", tag: "主语" };
     if (/^(i|you|he|she|it|we|they|this|that|these|those|there)\b/.test(s)) return { cls: "subj", tag: "主语" };
@@ -4302,6 +4324,7 @@
   /* 词尾形态小片：三单+s / 过去式+ed / 进行+ing / 复数+s */
   function dkMorph(seg) {
     if (/加 ?s|s\/es|三单|第三人称/.test(seg)) return ["s", "三单+s"];
+    if (/过去分词/.test(seg)) return ["ed/en", "过去分词"];
     if (/过去式/.test(seg)) return ["ed", "过去式"];
     if (/进行时|动词 ?ing|动名词/.test(seg)) return ["ing", "加ing"];
     if (/复数/.test(seg)) return ["s", "复数+s"];
@@ -4315,9 +4338,11 @@
       '<span class="hl-a">$1</span><span class="hl-n">$2</span>');
     t = t.replace(/\b(am|is|are|was|were)(n't| not)\b/gi,
       '<span class="hl-v">$1</span><span class="hl-n">$2</span>');
-    t = t.replace(/\b(do|does|did|can|could|will|would|shall|should|may|might|must)\b/gi,
+    t = t.replace(/\b(do|does|did|can|could|will|would|shall|should|may|might|must|have|has|had)\b/gi,
       '<span class="hl-a">$1</span>');
-    t = t.replace(/\b(am|is|are|was|were)\b/gi, '<span class="hl-v">$1</span>');
+    t = t.replace(/\b(am|is|are|was|were|been|being)\b/gi, '<span class="hl-v">$1</span>');
+    t = t.replace(/\b(i|you|we|they|he|she|it)('ve|'d)\b/gi,
+      '<span class="hl-s">$1</span><span class="hl-a">$2</span>');
     t = t.replace(/\b(going to)\b/gi, '<span class="hl-a">$1</span>');
     t = t.replace(/^(who|what|where|when|why|whose|which|how)\b/i, '<span class="hl-q">$1</span>');
     t = t.replace(/\b(i|you|he|she|it|we|they|this|that|these|those|there)\b/gi,

@@ -531,6 +531,17 @@ def build_english(con) -> dict:
                for r in pick("en_grammar", ["grade", "term", "unit_name", "point",
                                             "pattern", "rule", "category", "tense",
                                             "examples"])]
+    # 扩展语法库（data/attrs/en_grammar_ext.json）：16 时态全覆盖 + 词法句法全主题，
+    # 不来自教材，无册次标注（book 为空，前端不显示来源标签）
+    _gext = os.path.join(config.ATTRS_DIR, "en_grammar_ext.json")
+    if os.path.exists(_gext):
+        with open(_gext, encoding="utf-8") as _f:
+            for r in json.load(_f):
+                grammar.append(dict(grade="", term="", book="", unit_no="", unit="",
+                                    point=r.get("point"), pattern=r.get("pattern"),
+                                    rule=r.get("rule"), category=r.get("category"),
+                                    tense=r.get("tense"),
+                                    examples=(r.get("examples") or [])[:8]))
     phonics = [dict(base(r), letters=r.get("letters"), sound=r.get("sound"),
                     examples=_j(r.get("examples"))[:8], chant=r.get("chant"))
                for r in pick("en_phonics", ["grade", "term", "unit_name", "letters",

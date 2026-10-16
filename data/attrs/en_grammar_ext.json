@@ -1,0 +1,278 @@
+[
+{"point":"一般现在时","pattern":"主语 + 动词原形/三单 + ...","rule":"表示经常发生的动作、习惯、客观真理或现在的状态。常与 every day、always、usually、often 连用。","category":"时态","tense":"一般现在时","examples":[
+{"en":"The sun rises in the east.","zh":"太阳从东方升起。（客观真理）"},
+{"en":"She walks to school every day.","zh":"她每天步行上学。"},
+{"en":"I usually get up at seven.","zh":"我通常七点起床。"},
+{"en":"Water boils at 100 degrees.","zh":"水在 100 度沸腾。"}]},
+{"point":"一般过去时","pattern":"主语 + 动词过去式 + ...","rule":"表示过去某个时间发生的动作或状态。常与 yesterday、last week、ago、just now 连用。","category":"时态","tense":"一般过去时","examples":[
+{"en":"I played football yesterday.","zh":"我昨天踢了足球。"},
+{"en":"She was ill last week.","zh":"她上周生病了。"},
+{"en":"They moved here two years ago.","zh":"他们两年前搬到这里。"},
+{"en":"He did not come to school today.","zh":"他今天没来上学。"}]},
+{"point":"一般将来时","pattern":"主语 + will + 动词原形 + ...","rule":"表示将来要发生的动作或状态，也可用 be going to 表示计划、打算或有迹象要发生。常与 tomorrow、next week、soon 连用。","category":"时态","tense":"一般将来时","examples":[
+{"en":"I will visit my grandma tomorrow.","zh":"我明天要去看望奶奶。"},
+{"en":"It is going to rain soon.","zh":"马上就要下雨了。"},
+{"en":"We will have a party next Friday.","zh":"下周五我们要开派对。"},
+{"en":"She will be eleven next month.","zh":"下个月她就十一岁了。"}]},
+{"point":"过去将来时","pattern":"主语 + would + 动词原形 + ...","rule":"从过去某一时间看将要发生的动作，多用于宾语从句，主句动词用过去式。","category":"时态","tense":"过去将来时","examples":[
+{"en":"He said he would come.","zh":"他说过他会来。"},
+{"en":"I thought it would rain.","zh":"我当时想天会下雨。"},
+{"en":"She told me she would be back soon.","zh":"她告诉我她很快回来。"}]},
+{"point":"现在进行时","pattern":"主语 + am/is/are + 动词ing + ...","rule":"表示此刻正在进行或现阶段持续的动作。常与 now、look、listen、at the moment 连用。","category":"时态","tense":"现在进行时","examples":[
+{"en":"She is reading a book now.","zh":"她现在正在看书。"},
+{"en":"Look! They are playing games.","zh":"看！他们在玩游戏。"},
+{"en":"I am doing my homework.","zh":"我正在做作业。"},
+{"en":"Listen! Someone is singing.","zh":"听！有人在唱歌。"}]},
+{"point":"过去进行时","pattern":"主语 + was/were + 动词ing + ...","rule":"表示过去某一时刻或某段时间正在进行的动作，常与 at that time、at eight last night 或 when 引导的从句连用。","category":"时态","tense":"过去进行时","examples":[
+{"en":"They were playing at eight last night.","zh":"昨晚八点他们正在玩。"},
+{"en":"I was sleeping when the phone rang.","zh":"电话响的时候我正在睡觉。"},
+{"en":"What were you doing at that time?","zh":"那时候你在做什么？"}]},
+{"point":"将来进行时","pattern":"主语 + will be + 动词ing + ...","rule":"表示将来某一时刻或某段时间正在进行的动作。","category":"时态","tense":"将来进行时","examples":[
+{"en":"I will be studying at nine tomorrow.","zh":"明天九点我将正在学习。"},
+{"en":"They will be waiting for us at the gate.","zh":"他们会在大门口等着我们。"}]},
+{"point":"过去将来进行时","pattern":"主语 + would be + 动词ing + ...","rule":"从过去某一时间看将来某时正在进行的动作，多用于宾语从句。","category":"时态","tense":"过去将来进行时","examples":[
+{"en":"He said he would be waiting at six.","zh":"他说他六点会等着。"},
+{"en":"I thought they would be traveling then.","zh":"我原以为他们那时会在旅行。"}]},
+{"point":"现在完成时","pattern":"主语 + have/has + 过去分词 + ...","rule":"表示过去发生的动作对现在造成的影响，或从过去持续到现在的状态。常与 already、just、yet、ever、never、for、since 连用。","category":"时态","tense":"现在完成时","examples":[
+{"en":"I have finished my homework.","zh":"我已经做完作业了。"},
+{"en":"She has lived here for ten years.","zh":"她在这里住了十年了。"},
+{"en":"Have you ever been to Beijing?","zh":"你去过北京吗？"},
+{"en":"He has not come back yet.","zh":"他还没回来。"}]},
+{"point":"过去完成时","pattern":"主语 + had + 过去分词 + ...","rule":"表示在过去某一时间或动作之前已经完成，即“过去的过去”。常与 by、before、when 引导的从句连用。","category":"时态","tense":"过去完成时","examples":[
+{"en":"The train had left when we arrived.","zh":"我们到达时火车已经开走了。"},
+{"en":"By last year, I had learned 500 words.","zh":"到去年为止我已学了 500 个单词。"},
+{"en":"She had finished it before supper.","zh":"晚饭前她就已经做完了。"}]},
+{"point":"将来完成时","pattern":"主语 + will have + 过去分词 + ...","rule":"表示到将来某一时间为止将会完成的动作。常与 by + 将来时间连用。","category":"时态","tense":"将来完成时","examples":[
+{"en":"I will have finished it by Friday.","zh":"到周五我就能完成了。"},
+{"en":"By next year, they will have built the bridge.","zh":"到明年他们就把桥建好了。"}]},
+{"point":"过去将来完成时","pattern":"主语 + would have + 过去分词 + ...","rule":"从过去某一时间看，到将来某时为止将会完成的动作，多用于宾语从句。","category":"时态","tense":"过去将来完成时","examples":[
+{"en":"He thought they would have arrived by noon.","zh":"他想他们到中午就能到了。"},
+{"en":"She said she would have done it by then.","zh":"她说到那时她就能做完了。"}]},
+{"point":"现在完成进行时","pattern":"主语 + have/has been + 动词ing + ...","rule":"表示从过去开始一直持续到现在、并可能继续下去的动作，强调持续过程。常与 for、since、all day 连用。","category":"时态","tense":"现在完成进行时","examples":[
+{"en":"She has been studying for three hours.","zh":"她已经连续学了三个小时了。"},
+{"en":"It has been raining all day.","zh":"雨已经下一整天了。"},
+{"en":"We have been waiting since nine.","zh":"我们从九点一直等到现在。"}]},
+{"point":"过去完成进行时","pattern":"主语 + had been + 动词ing + ...","rule":"表示到过去某时为止一直持续进行的动作。","category":"时态","tense":"过去完成进行时","examples":[
+{"en":"He had been working all day, so he was tired.","zh":"他干了一整天的活，所以很累。"},
+{"en":"They had been playing for an hour when it rained.","zh":"下雨时他们已经玩了一个小时了。"}]},
+{"point":"将来完成进行时","pattern":"主语 + will have been + 动词ing + ...","rule":"表示到将来某时为止已经持续进行多长时间的动作。","category":"时态","tense":"将来完成进行时","examples":[
+{"en":"By June, I will have been learning English for six years.","zh":"到六月，我学英语就满六年了。"}]},
+{"point":"过去将来完成进行时","pattern":"主语 + would have been + 动词ing + ...","rule":"从过去某时看，到将来某时为止已持续进行多长时间的动作，多用于宾语从句。","category":"时态","tense":"过去将来完成进行时","examples":[
+{"en":"She said she would have been teaching for ten years by then.","zh":"她说到那时她教书就满十年了。"}]},
+
+{"point":"可数名词复数：规则变化","pattern":"名词 + s/es/ies/ves","rule":"一般加 s；以 s/x/ch/sh 结尾加 es；辅音字母+y 变 y 为 i 加 es；以 f/fe 结尾多变 f 为 v 加 es。","category":"名词","examples":[
+{"en":"one book, two books","zh":"一本书，两本书"},
+{"en":"a box, some boxes","zh":"一个盒子，一些盒子"},
+{"en":"a baby, two babies","zh":"一个宝宝，两个宝宝"},
+{"en":"a knife, three knives","zh":"一把刀，三把刀"}]},
+{"point":"可数名词复数：不规则变化","pattern":"单数 → 复数（特殊记忆）","rule":"部分名词复数是不规则变化，需要单独记忆。","category":"名词","examples":[
+{"en":"man → men, woman → women","zh":"男人→男人们，女人→女人们"},
+{"en":"child → children","zh":"孩子→孩子们"},
+{"en":"foot → feet, tooth → teeth","zh":"脚→双脚，牙→牙齿"},
+{"en":"sheep → sheep, fish → fish","zh":"绵羊、鱼（单复数同形）"}]},
+{"point":"不可数名词","pattern":"a piece/cup of + 不可数名词","rule":"水、牛奶、面包、纸等不可数名词没有复数，不能直接用 a/an；表示数量要用“量词 + of”。","category":"名词","examples":[
+{"en":"a glass of milk","zh":"一杯牛奶"},
+{"en":"two pieces of paper","zh":"两张纸"},
+{"en":"some bread","zh":"一些面包"},
+{"en":"much water","zh":"许多水"}]},
+{"point":"名词所有格","pattern":"名词 + 's / of + 名词","rule":"表示“……的”。有生命的用 's（Tom's book），以 s 结尾的复数只加 '；无生命的常用 of（the door of the room）。","category":"名词","examples":[
+{"en":"Tom's bag is new.","zh":"汤姆的书包是新的。"},
+{"en":"the girls' classroom","zh":"女生们的教室"},
+{"en":"the window of the room","zh":"房间的窗户"},
+{"en":"Children's Day","zh":"儿童节"}]},
+
+{"point":"不定冠词 a / an","pattern":"a/an + 单数可数名词","rule":"表示“一个”，泛指。a 用在辅音音素前，an 用在元音音素前（看读音不看字母）。","category":"冠词","examples":[
+{"en":"a dog, a cat, a book","zh":"一只狗、一只猫、一本书"},
+{"en":"an apple, an egg, an orange","zh":"一个苹果、一个鸡蛋、一个橙子"},
+{"en":"an hour","zh":"一小时（h 不发音）"},
+{"en":"a uniform","zh":"一套校服（u 读 /juː/ 是辅音）"}]},
+{"point":"定冠词 the","pattern":"the + 名词","rule":"表示特指：双方都知道的、上文提过的、独一无二的事物；还用于序数词、最高级、乐器前。","category":"冠词","examples":[
+{"en":"The sun is bright.","zh":"太阳很亮。（独一无二）"},
+{"en":"Open the door, please.","zh":"请开门。（双方都知道）"},
+{"en":"the first day","zh":"第一天（序数词）"},
+{"en":"play the piano","zh":"弹钢琴（乐器）"}]},
+{"point":"零冠词","pattern":"（不加冠词）+ 名词","rule":"三餐、球类、学科、星期、月份、节日前通常不加冠词；复数名词和不可数名词表泛指时也不加。","category":"冠词","examples":[
+{"en":"have breakfast","zh":"吃早饭"},
+{"en":"play football","zh":"踢足球"},
+{"en":"on Monday, in May","zh":"在周一、在五月"},
+{"en":"Dogs are our friends.","zh":"狗是我们的朋友。（泛指）"}]},
+
+{"point":"人称代词：主格与宾格","pattern":"主格 + 动词 / 动词/介词 + 宾格","rule":"作主语用主格（I/you/he/she/it/we/they），作宾语用宾格（me/you/him/her/it/us/them）。","category":"代词","examples":[
+{"en":"I like English.","zh":"我喜欢英语。（主格作主语）"},
+{"en":"Miss Li teaches us.","zh":"李老师教我们。（宾格作宾语）"},
+{"en":"Look at him.","zh":"看他。（介词后用宾格）"},
+{"en":"She is my friend. I play with her.","zh":"她是我的朋友，我和她一起玩。"}]},
+{"point":"物主代词","pattern":"形容词性 + 名词 / 名词性（单独用）","rule":"形容词性物主代词（my/your/his/her/its/our/their）后必须接名词；名词性物主代词（mine/yours/his/hers/its/ours/theirs）单独使用。","category":"代词","examples":[
+{"en":"This is my pen.","zh":"这是我的钢笔。"},
+{"en":"The pen is mine.","zh":"这支钢笔是我的。"},
+{"en":"Is this yours?","zh":"这是你的吗？"},
+{"en":"Their classroom is big. Ours is small.","zh":"他们的教室大，我们的小。"}]},
+{"point":"反身代词","pattern":"主语 + 动词 + -self/-selves","rule":"表示自己：myself、yourself、himself、herself、itself、ourselves、yourselves、themselves。常用于 by oneself（独自）。","category":"代词","examples":[
+{"en":"I can do it by myself.","zh":"我能独立完成。"},
+{"en":"She taught herself English.","zh":"她自学英语。"},
+{"en":"Help yourself, please.","zh":"请随便吃。"}]},
+{"point":"指示代词","pattern":"this/that/these/those + 名词","rule":"近指用 this（这）/these（这些），远指用 that（那）/those（那些）；this、that 配单数，these、those 配复数。","category":"代词","examples":[
+{"en":"This is my book.","zh":"这是我的书。（近，单数）"},
+{"en":"That is his bike.","zh":"那是他的自行车。（远，单数）"},
+{"en":"These are apples. Those are pears.","zh":"这些是苹果，那些是梨。"}]},
+{"point":"不定代词","pattern":"some/any/every/no + -thing/-one/-body","rule":"some 用于肯定句，any 用于否定句和疑问句；something 某物、anything 任何事物、everything 一切、nothing 没有东西。","category":"代词","examples":[
+{"en":"I have something to tell you.","zh":"我有事要告诉你。"},
+{"en":"Do you have any questions?","zh":"你有问题吗？"},
+{"en":"There is nothing in the box.","zh":"盒子里什么也没有。"},
+{"en":"Everyone is here.","zh":"大家都到了。"}]},
+
+{"point":"基数词与序数词","pattern":"基数词（数量）/ the + 序数词（顺序）","rule":"基数词表数量（one, two, three…），序数词表顺序（first, second, third…），序数词前一般加 the。","category":"数词","examples":[
+{"en":"I have three pencils.","zh":"我有三支铅笔。"},
+{"en":"Sunday is the first day of a week.","zh":"星期日是一周的第一天。"},
+{"en":"He lives on the fifth floor.","zh":"他住在五楼。"},
+{"en":"one fifth","zh":"五分之一（分子基数、分母序数）"}]},
+{"point":"数词表达：时间、日期、年代","pattern":"时刻 / 日期 / 年份","rule":"时刻用 at，日期用 on，年份月份用 in；年份按数字逐个读。","category":"数词","examples":[
+{"en":"at six o'clock","zh":"在六点钟"},
+{"en":"on July 1st, 2024","zh":"在 2024 年 7 月 1 日"},
+{"en":"in 2026 (twenty twenty-six)","zh":"在 2026 年"},
+{"en":"half past seven","zh":"七点半"}]},
+
+{"point":"形容词/副词：比较级","pattern":"A + be + 比较级 + than + B","rule":"两者比较用比较级：短词加 -er（taller），多音节词前加 more（more beautiful），不规则变化单独记（good→better, bad→worse）。","category":"形容词副词","examples":[
+{"en":"Tom is taller than Jack.","zh":"汤姆比杰克高。"},
+{"en":"This book is more interesting than that one.","zh":"这本书比那本更有趣。"},
+{"en":"My bag is better than yours.","zh":"我的包比你的好。"},
+{"en":"He runs faster than me.","zh":"他跑得比我快。"}]},
+{"point":"形容词/副词：最高级","pattern":"主语 + be + the + 最高级 + in/of ...","rule":"三者及以上比较用最高级：短词加 -est（tallest），多音节词前加 most，不规则（good→best, bad→worst）；形容词最高级前要加 the。","category":"形容词副词","examples":[
+{"en":"He is the tallest boy in our class.","zh":"他是我们班最高的男生。"},
+{"en":"This is the most beautiful park in the city.","zh":"这是这个城市最美的公园。"},
+{"en":"She sings best of us all.","zh":"她在我们所有人中唱得最好。"}]},
+{"point":"副词的构成与种类","pattern":"形容词 + ly → 副词 / 频率副词 + 动词","rule":"形容词加 ly 变副词（slow→slowly，happy→happily），少数同形（fast, hard, early）；频率副词（always>usually>often>sometimes>never）放在实义动词前、be 动词后。","category":"形容词副词","examples":[
+{"en":"He runs fast.","zh":"他跑得快。"},
+{"en":"She sings beautifully.","zh":"她唱得很美。"},
+{"en":"I always do my homework first.","zh":"我总是先做作业。"},
+{"en":"He is never late.","zh":"他从不迟到。"}]},
+
+{"point":"时间介词 in / on / at","pattern":"in + 年月季节 / on + 具体某天 / at + 时刻","rule":"大范围时间用 in（in May, in 2026, in the morning），具体某天用 on（on Monday, on July 1st），时刻点用 at（at seven, at noon）。","category":"介词","examples":[
+{"en":"I get up at seven.","zh":"我七点起床。"},
+{"en":"We have PE on Friday.","zh":"我们周五有体育课。"},
+{"en":"Flowers come out in spring.","zh":"花儿在春天开放。"},
+{"en":"in the morning, on Monday morning","zh":"在早上；在周一早上（具体某天用 on）"}]},
+{"point":"地点方位介词","pattern":"in/on/under/behind/next to/between ... + 地点","rule":"in 在……里、on 在……上、under 在……下、behind 在……后、next to 紧挨、between 在（两者）之间、in front of 在……前。","category":"介词","examples":[
+{"en":"The cat is under the chair.","zh":"猫在椅子下面。"},
+{"en":"The bank is next to the park.","zh":"银行紧挨着公园。"},
+{"en":"She sits between Tom and me.","zh":"她坐在汤姆和我之间。"},
+{"en":"There is a garden in front of the house.","zh":"房子前面有个花园。"}]},
+
+{"point":"并列连词","pattern":"句子 + and/but/or/so + 句子","rule":"and 表并列、but 表转折、or 表选择或“否则”、so 表结果，连接两个对等的词或句子。","category":"连词","examples":[
+{"en":"I like apples and bananas.","zh":"我喜欢苹果和香蕉。"},
+{"en":"It is small but nice.","zh":"它小但是漂亮。"},
+{"en":"Hurry up, or you will be late.","zh":"快点，否则你要迟到了。"},
+{"en":"It rained, so we stayed at home.","zh":"下雨了，所以我们待在家里。"}]},
+{"point":"从属连词","pattern":"because/when/if/although + 从句 + , + 主句","rule":"引导从句：because 因为、when 当……时、if 如果、although 虽然、before 在……前、after 在……后。注意：because 不与 so 连用，although 不与 but 连用。","category":"连词","examples":[
+{"en":"I stayed home because it rained.","zh":"因为下雨，我待在家里。"},
+{"en":"When I grow up, I want to be a teacher.","zh":"当我长大，我想当老师。"},
+{"en":"Although he is young, he knows a lot.","zh":"虽然他小，但他懂得很多。"}]},
+
+{"point":"情态动词总览","pattern":"主语 + 情态动词 + 动词原形 + ...","rule":"情态动词（can/could/may/might/must/shall/should/will/would）后一律接动词原形，没有人称和数的变化，否定直接加 not。","category":"情态动词","examples":[
+{"en":"I can swim. / I cannot swim.","zh":"我会游泳。/ 我不会游泳。"},
+{"en":"May I come in?","zh":"我可以进来吗？"},
+{"en":"You must stop at the red light.","zh":"红灯时必须停下。"},
+{"en":"We should help each other.","zh":"我们应该互相帮助。"}]},
+{"point":"may / might 可能","pattern":"主语 + may/might + 动词原形","rule":"表示推测“可能”：may 可能性较大，might 较小；May I ...? 还是礼貌请求许可的句型。","category":"情态动词","examples":[
+{"en":"It may rain this afternoon.","zh":"今天下午可能下雨。"},
+{"en":"He might be at home now.","zh":"他现在可能在家。"},
+{"en":"May I use your pen?","zh":"我能用一下你的钢笔吗？"}]},
+{"point":"must 与 have to","pattern":"主语 + must/have to + 动词原形","rule":"must 表示主观“必须”，have to 表示客观“不得不”；mustn't 是“禁止”，“不必”要说 needn't 或 don't have to。","category":"情态动词","examples":[
+{"en":"You must finish your homework first.","zh":"你必须先完成作业。"},
+{"en":"I have to get up early tomorrow.","zh":"明天我不得不早起。"},
+{"en":"You mustn't play with fire.","zh":"禁止玩火。"},
+{"en":"You don't have to come early.","zh":"你不必早来。"}]},
+
+{"point":"动词不定式 to do","pattern":"want/hope/decide + to + 动词原形","rule":"to + 动词原形构成不定式，可作宾语（want to go）、目的状语（come to see）、宾补（ask sb to do）；使役动词 let/make 后省略 to。","category":"非谓语动词","examples":[
+{"en":"I want to buy a new bag.","zh":"我想买一个新书包。"},
+{"en":"She came to see me yesterday.","zh":"她昨天来看我。（目的）"},
+{"en":"My teacher asks us to read every day.","zh":"老师要求我们每天读书。"},
+{"en":"Let me help you.","zh":"让我帮你。（let 后省 to）"}]},
+{"point":"动名词 doing","pattern":"like/enjoy/finish + 动词ing","rule":"动词加 ing 作名词用，叫动名词。enjoy、finish、like、love、go 等词后接动名词；也可作主语。","category":"非谓语动词","examples":[
+{"en":"I like swimming.","zh":"我喜欢游泳。"},
+{"en":"Have you finished doing your homework?","zh":"你做完作业了吗？"},
+{"en":"Reading is fun.","zh":"读书很有趣。（作主语）"},
+{"en":"We go shopping on Sundays.","zh":"我们周日去购物。"}]},
+{"point":"分词 doing / done","pattern":"动词ing（主动进行）/ 动词过去分词（被动完成）","rule":"现在分词表主动、进行（a running boy），过去分词表被动、完成（broken glass）；也用于进行时（be doing）和完成时（have done）。","category":"非谓语动词","examples":[
+{"en":"The boy running there is my brother.","zh":"那边跑着的男孩是我弟弟。"},
+{"en":"The window broken by Tom is new.","zh":"被汤姆打破的那扇窗户是新的。"},
+{"en":"I saw him playing football.","zh":"我看见他正在踢足球。"}]},
+
+{"point":"被动语态","pattern":"主语 + be + 过去分词 + (by ...)","rule":"主语是动作的承受者时用被动语态：be + 过去分词，by 引出动作执行者；be 随时态变化（is done / was done / will be done / has been done）。","category":"被动语态","examples":[
+{"en":"The room is cleaned every day.","zh":"房间每天被打扫。"},
+{"en":"The letter was written by Tom.","zh":"这封信是汤姆写的。"},
+{"en":"A new school will be built here.","zh":"这里将建一所新学校。"},
+{"en":"The book has been read by many students.","zh":"这本书被许多学生读过。"}]},
+{"point":"主动变被动","pattern":"主动宾语 → 被动主语，动词 → be + 过去分词","rule":"把主动句的宾语变主语，动词变 be + 过去分词，原主语前加 by（可省略）。","category":"被动语态","examples":[
+{"en":"Tom cleans the room. → The room is cleaned by Tom.","zh":"汤姆打扫房间 → 房间被汤姆打扫。"},
+{"en":"They built the bridge. → The bridge was built.","zh":"他们建了这座桥 → 这座桥被建成。"}]},
+
+{"point":"五种基本句型","pattern":"主谓 / 主谓宾 / 主系表 / 主谓双宾 / 主谓宾补","rule":"英语一切句子都由五种基本句型构成：①主语+谓语 ②主语+谓语+宾语 ③主语+系动词+表语 ④主语+谓语+双宾语 ⑤主语+谓语+宾语+宾补。","category":"句型","examples":[
+{"en":"Birds fly.","zh":"鸟飞。（主谓）"},
+{"en":"I like apples.","zh":"我喜欢苹果。（主谓宾）"},
+{"en":"The flower is beautiful.","zh":"这朵花很美。（主系表）"},
+{"en":"Mum gave me a gift.","zh":"妈妈给了我一份礼物。（双宾）"},
+{"en":"We call him Little Fat.","zh":"我们叫他小胖子。（宾补）"}]},
+{"point":"反意疑问句","pattern":"前肯 + 后否 / 前否 + 后肯","rule":"陈述句后加简短尾问：前面肯定、尾问否定，前面否定、尾问肯定；尾问的助动词和人称与前句一致。","category":"疑问句","examples":[
+{"en":"You are a student, aren't you?","zh":"你是学生，对吗？"},
+{"en":"He can't swim, can he?","zh":"他不会游泳，对吧？"},
+{"en":"It is fine today, isn't it?","zh":"今天天气好，是吧？"}]},
+{"point":"选择疑问句","pattern":"一般疑问句 + or + 选择项?","rule":"提供两个或多个选项用 or 连接，回答时选其一，不用 Yes/No。","category":"疑问句","examples":[
+{"en":"Do you want tea or milk?","zh":"你要茶还是牛奶？"},
+{"en":"Is he a teacher or a doctor?","zh":"他是老师还是医生？"},
+{"en":"— Tea, please.","zh":"——请来茶。"}]},
+{"point":"感叹句","pattern":"What + (a/an) + 名词! / How + 形容词/副词!","rule":"What 修饰名词（What a nice day!），How 修饰形容词或副词（How beautiful!）。","category":"句型","examples":[
+{"en":"What a big dog!","zh":"好大的一只狗！"},
+{"en":"What fine weather!","zh":"多好的天气！（不可数不加 a）"},
+{"en":"How beautiful the park is!","zh":"这个公园真美！"},
+{"en":"How fast he runs!","zh":"他跑得多快啊！"}]},
+{"point":"祈使句","pattern":"动词原形 + ... / Don't + 动词原形","rule":"表示命令、请求、建议，省略主语 you，动词用原形开头；否定在句首加 Don't；礼貌可加 please。","category":"句型","examples":[
+{"en":"Open the door, please.","zh":"请开门。"},
+{"en":"Don't be late again.","zh":"别再迟到了。"},
+{"en":"Let's go to school.","zh":"我们上学去吧。"},
+{"en":"Be quiet, please.","zh":"请安静。"}]},
+
+{"point":"主谓一致","pattern":"单数主语 + 单数动词 / 复数主语 + 复数动词","rule":"谓语动词与主语在人称和数上保持一致；there be 与靠近的名词一致（就近原则）；and 连接两个主语用复数。","category":"主谓一致","examples":[
+{"en":"He likes apples. They like apples.","zh":"他喜欢苹果。他们喜欢苹果。"},
+{"en":"There is a pen and two books on the desk.","zh":"桌上有一支笔和两本书。（就近 is）"},
+{"en":"Tom and I are friends.","zh":"汤姆和我是朋友。"},
+{"en":"Everyone is here.","zh":"大家都到了。（不定代词用单数）"}]},
+
+{"point":"宾语从句","pattern":"主句 + that/疑问词 + 陈述语序","rule":"作宾语的句子要用陈述语序（主语在动词前）；主句过去时，从句常用相应的过去时态。","category":"从句","examples":[
+{"en":"I think (that) he is right.","zh":"我认为他是对的。"},
+{"en":"Do you know where he lives?","zh":"你知道他住在哪里吗？（不说 where does he live）"},
+{"en":"She said she would come.","zh":"她说她会来。"},
+{"en":"Can you tell me what time it is?","zh":"你能告诉我几点了吗？"}]},
+{"point":"定语从句","pattern":"名词 + 关系词(who/which/that) + 从句","rule":"修饰名词的从句。先行词是人用 who/that，是物用 which/that；关系词在从句中作主语或宾语。","category":"从句","examples":[
+{"en":"The girl who is singing is my sister.","zh":"正在唱歌的女孩是我妹妹。"},
+{"en":"This is the book that I bought yesterday.","zh":"这是我昨天买的书。"},
+{"en":"I like stories which are funny.","zh":"我喜欢有趣的故事。"}]},
+{"point":"状语从句：时间与条件","pattern":"when/if + 一般现在时，主句 + 一般将来时","rule":"时间和条件状语从句中，用一般现在时表示将来（主将从现）。","category":"从句","examples":[
+{"en":"When he comes, I will tell him.","zh":"他来的时候，我会告诉他。"},
+{"en":"If it rains tomorrow, we will stay at home.","zh":"如果明天下雨，我们就待在家里。"},
+{"en":"I will call you as soon as I arrive.","zh":"我一到就给你打电话。"}]},
+{"point":"名词性从句：主语从句与表语从句","pattern":"That/疑问词 + 从句 + 作句子的主语或表语","rule":"从句作主语叫主语从句（常用 it 作形式主语），作表语叫表语从句，语序一律用陈述语序。","category":"从句","examples":[
+{"en":"What he said is true.","zh":"他说的话是真的。"},
+{"en":"It is important that we learn English well.","zh":"学好英语很重要。（it 作形式主语）"},
+{"en":"That is why he was late.","zh":"那就是他迟到的原因。"}]},
+
+{"point":"虚拟语气：if 条件句","pattern":"If + 过去式（与现在相反）/ If + had done（与过去相反）","rule":"表示与事实相反的假设：与现在相反，从句用过去式、主句 would do；与过去相反，从句用 had done、主句 would have done。","category":"虚拟语气","examples":[
+{"en":"If I were a bird, I would fly to you.","zh":"如果我是一只鸟，我就飞向你。（与现在相反）"},
+{"en":"If I had studied hard, I would have passed.","zh":"要是我当时努力学习，就考过了。（与过去相反）"},
+{"en":"If it rained tomorrow, we would stay home.","zh":"要是明天下雨，我们就待在家。"}]},
+{"point":"虚拟语气：wish 与建议类","pattern":"wish + 过去式 / suggest that + (should) do","rule":"wish 后接过去式表示难以实现的愿望；suggest、advise、order 等词后的宾语从句用 (should) + 动词原形。","category":"虚拟语气","examples":[
+{"en":"I wish I could fly.","zh":"但愿我会飞。"},
+{"en":"The teacher suggests that we (should) read more.","zh":"老师建议我们多读书。"}]},
+
+{"point":"倒装句","pattern":"Here/There/Never/Only + 动词 + 主语","rule":"here、there 位于句首全倒装（There goes the bell）；only、never 等位于句首半倒装（助动词提前）。","category":"特殊句式","examples":[
+{"en":"There goes the bell.","zh":"铃响了。"},
+{"en":"Here comes the bus.","zh":"公交车来了。"},
+{"en":"Never have I seen such a big dog.","zh":"我从没见过这么大的狗。"}]},
+{"point":"强调句","pattern":"It is/was + 被强调部分 + that + 其余部分","rule":"把要强调的部分放在 It is/was 和 that 之间，可强调主语、宾语、状语。","category":"特殊句式","examples":[
+{"en":"It was Tom who broke the window.","zh":"是汤姆打破了窗户。（强调汤姆）"},
+{"en":"It was yesterday that I met her.","zh":"是昨天我遇见了她。（强调昨天）"}]},
+
+{"point":"直接引语与间接引语","pattern":"He said, “...” → He said that ...","rule":"转述别人的话：去掉引号加 that，人称随之变化，时态向后退一步（现在→过去），时间状语相应调整。","category":"特殊句式","examples":[
+{"en":"He said, “I am happy.” → He said that he was happy.","zh":"他说：“我很开心。”→ 他说他很开心。"},
+{"en":"“I will go,” she said. → She said she would go.","zh":"“我会去，”她说 → 她说她会去。"}]}
+]
