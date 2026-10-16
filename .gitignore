@@ -65,3 +65,6 @@ t3.py
 t4.py
 t5.py
 gb11.txt
+_*.ps1
+_*.log
+_*.err
