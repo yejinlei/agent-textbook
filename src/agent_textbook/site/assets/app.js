@@ -1287,7 +1287,8 @@
       else if (kind === "writing") h = enWriting(st);
       else h = enUse(st);
       box.innerHTML = h || '<div class="empty">没有匹配的内容</div>';
-      cnt.textContent = box.querySelectorAll(".item").length + " 组";
+      cnt.textContent = box.querySelectorAll(kind === "grammar" ? ".dk-sec" : ".item").length + " 组";
+      if (kind === "grammar") dkReveal(box);
     }, { hint: { discourse: "如：family、weather", vocab: "如：job、doctor",
                  grammar: "如：can、there be、过去式", phonics: "如：sh、ai",
                  use: "如：song、project", extra: "如：family、weather、school",
@@ -4138,36 +4139,15 @@
     }).join("");
   }
 
-  /* 语法汇总：按范畴分块 + 时态递进条 */
+  /* ================= DK 风语法图解：积木句构 + 例句着色 + 时态轴 ================= */
+  var DK_TENSES = ["一般现在时", "现在进行时", "一般将来时", "be going to", "一般过去时"];
+
   function enGrammar(st) {
     var rows = (D.grammar || []).filter(pass(st, ["point", "pattern", "rule", "category"]));
-    var h = "<h2>语法汇总（" + rows.length + " 条）</h2>";
-    // 时态递进：先给一张"什么时候学什么时态"的表
-    var byTense = {}, tOrder = [];
-    rows.forEach(function (g) {
-      if (!g.tense) return;
-      if (!byTense[g.tense]) { byTense[g.tense] = {}; tOrder.push(g.tense); }
-      byTense[g.tense][g.book] = (byTense[g.tense][g.book] || 0) + 1;
-    });
-    if (tOrder.length) {
-      h += '<div class="card"><h3>时态线：哪一册学了什么</h3><table class="tbl"><tr><th>时态</th>';
-      var books = [];
-      rows.forEach(function (g) { if (books.indexOf(g.book) < 0) books.push(g.book); });
-      books.sort();
-      books.forEach(function (b) { h += "<th>" + esc(b.replace("年级", "")) + "</th>"; });
-      h += "</tr>";
-      tOrder.sort(function (a, b2) {
-        return Object.keys(byTense[b2]).length - Object.keys(byTense[a]).length;
-      });
-      tOrder.forEach(function (t) {
-        h += "<tr><td>" + esc(t) + "</td>";
-        books.forEach(function (b) {
-          h += "<td>" + (byTense[t][b] ? "●" + (byTense[t][b] > 1 ? " " + byTense[t][b] : "") : "") + "</td>";
-        });
-        h += "</tr>";
-      });
-      h += "</table></div>";
-    }
+    var h = "<h2>语法图解（" + rows.length + " 条）<span class=\"small\">" +
+      " 彩色积木句构 · 例句重点词着色 · 时态时间轴</span></h2>";
+    if (!rows.length) return h;
+    h += dkLegend() + dkTenseMap(rows);
     // 按范畴分块
     var byCat = {}, cOrder = [];
     rows.forEach(function (g) {
@@ -4175,29 +4155,192 @@
       if (!byCat[k]) { byCat[k] = []; cOrder.push(k); }
       byCat[k].push(g);
     });
-    cOrder.sort(function (a, b2) { return byCat[b2].length - byCat[a].length; });
-    h += cOrder.map(function (k) {
-      return '<div class="item"><div class="top"><span class="name">' + esc(k) +
-        '</span><span class="where">' + byCat[k].length + " 条</span></div>" +
-        byCat[k].slice(0, 60).map(function (g) {
-          var s = '<div class="step"><b>' + esc(g.point) + "</b>" + where(g) +
-            (g.tense ? '<span class="tag">' + esc(g.tense) + "</span>" : "") + "</div>";
-          if (g.pattern) s += '<div class="pat">' + spkBtn(String(g.pattern || "")) +
-            hl(g.pattern) + "</div>";
-          if (g.rule) s += '<div class="small">' + esc(g.rule) + "</div>";
-          var exs = typeof g.examples === "string" ? safeJson(g.examples) : (g.examples || []);
-          if (exs.length) {
-            s += "<details><summary>例句</summary><ul class=" + '"pts">' +
-              exs.slice(0, 6).map(function (e) {
-                var s2 = String(typeof e === "string" ? e : (e.en || e.text || e) || "");
-                return "<li>" + spkBtn(s2) + '<span class="spk">' + esc(s2) + "</span>" +
-                  (e && e.zh ? '<span class="zh"> ' + esc(e.zh) + "</span>" : "") + "</li>";
-              }).join("") + "</ul></details>";
-          }
-          return s;
-        }).join("") + "</div>";
+    cOrder.sort(function (a, b) { return byCat[b].length - byCat[a].length; });
+    h += '<div class="dk-nav">' + cOrder.map(function (k, i) {
+      return '<a href="#dkc' + i + '">' + esc(k) + " <b>" + byCat[k].length + "</b></a>";
+    }).join("") + "</div>";
+    h += cOrder.map(function (k, ci) {
+      var inner = (k === "时态") ? dkTenseGroups(byCat[k]) :
+        byCat[k].map(function (g, i) { return dkCard(g, i + 1); }).join("");
+      return '<details class="dk-sec" id="dkc' + ci + '"' + (ci < 2 ? " open" : "") +
+        '><summary><span>' + esc(k) + '</span><span class="dk-sec-n">' +
+        byCat[k].length + " 条</span></summary>" + inner + "</details>";
     }).join("");
     return h;
+  }
+
+  function dkLegend() {
+    var items = [["q", "疑问词"], ["subj", "主语"], ["aux", "助动词"], ["verb", "谓语动词"],
+                 ["det", "冠词/限定"], ["obj", "宾语·表语"], ["prep", "介词"],
+                 ["neg", "否定"], ["time", "状语"], ["misc", "其他成分"]];
+    return '<div class="dk-legend">' + items.map(function (x) {
+      return '<span><i class="dk-i dk-i-' + x[0] + '"></i>' + x[1] + "</span>";
+    }).join("") + "</div>";
+  }
+
+  /* 时态全景条：每个时态一张小卡，标注条数与覆盖册数 */
+  function dkTenseMap(rows) {
+    var st = {}, order = [];
+    rows.forEach(function (g) {
+      if (!g.tense) return;
+      if (!st[g.tense]) { st[g.tense] = { n: 0, books: {} }; order.push(g.tense); }
+      st[g.tense].n++; st[g.tense].books[g.book] = 1;
+    });
+    if (!order.length) return "";
+    order.sort(function (a, b) {
+      var ia = DK_TENSES.indexOf(a), ib = DK_TENSES.indexOf(b);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    });
+    return '<div class="dk-tmap">' + order.map(function (t) {
+      return '<div class="dk-tm"><div class="dk-tm-h">' + dkTlSvg(t) + "</div>" +
+        '<div class="dk-tm-name">' + esc(t) + '</div><div class="dk-tm-meta">' +
+        st[t].n + " 条 · " + Object.keys(st[t].books).length + " 册</div></div>";
+    }).join("") + "</div>";
+  }
+
+  /* 小时态轴：过去 —— 现在 —— 将来，高亮本时态位置 */
+  function dkTlSvg(tense) {
+    var x = { "一般过去时": 46, "一般现在时": 150, "现在进行时": 150,
+              "一般将来时": 254, "be going to": 254 }[tense] || 150;
+    var s = '<svg class="dk-tl" viewBox="0 0 300 60" width="210" height="42" aria-hidden="true">';
+    s += '<line x1="20" y1="26" x2="280" y2="26" stroke="#ddd5c2" stroke-width="3" stroke-linecap="round"/>';
+    [[46, "过去"], [150, "现在"], [254, "将来"]].forEach(function (m) {
+      var on = m[0] === x;
+      s += '<line x1="' + m[0] + '" y1="19" x2="' + m[0] + '" y2="33" stroke="' +
+        (on ? "#e5534b" : "#c9c0aa") + '" stroke-width="3" stroke-linecap="round"/>';
+      s += '<text x="' + m[0] + '" y="50" text-anchor="middle" class="dk-tl-lab' +
+        (on ? " on" : "") + '">' + m[1] + "</text>";
+      if (on) s += '<circle cx="' + m[0] + '" cy="26" r="7" fill="#e5534b"/>';
+    });
+    return s + "</svg>";
+  }
+
+  /* 时态范畴：按时态分组，组头配小时态轴，卡片编号连续 */
+  function dkTenseGroups(list) {
+    var by = {}, order = [];
+    list.forEach(function (g) {
+      var k = g.tense || "其他";
+      if (!by[k]) { by[k] = []; order.push(k); }
+      by[k].push(g);
+    });
+    order.sort(function (a, b) {
+      var ia = DK_TENSES.indexOf(a), ib = DK_TENSES.indexOf(b);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    });
+    var n = 0;
+    return order.map(function (t) {
+      var cards = by[t].map(function (g) { n++; return dkCard(g, n); }).join("");
+      return '<div class="dk-tg"><div class="dk-tg-h">' + dkTlSvg(t) + "<b>" + esc(t) +
+        '</b><span class="dk-tg-n">' + by[t].length + " 条</span></div>" + cards + "</div>";
+    }).join("");
+  }
+
+  function dkCard(g, n) {
+    var s = '<div class="dk-card"><div class="dk-ch"><span class="dk-num">' + n + "</span>" +
+      "<h3>" + esc(g.point || "") + "</h3>" + where(g) + "</div>";
+    if (g.rule) s += '<div class="dk-rule">' + esc(g.rule) + "</div>";
+    s += dkTiles(g.pattern);
+    var exs = typeof g.examples === "string" ? safeJson(g.examples) : (g.examples || []);
+    if (exs.length) {
+      s += '<ul class="dk-ex">' + exs.slice(0, 6).map(function (e) {
+        var en = String(typeof e === "string" ? e : (e.en || e.text || e) || "");
+        return "<li>" + spkBtn(en) + '<span class="dk-en">' + dkColorEx(en, g) + "</span>" +
+          (e && e.zh ? '<span class="dk-zh">' + esc(e.zh) + "</span>" : "") + "</li>";
+      }).join("") + "</ul>";
+    }
+    return s + "</div>";
+  }
+
+  /* 把 pattern 拆成彩色积木：先按 + 拆，整句模式按空格拆；拆不动就退回原文行 */
+  function dkTiles(pat) {
+    pat = String(pat || "").trim();
+    if (!pat) return "";
+    var segs = pat.split(/\s*\+\s*/).map(function (x) { return x.trim(); }).filter(Boolean);
+    if (segs.length < 2 && !/[?？!！。]/.test(pat)) {
+      var toks = pat.split(/\s+/);
+      if (toks.length >= 2 && toks.length <= 6) segs = toks;
+    }
+    if (segs.length < 2 || segs.length > 9) return '<div class="pat">' + hl(pat) + "</div>";
+    var h = '<div class="dk-blocks">';
+    segs.forEach(function (seg, i) {
+      if (i) h += '<span class="dk-conn" style="--i:' + (i * 2 - 1) + '">❯</span>';
+      var r = dkRole(seg), m = dkMorph(seg);
+      h += '<div class="dk-tile ' + r.cls + '" style="--i:' + (i * 2) + '">' +
+        '<span class="dk-t-en">' + esc(seg) + (m ? '<em class="dk-morph">' + m[0] + "</em>" : "") +
+        "</span>" + '<span class="dk-tag">' + r.tag + "</span>" +
+        (m ? '<span class="dk-mnote">' + m[1] + "</span>" : "") + "</div>";
+    });
+    return h + "</div>";
+  }
+
+  function dkRole(seg) {
+    var s = seg.toLowerCase();
+    if (!/[一-鿿]/.test(seg) && seg.length > 16) return { cls: "misc", tag: "句型" };
+    if (/^(who|what|where|when|why|whose|which|how)\b|疑问词/.test(s)) return { cls: "q", tag: "疑问词" };
+    if (/^(do|does|did|can|could|will|would|shall|should|may|might|must|won)n't$|\bnot\b|\bno\b|never|否定/.test(s))
+      return { cls: "neg", tag: "否定" };
+    if (/^(do|does|did|can|could|will|would|shall|should|may|might|must)\b|助动词|情态|have to|has to/.test(s))
+      return { cls: "aux", tag: "助动词" };
+    if (/^there (is|are|was|were)\b/.test(s)) return { cls: "verb", tag: "There be" };
+    if (/^(am|is|are|was|were|be)\b|系动词|be ?动词/.test(s)) return { cls: "verb", tag: "系动词" };
+    if (/过去式/.test(seg)) return { cls: "verb", tag: "谓语·过去式" };
+    if (/进行时|动名词|ing$/.test(s)) return { cls: "verb", tag: "谓语·ing" };
+    if (/动词|谓语/.test(seg)) return { cls: "verb", tag: "谓语" };
+    if (/主语/.test(seg)) return { cls: "subj", tag: "主语" };
+    if (/^(i|you|he|she|it|we|they|this|that|these|those|there)\b/.test(s)) return { cls: "subj", tag: "主语" };
+    if (/冠词|限定词|指示词|物主|所有格/.test(seg)) return { cls: "det", tag: "限定词" };
+    if (/^(a|an|the|my|your|his|her|its|our|their|some|any)\b/.test(s)) return { cls: "det", tag: "限定词" };
+    if (/宾语|表语|名词/.test(seg)) return { cls: "obj", tag: "宾/表语" };
+    if (/介词/.test(seg)) return { cls: "prep", tag: "介词" };
+    if (/^(in|on|under|at|to|from|with|of|for|by|near|behind|between|after|before|about)\b/.test(s))
+      return { cls: "prep", tag: "介词" };
+    if (/时间|地点|状语|频率/.test(seg)) return { cls: "time", tag: "状语" };
+    if (/^(\.+|…)$/.test(seg)) return { cls: "misc", tag: "其他成分" };
+    return { cls: "misc", tag: "成分" };
+  }
+
+  /* 词尾形态小片：三单+s / 过去式+ed / 进行+ing / 复数+s */
+  function dkMorph(seg) {
+    if (/加 ?s|s\/es|三单|第三人称/.test(seg)) return ["s", "三单+s"];
+    if (/过去式/.test(seg)) return ["ed", "过去式"];
+    if (/进行时|动词 ?ing|动名词/.test(seg)) return ["ing", "加ing"];
+    if (/复数/.test(seg)) return ["s", "复数+s"];
+    return null;
+  }
+
+  /* 例句重点词着色：助动词橙 / be动词红 / 否定紫 / 疑问词粉 / 人称蓝；按条目时态补 -ed/-ing */
+  function dkColorEx(s, g) {
+    var t = esc(s);
+    t = t.replace(/\b(do|does|did|can|could|will|would|shall|should|may|might|must|won)(n't| not)\b/gi,
+      '<span class="hl-a">$1</span><span class="hl-n">$2</span>');
+    t = t.replace(/\b(am|is|are|was|were)(n't| not)\b/gi,
+      '<span class="hl-v">$1</span><span class="hl-n">$2</span>');
+    t = t.replace(/\b(do|does|did|can|could|will|would|shall|should|may|might|must)\b/gi,
+      '<span class="hl-a">$1</span>');
+    t = t.replace(/\b(am|is|are|was|were)\b/gi, '<span class="hl-v">$1</span>');
+    t = t.replace(/\b(going to)\b/gi, '<span class="hl-a">$1</span>');
+    t = t.replace(/^(who|what|where|when|why|whose|which|how)\b/i, '<span class="hl-q">$1</span>');
+    t = t.replace(/\b(i|you|he|she|it|we|they|this|that|these|those|there)\b/gi,
+      '<span class="hl-s">$1</span>');
+    t = t.replace(/\b(not|no|never)\b/gi, '<span class="hl-n">$1</span>');
+    var tn = g && g.tense;
+    if (tn === "一般过去时") t = t.replace(/\b([A-Za-z]+ed)\b/g, '<span class="hl-v">$1</span>');
+    else if (tn === "现在进行时") t = t.replace(/\b([A-Za-z]+ing)\b/g, '<span class="hl-v">$1</span>');
+    return t;
+  }
+
+  /* 卡片滚入视口时触发级联动画（details 折叠的卡片在展开时才会触发） */
+  function dkReveal(root) {
+    if (!("IntersectionObserver" in window)) {
+      root.querySelectorAll(".dk-card").forEach(function (c) { c.classList.add("on"); });
+      return;
+    }
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("on"); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.1 });
+    root.querySelectorAll(".dk-card").forEach(function (c) { io.observe(c); });
   }
 
   function safeJson(s) {
