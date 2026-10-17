@@ -659,17 +659,6 @@
 
   /* ================================================================ 数学 */
   function renderMath() {
-    var mh = mathLab(kind);
-    if (mh) {
-      var el = document.createElement("div");
-      el.innerHTML = mh;
-      app.appendChild(el);
-      bindMathLab(kind);
-    }
-    // 数学的三个"换个用法"的盒子：练一练、知识线、易错清单
-    mountLab(practiceLab(), bindPractice);
-    if (kind === "all") mountLab(lineLab(), bindLine);
-    if (kind === "all") mountLab(trapLab(), bindTrap);
     var box = listBox();
     // 子页就是领域页，只在"全部单元"页给领域页签
     var t = tools(kind === "all" ? (D.domains || []) : [], function (st, cnt) {
@@ -689,6 +678,18 @@
       }) || '<div class="empty">没有匹配的单元</div>');
     }, { hint: "如：分数、面积、鸡兔同笼",
          tags: hotTags(D.units, "title", 18) });
+    // 数学实验室盒子（讲解动画）：放在筛选导航之下、单元列表之上
+    var mh = mathLab(kind);
+    if (mh) {
+      var el = document.createElement("div");
+      el.innerHTML = mh;
+      app.insertBefore(el, box);
+      bindMathLab(kind);
+    }
+    // 数学的三个"换个用法"的盒子：练一练、知识线、易错清单
+    mountLab(practiceLab(), bindPractice, box);
+    if (kind === "all") mountLab(lineLab(), bindLine, box);
+    if (kind === "all") mountLab(trapLab(), bindTrap, box);
     box.addEventListener("click", function (e) {
       // 讲题卡：先展开四步，再一步一步掀提示
       var tb = e.target.closest(".tbtn");
@@ -5949,12 +5950,14 @@
     if (kind === "problem") { bindSeg(); bindModel(); }
   }
 
-  /* 实验室盒子统一挂载：给 HTML 就挂上并绑事件，没内容（该页不需要）就跳过 */
-  function mountLab(html, bind) {
+  /* 实验室盒子统一挂载：给 HTML 就挂上并绑事件，没内容（该页不需要）就跳过。
+     before 可选：若传了一个已经在 #app 里的节点，就插在它前面（用于把导航顶上去）。 */
+  function mountLab(html, bind, before) {
     if (!html) return;
     var el = document.createElement("div");
     el.innerHTML = html;
-    app.appendChild(el);
+    if (before && before.parentNode === app) app.insertBefore(el, before);
+    else app.appendChild(el);
     if (bind) bind();
   }
 
