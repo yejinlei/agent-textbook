@@ -5937,17 +5937,355 @@
     inputs();
   }
 
+  /* ---- 三角形内角和：形状在变，三个角加起来永远是 180°（四下） ---- */
+  function triLab() {
+    return labBox("三角形的内角和",
+      "改变三角形的形状，三个角的大小跟着变，加起来却永远是 180°。把三个角撕下来拼在一起，正好拼成一个平角。",
+      '<div class="row">∠A <input type="range" id="tr-a" min="10" max="160" value="60">' +
+      '<b id="tr-av">60°</b>　∠B <input type="range" id="tr-b" min="10" max="160" value="70">' +
+      '<b id="tr-bv">70°</b></div>' +
+      '<div id="tr-svg" class="svgwrap"></div><div id="tr-s" class="small"></div>');
+  }
+
+  function bindTri() {
+    var ra = document.getElementById("tr-a"), rb = document.getElementById("tr-b"),
+        va = document.getElementById("tr-av"), vb = document.getElementById("tr-bv"),
+        box = document.getElementById("tr-svg"), s = document.getElementById("tr-s");
+    if (!ra || !box) return;
+    var COL = ["#2471a3", "#b7791f", "#1e8449"];
+
+    /* 顶点处的角弧：从一条边转到另一条边 */
+    function arcAt(p0, p1, p2, r, color) {
+      var a1 = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]);
+      var a2 = Math.atan2(p2[1] - p0[1], p2[0] - p0[0]);
+      var d = a2 - a1;
+      while (d > Math.PI) d -= 2 * Math.PI;
+      while (d < -Math.PI) d += 2 * Math.PI;
+      return '<path d="M' + (p0[0] + r * Math.cos(a1)).toFixed(1) + " " +
+        (p0[1] + r * Math.sin(a1)).toFixed(1) + " A" + r + " " + r + " 0 0 " +
+        (d > 0 ? 1 : 0) + " " + (p0[0] + r * Math.cos(a2)).toFixed(1) + " " +
+        (p0[1] + r * Math.sin(a2)).toFixed(1) +
+        '" fill="none" stroke="' + color + '" stroke-width="2"/>';
+    }
+
+    /* 把角"撕下来"铺到下面的直线上：deg0 → deg1 的一段扇形 */
+    function fan(cx, cy, R, deg0, deg1, color, label) {
+      var t0 = deg0 * Math.PI / 180, t1 = deg1 * Math.PI / 180;
+      var tm = (t0 + t1) / 2;
+      return '<path d="M' + cx + " " + cy + " L" + (cx + R * Math.cos(t0)).toFixed(1) +
+        " " + (cy - R * Math.sin(t0)).toFixed(1) + " A" + R + " " + R + " 0 0 1 " +
+        (cx + R * Math.cos(t1)).toFixed(1) + " " + (cy - R * Math.sin(t1)).toFixed(1) +
+        ' Z" fill="' + color + '" opacity="0.72" stroke="#fff" stroke-width="1.5"/>' +
+        '<text x="' + (cx + R * 0.6 * Math.cos(tm)).toFixed(1) + '" y="' +
+        (cy - R * 0.6 * Math.sin(tm) + 4).toFixed(1) +
+        '" text-anchor="middle" font-size="13" fill="#fff">' + label + "</text>";
+    }
+
+    function draw() {
+      var A = Math.min(160, Math.max(10, +ra.value));
+      var B = Math.min(170 - A, Math.max(10, +rb.value));   // 保证 ∠C 不小于 10°
+      var C = 180 - A - B;
+      ra.value = A; rb.value = B;
+      va.textContent = A + "°"; vb.textContent = B + "°";
+      // 正弦定理定三条边（a 对 ∠A），再按 SSS 摆出来
+      var sA = Math.sin(A * Math.PI / 180), sB = Math.sin(B * Math.PI / 180),
+          sC = Math.sin(C * Math.PI / 180);
+      var k = 155 / Math.max(sA, sB, sC);
+      var la = k * sA, lb = k * sB, lc = k * sC;
+      var ux = (lb * lb + lc * lc - la * la) / (2 * lc);
+      var uy = Math.sqrt(Math.max(0, lb * lb - ux * ux));
+      var xs = [0, lc, ux], ys = [0, 0, uy];
+      var ox = 180 - (Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2;
+      var oy = 96 - (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2;
+      var P = [[ox, oy], [lc + ox, oy], [ux + ox, uy + oy]];
+      var p = [], i;
+      p.push('<polygon points="' + P.map(function (q) {
+        return q[0].toFixed(1) + "," + q[1].toFixed(1); }).join(" ") +
+        '" fill="#f4f8fc" stroke="#2471a3" stroke-width="2"/>');
+      var ang = [A, B, C];
+      for (i = 0; i < 3; i++) {
+        p.push(arcAt(P[i], P[(i + 1) % 3], P[(i + 2) % 3], 34, COL[i]));
+        var am = (Math.atan2(P[(i + 1) % 3][1] - P[i][1], P[(i + 1) % 3][0] - P[i][0]) +
+                  Math.atan2(P[(i + 2) % 3][1] - P[i][1], P[(i + 2) % 3][0] - P[i][0])) / 2;
+        p.push('<text x="' + (P[i][0] + 52 * Math.cos(am)).toFixed(1) + '" y="' +
+          (P[i][1] + 52 * Math.sin(am) + 4).toFixed(1) +
+          '" text-anchor="middle" font-size="14" fill="' + COL[i] + '">' + ang[i] + "°</text>");
+      }
+      p.push('<line x1="60" y1="236" x2="300" y2="236" stroke="#6b7280" stroke-width="1.5"/>');
+      p.push(fan(180, 236, 56, 180, 180 - A, COL[0], A + "°"));
+      p.push(fan(180, 236, 56, 180 - A, 180 - A - B, COL[1], B + "°"));
+      p.push(fan(180, 236, 56, 180 - A - B, 0, COL[2], C + "°"));
+      p.push('<text x="180" y="256" text-anchor="middle" font-size="13" fill="#6b7280">' +
+        "三个角拼在一起正好是一条直线</text>");
+      box.innerHTML = '<svg viewBox="0 0 360 265" width="100%" height="265">' +
+        p.join("") + "</svg>";
+      s.innerHTML = A + "° ＋ " + B + "° ＋ " + C +
+        "° ＝ <b>180°</b>　（三角形的内角和是 180°，和形状无关）";
+    }
+    ra.addEventListener("input", draw);
+    rb.addEventListener("input", draw);
+    draw();
+  }
+
+  /* ---- 三边关系：两根短棒加起来要比最长的长（四下） ---- */
+  function sideLab() {
+    return labBox("三根小棒能围成三角形吗",
+      "两根短棒接起来必须比最长的那根长，才围得成。调一调三根小棒的长度，看什么时候围不成。",
+      '<div class="row">a <input type="range" id="sd-a" min="1" max="10" value="3">' +
+      '<b id="sd-av">3</b>　b <input type="range" id="sd-b" min="1" max="10" value="4">' +
+      '<b id="sd-bv">4</b>　c <input type="range" id="sd-c" min="1" max="10" value="5">' +
+      '<b id="sd-cv">5</b></div>' +
+      '<div id="sd-svg" class="svgwrap"></div><div id="sd-s" class="small"></div>');
+  }
+
+  function bindSide() {
+    var ra = document.getElementById("sd-a"), rb = document.getElementById("sd-b"),
+        rc = document.getElementById("sd-c"),
+        va = document.getElementById("sd-av"), vb = document.getElementById("sd-bv"),
+        vc = document.getElementById("sd-cv"),
+        box = document.getElementById("sd-svg"), s = document.getElementById("sd-s");
+    if (!ra || !box) return;
+
+    function draw() {
+      var v = [+ra.value, +rb.value, +rc.value];
+      va.textContent = v[0]; vb.textContent = v[1]; vc.textContent = v[2];
+      var t = v.slice().sort(function (p, q) { return p - q; });
+      var sum = t[0] + t[1], ok = sum > t[2];
+      var k = 26, base = t[2] * k, bx = 180 - base / 2, by = 200, p = [];
+      p.push('<line x1="' + bx.toFixed(1) + '" y1="' + by + '" x2="' + (bx + base).toFixed(1) +
+        '" y2="' + by + '" stroke="#2471a3" stroke-width="5"/>');
+      if (ok) {
+        var a = t[0] * k, b = t[1] * k;
+        var ux = (b * b + base * base - a * a) / (2 * base);
+        var uy = Math.sqrt(Math.max(0, b * b - ux * ux));
+        p.push('<polygon points="' + bx.toFixed(1) + "," + by + " " + (bx + base).toFixed(1) +
+          "," + by + " " + (bx + ux).toFixed(1) + "," + (by - uy).toFixed(1) +
+          '" fill="#eaf3fb" stroke="#2471a3" stroke-width="2"/>');
+        p.push('<text x="180" y="60" text-anchor="middle" font-size="15" fill="#1e8449">' +
+          "围成了三角形</text>");
+      } else {
+        var a2 = t[0] * k, b2 = t[1] * k;
+        p.push('<line x1="' + bx.toFixed(1) + '" y1="' + by + '" x2="' +
+          (bx + a2 * 0.7).toFixed(1) + '" y2="' + (by - a2 * 0.68).toFixed(1) +
+          '" stroke="#b7791f" stroke-width="5"/>');
+        p.push('<line x1="' + (bx + base).toFixed(1) + '" y1="' + by + '" x2="' +
+          (bx + base - b2 * 0.7).toFixed(1) + '" y2="' + (by - b2 * 0.68).toFixed(1) +
+          '" stroke="#1e8449" stroke-width="5"/>');
+        p.push('<text x="180" y="60" text-anchor="middle" font-size="15" fill="#c0392b">' +
+          (sum === t[2] ? "刚好压在最长棒上，围不成" : "够不着，接不上") + "</text>");
+      }
+      p.push('<text x="' + (bx + base / 2).toFixed(1) + '" y="' + (by + 22) +
+        '" text-anchor="middle" font-size="13" fill="#6b7280">最长的一根 ' + t[2] + "</text>");
+      box.innerHTML = '<svg viewBox="0 0 360 240" width="100%" height="240">' +
+        p.join("") + "</svg>";
+      s.innerHTML = t[0] + " ＋ " + t[1] + " ＝ " + sum +
+        (ok ? " ＞ " : sum === t[2] ? " ＝ " : " ＜ ") + t[2] +
+        (ok ? "　→ 两根短棒比最长的长，能围成三角形"
+            : "　→ 两根短棒不比最长的长，围不成三角形");
+    }
+    ra.addEventListener("input", draw);
+    rb.addEventListener("input", draw);
+    rc.addEventListener("input", draw);
+    draw();
+  }
+
+  /* ---- 乘法分配律：把大长方形切成两块（四下） ---- */
+  function distLab() {
+    return labBox("乘法分配律",
+      "一个长方形长 (a＋b)、宽 c，切成两块后面积是 a×c ＋ b×c。这就是 (a＋b)×c ＝ a×c ＋ b×c。",
+      '<div class="row">a <input type="range" id="ds-a" min="1" max="9" value="3">' +
+      '<b id="ds-av">3</b>　b <input type="range" id="ds-b" min="1" max="9" value="4">' +
+      '<b id="ds-bv">4</b>　c <input type="range" id="ds-c" min="1" max="9" value="5">' +
+      '<b id="ds-cv">5</b></div>' +
+      '<div id="ds-svg" class="svgwrap"></div><div id="ds-s" class="small"></div>');
+  }
+
+  function bindDist() {
+    var ra = document.getElementById("ds-a"), rb = document.getElementById("ds-b"),
+        rc = document.getElementById("ds-c"),
+        va = document.getElementById("ds-av"), vb = document.getElementById("ds-bv"),
+        vc = document.getElementById("ds-cv"),
+        box = document.getElementById("ds-svg"), s = document.getElementById("ds-s");
+    if (!ra || !box) return;
+
+    function draw() {
+      var a = +ra.value, b = +rb.value, c = +rc.value, i, p = [];
+      va.textContent = a; vb.textContent = b; vc.textContent = c;
+      var u = 20, W = (a + b) * u, H = c * u, x0 = 180 - W / 2, y0 = 34;
+      p.push('<rect x="' + x0 + '" y="' + y0 + '" width="' + (a * u) + '" height="' + H +
+        '" fill="#cfe4f5" stroke="#2471a3" stroke-width="2"/>');
+      p.push('<rect x="' + (x0 + a * u) + '" y="' + y0 + '" width="' + (b * u) + '" height="' + H +
+        '" fill="#f7dfae" stroke="#b7791f" stroke-width="2"/>');
+      for (i = 1; i < a + b; i++) {                     // 每格 1×1，看得出"几个 c"
+        p.push('<line x1="' + (x0 + i * u) + '" y1="' + y0 + '" x2="' + (x0 + i * u) +
+          '" y2="' + (y0 + H) + '" stroke="#fff"/>');
+      }
+      for (i = 1; i < c; i++) {
+        p.push('<line x1="' + x0 + '" y1="' + (y0 + i * u) + '" x2="' + (x0 + W) +
+          '" y2="' + (y0 + i * u) + '" stroke="#fff"/>');
+      }
+      p.push('<text x="' + (x0 + a * u / 2) + '" y="' + (y0 - 10) +
+        '" text-anchor="middle" font-size="14" fill="#2471a3">a＝' + a + "</text>");
+      p.push('<text x="' + (x0 + a * u + b * u / 2) + '" y="' + (y0 - 10) +
+        '" text-anchor="middle" font-size="14" fill="#b7791f">b＝' + b + "</text>");
+      p.push('<text x="' + (x0 + W + 8) + '" y="' + (y0 + H / 2 + 5) +
+        '" font-size="14" fill="#6b7280">c＝' + c + "</text>");
+      p.push('<text x="' + (x0 + a * u / 2) + '" y="' + (y0 + H / 2 + 5) +
+        '" text-anchor="middle" font-size="13" fill="#2471a3">a×c＝' + (a * c) + "</text>");
+      p.push('<text x="' + (x0 + a * u + b * u / 2) + '" y="' + (y0 + H / 2 + 5) +
+        '" text-anchor="middle" font-size="13" fill="#b7791f">b×c＝' + (b * c) + "</text>");
+      var H2 = y0 + H + 34;
+      box.innerHTML = '<svg viewBox="0 0 360 ' + H2 + '" width="100%" height="' + H2 +
+        '">' + p.join("") + "</svg>";
+      s.innerHTML = "(" + a + "＋" + b + ")×" + c + " ＝ " + (a + b) + "×" + c + " ＝ " +
+        ((a + b) * c) + "　　" + a + "×" + c + " ＋ " + b + "×" + c + " ＝ " + (a * c) +
+        " ＋ " + (b * c) + " ＝ " + ((a + b) * c) + "　（两种算法结果一样）";
+    }
+    ra.addEventListener("input", draw);
+    rb.addEventListener("input", draw);
+    rc.addEventListener("input", draw);
+    draw();
+  }
+
+  /* ---- 小数的意义：0.1 与 0.01，以及小数点搬家的结果（四下） ---- */
+  function decLab() {
+    return labBox("小数的意义",
+      "把 1 平均分成 10 份，1 份是 0.1；再细分成 100 份，1 份是 0.01。点 ×10 看小数点向右搬一位后，这个数变成多少。",
+      '<div class="row">十分位 <input type="range" id="dc-t" min="0" max="9" value="3">' +
+      '<b id="dc-tv">3</b>　百分位 <input type="range" id="dc-h" min="0" max="9" value="5">' +
+      '<b id="dc-hv">5</b>　<button id="dc-x" class="btn">×10</button>' +
+      '<button id="dc-d" class="btn">÷10</button><button id="dc-r" class="btn">清零</button></div>' +
+      '<div id="dc-svg" class="svgwrap"></div><div id="dc-s" class="small"></div>');
+  }
+
+  function bindDec() {
+    var rt = document.getElementById("dc-t"), rh = document.getElementById("dc-h"),
+        vt = document.getElementById("dc-tv"), vh = document.getElementById("dc-hv"),
+        box = document.getElementById("dc-svg"), s = document.getElementById("dc-s");
+    if (!rt || !box) return;
+    var d = [0, 3, 5];                    // [个位, 十分位, 百分位]
+
+    function draw() {
+      d[1] = Math.min(9, Math.max(0, d[1]));
+      d[2] = Math.min(9, Math.max(0, d[2]));
+      rt.value = d[1]; rh.value = d[2];
+      vt.textContent = d[1]; vh.textContent = d[2];
+      var p = [], i, j, g = 15, x0 = 40, y0 = 16;
+      var filled = d[1] * 10 + d[2];
+      for (i = 0; i < 10; i++) {
+        for (j = 0; j < 10; j++) {
+          var n = i * 10 + j, on = n < filled;
+          p.push('<rect x="' + (x0 + j * g) + '" y="' + (y0 + i * g) + '" width="' + g +
+            '" height="' + g + '" fill="' + (on ? "#cfe4f5" : "#fff") +
+            '" stroke="' + (on ? "#2471a3" : "#e3ded0") + '"/>');
+        }
+      }
+      p.push('<text x="' + (x0 + 160) + '" y="34" font-size="14" fill="#2471a3">涂色 ' +
+        filled + " 格 ＝ " + filled + " 个 0.01</text>");
+      p.push('<text x="' + (x0 + 160) + '" y="56" font-size="14" fill="#6b7280">前 ' + d[1] +
+        " 行是 " + d[1] + " 个 0.1</text>");
+      var val = d[0] + d[1] / 10 + d[2] / 100;
+      p.push('<text x="' + (x0 + 160) + '" y="86" font-size="16" fill="#2f3437">这个数是 <tspan fill="#2471a3">' +
+        val.toFixed(2) + "</tspan></text>");
+      p.push('<text x="' + (x0 + 160) + '" y="110" font-size="13" fill="#6b7280">' +
+        d[0] + " 个一 ＋ " + d[1] + " 个 0.1 ＋ " + d[2] + " 个 0.01</text>");
+      box.innerHTML = '<svg viewBox="0 0 360 190" width="100%" height="190">' +
+        p.join("") + "</svg>";
+      // 涂色只表示小数部分，个位要单独算进去（不然 ×10 后会出现 3.50＝50/100 的错话）
+      s.innerHTML = (d[0]
+          ? val.toFixed(2) + " ＝ " + d[0] + " ＋ " + filled + "/100"
+          : tex("0." + d[1] + d[2] + "＝" + filled + "/100")) +
+        "　（小数点向右移一位就扩大到原来的 10 倍，向左移一位就缩小到原来的 1/10）";
+    }
+    function shift(dir) {                 // dir=1 小数点右移（×10），-1 左移（÷10）
+      if (dir > 0) { d[0] = d[1]; d[1] = d[2]; d[2] = 0; }
+      else { d[2] = d[1]; d[1] = d[0]; d[0] = 0; }
+      draw();
+    }
+    rt.addEventListener("input", function () { d[1] = +rt.value; draw(); });
+    rh.addEventListener("input", function () { d[2] = +rh.value; draw(); });
+    var bx = document.getElementById("dc-x"), bd = document.getElementById("dc-d"),
+        br = document.getElementById("dc-r");
+    if (bx) bx.addEventListener("click", function () { shift(1); });
+    if (bd) bd.addEventListener("click", function () { shift(-1); });
+    if (br) br.addEventListener("click", function () { d = [0, 0, 0]; draw(); });
+    draw();
+  }
+
+  /* ---- 平均数：移多补少（四下） ---- */
+  function avgLab() {
+    var ins = [4, 7, 5, 8, 6].map(function (v, i) {
+      return '<input type="number" id="av-' + i + '" value="' + v +
+        '" min="0" max="20" style="width:56px">';
+    }).join(" ");
+    return labBox("平均数：移多补少",
+      "把多的移给少的，让大家变得一样多——这个一样多的数就是平均数。改一改这些数，看平均线怎么动。",
+      '<div class="row">' + ins + '</div>' +
+      '<div id="av-svg" class="svgwrap"></div><div id="av-s" class="small"></div>');
+  }
+
+  function bindAvg() {
+    var box = document.getElementById("av-svg"), s = document.getElementById("av-s");
+    if (!box) return;
+    var els = [];
+    for (var i = 0; i < 5; i++) els.push(document.getElementById("av-" + i));
+    if (!els[0]) return;
+
+    function draw() {
+      var v = els.map(function (e) { return Math.max(0, +e.value || 0); });
+      var n = v.length, sum = v.reduce(function (a, b) { return a + b; }, 0);
+      var avg = sum / n, mx = Math.max.apply(null, v.concat([avg])) || 1;
+      var u = Math.min(26, 150 / mx), W = 44, gap = 14;
+      var x0 = 180 - (n * W + (n - 1) * gap) / 2, base = 200, p = [];
+      var ay = base - avg * u;
+      v.forEach(function (val, i) {
+        var x = x0 + i * (W + gap), h = val * u, top = base - h;
+        // 平均线以下（保留）用主色，以上（多出来要移走）用暖色
+        var cut = Math.min(base, ay);
+        if (h > avg * u) {
+          p.push('<rect x="' + x + '" y="' + top + '" width="' + W + '" height="' +
+            (cut - top) + '" fill="#f7dfae" stroke="#b7791f"/>');
+          p.push('<rect x="' + x + '" y="' + cut + '" width="' + W + '" height="' +
+            (base - cut) + '" fill="#cfe4f5" stroke="#2471a3"/>');
+        } else {
+          p.push('<rect x="' + x + '" y="' + top + '" width="' + W + '" height="' + h +
+            '" fill="#cfe4f5" stroke="#2471a3"/>');
+          if (val < avg) {
+            p.push('<rect x="' + x + '" y="' + ay + '" width="' + W + '" height="' +
+              (top - ay) + '" fill="none" stroke="#1e8449" stroke-dasharray="4 3"/>');
+          }
+        }
+        p.push('<text x="' + (x + W / 2) + '" y="' + (base + 18) +
+          '" text-anchor="middle" font-size="14" fill="#2f3437">' + val + "</text>");
+      });
+      p.push('<line x1="' + (x0 - 10) + '" y1="' + ay + '" x2="' +
+        (x0 + n * W + (n - 1) * gap + 10) + '" y2="' + ay +
+        '" stroke="#c0392b" stroke-width="2" stroke-dasharray="6 4"/>');
+      p.push('<text x="' + (x0 + n * W + (n - 1) * gap + 14) + '" y="' + (ay + 4) +
+        '" font-size="13" fill="#c0392b">平均 ' + (Math.round(avg * 100) / 100) + "</text>");
+      box.innerHTML = '<svg viewBox="0 0 360 230" width="100%" height="230">' +
+        p.join("") + "</svg>";
+      s.innerHTML = "（" + v.join(" ＋ ") + "）÷ " + n + " ＝ " + sum + " ÷ " + n +
+        " ＝ <b>" + (Math.round(avg * 100) / 100) +
+        "</b>　（橙色是要移走的部分，绿色虚框是要补上的部分）";
+    }
+    els.forEach(function (e) { e.addEventListener("input", draw); });
+    draw();
+  }
+
   function mathLab(kind) {
     var h = "";
     if (kind === "all" || kind === "num") {
       // 四上这批放在前面：它们是"讲解动画"，比工具更该先看见
       h += placeLab() + bignumLab() + vertLab() + modelLab() +
-        fracLab() + axisLab() + hundredLab() + unitLab();
+        fracLab() + axisLab() + hundredLab() + unitLab() +
+        distLab() + decLab();                       // 四下
     }
     if (kind === "all" || kind === "geo") {
-      h += angleLab() + heightLab() + dirLab() + cutLab() + circleLab();
+      h += angleLab() + heightLab() + dirLab() + cutLab() + circleLab() +
+        triLab() + sideLab();                       // 四下
     }
-    if (kind === "all" || kind === "stat") h += barLab();
+    if (kind === "all" || kind === "stat") h += barLab() + avgLab();   // 四下
     if (kind === "problem") h += segLab() + modelLab();   // 应用题配线段图，正对"看不出数量关系"
     return h;
   }
@@ -5956,11 +6294,13 @@
     if (kind === "all" || kind === "num") {
       bindPlace(); bindBignum(); bindVert(); bindModel();
       bindFrac(); bindAxis(); bindHundred(); bindUnit();
+      bindDist(); bindDec();                        // 四下
     }
     if (kind === "all" || kind === "geo") {
       bindAngle(); bindHeight(); bindDir(); bindCut(); bindCircle();
+      bindTri(); bindSide();                        // 四下
     }
-    if (kind === "all" || kind === "stat") bindBar();
+    if (kind === "all" || kind === "stat") { bindBar(); bindAvg(); }   // 四下
     if (kind === "problem") { bindSeg(); bindModel(); }
   }
 
