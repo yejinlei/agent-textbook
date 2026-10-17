@@ -64,11 +64,98 @@ def _book_sort_key(book: str):
     return (99, 99)
 
 
+# ------------------------------------------------------------- 课文重排
+# PDF 抽取时坐标已经丢了，留下的是整页的纯文本流：图、表、气泡里的字和正文
+# 句子挤在一起（"晴 / 阴 / 多云 / 天数"夹在两句话中间），读起来就是"串行"。
+# 这里做三件事：把图表上的孤词挑出去、把被换行切断的句子接回去、丢掉乱码行。
+# 行序没法百分百还原（没有坐标，顺序信息在抽取时就丢了），但正文能读通。
+
+# 成句的标志：出现这些词，基本是句子而不是标签（必须按"词"匹配——
+# 拆成单字会把"天数"（含"数"）、"多云"（含"多"）误判成句子）
+_SENT_W = ("怎样", "怎么", "什么", "多少", "哪些", "一共", "可以", "如果", "那么",
+           "这样", "表示", "比较", "最多", "最少", "还有", "就是", "也是", "都要",
+           "根据", "统计", "完成", "绘制", "回答", "发现", "信息", "建议", "喜欢",
+           "需要", "应该", "试一试", "想一想", "说一说", "做一做", "看一看",
+           "数一数", "比一比", "算一算", "认一认", "填一填", "连一连", "画一画")
+_SENT_C = "的了是能会要吗呢吧和与还就也都又再把被从向对各请您"
+# 无标点但必须留在正文里的：小标题、栏目名、图名
+_KEEP = ("统计图", "统计表", "条形", "折线", "扇形", "认识", "复习", "整理",
+         "生活中的数学", "成长小档案", "做一做", "练习", "例题", "想一想",
+         "你知道吗", "数学游戏", "综合与实践", "本单元", "我的收获")
+# 新一句开头的标志：序号或栏目锚点
+_NEW_SENT = ("做一做", "练习", "调查", "成长小档案", "生活中的数学", "本单元")
+
+
+def _junk_line(s: str) -> bool:
+    """抽取失败的行（字体没嵌入时会出一堆西里尔/东南亚字符）。"""
+    if re.search(r"[\u0400-\u04FF\u1780-\u17FF\u1A00-\u1AFF\u2070-\u209F]", s):
+        return True
+    cjk = re.findall(r"[\u4e00-\u9fff]", s)
+    if not cjk and not re.search(r"[0-9A-Za-z]", s):
+        return True                                  # 纯符号
+    if len(cjk) <= 1 and re.search(r"[^\u4e00-\u9fff0-9A-Za-z，。？！：；、（）%]", s):
+        return True                                  # 一个汉字配着怪符号
+    return False
+
+
+def _is_chart_line(s: str) -> bool:
+    """图/表里的字：孤词、刻度、数字、轴标签——不是课文句子。"""
+    if re.fullmatch(r"[0-9\.\s]+", s) or re.fullmatch(r"[一二三四五六日]+", s):
+        return True                                  # 刻度数字 / 日历表头
+    if not re.search(r"[\u4e00-\u9fff]", s):
+        return True                                  # 没有汉字：101_120 之类
+    for k in _KEEP:
+        if k in s:
+            return False                             # 小标题留在正文
+    if re.search(r"[，。？！：；、（）“”]", s):
+        return False                                 # 有标点 = 成句
+    if any(w in s for w in _SENT_W) or any(c in _SENT_C for c in s):
+        return False
+    return True
+
+
+def _is_head(s: str) -> bool:
+    """小标题：短、无标点、是栏目名或图名——它后面不再接句子。"""
+    return (len(s) <= 12 and not re.search(r"[，。？！：；、（）]", s)
+            and any(k in s for k in _KEEP))
+
+
+def _merge_body(body: list) -> list:
+    """把被换行切断的句子接回去：上一行没有结束标点就续上（中文不加空格）。"""
+    out = []
+    for s in body:
+        if (out and not re.search(r"[。？！：；]$", out[-1]) and not _is_head(out[-1])
+                and not re.match(r"^[（(]?\d+[）)]", s)
+                and not any(s.startswith(k) for k in _NEW_SENT)):
+            out[-1] += s
+        elif out and out[-1] == s:
+            continue                                 # 图注重复出现，只留一次
+        else:
+            out.append(s)
+    return out
+
+
+def _reorder(text: str):
+    """一块教材文本 → (正文行, 图表上的字)，图表字去重后保留顺序。"""
+    body, chart, seen = [], [], set()
+    for ln in (text or "").split("\n"):
+        s = ln.strip()
+        if not s or _junk_line(s):
+            continue
+        if _is_chart_line(s):
+            if s not in seen:
+                seen.add(s)
+                chart.append(s)
+        else:
+            body.append(s)
+    return _merge_body(body), chart
+
+
 # ------------------------------------------------------------------ 数学
 def build_math(con) -> dict:
     # unit_no 为空的是"整理复习/附录"之类，不算单元；text 是这一单元的教材正文
     units = _rows(con, """select section_id,grade,term,unit_no,title,
-                          page_from,page_to,text from section_text
+                          page_from,page_to,text,blocks from section_text
                           where subject='数学' and unit_no is not null""")
     kp = {r["section_id"]: r for r in _rows(
         con, "select section_id,points,summary from section_keypoint"
@@ -102,6 +189,16 @@ def build_math(con) -> dict:
         dom = goals.math_domain(u["title"])
         mp = maps.get((u["grade"], u["term"], u["title"]))
         ms = measures.get((u["grade"], u["term"], u["title"]))
+        # 课本原文：按教材板块（正文 / 做一做 / 练习…）分节。行序已按 PDF 版面
+        # 重排过，这里再把图、表上的孤词从句子里挑出去，正文才读得通。
+        blks = _j(u.get("blocks")) or [{"kind": "正文", "text": u.get("text") or ""}]
+        secs, flat = [], []
+        for b in blks:
+            body, chart = _reorder(b.get("text") or "")
+            if body:
+                secs.append({"kind": b.get("kind") or "正文",
+                             "body": body, "chart": chart})
+                flat.extend(body)
         item = {
             "sid": u["section_id"],
             "grade": u["grade"], "term": u["term"], "book": _gt(u),
@@ -111,8 +208,8 @@ def build_math(con) -> dict:
             "points": points[:12],
             "page_from": u["page_from"], "page_to": u["page_to"],
             # 教材正文（这一单元课本上写的讲解与例题引子），按行切开，不截断
-            "text": [ln.strip() for ln in (u.get("text") or "").split("\n")
-                     if ln.strip()][:160],
+            "text": flat[:160],
+            "sections": secs,
         }
         if mp:
             nodes = _j(mp.get("nodes"))

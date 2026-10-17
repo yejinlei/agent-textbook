@@ -443,6 +443,14 @@ details > summary {
 .full { padding: 8px 12px; background: #fdfcf9;
   border: 1px solid var(--line); border-radius: 8px; margin-top: 6px; }
 .para { margin: 0 0 8px; text-indent: 2em; font-size: 16.5px; line-height: 1.9; }
+/* 课本原文：教材板块名（正文 / 做一做 / 练习…）与"图上的字" */
+.sect { margin: 12px 0 6px; font-size: 14px; font-weight: 600; color: var(--c);
+  border-left: 3px solid var(--c); padding-left: 8px; }
+.sect:first-child { margin-top: 0; }
+.cht { margin: 4px 0 10px; }
+.cht > summary { font-size: 13.5px; color: var(--muted); cursor: pointer; }
+.chw { margin: 6px 0 0; font-size: 13px; color: var(--muted); line-height: 1.8;
+  background: #f7f9fb; border-radius: 6px; padding: 6px 10px; }
 .poem { font: inherit; font-size: 17px; line-height: 2; white-space: pre-wrap;
   margin: 6px 0; padding: 8px 12px; background: #fdfcf9;
   border: 1px solid var(--line); border-radius: 8px; }

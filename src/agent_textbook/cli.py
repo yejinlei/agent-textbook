@@ -238,6 +238,28 @@ def cmd_mathmap(args) -> None:
                            limit=args.limit, force=args.force)
 
 
+def cmd_reorder(args) -> None:
+    """按 PDF 版面坐标重排课文：图表的字不再夹在正文句子中间。
+
+    只改 section_text 的正文与分块，不动知识点/例题等已抽好的产物。
+    """
+    import duckdb
+
+    from .index import reorder
+
+    subs = [s.strip() for s in (args.subject or "数学").split(",") if s.strip()]
+    db = os.path.join(config.DATA_DIR, "kb.duckdb")
+    con = duckdb.connect(db)
+    try:
+        for s in subs:
+            reorder.reorder_sections(con, s)
+        con.commit()
+        # 语文古诗文不走这里：诗正文 + 页下注释 + 字上拼音在同一页混排，
+        # 按坐标排会把诗句和注释交错（实测反而更乱），要改用 VLM 读页区分。
+    finally:
+        con.close()
+
+
 def cmd_pages(args) -> None:
     """静态站点：按教学目标组织的"小学知识大全"。"""
     from .site import build
@@ -678,6 +700,10 @@ def main() -> None:
     sp.add_argument("--limit", type=int, default=0, help="本次最多处理多少节")
     sp.add_argument("--force", action="store_true", help="已抽过也重跑")
     sp.set_defaults(func=cmd_mathmap)
+
+    sp = sub.add_parser("reorder", help="按 PDF 版面坐标重排课文（治图/表的字串行进正文）")
+    sp.add_argument("--subject", default="数学", help="学科，逗号分隔（如 数学,语文）")
+    sp.set_defaults(func=cmd_reorder)
 
     sp = sub.add_parser("pages", help="静态站点：按教学目标组织的「小学知识大全」")
     sp.add_argument("--out", default="", help="输出目录（默认 pages/）")

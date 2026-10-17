@@ -805,8 +805,22 @@
             e[0] + '">' + mBody(u.kb, e[0]) + "</div>" : "";
       }).join("");
     }
-    // 课本原文：这一单元教材上写的讲解（按进度学时就是"这一课讲了什么"）
-    if (u.text && u.text.length) {
+    // 课本原文：按教材板块分节（正文 / 做一做 / 练习…），图上的字单列，不打断阅读
+    if (u.sections && u.sections.length) {
+      var np = u.sections.reduce(function (a, s) { return a + s.body.length; }, 0);
+      h += "<details><summary>课本原文（" + np + " 段）</summary>" +
+        '<div class="full">' + u.sections.map(function (s) {
+          return '<p class="sect">' + esc(s.kind) + "</p>" +
+            s.body.map(function (p) {
+              return '<p class="para">' + esc(p) + "</p>";
+            }).join("") +
+            (s.chart && s.chart.length
+              ? '<details class="cht"><summary>图上的字（' + s.chart.length +
+                '）</summary><p class="chw">' +
+                s.chart.map(esc).join(" · ") + "</p></details>"
+              : "");
+        }).join("") + "</div></details>";
+    } else if (u.text && u.text.length) {
       h += "<details><summary>课本原文（" + u.text.length + " 段）</summary>" +
         '<div class="full">' + u.text.map(function (p) {
           return '<p class="para">' + esc(p) + "</p>";
