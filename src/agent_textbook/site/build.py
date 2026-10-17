@@ -96,6 +96,7 @@ def build_math(con) -> dict:
         measures[(r["grade"], r["term"], r["unit_name"])] = r
 
     out = []
+    n_derived = 0
     for u in units:
         points = [str(x).strip() for x in _j((kp.get(u["section_id"]) or {}).get("points"))]
         dom = goals.math_domain(u["title"])
@@ -119,6 +120,17 @@ def build_math(con) -> dict:
                            "nodes": [{"id": n.get("id"), "text": n.get("text"),
                                       "parent": n.get("parent")} for n in nodes],
                            "page": mp.get("page_from")}
+        elif points:
+            # 教材不是每个单元都印知识结构图（52 个整理复习课时里只印了 31 张）。
+            # 没印的用教材知识点整理成扁平要点图，页面会注明来源，不冒充教材原图。
+            item["map"] = {
+                "topic": u["title"], "summary": "本单元教材未印结构图，按教材知识点整理",
+                "nodes": [{"id": 1, "text": u["title"], "parent": 0}] +
+                         [{"id": i + 2, "text": p, "parent": 1}
+                          for i, p in enumerate(points[:12])],
+                "page": u.get("page_from"), "derived": True,
+            }
+            n_derived += 1
         if ms:
             item["measures"] = _j(ms.get("units"))[:12]
         # 公式：同 latex 只留一条，按"定义→法则→性质→例题→计算过程→练习"排
@@ -176,8 +188,86 @@ def build_math(con) -> dict:
         "domains": [{"key": d["key"], "name": d["name"], "desc": d["desc"]}
                     for d in goals.MATH_DOMAINS],
         "units": out, "measures": all_measures,
-        "n_maps": len(maps),
+        "n_maps": len(maps), "n_derived_maps": n_derived,
+        "drills": build_drills(con),
     }
+
+
+# ------------------------------------------------------------------ 数学·练一练
+# 教材里能自动判分的算式：只收整数四则，答案必须能被程序算出来核对。
+# 教材 OCR/抽取会出错（实测 630 条里有 18 条是"12×7=74"这种），
+# 凡是对不上的一律丢——宁可题少，也不能让孩子练错的答案。
+RE_DRILL_EQ = re.compile(r"^(\d+)([+\-*/])(\d+)=(\d+)$")
+RE_DRILL_EX = re.compile(r"^(\d+)([+\-*/])(\d+)$")
+DRILL_OP = {"+": "+", "-": "-", "*": "×", "/": "÷"}
+
+
+def _norm_expr(s: str) -> str:
+    """教材算式写法（含 LaTeX）归一成 `12*7=84`。"""
+    s = str(s or "")
+    s = (s.replace("－", "-").replace("×", "*").replace("÷", "/")
+          .replace("\\times", "*").replace("\\div", "/").replace("\\cdot", "*"))
+    s = re.sub(r"\\d?frac\{\s*([^{}]+?)\s*\}\{\s*([^{}]+?)\s*\}", r"(\1/\2)", s)
+    s = (s.replace("\\left", "").replace("\\right", "").replace("$", "")
+          .replace("\\,", "").replace("{", "(").replace("}", ")"))
+    return re.sub(r"\s+", "", s)
+
+
+def _calc(a: int, op: str, b: int):
+    """四则运算；不整除、出现负数的一律不算（不进题库）。"""
+    if op == "+":
+        return a + b
+    if op == "-":
+        return a - b if a >= b else None
+    if op == "*":
+        return a * b
+    if op == "/":
+        return a // b if b and a % b == 0 else None
+    return None
+
+
+def build_drills(con) -> list:
+    """练一练题库：教材里抽得出、且答案能被程序核对的整数四则算式。
+
+    每题带 a/op/b 三个数，前端出"变式"时换数字再按同一规则算答案，
+    所以变式的答案也是算出来的，不是编出来的。
+    """
+    rows = _rows(con, """select grade,term,unit_name,latex,kind
+                         from section_formula""")
+    out, seen = [], set()
+    for r in rows:
+        s = _norm_expr(r.get("latex"))
+        m = RE_DRILL_EQ.match(s)
+        if m:
+            a, op, b, c = (int(m.group(1)), m.group(2),
+                           int(m.group(3)), int(m.group(4)))
+            if _calc(a, op, b) != c:      # 教材抽错的答案，丢
+                continue
+            ans = c
+        else:
+            m = RE_DRILL_EX.match(s)
+            if not m:
+                continue
+            a, op, b = int(m.group(1)), m.group(2), int(m.group(3))
+            ans = _calc(a, op, b)
+            if ans is None:
+                continue
+        # 太简单的（1+1 之类）练不出什么，也不要
+        if ans is None or (op in "+-" and max(a, b) < 2):
+            continue
+        key = (r.get("grade"), r.get("term"), r.get("unit_name"), a, op, b)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append({
+            "book": "%s%s" % (r.get("grade") or "", r.get("term") or ""),
+            "grade": r.get("grade") or "", "term": r.get("term") or "",
+            "unit": r.get("unit_name") or "", "kind": r.get("kind") or "",
+            "stem": "%d%s%d=" % (a, DRILL_OP[op], b),
+            "a": a, "op": op, "b": b, "answer": str(ans),
+        })
+    out.sort(key=lambda x: (_book_sort_key(x["book"]), x["unit"], x["stem"]))
+    return out
 
 
 # ------------------------------------------------------------------ 数学·解决问题
@@ -1484,6 +1574,9 @@ def _slice(key, kind, cn_d, math_d, en_d):
         d = {"domains": math_d["domains"], "units": units, "books": books}
         if kind == "all":
             d["measures"] = math_d["measures"]
+        # 练一练只挂在有计算的页上（课本单元 / 数与代数 / 图形与几何）
+        if kind in ("all", "num", "geo"):
+            d["drills"] = math_d["drills"]
         return d
     books = sorted({v["book"] for v in en_d["vocab"]}, key=_book_sort_key)
     if kind == "speak":

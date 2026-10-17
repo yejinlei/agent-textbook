@@ -1777,6 +1777,128 @@ details.aq .aa {
 .d-side .d-wrong .w-item:last-child { border-bottom: 0; }
 .d-side .d-wrong .w-item b {
   display: inline-block; min-width: 18px; text-align: center; margin-right: 6px;
+
+/* ============ 数学：知识线 / 易错清单 / 讲题卡 / 练一练 ============ */
+
+/* 知识线：同一主题跨年级的阶梯，一级一级往上长 */
+.ln { margin-top: 8px; }
+.lnstep {
+  position: relative;
+  border-left: 3px solid var(--c);
+  padding: 8px 0 8px 12px;
+  margin-left: 6px;
+  animation: pop .18s ease-out;
+}
+.lnstep::before {
+  content: "";
+  position: absolute; left: -7px; top: 15px;
+  width: 11px; height: 11px; border-radius: 50%;
+  background: #fff; border: 3px solid var(--c);
+}
+.lnstep.s0 { margin-left: 0; }
+.lnstep.s1 { margin-left: 12px; }
+.lnstep.s2 { margin-left: 24px; }
+.lnstep.s3 { margin-left: 36px; }
+.lnstep.s4 { margin-left: 48px; }
+.lnstep.s5 { margin-left: 60px; }
+.lnhd { font-size: 12.5px; color: var(--muted); }
+.lnu {
+  font-size: 16px; font-weight: 600; color: var(--ink); text-decoration: none;
+  border-bottom: 1px dashed var(--line);
+  transition: color .15s, border-color .15s;
+}
+.lnu:hover { color: var(--c); border-bottom-color: var(--c); }
+.lnlk { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+/* 易错清单 */
+.tps { margin-top: 8px; }
+.tpi {
+  border: 1px solid var(--line); border-radius: 8px; background: #fff;
+  padding: 7px 10px; margin: 6px 0; font-size: 15px;
+  transition: border-color .15s, transform .12s;
+}
+.tpi:hover { border-color: var(--c); transform: translateX(2px); }
+.tpi .where { margin-left: 6px; }
+
+/* 练一练：计时条 + 答案输入 */
+.prbar {
+  height: 6px; border-radius: 999px; background: #eef1f4;
+  overflow: hidden; margin: 6px 0 2px;
+}
+.prbar i {
+  display: block; height: 100%; width: 0; background: var(--c);
+  transition: width .2s linear, background .2s;
+}
+.prbar i.hot { background: #e53935; }
+.ansi {
+  width: 130px; font-size: 18px; padding: 6px 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: #fff;
+}
+.ansi.ok { border-color: #43a047; background: #e8f5e9; }
+.ansi.no { border-color: #e53935; background: #fdecea; }
+
+/* 讲题卡：四步推进，提示默认盖着 */
+.teach { margin: 8px 0 4px; }
+.tbtn {
+  display: inline-block; font-size: 13px; color: var(--c);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 3px 12px; cursor: pointer; background: #fff;
+  transition: background .15s, transform .12s;
+}
+.tbtn:hover { background: #f4f8fc; transform: translateY(-1px); }
+.teach .tsteps { display: none; margin-top: 8px; }
+.teach.on .tsteps { display: block; animation: pop .18s ease-out; }
+.tstep {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
+  padding: 7px 10px; margin: 5px 0;
+  border: 1px solid var(--line); border-left: 3px solid var(--c);
+  border-radius: 8px; background: #fff;
+}
+.tno {
+  width: 20px; height: 20px; line-height: 20px; text-align: center;
+  border-radius: 50%; background: var(--c); color: #fff; font-size: 12px;
+}
+.tl { font-weight: 600; font-size: 14px; }
+.tm {
+  flex: 1 1 240px; font-size: 15px;
+  color: transparent; background: #eef1f4; border-radius: 6px;
+  transition: color .18s, background .18s;
+}
+.tstep.open .tm { color: var(--ink); background: transparent; }
+.tshow {
+  font-size: 12px; color: var(--c); cursor: pointer;
+  border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px;
+}
+.tstep.open .tshow { color: var(--muted); border-color: transparent; }
+
+/* ============ 四上讲解动画 ============ */
+/* 数位表 / 1 亿有多大 / 竖式分步 / 量角器 / 底和高 / 方向与距离 / 条形图 / 模型线段图 */
+.plsvg, .bnsvg, .ansvg, .htsvg, .dirsvg, .brsvg, .mdsvg {
+  max-width: 100%; height: auto; display: block;
+}
+.plsvg rect { transition: fill .15s; cursor: pointer; }
+.plsvg rect:hover { fill: #f4f8fc; }
+.pln { font-size: 12px; fill: var(--muted); }
+.pld { font-size: 13px; font-weight: 600; fill: var(--ink); }
+.bnref, .antick { font-size: 10.5px; fill: var(--muted); }
+.ansvg { touch-action: none; cursor: crosshair; }
+.htlab { font-size: 12px; fill: var(--ink); }
+.mdtotal { font-size: 14px; font-weight: 600; fill: var(--c); }
+
+/* 竖式：等宽右对齐，当前步高亮 */
+.vertbox {
+  font-family: Consolas, "SFMono-Regular", "Courier New", monospace;
+  font-size: 19px; line-height: 1.55; white-space: pre;
+  background: #fff; border: 1px solid var(--line); border-radius: 8px;
+  padding: 10px 14px; margin-top: 8px; min-height: 92px;
+}
+.vrow { text-align: right; color: var(--muted); transition: color .18s; }
+.vrow.on { color: var(--c); font-weight: 600; animation: pop .18s ease-out; }
+
+.brrow {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin: 0 10px 4px 0; font-size: 13px;
+}
   background: #fdecea; color: #c62828; border-radius: 4px; padding: 0 4px; font-size: 12px;
 }
 .d-side .btn, .d-side .btn-ghost { width: 100%; margin-top: 6px; }

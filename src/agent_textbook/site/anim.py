@@ -36,7 +36,11 @@ def _scenes():
     except Exception:
         return []
 
-    from manim import (BLUE, YELLOW, Create, DashedLine, FadeIn, MathTex,
+    # 说明：这里刻意不用 MathTex——本机没装 LaTeX（latex / dvisvgm 都没有），
+    # MathTex 会直接渲染失败。视频里的文字一律用纯 ASCII 的 Text（Manim 渲染
+    # 中文还要额外配字体，容易出豆腐块），中文说明与公式排版交给页面：
+    # app.js 自带 tex() 迷你渲染器，视频卡片下方由页面显示。
+    from manim import (BLUE, YELLOW, Create, DashedLine, FadeIn,
                        Polygon, Rectangle, Scene, Sector, Text, Transform,
                        VGroup, Write, np)
 
@@ -56,7 +60,7 @@ def _scenes():
             rest = Polygon(E, B, C, D, color=BLUE, fill_opacity=0.25)
             tri = Polygon(A, E, D, color=YELLOW, fill_opacity=0.6)
             cut = DashedLine(D, E, color="#c0392b")
-            label = MathTex("S = a \\times h").to_edge(DOWN)
+            label = Text("S = a x h").to_edge(DOWN)
 
             self.play(Create(para))
             self.wait(0.4)
@@ -89,7 +93,7 @@ def _scenes():
                     color=YELLOW if i % 2 == 0 else BLUE, fill_opacity=0.6,
                 ).move_to([-math.pi * r / 2 + w * (col + 0.5),
                            (0.5 - row) * r / 2, 0]))
-            label = MathTex("S = \\pi r \\times r = \\pi r^2").to_edge(DOWN)
+            label = Text("S = pi r x r = pi r^2").to_edge(DOWN)
 
             self.play(Create(circle))
             self.wait(0.4)
@@ -113,7 +117,7 @@ def _scenes():
                               color=YELLOW if i < m else "#ffffff", fill_opacity=0.7)
                 p.move_to([-W / 2 + W / n * (i + 0.5), 0, 0])
                 parts.add(p)
-            label = MathTex("\\frac{%d}{%d} = %.2f" % (m, n, m / n)).to_edge(DOWN)
+            label = Text("%d/%d = %.2f" % (m, n, m / n)).to_edge(DOWN)
 
             self.play(Create(bar))
             self.wait(0.3)
@@ -126,6 +130,20 @@ def _scenes():
                           "circle_area": CircleToRect,
                           "fraction_bar": FractionBar}[slug])
             for slug, (name, _, _) in VIDEOS.items()]
+
+
+def _poster(mp4: str, jpg: str) -> bool:
+    """抽视频首帧当封面——不然页面上一块黑，看着像坏了。
+
+    没装 ffmpeg 就算了：封面是锦上添花，不该让整条渲染失败。
+    """
+    try:
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", mp4,
+                        "-vframes", "1", "-q:v", "4", jpg],
+                       capture_output=True, text=True)
+    except Exception:      # pragma: no cover
+        return False
+    return os.path.exists(jpg)
 
 
 def render_all(out_dir: str = None, quality: str = "-ql") -> dict:
@@ -156,6 +174,7 @@ def render_all(out_dir: str = None, quality: str = "-ql") -> dict:
                 continue
             dst = os.path.join(vdir, slug + ".mp4")
             shutil.copy(hits[0], dst)
+            _poster(dst, os.path.join(vdir, slug + ".jpg"))     # 首帧当封面
             done.append(dst)
     return {"ok": bool(done), "msg": "渲染 %d 个，失败 %d 个" % (len(done), len(failed)),
             "files": done, "failed": failed}
@@ -173,10 +192,15 @@ def video_block(kind: str, out_dir: str) -> str:
     has = [s for s in want if os.path.exists(os.path.join(vdir, s + ".mp4"))]
     if not has:
         return ""
-    cards = "".join(
-        '<div class="card vid"><h3>%s</h3><p class="small">%s</p>'
-        '<video controls preload="none" playsinline src="../assets/video/%s.mp4"></video></div>'
-        % (VIDEOS[s][1], VIDEOS[s][2], s) for s in has)
+    def card(s):
+        po = os.path.join(vdir, s + ".jpg")
+        poster = ' poster="../assets/video/%s.jpg"' % s if os.path.exists(po) else ""
+        return ('<div class="card vid"><h3>%s</h3><p class="small">%s</p>'
+                '<video controls preload="none" playsinline%s '
+                'src="../assets/video/%s.mp4"></video></div>'
+                % (VIDEOS[s][1], VIDEOS[s][2], poster, s))
+
+    cards = "".join(card(s) for s in has)
     return "<h2>公式动画（Manim）</h2>" + \
         '<p class="lead">看一遍就懂的推导。页面里的可视化实验室可以自己拖，' + \
         "这里是做好的动画。</p>" + cards

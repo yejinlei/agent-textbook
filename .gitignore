@@ -70,3 +70,6 @@ _*.log
 _*.err
 
 .trae-html-share-packages/
+
+# 浏览器验证的临时产物（playwright-cli 的截图、快照、控制台日志）
+.playwright-cli/

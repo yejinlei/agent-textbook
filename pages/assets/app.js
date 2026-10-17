@@ -666,6 +666,10 @@
       app.appendChild(el);
       bindMathLab(kind);
     }
+    // 数学的三个"换个用法"的盒子：练一练、知识线、易错清单
+    mountLab(practiceLab(), bindPractice);
+    if (kind === "all") mountLab(lineLab(), bindLine);
+    if (kind === "all") mountLab(trapLab(), bindTrap);
     var box = listBox();
     // 子页就是领域页，只在"全部单元"页给领域页签
     var t = tools(kind === "all" ? (D.domains || []) : [], function (st, cnt) {
@@ -686,6 +690,15 @@
     }, { hint: "如：分数、面积、鸡兔同笼",
          tags: hotTags(D.units, "title", 18) });
     box.addEventListener("click", function (e) {
+      // 讲题卡：先展开四步，再一步一步掀提示
+      var tb = e.target.closest(".tbtn");
+      if (tb) { tb.parentNode.classList.toggle("on"); return; }
+      var ts = e.target.closest(".tshow");
+      if (ts) {
+        ts.parentNode.classList.add("open");
+        ts.textContent = "已对照";
+        return;
+      }
       var chip = e.target.closest(".chip");
       if (!chip) return;
       var k = chip.dataset.ex;
@@ -744,6 +757,31 @@
     return h + (std ? '<p class="std">课标依据：' + esc(std) + "</p>" : "");
   }
 
+  /* 讲题卡：把一道例题摊成"求什么 → 已知什么 → 怎么算 → 为什么这样算"四步，
+     每一步的提示默认盖着——先自己讲一遍，再掀开对。数学上"能讲出来"才算真懂，
+     这是光看答案学不到的（对标英语的开口说，但讲的是思路和算理，不是背句子）。 */
+  function teachCard(u, e) {
+    var kb = u.kb || {};
+    var steps = [
+      ["求什么", e.ask || e.stem || e.name || ""],
+      ["已知什么", e.given || ""],
+      ["怎么算", (e.steps || []).map(function (s, i) {
+        return (i + 1) + ". " + (s.text || "");
+      }).join("　")],
+      ["为什么这样算", kb.why || (kb.how || []).map(function (x) {
+        return x.note || "";
+      }).join("；")]
+    ].filter(function (x) { return x[1]; });
+    if (steps.length < 2) return "";
+    return '<div class="teach"><span class="tbtn">讲一讲（' + steps.length +
+      " 步）</span>" + '<div class="tsteps">' + steps.map(function (x, i) {
+        return '<div class="tstep"><span class="tno">' + (i + 1) + "</span>" +
+          '<span class="tl">' + esc(x[0]) + "</span>" +
+          '<span class="tm">' + esc(x[1]) + "</span>" +
+          '<span class="tshow">显示提示</span></div>';
+      }).join("") + "</div></div>";
+  }
+
   function mathUnit(u, idx) {
     var dom = D.domains.filter(function (d) { return d.key === u.domain; })[0] || {};
     var lit = (u.literacy || []).map(function (x) {
@@ -799,7 +837,7 @@
           }
           s += (e.difficulty ? '<span class="tag">' + esc(e.difficulty) + "</span>" : "") +
             (e.page ? '<span class="where">' + esc(e.page) + "</span>" : "") + "</div>";
-          return s;
+          return s + teachCard(u, e);
         }).join("") + "</details>";
     }
     // 生活里在哪儿用：学这个到底有什么用
@@ -5240,24 +5278,987 @@
     draw();
   }
 
+  /* ================================================== 四上 · 数与运算
+     四上数与运算难的不是算，是数感：万以上的数到底有多大、竖式每一步在干什么。
+     这三个盒子都做成"可点、可分步"，不自动播完——停下来看清楚才有用。 */
+
+  /* ---- 万以上数的认识：数位顺序表 + 算珠计数器 ---- */
+  var PLACE_NAMES = ["个", "十", "百", "千", "万", "十万", "百万", "千万", "亿"];
+  var CN_DIGIT = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+  var CN_UNIT4 = ["", "十", "百", "千"];
+
+  function readGroup4(g) {
+    if (!g) return "";
+    var s = "", zero = false, i, d;
+    for (i = 3; i >= 0; i--) {
+      d = Math.floor(g / Math.pow(10, i)) % 10;
+      if (d === 0) { zero = true; continue; }
+      if (zero && s) s += "零";
+      zero = false;
+      s += CN_DIGIT[d] + CN_UNIT4[i];
+    }
+    return s;
+  }
+
+  // 中文读法按"亿 / 万 / 个"三级读；小学范围内够用
+  function readCn(n) {
+    if (!n) return "零";
+    var yi = Math.floor(n / 1e8), wan = Math.floor(n / 1e4) % 1e4, ge = n % 1e4, s = "";
+    if (yi) s += readGroup4(yi) + "亿";
+    if (wan) s += readGroup4(wan) + "万";
+    if (ge) {
+      if (wan && ge < 1000) s += "零";
+      s += readGroup4(ge);
+    }
+    return s;
+  }
+
+  function placeLab() {
+    return labBox("数位顺序表",
+      "点算珠：一档满 10 颗就往左进一。看清楚 10 个一万是十万、10 个一千万是一亿。",
+      '<div class="row"><button id="pl-rand" class="btn">随便来个数</button>' +
+      '<button id="pl-clear" class="btn">清零</button>' +
+      '<span class="small">点框里 +1，右键 −1；红色虚线是万级、亿级的分界</span></div>' +
+      '<div id="pl-svg" class="svgwrap"></div>' +
+      '<div id="pl-o" class="big"></div><div id="pl-s" class="small"></div>');
+  }
+
+  function bindPlace() {
+    var box = document.getElementById("pl-svg"), o = document.getElementById("pl-o"),
+        s = document.getElementById("pl-s");
+    if (!box) return;
+    var d = [0, 0, 0, 0, 0, 0, 0, 0, 0];      // 下标 0 是个位
+
+    function val() {
+      var v = 0, i;
+      for (i = 0; i < d.length; i++) v += d[i] * Math.pow(10, i);
+      return v;
+    }
+
+    function draw() {
+      var w = 52, i, j, p = [];
+      for (i = 0; i < d.length; i++) {
+        var x = i * w;
+        if (i === 4 || i === 8) {
+          p.push('<line x1="' + (x - 3) + '" y1="22" x2="' + (x - 3) + '" y2="128" ' +
+            'stroke="#c0392b" stroke-dasharray="3 3"/>');
+        }
+        p.push('<rect x="' + x + '" y="26" width="' + (w - 6) + '" height="94" rx="6" ' +
+          'fill="#fff" stroke="#c8bfa8"/>');
+        p.push('<text x="' + (x + (w - 6) / 2) + '" y="18" text-anchor="middle" ' +
+          'class="pln">' + PLACE_NAMES[i] + "</text>");
+        for (j = 0; j < d[i]; j++) {
+          p.push('<circle cx="' + (x + (w - 6) / 2) + '" cy="' + (116 - j * 10) +
+            '" r="4" fill="#b7791f"/>');
+        }
+        p.push('<text x="' + (x + (w - 6) / 2) + '" y="142" text-anchor="middle" ' +
+          'class="pld">' + d[i] + "</text>");
+      }
+      box.innerHTML = '<svg viewBox="0 0 ' + (d.length * w) + ' 148" class="plsvg">' +
+        p.join("") + "</svg>";
+      [].forEach.call(box.querySelectorAll(".plsvg rect"), function (r, i) {
+        r.style.cursor = "pointer";
+        r.addEventListener("click", function () { add(i, 1); });
+        r.addEventListener("contextmenu", function (e) {
+          e.preventDefault();
+          add(i, -1);
+        });
+      });
+      var v = val();
+      o.textContent = v ? String(v).replace(/\B(?=(\d{4})+(?!\d))/g, " ") : "空盘";
+      var g = v >= 1e8 ? "亿级 " + Math.floor(v / 1e8) + "　万级 " +
+          (Math.floor(v / 1e4) % 1e4) + "　个级 " + (v % 1e4)
+        : v >= 1e4 ? "万级 " + Math.floor(v / 1e4) + "　个级 " + (v % 1e4) : "只有个级";
+      s.innerHTML = v ? "读作：" + esc(readCn(v)) + "　（" + esc(g) + "）"
+        : "一亿以内有九个数位，每相邻两个之间的进率都是 10";
+    }
+
+    function add(i, k) {
+      d[i] += k;
+      var j = i;
+      while (d[j] > 9) {
+        d[j] -= 10;
+        if (j + 1 < d.length) d[j + 1] += 1; else { d[j] = 9; break; }
+        j++;
+      }
+      while (d[j] < 0) {
+        d[j] += 10;
+        if (j + 1 < d.length) d[j + 1] -= 1; else { d[j] = 0; break; }
+        j++;
+      }
+      draw();
+    }
+
+    function setNum(n) {
+      for (var i = 0; i < d.length; i++) d[i] = Math.floor(n / Math.pow(10, i)) % 10;
+      draw();
+    }
+
+    var r = document.getElementById("pl-rand"), c = document.getElementById("pl-clear");
+    if (r) r.addEventListener("click", function () {
+      setNum(Math.floor(Math.random() * 9e8) + 1e4);      // 五位数到九位数
+    });
+    if (c) c.addEventListener("click", function () { setNum(0); });
+    draw();
+  }
+
+  /* ---- 1 亿有多大：把 1 亿换成看得见的东西 ---- */
+  function bignumLab() {
+    return labBox("1 亿有多大",
+      "1 亿这个数太大，脑子装不下。把它换成纸的高度、米的重量，才有感觉。",
+      '<div class="row">数量 10 的 <input type="range" id="bn-r" min="4" max="9" value="8">' +
+      '<b id="bn-k">8</b> 次方　＝　<b id="bn-n"></b></div>' +
+      '<div id="bn-svg" class="svgwrap"></div><div id="bn-s" class="small"></div>');
+  }
+
+  function bindBignum() {
+    var r = document.getElementById("bn-r"), k = document.getElementById("bn-k"),
+        n = document.getElementById("bn-n"), box = document.getElementById("bn-svg"),
+        s = document.getElementById("bn-s");
+    if (!r || !box) return;
+    // 100 张纸约 1 厘米（1 张 0.1 毫米）；1 粒米约 0.02 克
+    var PAPER = 0.0001, RICE = 0.00002, EVEREST = 8848, FLOOR = 3;
+
+    function fmt(m) {
+      return m >= 1000 ? (m / 1000).toFixed(m >= 1e4 ? 0 : 1) + " 千米"
+        : m >= 1 ? m.toFixed(m >= 100 ? 0 : 1) + " 米" : (m * 100).toFixed(1) + " 厘米";
+    }
+
+    function draw() {
+      var e = +r.value, N = Math.pow(10, e);
+      k.textContent = e;
+      n.textContent = e >= 8 ? (e === 8 ? "1 亿" : "10 亿") : (N / 1e4) + " 万";
+      var hm = N * PAPER, kg = N * RICE;
+      // 高度条：满格 10000 米，超出的标"超出"
+      var max = 10000, hh = Math.min(1, hm / max), H = 150, W = 460;
+      var bh = Math.max(2, hh * H);
+      var everestY = H - EVEREST / max * H;
+      box.innerHTML = '<svg viewBox="0 0 ' + W + " " + (H + 30) + '" class="bnsvg">' +
+        '<rect x="20" y="' + (H - bh) + '" width="70" height="' + bh +
+        '" fill="#2471a3" opacity="0.75" rx="3"/>' +
+        '<line x1="6" y1="' + everestY + '" x2="' + (W - 6) + '" y2="' + everestY +
+        '" stroke="#c0392b" stroke-dasharray="4 3"/>' +
+        '<text x="' + (W - 6) + '" y="' + (everestY - 5) +
+        '" text-anchor="end" class="bnref">珠穆朗玛峰 8848 米</text>' +
+        '<line x1="6" y1="' + H + '" x2="' + (W - 6) + '" y2="' + H +
+        '" stroke="#6b7280"/>' +
+        '<text x="55" y="' + (H + 18) + '" text-anchor="middle" class="bnref">' +
+        fmt(hm) + "</text>" +
+        '<text x="' + (W - 6) + '" y="' + (H + 18) +
+        '" text-anchor="end" class="bnref">满格 10 千米</text></svg>';
+      var floors = Math.round(hm / FLOOR);
+      s.innerHTML = esc(String(N).replace(/\B(?=(\d{4})+(?!\d))/g, " ")) + " 张纸摞起来：" +
+        esc(fmt(hm)) + "，约 " + floors + " 层楼高" +
+        (hm >= EVEREST ? "，比珠穆朗玛峰还高 " + (hm / EVEREST).toFixed(1) + " 倍" : "") +
+        "。<br>换成大米：" + esc(kg >= 1000 ? (kg / 1000).toFixed(1) + " 吨"
+          : kg.toFixed(1) + " 千克") +
+        "（一个人一天吃 0.4 千克，够吃 " + Math.round(kg / 0.4) + " 天）。";
+    }
+    r.addEventListener("input", draw);
+    draw();
+  }
+
+  /* ---- 多位数乘两位数：竖式分步 ---- */
+  function vertLab() {
+    return labBox("多位数乘两位数",
+      "竖式不是照着抄的：先拿个位去乘，再拿十位去乘（末位要和十位对齐），最后把两步加起来。",
+      '<div class="row">被乘数 <input id="vt-a" type="number" value="145" min="2" max="9999" ' +
+      'style="width:80px">　乘数 <input id="vt-b" type="number" value="12" min="2" max="99" ' +
+      'style="width:70px">　<button id="vt-prev" class="btn">上一步</button>' +
+      '<button id="vt-next" class="btn">下一步</button>' +
+      '<button id="vt-again" class="btn">重来</button></div>' +
+      '<div id="vt-step" class="small"></div><div id="vt-body" class="vertbox"></div>');
+  }
+
+  function bindVert() {
+    var a = document.getElementById("vt-a"), b = document.getElementById("vt-b"),
+        pv = document.getElementById("vt-prev"), nx = document.getElementById("vt-next"),
+        ag = document.getElementById("vt-again"), st = document.getElementById("vt-step"),
+        body = document.getElementById("vt-body");
+    if (!a || !body) return;
+    var steps = [], cur = 0;
+
+    function build() {
+      var A = Math.abs(Math.round(+a.value || 0)), B = Math.abs(Math.round(+b.value || 0));
+      steps = [];
+      if (A < 2 || B < 10) return;
+      var w = String(A * B).length + 1;
+      var b1 = B % 10, b10 = Math.floor(B / 10) % 10;
+      var p1 = A * b1, p2 = A * b10;
+      var head = [String(A), "× " + B, "—".repeat(w)];
+      steps.push({
+        t: "先用个位 " + b1 + " 去乘：" + A + " × " + b1 + " = " + p1,
+        rows: head.concat([String(p1)])
+      });
+      steps.push({
+        t: "再用十位 " + b10 + " 去乘，它表示 " + (b10 * 10) + "：" + A + " × " +
+           (b10 * 10) + " = " + p2 + "，末位要写在十位上（比上一行左移一位）",
+        rows: head.concat([String(p1), String(p2) + " "])
+      });
+      steps.push({
+        t: "两次乘得的结果相加：" + p1 + " + " + p2 + " = " + (A * B),
+        rows: head.concat([String(p1), String(p2) + " ", "—".repeat(w), String(A * B)])
+      });
+    }
+
+    function show() {
+      if (!steps.length) {
+        body.innerHTML = '<div class="empty">被乘数 ≥ 2、乘数 ≥ 10 才有得拆</div>';
+        st.textContent = "";
+        return;
+      }
+      cur = Math.max(0, Math.min(cur, steps.length - 1));
+      var sp = steps[cur];
+      st.innerHTML = '<span class="kbtag">第 ' + (cur + 1) + " / " + steps.length +
+        " 步</span>" + esc(sp.t);
+      body.innerHTML = sp.rows.map(function (t, i) {
+        var cls = i === sp.rows.length - 1 && cur > 0 ? "vrow on" : "vrow";
+        return '<div class="' + cls + '">' + esc(t) + "</div>";
+      }).join("");
+    }
+
+    function reset() { build(); cur = 0; show(); }
+
+    if (pv) pv.addEventListener("click", function () { cur--; show(); });
+    if (nx) nx.addEventListener("click", function () { cur++; show(); });
+    if (ag) ag.addEventListener("click", reset);
+    [a, b].forEach(function (e) {
+      e.addEventListener("change", reset);
+      e.addEventListener("input", reset);
+    });
+    reset();
+  }
+
+  /* ================================================== 四上 · 图形与几何 */
+
+  /* ---- 角的度量：一把能拖的量角器 ---- */
+  function angleLab() {
+    return labBox("量角器",
+      "拖一拖角的另一条边，看它张开多大。量角器的中心要对准顶点，0° 刻度线要对准角的一条边。",
+      '<div class="row"><input type="range" id="an-r" min="0" max="180" value="35">' +
+      '<b id="an-v">35°</b><span id="an-t" class="tag"></span>' +
+      '<button id="an-90" class="btn">直角</button>' +
+      '<button id="an-180" class="btn">平角</button></div>' +
+      '<div id="an-svg" class="svgwrap"></div><div id="an-s" class="small"></div>');
+  }
+
+  function angleKind(deg) {
+    return deg === 0 ? "零角" : deg < 90 ? "锐角" : deg === 90 ? "直角"
+      : deg < 180 ? "钝角" : "平角";
+  }
+
+  function bindAngle() {
+    var r = document.getElementById("an-r"), v = document.getElementById("an-v"),
+        t = document.getElementById("an-t"), box = document.getElementById("an-svg"),
+        s = document.getElementById("an-s");
+    if (!r || !box) return;
+    var cx = 150, cy = 150, R = 120;
+
+    function draw() {
+      var deg = +r.value, i, p = [];
+      var rad = deg * Math.PI / 180;
+      p.push('<path d="M' + (cx - R) + " " + cy + " A" + R + " " + R + " 0 0 1 " +
+        (cx + R) + " " + cy + ' Z" fill="#f4f8fc" stroke="#c8bfa8"/>');
+      for (i = 0; i <= 180; i += 10) {          // 每 10° 一小格，每 30° 标数
+        var a = i * Math.PI / 180, big = i % 30 === 0;
+        var r1 = R - (big ? 16 : 8);
+        p.push('<line x1="' + (cx + r1 * Math.cos(a)).toFixed(1) + '" y1="' +
+          (cy - r1 * Math.sin(a)).toFixed(1) + '" x2="' + (cx + R * Math.cos(a)).toFixed(1) +
+          '" y2="' + (cy - R * Math.sin(a)).toFixed(1) +
+          '" stroke="' + (big ? "#6b7280" : "#c8bfa8") + '"/>');
+        if (big) {
+          p.push('<text x="' + (cx + (R - 28) * Math.cos(a)).toFixed(1) + '" y="' +
+            (cy - (R - 28) * Math.sin(a) + 4).toFixed(1) +
+            '" text-anchor="middle" class="antick">' + i + "</text>");
+        }
+      }
+      var ex = cx + (R + 10) * Math.cos(rad), ey = cy - (R + 10) * Math.sin(rad);
+      p.push('<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + R + 24) + '" y2="' +
+        cy + '" stroke="#2471a3" stroke-width="2"/>');
+      p.push('<line x1="' + cx + '" y1="' + cy + '" x2="' + ex.toFixed(1) + '" y2="' +
+        ey.toFixed(1) + '" stroke="#b7791f" stroke-width="2"/>');
+      if (deg > 0) {
+        var ar = 46;
+        p.push('<path d="M' + (cx + ar) + " " + cy + " A" + ar + " " + ar + " 0 0 0 " +
+          (cx + ar * Math.cos(rad)).toFixed(1) + " " + (cy - ar * Math.sin(rad)).toFixed(1) +
+          '" fill="none" stroke="#b7791f" stroke-width="2"/>');
+      }
+      p.push('<circle cx="' + cx + '" cy="' + cy + '" r="4" fill="#2f3437"/>');
+      box.innerHTML = '<svg viewBox="0 0 ' + (cx * 2) + " " + (cy + 26) +
+        '" class="ansvg" id="an-svg2">' + p.join("") + "</svg>";
+      v.textContent = deg + "°";
+      t.textContent = angleKind(deg);
+      s.innerHTML = esc(angleKind(deg)) + "：" + esc(
+        deg === 0 ? "两边重合" : deg < 90 ? "比直角小" : deg === 90 ?
+        "1 直角 ＝ 90°" : deg < 180 ? "比直角大、比平角小" :
+        "1 平角 ＝ 180°，等于 2 个直角");
+
+      // 直接在半圆上拖动改角度
+      var svg = document.getElementById("an-svg2");
+      if (!svg) return;
+      var drag = false;
+      function move(e) {
+        var b = svg.getBoundingClientRect();
+        var x = (e.clientX - b.left) / b.width * (cx * 2);
+        var y = (e.clientY - b.top) / b.height * (cy + 26);
+        var a = Math.atan2(cy - y, x - cx) * 180 / Math.PI;
+        r.value = Math.round(Math.min(180, Math.max(0, a < 0 ? 0 : a)));
+        draw();
+      }
+      svg.addEventListener("pointerdown", function (e) { drag = true; move(e); });
+      svg.addEventListener("pointermove", function (e) { if (drag) move(e); });
+      svg.addEventListener("pointerup", function () { drag = false; });
+      svg.addEventListener("pointerleave", function () { drag = false; });
+    }
+    r.addEventListener("input", draw);
+    var b90 = document.getElementById("an-90"), b180 = document.getElementById("an-180");
+    if (b90) b90.addEventListener("click", function () { r.value = 90; draw(); });
+    if (b180) b180.addEventListener("click", function () { r.value = 180; draw(); });
+    draw();
+  }
+
+  /* ---- 平行四边形：底和高是"一对"，换底就要重新画高 ---- */
+  function heightLab() {
+    return labBox("底和高",
+      "从一条边上的一点向对边画垂线，这点和垂足之间的线段就是高。换一条边当底，高也跟着换。",
+      '<div class="row">倾斜 <input type="range" id="ht-s" min="10" max="150" value="40">' +
+      '　高 <input type="range" id="ht-h" min="40" max="130" value="90">' +
+      '　<select id="ht-b"><option value="ab">以下边为底</option>' +
+      '<option value="ad">以左边为底</option></select></div>' +
+      '<div id="ht-svg" class="svgwrap"></div><div id="ht-s" class="small"></div>');
+  }
+
+  function bindHeight() {
+    var sk = document.getElementById("ht-s"), hh = document.getElementById("ht-h"),
+        bs = document.getElementById("ht-b"), box = document.getElementById("ht-svg"),
+        s = document.getElementById("ht-s");
+    if (!sk || !box) return;
+
+    function draw() {
+      var sl = +sk.value, h = +hh.value, base = bs ? bs.value : "ab";
+      var a = 190, ax = 70, ay = 210;
+      var A = [ax, ay], B = [ax + a, ay];
+      var D = [ax + sl, ay - h], C = [ax + a + sl, ay - h];
+      var p = [], foot, top;
+      p.push('<polygon points="' + A + " " + B + " " + C + " " + D +
+        '" fill="#eaf2f9" stroke="#2471a3" stroke-width="2"/>');
+      if (base === "ab") {
+        // 下边为底：从上边的点垂直落到下边所在直线
+        if (sl <= a) { top = D; foot = [D[0], ay]; } else { top = C; foot = [C[0], ay]; }
+      } else {
+        // 左边为底：从 B 向 AD 作垂线
+        top = B;
+        var vx = D[0] - A[0], vy = D[1] - A[1];
+        var t = ((B[0] - A[0]) * vx + (B[1] - A[1]) * vy) / (vx * vx + vy * vy);
+        foot = [A[0] + vx * t, A[1] + vy * t];
+      }
+      p.push('<line x1="' + top[0].toFixed(1) + '" y1="' + top[1].toFixed(1) + '" x2="' +
+        foot[0].toFixed(1) + '" y2="' + foot[1].toFixed(1) +
+        '" stroke="#c0392b" stroke-width="2" stroke-dasharray="5 3"/>');
+      // 直角标记
+      var d1 = [foot[0] - top[0], foot[1] - top[1]];
+      var len = Math.sqrt(d1[0] * d1[0] + d1[1] * d1[1]) || 1;
+      var ux = d1[0] / len * 10, uy = d1[1] / len * 10;
+      var px = -uy, py = ux;
+      p.push('<path d="M' + (foot[0] + px).toFixed(1) + " " + (foot[1] + py).toFixed(1) +
+        " L" + (foot[0] + px + ux).toFixed(1) + " " + (foot[1] + py + uy).toFixed(1) +
+        " L" + (foot[0] + ux).toFixed(1) + " " + (foot[1] + uy).toFixed(1) +
+        '" fill="none" stroke="#c0392b"/>');
+      p.push('<text x="' + ((top[0] + foot[0]) / 2 + 8).toFixed(1) + '" y="' +
+        ((top[1] + foot[1]) / 2).toFixed(1) + '" class="htlab">高</text>');
+      var mx = base === "ab" ? (A[0] + B[0]) / 2 : (A[0] + D[0]) / 2;
+      var my = base === "ab" ? A[1] + 20 : A[1] - 8;
+      p.push('<text x="' + mx.toFixed(1) + '" y="' + my + '" text-anchor="middle" ' +
+        'class="htlab">底</text>');
+      p.push('<circle cx="' + A[0] + '" cy="' + A[1] + '" r="3" fill="#2f3437"/>');
+      box.innerHTML = '<svg viewBox="0 0 420 240" class="htsvg">' + p.join("") + "</svg>";
+      var hlen = Math.round(Math.sqrt(
+        Math.pow(top[0] - foot[0], 2) + Math.pow(top[1] - foot[1], 2)) / 130 * h);
+      s.innerHTML = "现在这条高对应的是" + esc(base === "ab" ? "下边" : "左边") +
+        "那条底；换成另一条底，就要从另一条边重新画垂线。拖动\"倾斜\"，形状变了，" +
+        "但只要底和高不变，高还是这么长（" + hlen + " 个单位）。";
+    }
+    [sk, hh].forEach(function (e) { e.addEventListener("input", draw); });
+    if (bs) bs.addEventListener("change", draw);
+    draw();
+  }
+
+  /* ---- 寻找宝藏：光有距离不够，还要方向 ---- */
+  function dirLab() {
+    return labBox("方向与距离",
+      "只说\"200 米\"不够——这个距离上有无数个点。加上方向（北偏东多少度）才能定住一个位置。",
+      '<div class="row"><select id="dr-q">' +
+      '<option value="ne">北偏东</option><option value="nw">北偏西</option>' +
+      '<option value="se">南偏东</option><option value="sw">南偏西</option></select>' +
+      '<input type="range" id="dr-a" min="0" max="90" value="30"><b id="dr-av">30°</b>' +
+      '　距离 <input type="range" id="dr-d" min="20" max="500" step="10" value="200">' +
+      '<b id="dr-dv">200 米</b></div>' +
+      '<div id="dr-svg" class="svgwrap"></div><div id="dr-s" class="small"></div>');
+  }
+
+  function bindDir() {
+    var q = document.getElementById("dr-q"), a = document.getElementById("dr-a"),
+        d = document.getElementById("dr-d"), av = document.getElementById("dr-av"),
+        dv = document.getElementById("dr-dv"), box = document.getElementById("dr-svg"),
+        s = document.getElementById("dr-s");
+    if (!q || !box) return;
+    var cx = 150, cy = 150, R = 115;
+
+    function draw() {
+      var deg = +a.value, dist = +d.value, quad = q.value;
+      var th = deg * Math.PI / 180, L = dist / 500 * R;
+      var x = cx, y = cy;
+      if (quad === "ne") { x += L * Math.sin(th); y -= L * Math.cos(th); }
+      else if (quad === "nw") { x -= L * Math.sin(th); y -= L * Math.cos(th); }
+      else if (quad === "se") { x += L * Math.sin(th); y += L * Math.cos(th); }
+      else { x -= L * Math.sin(th); y += L * Math.cos(th); }
+      var ns = quad[0] === "n" ? "北" : "南", ew = quad[1] === "e" ? "东" : "西";
+      var p = [];
+      p.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + R +
+        '" fill="#fffaf2" stroke="#e6e0d4"/>');
+      [10, 20, 30, 40, 50].forEach(function (k) {   // 每 100 米一圈
+        p.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + (k / 50 * R).toFixed(1) +
+          '" fill="none" stroke="#e6e0d4" stroke-dasharray="2 4"/>');
+        p.push('<text x="' + (cx + 3) + '" y="' + (cy - k / 50 * R + 11).toFixed(1) +
+          '" class="antick">' + (k * 10) + " m</text>");
+      });
+      p.push('<line x1="' + cx + '" y1="' + (cy - R - 14) + '" x2="' + cx + '" y2="' +
+        (cy + R + 14) + '" stroke="#c8bfa8"/>');
+      p.push('<line x1="' + (cx - R - 14) + '" y1="' + cy + '" x2="' + (cx + R + 14) +
+        '" y2="' + cy + '" stroke="#c8bfa8"/>');
+      ["N,0,-1,北", "S,0,1,南", "E,1,0,东", "W,-1,0,西"].forEach(function (t) {
+        var f = t.split(",");
+        p.push('<text x="' + (cx + (+f[1]) * (R + 20) - 4) + '" y="' +
+          (cy + (+f[2]) * (R + 20) + 4) + '" class="htlab">' + f[3] + "</text>");
+      });
+      p.push('<line x1="' + cx + '" y1="' + cy + '" x2="' + x.toFixed(1) + '" y2="' +
+        y.toFixed(1) + '" stroke="#b7791f" stroke-width="2"/>');
+      p.push('<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) +
+        '" r="6" fill="#c0392b"/>');
+      p.push('<text x="' + (x + 10).toFixed(1) + '" y="' + (y - 6).toFixed(1) +
+        '" class="htlab">宝藏</text>');
+      p.push('<circle cx="' + cx + '" cy="' + cy + '" r="4" fill="#2f3437"/>');
+      box.innerHTML = '<svg viewBox="0 0 300 300" class="dirsvg">' + p.join("") + "</svg>";
+      av.textContent = deg + "°";
+      dv.textContent = dist + " 米";
+      // 分解成"向东/西多少、向北/南多少"，帮助理解方向的含义
+      var e = Math.round(L * Math.sin(th) / R * 500), n = Math.round(L * Math.cos(th) / R * 500);
+      s.innerHTML = "宝藏在观测点的 <b>" + esc(ns) + "偏" + esc(ew) + " " + deg +
+        "°</b> 方向、距离 " + dist + " 米处。也可以说：先向" + esc(ew) + "走 " + e +
+        " 米，再向" + esc(ns) + "走 " + n + " 米。";
+    }
+    [a, d].forEach(function (e) { e.addEventListener("input", draw); });
+    if (q) q.addEventListener("change", draw);
+    draw();
+  }
+
+  /* ================================================== 四上 · 统计与实践 */
+
+  /* ---- 条形统计图：1 格表示几，要自己定 ---- */
+  var BAR_SETS = [
+    [["苹果", 12], ["香蕉", 18], ["橘子", 9], ["葡萄", 15], ["梨", 6]],
+    [["跳绳", 20], ["踢毽", 14], ["跑步", 25], ["篮球", 16], ["乒乓球", 10]],
+    [["晴天", 15], ["多云", 9], ["阴天", 5], ["雨天", 3]],
+  ];
+
+  function barLab() {
+    return labBox("条形统计图",
+      "先定\"1 格表示几\"，再画条。格子定得太大看不出差别，太小又画不下——所以这一步要自己拿主意。",
+      '<div class="row">1 格表示 <select id="br-u">' +
+      [1, 2, 5, 10, 20, 50].map(function (u) {
+        return '<option value="' + u + '"' + (u === 5 ? " selected" : "") + ">" +
+          u + "</option>";
+      }).join("") + '</select>　<button id="br-r" class="btn">换一组数据</button></div>' +
+      '<div class="row" id="br-rows"></div>' +
+      '<div id="br-svg" class="svgwrap"></div><div id="br-s" class="small"></div>');
+  }
+
+  function bindBar() {
+    var u = document.getElementById("br-u"), rows = document.getElementById("br-rows"),
+        rr = document.getElementById("br-r"), box = document.getElementById("br-svg"),
+        s = document.getElementById("br-s");
+    if (!u || !rows || !box) return;
+    var data = BAR_SETS[0].map(function (x) { return x.slice(); }), setIdx = 0;
+
+    function rowsHtml() {
+      rows.innerHTML = data.map(function (d, i) {
+        return '<span class="brrow">名称 <input data-i="' + i + '" class="br-n" value="' +
+          esc(d[0]) + '" style="width:64px"> 数量 <input data-i="' + i +
+          '" class="br-v" type="number" min="0" max="200" value="' + d[1] +
+          '" style="width:64px"></span>';
+      }).join("");
+      [].forEach.call(rows.querySelectorAll(".br-n"), function (e) {
+        e.addEventListener("input", function () {
+          data[+e.dataset.i][0] = e.value; draw();
+        });
+      });
+      [].forEach.call(rows.querySelectorAll(".br-v"), function (e) {
+        e.addEventListener("input", function () {
+          data[+e.dataset.i][1] = Math.max(0, +e.value || 0); draw();
+        });
+      });
+    }
+
+    function draw() {
+      var unit = +u.value || 1;
+      var max = Math.max.apply(null, data.map(function (d) { return d[1]; }).concat([unit]));
+      var grids = Math.ceil(max / unit);
+      var gh = Math.min(24, 220 / Math.max(1, grids));      // 格子太高就压缩
+      var H = grids * gh, W = 460, left = 44, bw = 46;
+      var p = [], i;
+      for (i = 0; i <= grids; i++) {
+        var y = H - i * gh;
+        p.push('<line x1="' + left + '" y1="' + y.toFixed(1) + '" x2="' + W + '" y2="' +
+          y.toFixed(1) + '" stroke="' + (i === 0 ? "#6b7280" : "#e6e0d4") + '"/>');
+        p.push('<text x="' + (left - 6) + '" y="' + (y + 4).toFixed(1) +
+          '" text-anchor="end" class="antick">' + (i * unit) + "</text>");
+      }
+      data.forEach(function (d, k) {
+        var x = left + 14 + k * (bw + 16);
+        var h = d[1] / unit * gh;
+        p.push('<rect x="' + x + '" y="' + (H - h).toFixed(1) + '" width="' + bw +
+          '" height="' + Math.max(1, h).toFixed(1) + '" fill="#2471a3" opacity="0.78" rx="2"/>');
+        p.push('<text x="' + (x + bw / 2) + '" y="' + (H - h - 5).toFixed(1) +
+          '" text-anchor="middle" class="antick">' + d[1] + "</text>");
+        p.push('<text x="' + (x + bw / 2) + '" y="' + (H + 16) +
+          '" text-anchor="middle" class="htlab">' + esc(d[0]) + "</text>");
+      });
+      p.push('<text x="' + left + '" y="' + (H + 34) + '" class="antick">1 格表示 ' +
+        unit + "（" + data.length + " 项，共 " +
+        data.reduce(function (a, b) { return a + b[1]; }, 0) + "）</text>");
+      box.innerHTML = '<svg viewBox="0 0 ' + W + " " + (H + 44) + '" class="brsvg">' +
+        p.join("") + "</svg>";
+      s.innerHTML = "1 格表示 " + unit + "，最多的 " +
+        esc(data.slice().sort(function (x, y) { return y[1] - x[1]; })[0][0]) +
+        " 要画 " + Math.ceil(max / unit) + " 格。把 1 格改成 1 试试：格子变多、" +
+        "差别看得更清楚，但画起来就累了。";
+    }
+
+    if (rr) rr.addEventListener("click", function () {
+      setIdx = (setIdx + 1) % BAR_SETS.length;
+      data = BAR_SETS[setIdx].map(function (x) { return x.slice(); });
+      rowsHtml(); draw();
+    });
+    if (u) u.addEventListener("change", draw);
+    rowsHtml();
+    draw();
+  }
+
+  /* ---- 加法模型与乘法模型：一条线段看清楚数量关系 ---- */
+  function modelLab() {
+    return labBox("加法模型与乘法模型",
+      "加法模型：总量 ＝ 部分 + 部分。乘法模型：总量 ＝ 每份数 × 份数。画成线段，关系一眼就出来。",
+      '<div class="row"><select id="md-t"><option value="add">加法模型</option>' +
+      '<option value="mul">乘法模型</option></select>　<span id="md-i"></span></div>' +
+      '<div id="md-svg" class="svgwrap"></div><div id="md-s" class="small"></div>');
+  }
+
+  function bindModel() {
+    var t = document.getElementById("md-t"), ins = document.getElementById("md-i"),
+        box = document.getElementById("md-svg"), s = document.getElementById("md-s");
+    if (!t || !ins || !box) return;
+
+    function inputs() {
+      if (t.value === "add") {
+        ins.innerHTML = '第一部分 <input id="md-a" type="number" value="35" ' +
+          'style="width:70px">　第二部分 <input id="md-b" type="number" value="28" ' +
+          'style="width:70px">';
+      } else {
+        ins.innerHTML = '每份数 <input id="md-m" type="number" value="12" ' +
+          'style="width:70px">　份数 <input id="md-n" type="number" value="4" min="1" ' +
+          'max="12" style="width:64px">';
+      }
+      [].forEach.call(ins.querySelectorAll("input"), function (e) {
+        e.addEventListener("input", draw);
+        e.addEventListener("change", draw);
+      });
+      draw();
+    }
+
+    function draw() {
+      var W = 460, y = 76, x0 = 30, total, segs = [];
+      if (t.value === "add") {
+        var a = Math.max(0, +(document.getElementById("md-a") || {}).value || 0);
+        var b = Math.max(0, +(document.getElementById("md-b") || {}).value || 0);
+        total = a + b;
+        segs = [{ v: a, c: "#2471a3" }, { v: b, c: "#b7791f" }];
+      } else {
+        var m = Math.max(0, +(document.getElementById("md-m") || {}).value || 0);
+        var n = Math.max(1, +(document.getElementById("md-n") || {}).value || 1);
+        total = m * n;
+        for (var i = 0; i < n; i++) {
+          segs.push({ v: m, c: i % 2 ? "#7fb3e0" : "#2471a3" });
+        }
+      }
+      var L = W - 60, p = [], x = x0, k;
+      p.push('<line x1="' + x0 + '" y1="' + y + '" x2="' + (x0 + L) + '" y2="' + y +
+        '" stroke="#c8bfa8" stroke-width="2"/>');
+      for (k = 0; k < segs.length; k++) {
+        var w = total ? segs[k].v / total * L : 0;
+        p.push('<line x1="' + x.toFixed(1) + '" y1="' + (y - 14) + '" x2="' +
+          (x + w).toFixed(1) + '" y2="' + (y - 14) + '" stroke="' + segs[k].c +
+          '" stroke-width="16"/>');
+        if (k > 0) {
+          p.push('<line x1="' + x.toFixed(1) + '" y1="' + (y - 22) + '" x2="' + x.toFixed(1) +
+            '" y2="' + (y + 22) + '" stroke="#2f3437" stroke-dasharray="3 3"/>');
+        }
+        if (w > 34) {
+          p.push('<text x="' + (x + w / 2).toFixed(1) + '" y="' + (y - 22) +
+            '" text-anchor="middle" class="htlab">' + segs[k].v + "</text>");
+        }
+        x += w;
+      }
+      p.push('<text x="' + (x0 + L / 2) + '" y="' + (y + 40) +
+        '" text-anchor="middle" class="mdtotal">总量 ' + total + "</text>");
+      p.push('<text x="' + x0 + '" y="' + (y + 40) + '" class="antick">？</text>');
+      box.innerHTML = '<svg viewBox="0 0 ' + W + ' 150" class="mdsvg">' + p.join("") + "</svg>";
+      s.innerHTML = t.value === "add"
+        ? esc(String(a) + " + " + b + " ＝ " + total) +
+          "：把两部分合起来，就是加法模型。已知总量和一部分，求另一部分也用它。"
+        : esc(String(m) + " × " + n + " ＝ " + total) +
+          "：几个相同加数相加，写成乘法——这就是乘法模型。";
+    }
+    t.addEventListener("change", inputs);
+    inputs();
+  }
+
   function mathLab(kind) {
     var h = "";
     if (kind === "all" || kind === "num") {
-      h += fracLab() + axisLab() + hundredLab() + unitLab();
+      // 四上这批放在前面：它们是"讲解动画"，比工具更该先看见
+      h += placeLab() + bignumLab() + vertLab() + modelLab() +
+        fracLab() + axisLab() + hundredLab() + unitLab();
     }
     if (kind === "all" || kind === "geo") {
-      h += cutLab() + circleLab();
+      h += angleLab() + heightLab() + dirLab() + cutLab() + circleLab();
     }
-    if (kind === "problem") h += segLab();   // 应用题配线段图，正对"看不出数量关系"
+    if (kind === "all" || kind === "stat") h += barLab();
+    if (kind === "problem") h += segLab() + modelLab();   // 应用题配线段图，正对"看不出数量关系"
     return h;
   }
 
   function bindMathLab(kind) {
     if (kind === "all" || kind === "num") {
+      bindPlace(); bindBignum(); bindVert(); bindModel();
       bindFrac(); bindAxis(); bindHundred(); bindUnit();
     }
-    if (kind === "all" || kind === "geo") { bindCut(); bindCircle(); }
-    if (kind === "problem") bindSeg();
+    if (kind === "all" || kind === "geo") {
+      bindAngle(); bindHeight(); bindDir(); bindCut(); bindCircle();
+    }
+    if (kind === "all" || kind === "stat") bindBar();
+    if (kind === "problem") { bindSeg(); bindModel(); }
+  }
+
+  /* 实验室盒子统一挂载：给 HTML 就挂上并绑事件，没内容（该页不需要）就跳过 */
+  function mountLab(html, bind) {
+    if (!html) return;
+    var el = document.createElement("div");
+    el.innerHTML = html;
+    app.appendChild(el);
+    if (bind) bind();
+  }
+
+  /* ================================================== 数学 · 易错清单
+     388 条易错点散在 97 个单元里，孩子只会撞见自己那一册的。这里把它们并成
+     一张可检索的清单：先看清"这类错长什么样"，再点进去看是哪个单元的。 */
+  function trapItems() {
+    var out = [];
+    (D.units || []).forEach(function (u) {
+      ((u.kb || {}).traps || []).forEach(function (t) {
+        if (!t.text) return;
+        out.push({ type: t.type || "", text: t.text, book: u.book,
+                   unit: u.title, idx: (D.units || []).indexOf(u) });
+      });
+    });
+    return out;
+  }
+
+  function trapLab() {
+    var items = trapItems();
+    if (!items.length) return "";
+    var types = [];
+    items.forEach(function (t) {
+      if (t.type && types.indexOf(t.type) < 0) types.push(t.type);
+    });
+    return labBox("易错清单",
+      "同一个坑，各年级都在栽。按类型翻一翻，点条目跳到出错的那个单元。",
+      '<div class="row"><input id="tp-q" placeholder="搜易错点：进位、数位、单位…">' +
+      '<select id="tp-book"><option value="all">全部册次</option>' +
+      (D.books || []).map(function (b) {
+        return '<option value="' + esc(b) + '">' + esc(b) + "</option>";
+      }).join("") + '</select></div><div class="chips" id="tp-tabs">' +
+      '<span class="chip on" data-t="all">全部（' + items.length + "）</span>" +
+      types.map(function (t) {
+        return '<span class="chip" data-t="' + esc(t) + '">' + esc(t) + "</span>";
+      }).join("") + '</div><div id="tp-body"></div>');
+  }
+
+  function bindTrap() {
+    var q = document.getElementById("tp-q"), bk = document.getElementById("tp-book"),
+        tabs = document.getElementById("tp-tabs"), body = document.getElementById("tp-body");
+    if (!tabs || !body) return;
+    var items = trapItems(), cur = "all";
+    function run() {
+      var kw = (q && q.value || "").trim(), b = bk ? bk.value : "all";
+      var hits = items.filter(function (t) {
+        if (cur !== "all" && t.type !== cur) return false;
+        if (b !== "all" && t.book !== b) return false;
+        if (kw && t.text.indexOf(kw) < 0 && t.unit.indexOf(kw) < 0) return false;
+        return true;
+      });
+      body.innerHTML = hits.length
+        ? '<div class="tps">' + hits.slice(0, 150).map(function (t) {
+            return '<div class="tpi"><span class="kbtag">' + esc(t.type) + "</span>" +
+              esc(t.text) + '<span class="where">' + esc(t.book) + " · " + esc(t.unit) +
+              ' <a href="#mu' + t.idx + '">去看</a></span></div>';
+          }).join("") + "</div>"
+        : '<div class="empty">没有匹配的易错点</div>';
+    }
+    tabs.addEventListener("click", function (e) {
+      var c = e.target.closest(".chip");
+      if (!c) return;
+      [].forEach.call(tabs.querySelectorAll(".chip"), function (x) {
+        x.classList.toggle("on", x === c);
+      });
+      cur = c.dataset.t;
+      run();
+    });
+    if (q) q.addEventListener("input", run);
+    if (bk) bk.addEventListener("change", run);
+    run();
+  }
+
+  /* ================================================== 数学 · 练一练
+     对标英语的"单词自测"，但数学要计时：运算能力不只是"会算"，还要
+     算得对、算得快。题全部来自教材；变式只换数字，答案由程序算出来
+     （不是编出来的），并在题面上标"变式"，让人知道这不是教材原题。 */
+  var PR_SYM = { "+": "+", "-": "-", "*": "×", "/": "÷" };
+
+  function practiceLab() {
+    var pool = D.drills || [];
+    if (!pool.length) return "";
+    var books = [];
+    pool.forEach(function (d) {
+      if (d.book && books.indexOf(d.book) < 0) books.push(d.book);
+    });
+    return labBox("练一练",
+      "教材里的计算题，10 题一组、计时判分，错题留下可重练。变式只换数字，答案由程序算出。",
+      '<div class="row"><button id="pr-go" class="btn">开始（10 题）</button>' +
+      '<select id="pr-book"><option value="all">全部册次</option>' +
+      books.map(function (b) {
+        return '<option value="' + esc(b) + '">' + esc(b) + "</option>";
+      }).join("") +
+      '</select><label class="small"><input type="checkbox" id="pr-var" checked>' +
+      ' 掺变式</label><span id="pr-s" class="small"></span></div>' +
+      '<div class="prbar"><i id="pr-bar"></i></div><div id="pr"></div>');
+  }
+
+  function bindPractice() {
+    var go = document.getElementById("pr-go"), box = document.getElementById("pr"),
+        s = document.getElementById("pr-s"), bar = document.getElementById("pr-bar"),
+        bk = document.getElementById("pr-book"), vr = document.getElementById("pr-var");
+    if (!go || !box) return;
+    var list = [], idx = 0, right = 0, wrong = [], t0 = 0, timer = null;
+
+    // 同量级随机数：一年级不会突然冒出四位数
+    function rnd(n) {
+      var len = String(n).length;
+      var lo = len <= 1 ? 1 : Math.pow(10, len - 1);
+      var hi = Math.pow(10, len) - 1;
+      return lo + Math.floor(Math.random() * (hi - lo + 1));
+    }
+
+    function variant(d) {
+      var a = d.a, b = d.b;
+      if (d.op === "+") { a = rnd(d.a); b = rnd(d.b); }
+      else if (d.op === "-") {
+        a = rnd(d.a); b = rnd(d.b);
+        if (a < b) { var t = a; a = b; b = t; }
+      } else if (d.op === "*") { a = rnd(d.a); b = rnd(d.b); }
+      else {
+        b = Math.max(2, rnd(Math.min(d.b, 9)));
+        a = b * Math.max(2, rnd(Math.round(d.a / d.b) || 2));
+      }
+      var v = d.op === "+" ? a + b : d.op === "-" ? a - b
+            : d.op === "*" ? a * b : a / b;
+      if (!(v >= 0) || v !== Math.floor(v)) return null;
+      return { stem: a + PR_SYM[d.op] + b + "=", answer: String(v), "var": true,
+               book: d.book, unit: d.unit };
+    }
+
+    function norm(x) {
+      return String(x == null ? "" : x)
+        .replace(/[０-９]/g, function (c) {
+          return String.fromCharCode(c.charCodeAt(0) - 65248);
+        }).replace(/\s+/g, "").trim();
+    }
+
+    function stop() {
+      if (timer) { clearInterval(timer); timer = null; }
+      if (bar) bar.style.width = "0%";
+    }
+
+    function tick(secs) {
+      if (!bar) return;
+      var left = secs - (Date.now() - t0) / 1000;
+      bar.style.width = Math.max(0, Math.min(100, left / secs * 100)) + "%";
+      bar.className = left <= 10 ? "hot" : "";
+      if (left <= 0) { stop(); finish(); }
+    }
+
+    function show() {
+      if (idx >= list.length) { finish(); return; }
+      var d = list[idx];
+      s.textContent = "第 " + (idx + 1) + " / " + list.length + " 题　已对 " + right;
+      box.innerHTML = '<div class="q"><div class="qw">' + esc(d.stem) +
+        (d["var"] ? ' <span class="tag">变式</span>' : "") +
+        '<span class="where">' + esc(d.book || "") + " " + esc(d.unit || "") + "</span></div>" +
+        '<div class="row"><input id="pr-i" class="ansi" autocomplete="off" ' +
+        'placeholder="填答案"><button id="pr-ok" class="btn">确定</button></div>' +
+        '<div class="fb"></div></div>';
+      var inp = document.getElementById("pr-i"), ok = document.getElementById("pr-ok");
+      if (inp) {
+        inp.focus();
+        inp.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") judge();
+        });
+      }
+      if (ok) ok.addEventListener("click", judge);
+    }
+
+    function judge() {
+      var d = list[idx], inp = document.getElementById("pr-i");
+      var v = inp ? inp.value : "";
+      var good = norm(v) !== "" && norm(v) === norm(d.answer);
+      var fb = box.querySelector(".fb");
+      if (fb) {
+        fb.innerHTML = good ? '<span class="ok-t">对</span>'
+          : '<span class="no-t">正确答案：' + esc(d.answer) + "</span>";
+      }
+      if (inp) inp.classList.add(good ? "ok" : "no");
+      if (good) right++; else wrong.push(d);
+      idx++;
+      setTimeout(show, 700);
+    }
+
+    function finish() {
+      stop();
+      var used = Math.round((Date.now() - t0) / 1000);
+      box.innerHTML = '<div class="big">做完了：' + right + " / " + list.length +
+        "　用时 " + used + " 秒</div>" +
+        (wrong.length
+          ? '<p class="small">错了 ' + wrong.length + " 道：" +
+            wrong.map(function (w) {
+              return esc(w.stem) + esc(w.answer);
+            }).join("　") + "</p>" +
+            '<div class="row"><button id="pr-again" class="btn">只练错的这几道</button></div>'
+          : '<p class="small">全对。</p>');
+      s.textContent = "";
+      var again = document.getElementById("pr-again");
+      if (again) {
+        again.addEventListener("click", function () {
+          list = wrong.slice();
+          wrong = []; idx = 0; right = 0;
+          t0 = Date.now();
+          timer = setInterval(function () { tick(Math.max(20, list.length * 10)); }, 200);
+          show();
+        });
+      }
+    }
+
+    go.addEventListener("click", function () {
+      var b = bk ? bk.value : "all";
+      var pool = (D.drills || []).filter(function (d) {
+        return b === "all" || d.book === b;
+      });
+      if (!pool.length) { box.innerHTML = '<div class="empty">这一册没有可自测的算式</div>'; return; }
+      list = pool.slice();
+      list.sort(function () { return Math.random() - 0.5; });
+      list = list.slice(0, 10);
+      // 一半换成变式：数字不同、题型相同，答案算出来的
+      if (vr && vr.checked) {
+        list = list.map(function (d, i) {
+          if (i % 2) {
+            var v = variant(d);
+            if (v) return v;
+          }
+          return d;
+        });
+      }
+      idx = 0; right = 0; wrong = [];
+      t0 = Date.now();
+      stop();
+      timer = setInterval(function () { tick(Math.max(20, list.length * 10)); }, 200);
+      show();
+    });
+  }
+
+  /* ================================================== 数学 · 知识线
+     数学的知识是螺旋上升的：同一个主题（分数、面积、除法）会在好几个年级
+     反复出现，一次比一次难。教材一册一册地教，孩子只看见"这一册"，看不见
+     "这条线"——不知道现在学的这块从哪来、往哪去。这里按主题把各年级的单元
+     串成一条阶梯（对标英语的时态线），点单元直达。 */
+  function lineGroups() {
+    var g = {};
+    (D.units || []).forEach(function (u) {
+      var t = (u.kb || {}).topic;
+      if (!t) return;
+      (g[t] = g[t] || []).push(u);
+    });
+    Object.keys(g).forEach(function (t) {
+      g[t].sort(function (a, b) {
+        if (a.book !== b.book) {
+          return (D.books || []).indexOf(a.book) - (D.books || []).indexOf(b.book);
+        }
+        return (Number(a.unit_no) || 0) - (Number(b.unit_no) || 0);
+      });
+    });
+    return g;
+  }
+
+  function lineLab() {
+    var g = lineGroups();
+    var topics = Object.keys(g).sort(function (a, b) {
+      return g[b].length - g[a].length;
+    });
+    if (!topics.length) return "";
+    return labBox("知识线",
+      "同一个主题会在好几个年级反复出现，一次比一次难。选一个主题，看清它怎么往上长。",
+      '<div class="chips" id="ln-t">' + topics.map(function (t, i) {
+        return '<span class="chip' + (i === 0 ? " on" : "") + '" data-t="' +
+          esc(t) + '">' + esc(t) + "（" + g[t].length + "）</span>";
+      }).join("") + '</div><div id="ln-b"></div>');
+  }
+
+  function bindLine() {
+    var tabs = document.getElementById("ln-t"), body = document.getElementById("ln-b");
+    if (!tabs || !body) return;
+    var g = lineGroups();
+    function show(t) {
+      var us = g[t] || [];
+      body.innerHTML = '<div class="ln">' + us.map(function (u, i) {
+        var lk = (u.kb || {}).links || {};
+        return '<div class="lnstep s' + Math.min(i, 5) + '">' +
+          '<div class="lnhd">' + esc(u.book) +
+          (u.unit_no ? " · 第" + esc(u.unit_no) + "单元" : "") + "</div>" +
+          '<a class="lnu" href="#mu' + (D.units || []).indexOf(u) + '">' +
+          esc(u.title) + "</a>" +
+          (lk.before ? '<div class="lnlk"><span class="kbtag">先要会</span>' +
+            esc(lk.before) + "</div>" : "") +
+          (lk.after ? '<div class="lnlk"><span class="kbtag">接着学</span>' +
+            esc(lk.after) + "</div>" : "") + "</div>";
+      }).join("") + "</div>";
+    }
+    tabs.addEventListener("click", function (e) {
+      var c = e.target.closest(".chip");
+      if (!c) return;
+      [].forEach.call(tabs.querySelectorAll(".chip"), function (x) {
+        x.classList.toggle("on", x === c);
+      });
+      show(c.dataset.t);
+    });
+    var first = tabs.querySelector(".chip.on");
+    if (first) show(first.dataset.t);
   }
 
   /* 飞花令：按主题字检索诗句（古诗文页） */
