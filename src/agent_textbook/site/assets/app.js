@@ -810,8 +810,21 @@
       var np = u.sections.reduce(function (a, s) { return a + s.body.length; }, 0);
       h += "<details><summary>课本原文（" + np + " 段）</summary>" +
         '<div class="full">' + u.sections.map(function (s) {
+          // 图块：直接显示从 PDF 截出来的教材插图
+          if (s.kind === "图") {
+            return s.body.map(function (p) {
+              return p && p.img
+                ? '<figure class="fig"><img src="' + esc(p.img) +
+                  '" alt="课本插图" onerror="this.style.display=\'none\'"></figure>'
+                : "";
+            }).join("");
+          }
           return '<p class="sect">' + esc(s.kind) + "</p>" +
             s.body.map(function (p) {
+              if (typeof p === "object" && p.img) {
+                return '<figure class="fig"><img src="' + esc(p.img) +
+                  '" alt="课本插图" onerror="this.style.display=\'none\'"></figure>';
+              }
               return '<p class="para">' + esc(p) + "</p>";
             }).join("") +
             (s.chart && s.chart.length

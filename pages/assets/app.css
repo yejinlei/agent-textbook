@@ -447,6 +447,10 @@ details > summary {
 .sect { margin: 12px 0 6px; font-size: 14px; font-weight: 600; color: var(--c);
   border-left: 3px solid var(--c); padding-left: 8px; }
 .sect:first-child { margin-top: 0; }
+/* 从 PDF 课文截出来的教材插图 */
+.fig { margin: 12px 0; text-align: center; }
+.fig img { max-width: 100%; height: auto; border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e3ded0; }
 .cht { margin: 4px 0 10px; }
 .cht > summary { font-size: 13.5px; color: var(--muted); cursor: pointer; }
 .chw { margin: 6px 0 0; font-size: 13px; color: var(--muted); line-height: 1.8;

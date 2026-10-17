@@ -15,13 +15,20 @@ import re
 import shutil
 
 import duckdb
+import pymupdf
 
 from .. import config
+from ..index import reorder
 from . import goals
 
 OUT_DIR = os.path.join(config.ROOT, "pages")
 ASSETS_SRC = os.path.join(os.path.dirname(__file__), "assets")
 DB_PATH = os.path.join(config.DATA_DIR, "kb.duckdb")
+IMG_DIR = os.path.join(OUT_DIR, "assets", "img", "math")
+
+# 插图占位符：[[figure page=93 x0=52 y0=100 x1=494 y1=284]]
+RE_FIGURE = re.compile(
+    r"\[\[figure\s+page=(\d+)\s+x0=(\d+)\s+y0=(\d+)\s+x1=(\d+)\s+y1=(\d+)\s*\]\]")
 
 # lessons 表没写 book_id（全空），真实册号藏在 lesson_id 的前 36 位
 BOOK_OF = "substr(lesson_id,1,36)"
@@ -152,9 +159,36 @@ def _reorder(text: str):
 
 
 # ------------------------------------------------------------------ 数学
+def _render_figures(sid, doc, blocks, generated, out_dir=IMG_DIR) -> dict:
+    """把 kind='图' 的占位块渲染成 JPG，返回 {block_index: 相对路径}。"""
+    os.makedirs(out_dir, exist_ok=True)
+    paths = {}
+    for i, b in enumerate(blocks):
+        if b.get("kind") != "图":
+            continue
+        m = RE_FIGURE.search(b.get("text") or "")
+        if not m:
+            continue
+        pno, x0, y0, x1, y1 = (int(x) for x in m.groups())
+        if pno < 0 or pno >= doc.page_count:
+            continue
+        page = doc[pno]
+        r = pymupdf.Rect(x0, y0, x1, y1)
+        pix = page.get_pixmap(clip=r, dpi=140)
+        fn = "%s_%d.jpg" % (sid.replace(":", "_"), i)
+        fp = os.path.join(out_dir, fn)
+        pix.save(fp, jpg_quality=82)
+        paths[i] = "../assets/img/math/" + fn
+        generated.add(fn)
+    return paths
+
+
 def build_math(con) -> dict:
+    # 清理不再被引用的旧插图：先收集本次生成的文件名，结尾再删旧图
+    existing = set(os.listdir(IMG_DIR)) if os.path.isdir(IMG_DIR) else set()
+    generated = set()
     # unit_no 为空的是"整理复习/附录"之类，不算单元；text 是这一单元的教材正文
-    units = _rows(con, """select section_id,grade,term,unit_no,title,
+    units = _rows(con, """select section_id,book_id,grade,term,unit_no,title,
                           page_from,page_to,text,blocks from section_text
                           where subject='数学' and unit_no is not null""")
     kp = {r["section_id"]: r for r in _rows(
@@ -184,6 +218,7 @@ def build_math(con) -> dict:
 
     out = []
     n_derived = 0
+    docs = {}
     for u in units:
         points = [str(x).strip() for x in _j((kp.get(u["section_id"]) or {}).get("points"))]
         dom = goals.math_domain(u["title"])
@@ -192,8 +227,25 @@ def build_math(con) -> dict:
         # 课本原文：按教材板块（正文 / 做一做 / 练习…）分节。行序已按 PDF 版面
         # 重排过，这里再把图、表上的孤词从句子里挑出去，正文才读得通。
         blks = _j(u.get("blocks")) or [{"kind": "正文", "text": u.get("text") or ""}]
+        # 渲染插图占位符
+        figs = {}
+        if any(b.get("kind") == "图" for b in blks):
+            bid = u["book_id"]
+            if bid not in docs:
+                p = reorder.pdf_path(bid)
+                docs[bid] = pymupdf.open(p) if p else None
+            doc = docs.get(bid)
+            if doc:
+                figs = _render_figures(u["section_id"], doc, blks, generated)
         secs, flat = [], []
-        for b in blks:
+        if figs:
+            print("  ", u["section_id"][:8], "插图", len(figs), "张")
+        for i, b in enumerate(blks):
+            if b.get("kind") == "图":
+                img = figs.get(i)
+                if img:
+                    secs.append({"kind": "图", "body": [{"img": img}], "chart": []})
+                continue
             body, chart = _reorder(b.get("text") or "")
             if body:
                 secs.append({"kind": b.get("kind") or "正文",
@@ -253,6 +305,17 @@ def build_math(con) -> dict:
             "difficulty": e.get("difficulty"), "page": e.get("page_hint"),
         } for e in (ex.get(u["section_id"]) or [])[:8]]
         out.append(item)
+
+    # 删除本次不再引用的旧图
+    for fn in existing - generated:
+        try:
+            os.remove(os.path.join(IMG_DIR, fn))
+        except OSError:
+            pass
+
+    for d in docs.values():
+        if d:
+            d.close()
 
     out.sort(key=lambda x: (goals.key_of(x["grade"], x["term"]), _unum(x["unit_no"])))
     all_measures = []

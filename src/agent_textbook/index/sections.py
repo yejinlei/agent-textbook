@@ -43,6 +43,9 @@ RE_EXERCISE = re.compile(r"^\s*练\s*习\s*([一二三四五六七八九十\d]+)
 RE_SCI = re.compile(r"^\s*(实验|观察|研讨|拓展|探究|制作|交流|调查|游戏)")
 # 题号行：数学正文大量 `1.` `2.` `（1）`，是天然的分块起点
 RE_ITEM = re.compile(r"^\s*(?:\d{1,2}[.、．]|[（(]\s*\d{1,2}\s*[)）])")
+# 插图占位符：由 reorder.py 在 PDF 文本行空隙处插入
+RE_FIG = re.compile(
+    r"^\s*\[\[figure\s+page=\d+\s+x0=\d+\s+y0=\d+\s+x1=\d+\s+y1=\d+\s*\]\]\s*$")
 
 
 def _clean(lines: list[str]) -> list[str]:
@@ -66,6 +69,13 @@ def _blocks(lines: list[str]) -> list[dict]:
         cur["lines"] = []
 
     for ln in lines:
+        if RE_FIG.match(ln):
+            flush()
+            cur["kind"] = "图"
+            cur["lines"].append(ln)
+            flush()
+            cur["kind"] = "正文"
+            continue
         if RE_EXAMPLE.match(ln):
             flush()
             cur["kind"] = "例题"
