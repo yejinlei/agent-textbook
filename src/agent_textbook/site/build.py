@@ -8,6 +8,7 @@
 产出：pages/{index,math,chinese,english}.html + assets/ + data/*.json
 所有数据内联进 HTML，双击即可打开（file:// 下也能用）。
 """
+import hashlib
 import json
 import os
 import re
@@ -1303,7 +1304,7 @@ PAGE = """<!DOCTYPE html>
 <html lang="zh-Hans"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title} · 小学知识大全</title>
-<link rel="stylesheet" href="{base}assets/app.css"></head>
+<link rel="stylesheet" href="{base}assets/app.css?v={v}"></head>
 <body data-page="{page}" data-base="{base}">
 <header>
   <span class="seal">课本</span>
@@ -1324,9 +1325,20 @@ PAGE = """<!DOCTYPE html>
 <footer>由教材解析流水线生成 · 内容取自义务教育教科书（人教版）·
 数据本地生成，不出本机</footer>
 <script>window.DATA={data};</script>
-{xscripts}<script src="{base}assets/app.js"></script>
+{xscripts}<script src="{base}assets/app.js?v={v}"></script>
 </body></html>
 """
+
+
+def _asset_version():
+    """app.js/app.css 内容哈希前 8 位，作 ?v= 版本戳防浏览器缓存旧资源。"""
+    h = hashlib.sha1()
+    for fn in ("app.js", "app.css"):
+        p = os.path.join(ASSETS_SRC, fn)
+        if os.path.exists(p):
+            with open(p, "rb") as f:
+                h.update(f.read())
+    return h.hexdigest()[:8]
 
 
 def _nav(cur, base=""):
@@ -1616,7 +1628,8 @@ def build_pages(out_dir: str = None, verbose: bool = True) -> dict:
 
     _write(os.path.join(out, "index.html"), PAGE.format(
         title="总览", page="index", base="", subnav="", nav=_nav("index"),
-        body=index_body, data=_esc({"stats": stats}), xscripts=""))
+        body=index_body, data=_esc({"stats": stats}), xscripts="",
+        v=_asset_version()))
 
     for key, name, pages in SUBJECTS:
         os.makedirs(os.path.join(out, key), exist_ok=True)
@@ -1632,7 +1645,7 @@ def build_pages(out_dir: str = None, verbose: bool = True) -> dict:
                 body='<h2>%s · %s</h2><p class="lead">%s</p>%s'
                      % (name, title, desc, vids),
                 data=_esc(_slice(key, kind, cn_d, math_d, en_d)),
-                xscripts=xscripts))
+                xscripts=xscripts, v=_asset_version()))
 
     # 分页之前的单页文件不留，免得两套并存
     for f in ("chinese.html", "math.html", "english.html"):

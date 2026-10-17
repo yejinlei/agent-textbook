@@ -29,6 +29,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import wave
 from pathlib import Path
 
 from .. import config
@@ -258,8 +259,12 @@ def text_hash(text: str) -> str:
     return hashlib.sha1(text.encode("utf-8")).hexdigest()[:12]
 
 
-def synth_voice(texts: list[str], voice: str, limit: int | None = None) -> dict:
-    """对一个音色合成 texts 列表，返回 {text: {file, size}}。"""
+def synth_voice(texts: list[str], voice: str, limit: int | None = None,
+                force: bool = False) -> dict:
+    """对一个音色合成 texts 列表，返回 {text: {file, size}}。
+
+    注意：piper 必须用 stdin 喂文本。--text 模式会在音频开头生成一段
+    与文本无关的音头（约 100ms 强音 + 静默），stdin 模式无此问题。"""
     onnx, cfg = download_voice(voice)
     vdir = os.path.join(TTS_DIR, voice)
     os.makedirs(vdir, exist_ok=True)
@@ -274,51 +279,66 @@ def synth_voice(texts: list[str], voice: str, limit: int | None = None) -> dict:
     results: dict[str, dict] = {}
     p = Path(piper)
     done = 0
-    for i, text in enumerate(texts):
+
+    def to_mp3(wav: str, mp3: str) -> bool:
+        try:
+            subprocess.run(
+                [ffmpeg(), "-y", "-loglevel", "error",
+                 "-i", wav, "-codec:a", "libmp3lame",
+                 "-b:a", "32k", "-ar", "22050", mp3],
+                check=True, capture_output=True, timeout=15,
+            )
+            return True
+        except subprocess.CalledProcessError as e:
+            sys.stderr.write(f"[ffmpeg skip] {voice}: {e}\n")
+            return False
+
+    todo: list[tuple[str, str, str]] = []  # (text, hash, mp3_path)
+    for text in texts:
         h = text_hash(text)
         mp3 = os.path.join(vdir, h + ".mp3")
-        if os.path.exists(mp3) and os.path.getsize(mp3) > 0:
+        if not force and os.path.exists(mp3) and os.path.getsize(mp3) > 0:
             results[text] = {"file": f"{voice}/{h}.mp3",
                              "size": os.path.getsize(mp3)}
             done += 1
-            continue
-        # 合成 wav 到临时目录，再转 mp3
+        else:
+            todo.append((text, h, mp3))
+
+    if todo:
+        # 用 Piper Python API 批量合成：模型只加载一次，比逐条调 CLI 快几十倍。
+        # 注意不要用 piper CLI 的 --text 模式：它会在音频开头生成一段与文本
+        # 无关的音头（约 100ms 强音 + 静默）；stdin/API 模式无此问题。
+        from piper import PiperVoice
+        pv = PiperVoice.load(onnx, config_path=cfg)
         with tempfile.TemporaryDirectory(prefix="piper_") as td:
             wav = os.path.join(td, "out.wav")
-            try:
-                subprocess.run(
-                    [str(piper), "--model", onnx, "--config", cfg,
-                     "--output_file", wav, "--text", text],
-                    check=True, capture_output=True, timeout=30,
-                )
-            except subprocess.CalledProcessError as e:
-                # Piper 偶发会失败（如空音素），跳过
-                sys.stderr.write(f"[skip] {voice} {h} {text!r}: {e}\n")
-                continue
-            if not os.path.exists(wav) or os.path.getsize(wav) == 0:
-                continue
-            try:
-                subprocess.run(
-                    [ffmpeg(), "-y", "-loglevel", "error",
-                     "-i", wav, "-codec:a", "libmp3lame",
-                     "-b:a", "32k", "-ar", "22050", mp3],
-                    check=True, capture_output=True, timeout=15,
-                )
-            except subprocess.CalledProcessError as e:
-                sys.stderr.write(f"[ffmpeg skip] {voice} {h}: {e}\n")
-                continue
-        if os.path.exists(mp3) and os.path.getsize(mp3) > 0:
-            results[text] = {"file": f"{voice}/{h}.mp3",
-                             "size": os.path.getsize(mp3)}
-            done += 1
-        if (i + 1) % 200 == 0:
-            print(f"  [{voice}] {i+1}/{len(texts)} (done={done})")
+            for i, (text, h, mp3) in enumerate(todo):
+                try:
+                    chunks = list(pv.synthesize(text.replace("\n", " ")))
+                    if not chunks:
+                        continue
+                    raw = b"".join(c.audio_int16_bytes for c in chunks)
+                    with wave.open(wav, "wb") as w:
+                        w.setnchannels(chunks[0].sample_channels)
+                        w.setsampwidth(chunks[0].sample_width)
+                        w.setframerate(chunks[0].sample_rate)
+                        w.writeframes(raw)
+                except Exception as e:  # noqa: BLE001
+                    sys.stderr.write(f"[skip] {voice} {h} {text!r}: {e}\n")
+                    continue
+                if not to_mp3(wav, mp3):
+                    continue
+                results[text] = {"file": f"{voice}/{h}.mp3",
+                                 "size": os.path.getsize(mp3)}
+                done += 1
+                if (i + 1) % 200 == 0:
+                    print(f"  [{voice}] {i+1}/{len(todo)} (done={done})")
     return results
 
 
 def synth_worker(args):
-    voice, texts = args
-    return voice, synth_voice(texts, voice)
+    voice, texts, force, limit = args
+    return voice, synth_voice(texts, voice, limit=limit, force=force)
 
 
 # ------------------------------------------------------------------ 编排
@@ -366,7 +386,8 @@ def build_index(data: dict[str, dict[str, dict]],
 
 
 def generate(voices: list[str] | None = None, limit: int | None = None,
-             parallel: bool = True, verbose: bool = True) -> dict:
+             parallel: bool = True, verbose: bool = True,
+             force: bool = False) -> dict:
     """主入口：提取 → 合成 → 索引。"""
     voices = voices or list(VOICES.keys())
     texts = extract_texts()
@@ -390,7 +411,7 @@ def generate(voices: list[str] | None = None, limit: int | None = None,
 
     if parallel:
         with cf.ThreadPoolExecutor(max_workers=len(voices)) as ex:
-            futs = [ex.submit(synth_worker, (v, texts)) for v in voices]
+            futs = [ex.submit(synth_worker, (v, texts, force, limit)) for v in voices]
             for fut in cf.as_completed(futs):
                 v, res = fut.result()
                 for text, meta in res.items():
@@ -401,7 +422,7 @@ def generate(voices: list[str] | None = None, limit: int | None = None,
                     print(f"[tts] {v}: {len(res)} files")
     else:
         for v in voices:
-            res = synth_voice(texts, v, limit=limit)
+            res = synth_voice(texts, v, limit=limit, force=force)
             for text, meta in res.items():
                 h = text_hash(text)
                 data.setdefault(h, {})["text"] = text
@@ -450,8 +471,8 @@ def cmd_list() -> int:
 
 
 def cmd_gen(voices: list[str] | None = None, limit: int | None = None,
-            parallel: bool = True) -> int:
-    generate(voices=voices, limit=limit, parallel=parallel)
+            parallel: bool = True, force: bool = False) -> int:
+    generate(voices=voices, limit=limit, parallel=parallel, force=force)
     return 0
 
 

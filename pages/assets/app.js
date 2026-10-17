@@ -4231,6 +4231,54 @@
     return s + "</svg>";
   }
 
+  /* 时态时间轴：过去—现在—将来横轴 + 本时态的时间标记
+     （一般=重复点，进行=持续段，完成=到点线，完成进行=到点线+延续箭头；
+       过去将来=过去视点空心点 + 虚线引出目标点） */
+  function dkTlAxis(tense) {
+    var RX = { "过去": 52, "现在": 130, "将来": 208, "过去将来": 96 };
+    var time = "";
+    if (tense.indexOf("过去将来") >= 0) time = "过去将来";
+    else if (tense.indexOf("过去") >= 0) time = "过去";
+    else if (tense.indexOf("将来") >= 0) time = "将来";
+    else if (tense.indexOf("现在") >= 0) time = "现在";
+    if (!time) return "";
+    var aspect = "一般";
+    if (tense.indexOf("完成进行") >= 0) aspect = "完成进行";
+    else if (tense.indexOf("完成") >= 0) aspect = "完成";
+    else if (tense.indexOf("进行") >= 0) aspect = "进行";
+    var x = RX[time], C = "#e5534b";
+    var s = '<svg class="dk-tl2" viewBox="0 0 260 54" aria-hidden="true">';
+    s += '<line x1="12" y1="30" x2="244" y2="30" stroke="#c9bfa8" stroke-width="2"/>' +
+         '<path d="M244 26 l8 4 -8 4 z" fill="#c9bfa8"/>';
+    ["过去", "现在", "将来"].forEach(function (tk, i) {
+      var tx = [52, 130, 208][i];
+      var on = (time === tk) || (time === "过去将来" && tk === "过去");
+      s += '<line x1="' + tx + '" y1="25" x2="' + tx + '" y2="35" stroke="#c9bfa8" stroke-width="2"/>' +
+           '<text class="dk-tl-lab' + (on ? " on" : "") + '" x="' + tx +
+           '" y="48" text-anchor="middle">' + tk + "</text>";
+    });
+    if (time === "过去将来") {
+      s += '<circle cx="52" cy="30" r="4.5" fill="#fff" stroke="' + C + '" stroke-width="2"/>' +
+           '<line x1="58" y1="30" x2="' + (x - 8) + '" y2="30" stroke="' + C +
+           '" stroke-width="1.6" stroke-dasharray="3 3"/>';
+    }
+    if (aspect === "一般") {
+      for (var i = -1; i <= 1; i++)
+        s += '<circle cx="' + (x + i * 15) + '" cy="30" r="4" fill="' + C + '"/>';
+    } else if (aspect === "进行") {
+      s += '<rect x="' + (x - 21) + '" y="25.5" width="42" height="9" rx="4.5" fill="' +
+        C + '" opacity=".85"/>';
+    } else {
+      s += '<line x1="' + (x - 36) + '" y1="30" x2="' + (x - 4) + '" y2="30" stroke="' +
+        C + '" stroke-width="3"/><circle cx="' + x + '" cy="30" r="5" fill="' + C + '"/>';
+      if (aspect === "完成进行")
+        s += '<line x1="' + (x + 6) + '" y1="30" x2="' + (x + 16) + '" y2="30" stroke="' +
+          C + '" stroke-width="2" stroke-dasharray="2.5 2.5"/>' +
+          '<path d="M' + (x + 16) + ' 26.5 l6 3.5 -6 3.5 z" fill="' + C + '"/>';
+    }
+    return s + "</svg>";
+  }
+
   /* 时态范畴：按时态分组，组头配小时态轴，卡片编号连续 */
   function dkTenseGroups(list) {
     var by = {}, order = [];
@@ -4250,7 +4298,8 @@
         return (a.book ? 1 : 0) - (b.book ? 1 : 0);
       }).map(function (g) { n++; return dkCard(g, n); }).join("");
       return '<div class="dk-tg"><div class="dk-tg-h">' + dkTlSvg(t) + "<b>" + esc(t) +
-        '</b><span class="dk-tg-n">' + by[t].length + " 条</span></div>" + cards + "</div>";
+        '</b><span class="dk-tg-n">' + by[t].length + " 条</span>" + dkTlAxis(t) +
+        "</div>" + cards + "</div>";
     }).join("");
   }
 

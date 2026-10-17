@@ -255,7 +255,8 @@ def cmd_tts(args) -> None:
     elif args.action == "download":
         tts.cmd_download(voices)
     elif args.action == "gen":
-        tts.cmd_gen(voices=voices, limit=args.limit or None, parallel=not args.serial)
+        tts.cmd_gen(voices=voices, limit=args.limit or None, parallel=not args.serial,
+                    force=getattr(args, "force", False))
     elif args.action == "extract":
         texts = tts.extract_texts()
         print(f"{len(texts)} unique texts extracted")
@@ -689,6 +690,8 @@ def main() -> None:
                     help="只处理指定音色，逗号分隔：alan,jenny,amy,cori（默认全部）")
     sp.add_argument("--limit", type=int, default=0, help="gen：只合成前 N 条")
     sp.add_argument("--serial", action="store_true", help="gen：串行生成（默认 4 音色并发）")
+    sp.add_argument("--force", action="store_true",
+                    help="gen：忽略已有 mp3 全部重生成（用于修复旧 --text 模式音头问题）")
     sp.add_argument("--show", type=int, default=0, help="extract：打印前 N 条文本")
     sp.set_defaults(func=cmd_tts)
 

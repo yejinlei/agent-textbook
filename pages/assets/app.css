@@ -1850,8 +1850,9 @@ details.aq .aa {
 .dk-sec > summary::before { content: "▸"; color: #b0a78f; transition: transform .2s; }
 .dk-sec[open] > summary::before { transform: rotate(90deg); }
 .dk-sec-n { margin-left: auto; font-size: 12px; color: #97907e; font-weight: 600; }
-.dk-tg-h { display: flex; align-items: center; gap: 12px; margin: 10px 22px 2px; font-size: 16px; }
+.dk-tg-h { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 10px 22px 2px; font-size: 16px; }
 .dk-tg-n { font-size: 12px; color: #97907e; font-weight: 600; }
+.dk-tl2 { width: 208px; height: 43px; margin-left: auto; }
 
 .dk-card { background: #fff; border: 1px solid #e9e1d1; border-radius: 18px; padding: 20px 22px;
   margin: 14px 16px; box-shadow: 0 1px 3px rgba(60,50,30,.06), 0 6px 18px rgba(60,50,30,.06);
