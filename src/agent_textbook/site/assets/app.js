@@ -6580,6 +6580,251 @@
     draw();
   }
 
+  /* ---- 分数乘法：用面积模型看 1/2 × 1/3 ＝ 1/6（六上） ---- */
+  function fracMulLab() {
+    return labBox("分数乘法",
+      "1/2 × 1/3：先横着取 1/2，再竖着取 1/3，重叠的小块就是 1/6。拖一拖分子分母看面积怎么变。",
+      '<div class="row">a <input type="range" id="fm-a" min="1" max="5" value="1">' +
+      '<b id="fm-av">1</b> / b <input type="range" id="fm-b" min="2" max="6" value="2">' +
+      '<b id="fm-bv">2</b>　×　c <input type="range" id="fm-c" min="1" max="5" value="1">' +
+      '<b id="fm-cv">1</b> / d <input type="range" id="fm-d" min="2" max="6" value="3">' +
+      '<b id="fm-dv">3</b></div>' +
+      '<div id="fm-svg" class="svgwrap"></div><div id="fm-s" class="small"></div>');
+  }
+
+  function bindFracMul() {
+    var ra = document.getElementById("fm-a"), rb = document.getElementById("fm-b"),
+        rc = document.getElementById("fm-c"), rd = document.getElementById("fm-d"),
+        va = document.getElementById("fm-av"), vb = document.getElementById("fm-bv"),
+        vc = document.getElementById("fm-cv"), vd = document.getElementById("fm-dv"),
+        box = document.getElementById("fm-svg"), s = document.getElementById("fm-s");
+    if (!ra || !box) return;
+
+    function gcd(x, y) { while (y) { var t = x % y; x = y; y = t; } return x; }
+
+    function draw() {
+      var a = +ra.value, b = +rb.value, c = +rc.value, d = +rd.value, i, j, p = [];
+      va.textContent = a; vb.textContent = b; vc.textContent = c; vd.textContent = d;
+      var W = 180, x0 = 30, y0 = 20;
+      for (j = 0; j < d; j++) {
+        for (i = 0; i < b; i++) {
+          var inside = i < a && j < c;
+          p.push('<rect x="' + (x0 + i * W / b) + '" y="' + (y0 + j * W / d) +
+            '" width="' + (W / b - 1) + '" height="' + (W / d - 1) +
+            '" fill="' + (inside ? "#f5c26b" : "#fff") +
+            '" stroke="' + (inside ? "#b7791f" : "#e3ded0") + '"/>');
+        }
+      }
+      p.push('<text x="250" y="40" font-size="14" fill="#6b7280">横取 ' + a + '/' + b + "</text>");
+      p.push('<text x="250" y="64" font-size="14" fill="#6b7280">竖取 ' + c + '/' + d + "</text>");
+      p.push('<text x="250" y="94" font-size="16" fill="#2f3437">重叠 ' + (a * c) +
+        '/' + (b * d) + "</text>");
+      box.innerHTML = '<svg viewBox="0 0 360 210" width="100%" height="210">' +
+        p.join("") + "</svg>";
+      var g = gcd(a * c, b * d);
+      s.innerHTML = a + "/" + b + " × " + c + "/" + d + " ＝ " +
+        (a * c / g) + "/" + (b * d / g) +
+        "　（分子的积作分子，分母的积作分母）";
+    }
+    [ra, rb, rc, rd].forEach(function (e) { e.addEventListener("input", draw); });
+    draw();
+  }
+
+  /* ---- 百分数：百格模型（六上） ---- */
+  function percentLab() {
+    return labBox("百分数",
+      "把 1 平均分成 100 份，涂色部分占多少份就是百分之多少。百分数、分数、小数其实是一回事。",
+      '<div class="row"><input type="range" id="pt-p" min="0" max="100" value="35">' +
+      '<b id="pt-v">35%</b></div>' +
+      '<div id="pt-svg" class="svgwrap"></div><div id="pt-s" class="small"></div>');
+  }
+
+  function bindPercent() {
+    var r = document.getElementById("pt-p"), v = document.getElementById("pt-v"),
+        box = document.getElementById("pt-svg"), s = document.getElementById("pt-s");
+    if (!r || !box) return;
+
+    function gcd(x, y) { while (y) { var t = x % y; x = y; y = t; } return x; }
+
+    function draw() {
+      var pct = +r.value, g = 16, x0 = 20, y0 = 10, p = [], i;
+      v.textContent = pct + "%";
+      for (i = 0; i < 100; i++) {
+        var col = i % 10, row = Math.floor(i / 10);
+        p.push('<rect x="' + (x0 + col * g) + '" y="' + (y0 + row * g) +
+          '" width="' + g + '" height="' + g +
+          '" fill="' + (i < pct ? "#cfe4f5" : "#fff") +
+          '" stroke="' + (i < pct ? "#2471a3" : "#e3ded0") + '"/>');
+      }
+      p.push('<text x="210" y="40" font-size="16" fill="#2471a3">' + pct + '%</text>');
+      p.push('<text x="210" y="64" font-size="13" fill="#6b7280">小数：' + (pct / 100).toFixed(2) + "</text>");
+      var g2 = gcd(pct, 100);
+      p.push('<text x="210" y="88" font-size="13" fill="#6b7280">分数：' + (pct / g2) + "/" + (100 / g2) + "</text>");
+      box.innerHTML = '<svg viewBox="0 0 360 190" width="100%" height="190">' +
+        p.join("") + "</svg>";
+      s.innerHTML = pct + "% ＝ " + (pct / 100).toFixed(2) + " ＝ " +
+        (pct / g2) + "/" + (100 / g2) +
+        "　（百分数就是分母是 100 的分数）";
+    }
+    r.addEventListener("input", draw);
+    draw();
+  }
+
+  /* ---- 负数：数轴上的负数（六下） ---- */
+  function negLab() {
+    return labBox("负数",
+      "0 左边是负数，右边是正数。负数可以表示零下的温度、海平面下的高度这些和正数相反意义的量。",
+      '<div class="row">温度 <input type="range" id="ng-t" min="-10" max="10" value="-3">' +
+      '<b id="ng-v">-3</b>°C</div>' +
+      '<div id="ng-svg" class="svgwrap"></div><div id="ng-s" class="small"></div>');
+  }
+
+  function bindNeg() {
+    var rt = document.getElementById("ng-t"), v = document.getElementById("ng-v"),
+        box = document.getElementById("ng-svg"), s = document.getElementById("ng-s");
+    if (!rt || !box) return;
+
+    function draw() {
+      var t = +rt.value, p = [], i;
+      v.textContent = (t > 0 ? "+" : "") + t;
+      var cx = 180, y = 80, uw = 14;
+      p.push('<line x1="30" y1="' + y + '" x2="330" y2="' + y +
+        '" stroke="#6b7280" stroke-width="2"/>');
+      for (i = -10; i <= 10; i++) {
+        var x = cx + i * uw;
+        p.push('<line x1="' + x + '" y1="' + (y - 5) + '" x2="' + x +
+          '" y2="' + (y + 5) + '" stroke="#6b7280"/>');
+        if (i % 5 === 0) {
+          p.push('<text x="' + x + '" y="' + (y + 22) + '" text-anchor="middle" ' +
+            'font-size="12" fill="' + (i === 0 ? "#2471a3" : "#6b7280") + '">' + i + "</text>");
+        }
+      }
+      p.push('<polygon points="' + (330 - 6) + ',' + (y - 4) + ' ' + (330 - 6) + ',' +
+        (y + 4) + ' ' + 330 + ',' + y + '" fill="#6b7280"/>');
+      var tx = cx + t * uw;
+      p.push('<circle cx="' + tx + '" cy="' + y + '" r="6" fill="#c0392b"/>');
+      p.push('<text x="' + tx + '" y="' + (y - 16) + '" text-anchor="middle" ' +
+        'font-size="14" fill="#c0392b">' + (t > 0 ? "+" : "") + t + "°C</text>");
+      box.innerHTML = '<svg viewBox="0 0 360 130" width="100%" height="130">' +
+        p.join("") + "</svg>";
+      s.innerHTML = (t < 0 ? "零下 " + (-t) + " 摄氏度，在 0 左边" :
+        t === 0 ? "0 是分界点" : "零上 " + t + " 摄氏度，在 0 右边") +
+        "　（负数表示和正数相反意义的量）";
+    }
+    rt.addEventListener("input", draw);
+    draw();
+  }
+
+  /* ---- 圆柱：侧面展开和体积推导（六下） ---- */
+  function cylinderLab() {
+    return labBox("圆柱的侧面积和体积",
+      "圆柱的侧面展开是一个长方形：长 ＝ 底面周长，宽 ＝ 高。拖动半径和高看怎么变。",
+      '<div class="row">r <input type="range" id="cy-r" min="1" max="6" value="3">' +
+      '<b id="cy-rv">3</b>　h <input type="range" id="cy-h" min="2" max="10" value="5">' +
+      '<b id="cy-hv">5</b></div>' +
+      '<div id="cy-svg" class="svgwrap"></div><div id="cy-s" class="small"></div>');
+  }
+
+  function bindCylinder() {
+    var rr = document.getElementById("cy-r"), rh = document.getElementById("cy-h"),
+        vr = document.getElementById("cy-rv"), vh = document.getElementById("cy-hv"),
+        box = document.getElementById("cy-svg"), s = document.getElementById("cy-s");
+    if (!rr || !box) return;
+
+    function draw() {
+      var r = +rr.value, h = +rh.value, p = [];
+      vr.textContent = r; vh.textContent = h;
+      // 左侧：圆柱等轴测
+      var ox = 90, oy = 130, u = 16, rx = r * u, ry = r * u * 0.35, hh = h * 10;
+      p.push('<ellipse cx="' + ox + '" cy="' + (oy - hh) + '" rx="' + rx + '" ry="' + ry +
+        '" fill="#f7dfae" stroke="#b7791f" stroke-width="2"/>');
+      p.push('<path d="M' + (ox - rx) + ' ' + (oy - hh) + ' L' + (ox - rx) + ' ' + oy +
+        ' A' + rx + ' ' + ry + ' 0 0 0 ' + (ox + rx) + ' ' + oy +
+        ' L' + (ox + rx) + ' ' + (oy - hh) +
+        ' A' + rx + ' ' + ry + ' 0 0 1 ' + (ox - rx) + ' ' + (oy - hh) +
+        ' Z" fill="#cfe4f5" stroke="#2471a3" stroke-width="2"/>');
+      p.push('<path d="M' + (ox - rx) + ' ' + oy + ' A' + rx + ' ' + ry +
+        ' 0 0 0 ' + (ox + rx) + ' ' + oy + '" fill="none" stroke="#2471a3" ' +
+        'stroke-width="2" stroke-dasharray="6 4"/>');
+      p.push('<path d="M' + (ox - rx) + ' ' + oy + ' A' + rx + ' ' + ry +
+        ' 0 0 1 ' + (ox + rx) + ' ' + oy + '" fill="none" stroke="#2471a3" ' +
+        'stroke-width="2"/>');
+      p.push('<text x="' + ox + '" y="' + (oy + 24) + '" text-anchor="middle" ' +
+        'font-size="13" fill="#2471a3">r＝' + r + "</text>");
+
+      // 右侧：侧面展开长方形
+      var ux = 230, uy = 40, cw = Math.round(2 * Math.PI * r * 10), ch = hh;
+      p.push('<rect x="' + ux + '" y="' + uy + '" width="' + cw + '" height="' + ch +
+        '" fill="#f7dfae" stroke="#b7791f" stroke-width="2"/>');
+      p.push('<text x="' + (ux + cw / 2) + '" y="' + (uy - 8) +
+        '" text-anchor="middle" font-size="13" fill="#b7791f">侧面展开</text>');
+      p.push('<text x="' + (ux + cw / 2) + '" y="' + (uy + ch / 2 + 5) +
+        '" text-anchor="middle" font-size="13" fill="#6b7280">长 ＝ ' +
+        (Math.round(2 * Math.PI * r * 10) / 10).toFixed(1) + "</text>");
+
+      box.innerHTML = '<svg viewBox="0 0 360 170" width="100%" height="170">' +
+        p.join("") + "</svg>";
+      s.innerHTML = "底面周长 ＝ 2πr ＝ " + (2 * Math.PI * r).toFixed(1) +
+        "，侧面积 ＝ 周长×高 ＝ " + (2 * Math.PI * r * h).toFixed(1) +
+        "　体积 ＝ πr²h ＝ " + (Math.PI * r * r * h).toFixed(1);
+    }
+    rr.addEventListener("input", draw);
+    rh.addEventListener("input", draw);
+    draw();
+  }
+
+  /* ---- 正比例：路程—时间图像（六下） ---- */
+  function propLab() {
+    return labBox("正比例图像",
+      "速度一定时，路程 ÷ 时间 ＝ 速度，图像是一条从原点出发的直线。改速度看斜率怎么变。",
+      '<div class="row">速度 <input type="range" id="pp-v" min="1" max="10" value="4">' +
+      '<b id="pp-vv">4</b>（单位/小时）</div>' +
+      '<div id="pp-svg" class="svgwrap"></div><div id="pp-s" class="small"></div>');
+  }
+
+  function bindProp() {
+    var rv = document.getElementById("pp-v"), vv = document.getElementById("pp-vv"),
+        box = document.getElementById("pp-svg"), s = document.getElementById("pp-s");
+    if (!rv || !box) return;
+
+    function draw() {
+      var v = +rv.value, p = [], t;
+      vv.textContent = v;
+      var x0 = 40, y0 = 180, W = 280, H = 140, maxT = 10;
+      p.push('<line x1="' + x0 + '" y1="' + y0 + '" x2="' + (x0 + W) + '" y2="' + y0 +
+        '" stroke="#6b7280" stroke-width="2"/>');
+      p.push('<line x1="' + x0 + '" y1="' + y0 + '" x2="' + x0 + '" y2="' + (y0 - H) +
+        '" stroke="#6b7280" stroke-width="2"/>');
+      var endX = x0 + W, endY = y0 - Math.min(v * (W / maxT), H);
+      p.push('<line x1="' + x0 + '" y1="' + y0 + '" x2="' + endX + '" y2="' + endY +
+        '" stroke="#2471a3" stroke-width="2.5"/>');
+      for (t = 0; t <= maxT; t += 2) {
+        var x = x0 + t * (W / maxT);
+        p.push('<line x1="' + x + '" y1="' + y0 + '" x2="' + x + '" y2="' + (y0 + 5) +
+          '" stroke="#6b7280"/>');
+        p.push('<text x="' + x + '" y="' + (y0 + 18) + '" text-anchor="middle" ' +
+          'font-size="12" fill="#6b7280">' + t + "h</text>");
+      }
+      var step = Math.max(2, Math.ceil(v * 2));
+      for (var s2 = 0; s2 <= v * maxT; s2 += step) {
+        var y = y0 - s2 * (H / (v * maxT || 1));
+        p.push('<line x1="' + (x0 - 5) + '" y1="' + y + '" x2="' + x0 + '" y2="' + y +
+          '" stroke="#6b7280"/>');
+        p.push('<text x="' + (x0 - 8) + '" y="' + (y + 4) + '" text-anchor="end" ' +
+          'font-size="12" fill="#6b7280">' + s2 + "</text>");
+      }
+      p.push('<circle cx="' + endX + '" cy="' + endY + '" r="4" fill="#c0392b"/>');
+      p.push('<text x="' + (x0 + W / 2) + '" y="30" text-anchor="middle" ' +
+        'font-size="14" fill="#2471a3">s ＝ ' + v + 't（速度 ' + v + "）</text>");
+      box.innerHTML = '<svg viewBox="0 0 360 200" width="100%" height="200">' +
+        p.join("") + "</svg>";
+      s.innerHTML = "t＝" + maxT + "h 时，s＝" + (v * maxT) +
+        "　路程和时间的比值始终是 " + v + "（正比例）";
+    }
+    rv.addEventListener("input", draw);
+    draw();
+  }
+
   function mathLab(kind) {
     var h = "";
     if (kind === "all" || kind === "num") {
@@ -6587,14 +6832,17 @@
       h += placeLab() + bignumLab() + vertLab() + modelLab() +
         fracLab() + axisLab() + hundredLab() + unitLab() +
         distLab() + decLab() +                       // 四下
-        decMulLab() + letterLab() + fracAddLab();    // 五上、五下
+        decMulLab() + letterLab() + fracAddLab() +  // 五上、五下
+        fracMulLab() + percentLab() + negLab();      // 六上、六下
     }
     if (kind === "all" || kind === "geo") {
       h += angleLab() + heightLab() + dirLab() + cutLab() + circleLab() +
         triLab() + sideLab() +                       // 四下
-        cubeLab();                                   // 五下
+        cubeLab() +                                  // 五下
+        cylinderLab();                               // 六下
     }
-    if (kind === "all" || kind === "stat") h += barLab() + avgLab() + trendLab();
+    if (kind === "all" || kind === "stat") h += barLab() + avgLab() + trendLab() +
+      propLab();                                      // 六下
     if (kind === "problem") h += segLab() + modelLab();   // 应用题配线段图，正对"看不出数量关系"
     return h;
   }
@@ -6604,14 +6852,16 @@
       bindPlace(); bindBignum(); bindVert(); bindModel();
       bindFrac(); bindAxis(); bindHundred(); bindUnit();
       bindDist(); bindDec();                        // 四下
-      bindDecMul(); bindLetter(); bindFracAdd();    // 五上、五下
+      bindDecMul(); bindLetter(); bindFracAdd();   // 五上、五下
+      bindFracMul(); bindPercent(); bindNeg();      // 六上、六下
     }
     if (kind === "all" || kind === "geo") {
       bindAngle(); bindHeight(); bindDir(); bindCut(); bindCircle();
       bindTri(); bindSide();                        // 四下
       bindCube();                                   // 五下
+      bindCylinder();                               // 六下
     }
-    if (kind === "all" || kind === "stat") { bindBar(); bindAvg(); bindTrend(); }
+    if (kind === "all" || kind === "stat") { bindBar(); bindAvg(); bindTrend(); bindProp(); }
     if (kind === "problem") { bindSeg(); bindModel(); }
   }
 
