@@ -1780,8 +1780,6 @@ def _slice(key, kind, cn_d, math_d, en_d):
 
 def build_pages(out_dir: str = None, verbose: bool = True) -> dict:
     """生成整站。"""
-    from . import anim      # 可选：Manim 动画（没渲染过就是空，不影响生成）
-
     out = out_dir or OUT_DIR
     os.makedirs(os.path.join(out, "assets"), exist_ok=True)
     os.makedirs(os.path.join(out, "data"), exist_ok=True)
@@ -1887,16 +1885,14 @@ def build_pages(out_dir: str = None, verbose: bool = True) -> dict:
     for key, name, pages in SUBJECTS:
         os.makedirs(os.path.join(out, key), exist_ok=True)
         for slug, title, kind, desc in pages:
-            # 数学页额外挂 Manim 动画（渲染过才有，没渲染不影响页面）
-            vids = anim.video_block(kind, out) if key == "math" else ""
             # 课外拓展页额外挂预生成译文库（window.ZH_TRANS，见 app.js loadTranslation）
             xscripts = ('<script src="../assets/zh_trans.js"></script>\n'
                         if (key, slug) == ("english", "extra") else "")
             _write(os.path.join(out, key, slug + ".html"), PAGE.format(
                 title="%s · %s" % (name, title), page="%s-%s" % (key, kind),
                 base="../", nav=_nav(key, "../"), subnav=_subnav(slug, pages),
-                body='<h2>%s · %s</h2><p class="lead">%s</p>%s'
-                     % (name, title, desc, vids),
+                body='<h2>%s · %s</h2><p class="lead">%s</p>'
+                     % (name, title, desc),
                 data=_esc(_slice(key, kind, cn_d, math_d, en_d)),
                 xscripts=xscripts, v=_asset_version()))
 

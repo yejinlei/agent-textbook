@@ -286,20 +286,6 @@ def cmd_tts(args) -> None:
             print(" ", t[:80])
 
 
-def cmd_anim(args) -> None:
-    """可选：用 Manim 渲染数学公式动画（需先 pip install manim）。"""
-    from .site import anim
-
-    r = anim.render_all(quality=args.quality or "-ql")
-    print(r["msg"])
-    for f in r.get("files", []):
-        print("  √", f)
-    for slug, err in r.get("failed", []):
-        print("  ×", slug, err.replace("\n", " ")[:160])
-    if not r["ok"]:
-        print("提示：没装 manim 就跑不了；页面里的可视化实验室不需要它。")
-
-
 def cmd_writing(args) -> None:
     """单元习作支架包：观察卡 / 提纲 / 课文例证 / 量规 / 修改清单。"""
     import json
@@ -721,9 +707,6 @@ def main() -> None:
     sp.add_argument("--show", type=int, default=0, help="extract：打印前 N 条文本")
     sp.set_defaults(func=cmd_tts)
 
-    sp = sub.add_parser("anim", help="可选：用 Manim 渲染数学公式动画（需先装 manim）")
-    sp.add_argument("--quality", default="-ql", help="manim 画质参数，默认 -ql（低清快）")
-    sp.set_defaults(func=cmd_anim)
 
     sp = sub.add_parser("lessonkb",
                         help="每课本体论：一堂课要掌握什么（按课标学段分档）")
