@@ -1,0 +1,137 @@
+﻿book_id,lesson_id,lesson_label,issue_type,location,detail
+06422d77-21f1-45c3-b409-fa2947eee424,06422d77-21f1-45c3-b409-fa2947eee424:002,六年级下册 U1 L2《腊八粥》,empty_exercise,5,exercises[5] 空
+06422d77-21f1-45c3-b409-fa2947eee424,06422d77-21f1-45c3-b409-fa2947eee424:038,六年级下册 U5 L16《表里的生物》,empty_exercise,4,exercises[4] 空
+06422d77-21f1-45c3-b409-fa2947eee424,06422d77-21f1-45c3-b409-fa2947eee424:039,六年级下册 U5 L17《他们那时候多有趣啊》,author_glue,0,作者行残留：'本文作者是美国的艾萨克·阿西莫夫，'
+0f93b83e-b3c2-4a5d-8acd-ea460ab962d4,0f93b83e-b3c2-4a5d-8acd-ea460ab962d4:004,二年级下册 U1 L2《找春天》,empty_exercise,4,exercises[4] 空
+0f93b83e-b3c2-4a5d-8acd-ea460ab962d4,0f93b83e-b3c2-4a5d-8acd-ea460ab962d4:005,二年级下册 U1 L3《开满鲜花的小路》,empty_exercise,6,exercises[6] 空
+0f93b83e-b3c2-4a5d-8acd-ea460ab962d4,0f93b83e-b3c2-4a5d-8acd-ea460ab962d4:008,二年级下册 U2 L5《雷锋叔叔，你在哪里》,empty_exercise,6,exercises[6] 空
+0f93b83e-b3c2-4a5d-8acd-ea460ab962d4,0f93b83e-b3c2-4a5d-8acd-ea460ab962d4:010,二年级下册 U2 L7《我不是最弱小的》,empty_exercise,6,exercises[6] 空
+0f93b83e-b3c2-4a5d-8acd-ea460ab962d4,0f93b83e-b3c2-4a5d-8acd-ea460ab962d4:014,二年级下册 U3 L1《神州谣》,empty_exercise,2,exercises[2] 空
+0f93b83e-b3c2-4a5d-8acd-ea460ab962d4,0f93b83e-b3c2-4a5d-8acd-ea460ab962d4:033,二年级下册 U6 L16《要是你在野外迷了路》,empty_exercise,2,exercises[2] 空
+0f93b83e-b3c2-4a5d-8acd-ea460ab962d4,0f93b83e-b3c2-4a5d-8acd-ea460ab962d4:038,二年级下册 U7 L20《青蛙卖泥塘》,empty_exercise,3,exercises[3] 空
+0f93b83e-b3c2-4a5d-8acd-ea460ab962d4,0f93b83e-b3c2-4a5d-8acd-ea460ab962d4:039,二年级下册 U7 L21《小毛虫》,author_glue,0,作者行残留：'本文作者是意大利的达·芬奇，'
+1c73b348-e8b6-47d6-84b0-6dbacbe28268,1c73b348-e8b6-47d6-84b0-6dbacbe28268:004,一年级上册 U1 L4《日月山川》,newchars_leak,0,生字条污染(13/13)：'禾日日日田田田禾禾禾火火火'
+1c73b348-e8b6-47d6-84b0-6dbacbe28268,1c73b348-e8b6-47d6-84b0-6dbacbe28268:018,一年级上册 U3 L9《y w》,newchars_leak,0,生字条污染(8/11)：'鱼乌鸦鸭子蚂蚁鱼鸭乌鸦'
+1c73b348-e8b6-47d6-84b0-6dbacbe28268,1c73b348-e8b6-47d6-84b0-6dbacbe28268:026,一年级上册 U5 L1《秋天》,empty_exercise,3,exercises[3] 空
+1c73b348-e8b6-47d6-84b0-6dbacbe28268,1c73b348-e8b6-47d6-84b0-6dbacbe28268:037,一年级上册 U7 L6《影子》,empty_exercise,3,exercises[3] 空
+2ce8f153-7bff-4c97-b6db-9aac414fea19,2ce8f153-7bff-4c97-b6db-9aac414fea19:021,二年级上册 U2 L4《田家四季歌》,empty_exercise,2,exercises[2] 空
+2ce8f153-7bff-4c97-b6db-9aac414fea19,2ce8f153-7bff-4c97-b6db-9aac414fea19:003,二年级上册 U3 L6《数星星的孩子》,empty_exercise,7,exercises[7] 空
+2ce8f153-7bff-4c97-b6db-9aac414fea19,2ce8f153-7bff-4c97-b6db-9aac414fea19:037,二年级上册 U6 L14《八角楼上》,empty_exercise,5,exercises[5] 空
+2ce8f153-7bff-4c97-b6db-9aac414fea19,2ce8f153-7bff-4c97-b6db-9aac414fea19:038,二年级上册 U6 L15《朱德的扁担》,note_glue,0,注释粘连：'（1900—1989），选作课文时有改动'
+2ce8f153-7bff-4c97-b6db-9aac414fea19,2ce8f153-7bff-4c97-b6db-9aac414fea19:038,二年级上册 U6 L15《朱德的扁担》,author_glue,0,作者行残留：'本文作者朱良才（1900—1989），'
+2ce8f153-7bff-4c97-b6db-9aac414fea19,2ce8f153-7bff-4c97-b6db-9aac414fea19:023,二年级上册 U2 L19《雾在哪里》,newchars_leak,0,生字条污染(30/33)：'路上走论论船船步步失失该该散散猫猫切切论暗岸街梁甚至切躲该悠闲散失'
+2ce8f153-7bff-4c97-b6db-9aac414fea19,2ce8f153-7bff-4c97-b6db-9aac414fea19:024,二年级上册 U2 L20《雪孩子》,empty_exercise,6,exercises[6] 空
+2ce8f153-7bff-4c97-b6db-9aac414fea19,2ce8f153-7bff-4c97-b6db-9aac414fea19:027,二年级上册 U8 L22《纸船和风筝》,empty_exercise,10,exercises[10] 空
+2e3dc199-9c42-486b-bbee-7731bd0ee227,2e3dc199-9c42-486b-bbee-7731bd0ee227:001,六年级上册 U1 L1《草原》,note_glue,0,注释粘连：'（1899—1966），选作课文时有改动'
+2e3dc199-9c42-486b-bbee-7731bd0ee227,2e3dc199-9c42-486b-bbee-7731bd0ee227:001,六年级上册 U1 L1《草原》,author_glue,0,作者行残留：'本文作者老舍（1899—1966），'
+2e3dc199-9c42-486b-bbee-7731bd0ee227,2e3dc199-9c42-486b-bbee-7731bd0ee227:001,六年级上册 U1 L1《草原》,empty_exercise,8,exercises[8] 空
+2e3dc199-9c42-486b-bbee-7731bd0ee227,2e3dc199-9c42-486b-bbee-7731bd0ee227:010,六年级上册 U2 L5《狼牙山五壮士》,author_glue,0,作者行残留：'本文作者沈重（zhòng），'
+2e3dc199-9c42-486b-bbee-7731bd0ee227,2e3dc199-9c42-486b-bbee-7731bd0ee227:010,六年级上册 U2 L5《狼牙山五壮士》,empty_exercise,4,exercises[4] 空
+2e3dc199-9c42-486b-bbee-7731bd0ee227,2e3dc199-9c42-486b-bbee-7731bd0ee227:011,六年级上册 U2 L6《开国大典》,empty_exercise,5,exercises[5] 空
+2e3dc199-9c42-486b-bbee-7731bd0ee227,2e3dc199-9c42-486b-bbee-7731bd0ee227:012,六年级上册 U2 L7《我的战友邱少云》,note_glue,0,注释粘连：'（1930—1967），选作课文时有改动'
+2e3dc199-9c42-486b-bbee-7731bd0ee227,2e3dc199-9c42-486b-bbee-7731bd0ee227:012,六年级上册 U2 L7《我的战友邱少云》,author_glue,0,作者行残留：'本文作者李元兴（1930—1967），'
+2e3dc199-9c42-486b-bbee-7731bd0ee227,2e3dc199-9c42-486b-bbee-7731bd0ee227:012,六年级上册 U2 L7《我的战友邱少云》,empty_exercise,4,exercises[4] 空
+2e3dc199-9c42-486b-bbee-7731bd0ee227,2e3dc199-9c42-486b-bbee-7731bd0ee227:021,六年级上册 U4 L11《桥》,empty_exercise,2,exercises[2] 空
+2e3dc199-9c42-486b-bbee-7731bd0ee227,2e3dc199-9c42-486b-bbee-7731bd0ee227:047,六年级上册 U7 L21《表里的生物》,note_glue,0,注释粘连：'（1905—1993），选作课文时有改动'
+2e3dc199-9c42-486b-bbee-7731bd0ee227,2e3dc199-9c42-486b-bbee-7731bd0ee227:047,六年级上册 U7 L21《表里的生物》,author_glue,0,作者行残留：'本文作者冯至（1905—1993），'
+53d6315e-5f90-42c4-904f-2d4e95fe99ed,53d6315e-5f90-42c4-904f-2d4e95fe99ed:019,四年级下册 U1 L2《乡下人家》,empty_exercise,6,exercises[6] 空
+53d6315e-5f90-42c4-904f-2d4e95fe99ed,53d6315e-5f90-42c4-904f-2d4e95fe99ed:026,四年级下册 U2 L6《飞向蓝天的恐龙》,newchars_leak,0,生字条污染(21/21)：'笨鸽钝描隧毫末凌态颅吨辟膨翼肢钝描隧衍吨颅'
+53d6315e-5f90-42c4-904f-2d4e95fe99ed,53d6315e-5f90-42c4-904f-2d4e95fe99ed:010,四年级下册 U3 L12《在天晴了的时候》,empty_exercise,5,exercises[5] 空
+53d6315e-5f90-42c4-904f-2d4e95fe99ed,53d6315e-5f90-42c4-904f-2d4e95fe99ed:035,四年级下册 U5 L16《海上日出》,empty_exercise,3,exercises[3] 空
+53d6315e-5f90-42c4-904f-2d4e95fe99ed,53d6315e-5f90-42c4-904f-2d4e95fe99ed:058,四年级下册 U7 L24《“诺曼底号”遇难记》,author_glue,0,作者行残留：'本文作者是法国的维克多·雨果，'
+53d6315e-5f90-42c4-904f-2d4e95fe99ed,53d6315e-5f90-42c4-904f-2d4e95fe99ed:063,四年级下册 U8 L26《宝葫芦的秘密（节选）》,empty_exercise,23,exercises[23] 空
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:002,四年级上册 U1 L2《繁星》,note_glue,0,注释粘连：'（1904—2005），选作课文时有改动'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:002,四年级上册 U1 L2《繁星》,author_glue,0,作者行残留：'本文作者巴金（1904—2005），'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:005,四年级上册 U1 LNone《花牛歌》,note_glue,0,注释粘连：'（1897—1931）'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:005,四年级上册 U1 LNone《花牛歌》,author_glue,0,作者行残留：'本文作者徐志摩（1897—1931）'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:011,四年级上册 U2 L6《方帽子店》,empty_exercise,33,exercises[33] 空
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:012,四年级上册 U2 L7《田忌赛马》,empty_exercise,19,exercises[19] 空
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:020,四年级上册 U3 L10《蟋蟀的住宅》,note_glue,0,注释粘连：'（1823—1915），译者王大文，选作课文时有改动'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:020,四年级上册 U3 L10《蟋蟀的住宅》,author_glue,0,作者行残留：'本文作者是法国的法布尔（1823—19'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:025,四年级上册 U4 L12《精卫填海》,empty_exercise,3,exercises[3] 空
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:032,四年级上册 U5 L15《麻雀》,note_glue,0,注释粘连：'（1818—1883），译者巴金，选作课文时有改动'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:032,四年级上册 U5 L15《麻雀》,author_glue,0,作者行残留：'本文作者是俄国的屠格涅（niè）夫（1'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:038,四年级上册 U6 L18《颐和园》,note_glue,0,注释粘连：'（1924—2023），选作课文时有改动'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:038,四年级上册 U6 L18《颐和园》,author_glue,0,作者行残留：'本文作者袁鹰（1924—2023），'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:043,四年级上册 U7 L20《牛和鹅》,note_glue,0,注释粘连：'（1929—1995），选作课文时有改动'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:043,四年级上册 U7 L20《牛和鹅》,author_glue,0,作者行残留：'本文作者任大霖（lín）（1929—1'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:044,四年级上册 U7 L21《一只窝囊的大老虎》,note_glue,0,注释粘连：'（1918—2006），选作课文时有改动'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:044,四年级上册 U7 L21《一只窝囊的大老虎》,author_glue,0,作者行残留：'本文作者叶至善（1918—2006），'
+5cd7e623-5c38-4602-871a-3fba8a551db2,5cd7e623-5c38-4602-871a-3fba8a551db2:044,四年级上册 U7 L21《一只窝囊的大老虎》,empty_exercise,2,exercises[2] 空
+837f368e-fd4e-404a-ae3f-342d75bc0227,837f368e-fd4e-404a-ae3f-342d75bc0227:003,三年级上册 U1 L3《不懂就要问》,empty_exercise,11,exercises[11] 空
+837f368e-fd4e-404a-ae3f-342d75bc0227,837f368e-fd4e-404a-ae3f-342d75bc0227:013,三年级上册 U2 L7《听听，秋的声音》,empty_exercise,8,exercises[8] 空
+837f368e-fd4e-404a-ae3f-342d75bc0227,837f368e-fd4e-404a-ae3f-342d75bc0227:016,三年级上册 U3 L8《总也倒不了的老屋》,repeat_paragraph,0,重复段落：'老屋说：“再见！好了，我到了倒下的时候了！”'
+837f368e-fd4e-404a-ae3f-342d75bc0227,837f368e-fd4e-404a-ae3f-342d75bc0227:018,三年级上册 U3 L10《小狗学叫》,empty_exercise,2,exercises[2] 空
+837f368e-fd4e-404a-ae3f-342d75bc0227,837f368e-fd4e-404a-ae3f-342d75bc0227:023,三年级上册 U4 L12《在牛肚子里旅行》,empty_exercise,3,exercises[3] 空
+837f368e-fd4e-404a-ae3f-342d75bc0227,837f368e-fd4e-404a-ae3f-342d75bc0227:029,三年级上册 U5 L14《搭船的鸟》,empty_exercise,5,exercises[5] 空
+837f368e-fd4e-404a-ae3f-342d75bc0227,837f368e-fd4e-404a-ae3f-342d75bc0227:030,三年级上册 U5 L15《金色的草地》,note_glue,0,注释粘连：'（1873—1954），译者茹香雪，选作课文时有改动'
+837f368e-fd4e-404a-ae3f-342d75bc0227,837f368e-fd4e-404a-ae3f-342d75bc0227:030,三年级上册 U5 L15《金色的草地》,author_glue,0,作者行残留：'本文作者是苏联的普里什文（1873—1'
+837f368e-fd4e-404a-ae3f-342d75bc0227,837f368e-fd4e-404a-ae3f-342d75bc0227:034,三年级上册 U6 L16《富饶的西沙群岛》,empty_exercise,1,exercises[1] 空
+837f368e-fd4e-404a-ae3f-342d75bc0227,837f368e-fd4e-404a-ae3f-342d75bc0227:045,三年级上册 U7 L22《读不完的大书》,empty_exercise,6,exercises[6] 空
+837f368e-fd4e-404a-ae3f-342d75bc0227,837f368e-fd4e-404a-ae3f-342d75bc0227:052,三年级上册 U8 L26《一个粗瓷大碗》,empty_exercise,10,exercises[10] 空
+8e107655-5128-451f-84e5-d158725c537b,8e107655-5128-451f-84e5-d158725c537b:006,三年级下册 U1 L3《荷花》,note_glue,0,注释粘连：'（1894—1988），选作课文时有改动'
+8e107655-5128-451f-84e5-d158725c537b,8e107655-5128-451f-84e5-d158725c537b:006,三年级下册 U1 L3《荷花》,author_glue,0,作者行残留：'本文作者叶圣陶（1894—1988），'
+8e107655-5128-451f-84e5-d158725c537b,8e107655-5128-451f-84e5-d158725c537b:006,三年级下册 U1 L3《荷花》,empty_exercise,7,exercises[7] 空
+8e107655-5128-451f-84e5-d158725c537b,8e107655-5128-451f-84e5-d158725c537b:013,三年级下册 U2 L7《鹿角和鹿腿》,empty_exercise,2,exercises[2] 空
+8e107655-5128-451f-84e5-d158725c537b,8e107655-5128-451f-84e5-d158725c537b:021,三年级下册 U3 L10《石蜂》,empty_exercise,4,exercises[4] 空
+8e107655-5128-451f-84e5-d158725c537b,8e107655-5128-451f-84e5-d158725c537b:022,三年级下册 U3 L11《小虾》,empty_exercise,5,exercises[5] 空
+8e107655-5128-451f-84e5-d158725c537b,8e107655-5128-451f-84e5-d158725c537b:039,三年级下册 U6 L18《童年的水墨画》,empty_exercise,3,exercises[3] 空
+8e107655-5128-451f-84e5-d158725c537b,8e107655-5128-451f-84e5-d158725c537b:040,三年级下册 U6 L19《肥皂泡》,note_glue,0,注释粘连：'（1900—1999），选作课文时有改动'
+8e107655-5128-451f-84e5-d158725c537b,8e107655-5128-451f-84e5-d158725c537b:040,三年级下册 U6 L19《肥皂泡》,author_glue,0,作者行残留：'本文作者冰心（1900—1999），'
+8e107655-5128-451f-84e5-d158725c537b,8e107655-5128-451f-84e5-d158725c537b:041,三年级下册 U6 L20《灰雀》,empty_exercise,2,exercises[2] 空
+8e107655-5128-451f-84e5-d158725c537b,8e107655-5128-451f-84e5-d158725c537b:048,三年级下册 U7 L24《我们奇妙的世界》,empty_exercise,4,exercises[4] 空
+8e107655-5128-451f-84e5-d158725c537b,8e107655-5128-451f-84e5-d158725c537b:051,三年级下册 U8 L25《慢性子裁缝和急性子顾客》,empty_exercise,2,exercises[2] 空
+8e107655-5128-451f-84e5-d158725c537b,8e107655-5128-451f-84e5-d158725c537b:052,三年级下册 U8 L26《漏》,empty_exercise,8,exercises[8] 空
+98172dc9-8fba-4da6-9fae-6a3d1166f038,98172dc9-8fba-4da6-9fae-6a3d1166f038:006,五年级下册 U1 L3《月是故乡明》,empty_exercise,5,exercises[5] 空
+98172dc9-8fba-4da6-9fae-6a3d1166f038,98172dc9-8fba-4da6-9fae-6a3d1166f038:028,五年级下册 U4 L10《青山处处埋忠骨》,empty_exercise,9,exercises[9] 空
+98172dc9-8fba-4da6-9fae-6a3d1166f038,98172dc9-8fba-4da6-9fae-6a3d1166f038:045,五年级下册 U6 L17《跳水》,author_glue,0,作者行残留：'本文作者是俄国的列夫·托尔斯泰，'
+98172dc9-8fba-4da6-9fae-6a3d1166f038,98172dc9-8fba-4da6-9fae-6a3d1166f038:045,五年级下册 U6 L17《跳水》,empty_exercise,1,exercises[1] 空
+98172dc9-8fba-4da6-9fae-6a3d1166f038,98172dc9-8fba-4da6-9fae-6a3d1166f038:048,五年级下册 U7 L18《威尼斯的小艇》,author_glue,0,作者行残留：'本文作者是美国的马克·吐温，'
+98172dc9-8fba-4da6-9fae-6a3d1166f038,98172dc9-8fba-4da6-9fae-6a3d1166f038:049,五年级下册 U7 L19《牧场之国》,author_glue,0,作者行残留：'本文作者是捷克的卡雷尔·恰佩克，'
+98172dc9-8fba-4da6-9fae-6a3d1166f038,98172dc9-8fba-4da6-9fae-6a3d1166f038:057,五年级下册 U8 L22《手指》,empty_exercise,2,exercises[2] 空
+98172dc9-8fba-4da6-9fae-6a3d1166f038,98172dc9-8fba-4da6-9fae-6a3d1166f038:058,五年级下册 U8 L23《童年的发现》,author_glue,0,作者行残留：'本文作者是苏联的费奥多罗夫，'
+98172dc9-8fba-4da6-9fae-6a3d1166f038,98172dc9-8fba-4da6-9fae-6a3d1166f038:058,五年级下册 U8 L23《童年的发现》,empty_exercise,18,exercises[18] 空
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:001,五年级上册 U1 L1《桂花雨​》,note_glue,0,注释粘连：'（1917—2006），选作课文时有改动'
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:001,五年级上册 U1 L1《桂花雨​》,author_glue,0,作者行残留：'本文作者琦 （qí）君 （1917—2'
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:002,五年级上册 U1 L2《落花生》,note_glue,0,注释粘连：'（1893—1941），选作课文时有改动'
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:002,五年级上册 U1 L2《落花生》,author_glue,0,作者行残留：'本文作者许地山（1893—1941），'
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:007,五年级上册 U2 L4《冀中的地道战》,note_glue,0,注释粘连：'（1914—2004），选作课文时有改动'
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:007,五年级上册 U2 L4《冀中的地道战》,author_glue,0,作者行残留：'本文作者周而复 （1914—2004），'
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:013,五年级上册 U3 L8《猎人海力布​》,empty_exercise,6,exercises[6] 空
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:014,五年级上册 U3 L9《牛郎织女（一）​》,note_glue,0,注释粘连：'（1894—1988）整理，选作课文时有改动'
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:027,五年级上册 U4 L14《梅兰芳蓄须明志​》,note_glue,0,注释粘连：'（1938—2005），选作课文时有改动'
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:027,五年级上册 U4 L14《梅兰芳蓄须明志​》,author_glue,0,作者行残留：'本文作者李大同（1938—2005），'
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:031,五年级上册 U5 L16《金字塔​》,newchars_leak,0,生字条污染(8/8)：'黏狭基堆砌墓埃塔'
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:045,五年级上册 U7 L21《第一场雪​》,note_glue,0,注释粘连：'（1923—2019），选作课文时有改动'
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:045,五年级上册 U7 L21《第一场雪​》,author_glue,0,作者行残留：'本文作者峻青（1923—2019），'
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:045,五年级上册 U7 L21《第一场雪​》,empty_exercise,8,exercises[8] 空
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:046,五年级上册 U7 L22《白鹭​》,note_glue,0,注释粘连：'（1892—1978），选作课文时有改动'
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,aabf2e4a-3ceb-4e86-8804-22c10223cc57:046,五年级上册 U7 L22《白鹭​》,author_glue,0,作者行残留：'本文作者郭沫若（1892—1978），'
+b87e153f-a64c-451a-aa6c-6ed9ac7d6821,b87e153f-a64c-451a-aa6c-6ed9ac7d6821:001,一年级下册 U1 L1《春夏秋冬》,empty_exercise,1,exercises[1] 空
+b87e153f-a64c-451a-aa6c-6ed9ac7d6821,b87e153f-a64c-451a-aa6c-6ed9ac7d6821:002,一年级下册 U1 L2《姓氏歌》,empty_exercise,12,exercises[12] 空
+b87e153f-a64c-451a-aa6c-6ed9ac7d6821,b87e153f-a64c-451a-aa6c-6ed9ac7d6821:007,一年级下册 U2 L1《热爱中国共产党》,empty_exercise,1,exercises[1] 空
+b87e153f-a64c-451a-aa6c-6ed9ac7d6821,b87e153f-a64c-451a-aa6c-6ed9ac7d6821:009,一年级下册 U2 L3《我多想去看看》,empty_exercise,3,exercises[3] 空
+b87e153f-a64c-451a-aa6c-6ed9ac7d6821,b87e153f-a64c-451a-aa6c-6ed9ac7d6821:011,一年级下册 U3 L4《小公鸡和小鸭子》,empty_exercise,1,exercises[1] 空
+b87e153f-a64c-451a-aa6c-6ed9ac7d6821,b87e153f-a64c-451a-aa6c-6ed9ac7d6821:016,一年级下册 U4 L8《夜色》,empty_exercise,1,exercises[1] 空
+b87e153f-a64c-451a-aa6c-6ed9ac7d6821,b87e153f-a64c-451a-aa6c-6ed9ac7d6821:017,一年级下册 U4 L9《端午粽》,empty_exercise,1,exercises[1] 空
+b87e153f-a64c-451a-aa6c-6ed9ac7d6821,b87e153f-a64c-451a-aa6c-6ed9ac7d6821:021,一年级下册 U5 L7《操场上》,empty_exercise,2,exercises[2] 空
+b87e153f-a64c-451a-aa6c-6ed9ac7d6821,b87e153f-a64c-451a-aa6c-6ed9ac7d6821:024,一年级下册 U6 L10《古诗二首》,newchars_leak,0,生字条污染(25/29)：'杨万里小池首首角角采采池池尖尖早早诗首偷浮萍泉惜照柔荷露角'
+b87e153f-a64c-451a-aa6c-6ed9ac7d6821,b87e153f-a64c-451a-aa6c-6ed9ac7d6821:027,一年级下册 U6 L13《要下雨了》,empty_exercise,3,exercises[3] 空
+b87e153f-a64c-451a-aa6c-6ed9ac7d6821,b87e153f-a64c-451a-aa6c-6ed9ac7d6821:035,一年级下册 U8 L19《咕咚》,empty_exercise,1,exercises[1] 空
+06422d77-21f1-45c3-b409-fa2947eee424,,06422d77 全册,multi_lesson_page,62,共页同文：p62 24:026/24:027 马诗/石灰吟
+06422d77-21f1-45c3-b409-fa2947eee424,,06422d77 全册,multi_lesson_page,84,共页同文：p84 24:034/24:035 文言文二则/学弈
+0f93b83e-b3c2-4a5d-8acd-ea460ab962d4,,0f93b83e 全册,multi_lesson_page,73,共页同文：p73 d4:029/d4:030 古诗二首/绝句
+2ce8f153-7bff-4c97-b6db-9aac414fea19,,2ce8f153 全册,multi_lesson_page,43,共页同文：p43 19:005/19:006 古诗二首/登鹳雀楼
+2ce8f153-7bff-4c97-b6db-9aac414fea19,,2ce8f153 全册,multi_lesson_page,85,共页同文：p85 19:042/19:043 古诗二首/江雪
+2e3dc199-9c42-486b-bbee-7731bd0ee227,,2e3dc199 全册,multi_lesson_page,12,共页同文：p12 27:003/27:005 古诗词三首/六月二十七日望湖楼醉书
+2e3dc199-9c42-486b-bbee-7731bd0ee227,,2e3dc199 全册,multi_lesson_page,95,共页同文：p95 27:037/27:038 古诗三首/浪淘沙（其一）
+53d6315e-5f90-42c4-904f-2d4e95fe99ed,,53d6315e 全册,multi_lesson_page,6,共页同文：p6 ed:016/ed:017 四时田园杂兴（其二十五）/宿新市徐公店
+53d6315e-5f90-42c4-904f-2d4e95fe99ed,,53d6315e 全册,multi_lesson_page,40,共页同文：p40 ed:004/ed:005/ed:006 短诗三首/繁星（七一）/繁星（一三一）
+53d6315e-5f90-42c4-904f-2d4e95fe99ed,,53d6315e 全册,multi_lesson_page,80,共页同文：p80 ed:042/ed:043 文言文二则/囊萤夜读
+53d6315e-5f90-42c4-904f-2d4e95fe99ed,,53d6315e 全册,multi_lesson_page,106,共页同文：p106 ed:053/ed:054 古诗三首/芙蓉楼送辛渐
+5cd7e623-5c38-4602-871a-3fba8a551db2,,5cd7e623 全册,multi_lesson_page,38,共页同文：p38 b2:016/b2:017 暮江吟/题西林壁
+5cd7e623-5c38-4602-871a-3fba8a551db2,,5cd7e623 全册,multi_lesson_page,121,共页同文：p121 b2:053/b2:055 古诗三首/出塞
+8e107655-5128-451f-84e5-d158725c537b,,8e107655 全册,multi_lesson_page,6,共页同文：p6 7b:002/7b:003 绝句/惠崇春江晚景
+98172dc9-8fba-4da6-9fae-6a3d1166f038,,98172dc9 全册,multi_lesson_page,6,共页同文：p6 38:001/38:003 古诗三首/稚子弄冰
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,,aabf2e4a 全册,multi_lesson_page,56,共页同文：p56 57:021/57:022/57:023 古诗三首​/示儿​/题临安邸​
+aabf2e4a-3ceb-4e86-8804-22c10223cc57,,aabf2e4a 全册,multi_lesson_page,96,共页同文：p96 57:041/57:042/57:043 古诗三首​/山居秋暝​/枫桥夜泊​
