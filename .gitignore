@@ -57,6 +57,7 @@ tts_sample_gen.py
 # 语料抓取缓存 & 备份（可复现产物，不入库）
 data/readings/_cache/
 *.bak
+*.bak*
 
 # 一次性格律/工具脚本
 t1.py

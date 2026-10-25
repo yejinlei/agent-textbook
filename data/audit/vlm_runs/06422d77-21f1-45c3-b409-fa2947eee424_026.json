@@ -1,0 +1,35 @@
+{
+  "lesson_id": "06422d77-21f1-45c3-b409-fa2947eee424:026",
+  "prompt": "这是语文教材第 62-62 页的扫描图。\n当前课文 马诗 疑似与其他课文共页合并（涉及 2 篇）。\n当前提取的正文（有问题）：\n```\n古诗三首注释① 〔燕山〕燕然山。这里借指边塞。\n马  诗[唐] 李 贺大漠沙如雪，燕山月似钩。\n何当金络脑，快走踏清秋。\n粉骨碎身浑不怕，要留清白在人间。\n```\n问题描述：共页同文：p62 24:026/24:027 马诗/石灰吟\n\n请从图片识别原文，正确拆分课文。lessons[0] 应对应标题为「马诗」的课文，其他混入的课文放在后续 lessons 中。\n输出 JSON。",
+  "response": {
+    "id": "24798e2fe0e242f0aad12a0830e3e7a6",
+    "created": 1792870780,
+    "model": "sensenova-6.8-flash-lite",
+    "object": "chat.completion",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "\n\n{\"lessons\":[{\"title\":\"马诗\",\"text\":\"大漠沙如雪，\\n燕山月似钩。\\n何当金络脑，\\n快走踏清秋。\",\"confidence\":0.98,\"notes\":\"\"},{\"title\":\"石灰吟\",\"text\":\"千锤万凿出深山，\\n烈火焚烧若等闲。\\n粉骨碎身浑不怕，\\n要留清白在人间。\",\"confidence\":0.98,\"notes\":\"\"}],\"merge_note\":\"p62 马诗与石灰吟同页，原提取文本将石灰吟末两句误并入马诗，且混入了注释内容\"}",
+          "reasoning": "Let me analyze the image carefully.\n\nThe page shows \"古诗三首\" (Three Ancient Poems) as the unit title.\n\nThe first poem is \"马诗\" (Horse Poem) by 李贺 (Li He) from Tang Dynasty:\n大漠沙如雪，\n燕山月似钩。\n何当金络脑，\n快走踏清秋。\n\nThe second poem is \"石灰吟\" (Ode to Lime) by 于谦 (Yu Qian) from Ming Dynasty:\n千锤万凿出深山，\n烈火焚烧若等闲。\n粉骨碎身浑不怕，\n要留清白在人间。\n\nThe current extracted text has issues:\n1. It includes the annotation \"古诗三首注释① 〔燕山〕燕然山。这里借指边塞。\" which should be removed\n2. It mixes the two poems together\n3. The line \"粉骨碎身浑不怕，要留清白在人间。\" belongs to 石灰吟, not 马诗\n\nLet me construct the correct JSON output.\n\nFor 马诗:\n大漠沙如雪，\n燕山月似钩。\n何当金络脑，\n快走踏清秋。\n\nFor 石灰吟:\n千锤万凿出深山，\n烈火焚烧若等闲。\n粉骨碎身浑不怕，\n要留清白在人间。\n\nI need to remove:\n- Page headers/footers\n- Circle number markers (①②③④)\n- Author info blocks\n- Annotations\n- \"识字\"\"写字\" prompts\n\nThe text should preserve line breaks with \\n.\n\nLet me format the output properly.\n"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2198,
+      "completion_tokens": 494,
+      "total_tokens": 2692,
+      "completion_tokens_details": {
+        "reasoning_tokens": 359
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 2048,
+        "audio_tokens": 0
+      }
+    },
+    "request_id": "24798e2fe0e242f0aad12a0830e3e7a6"
+  },
+  "elapsed_sec": 6.66
+}
