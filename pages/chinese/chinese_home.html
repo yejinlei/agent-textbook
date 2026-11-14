@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语文 · 小学知识大全</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B6B',
+                        secondary: '#4ECDC4',
+                        warm: '#FFF8E7',
+                        card: '#FFFFFF',
+                    },
+                    fontFamily: {
+                        sans: ['PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .book-shadow {
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.05);
+            }
+            .book-hover {
+                transition: all 0.3s ease;
+            }
+            .book-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            }
+        }
+    </style>
+</head>
+<body class="bg-warm min-h-screen">
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-primary flex items-center">
+                        <i class="fa fa-book mr-2"></i>小学知识大全
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="../index.html" class="text-gray-600 hover:text-primary transition">总览</a>
+                    <a href="index.html" class="text-primary font-medium border-b-2 border-primary pb-1">语文</a>
+                    <a href="../math/index.html" class="text-gray-600 hover:text-primary transition">数学</a>
+                    <a href="../english/index.html" class="text-gray-600 hover:text-primary transition">英语</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主题导航 -->
+    <div class="bg-white border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8 py-3 overflow-x-auto">
+                <a href="#textbook" class="text-primary font-medium whitespace-nowrap">课文全文</a>
+                <a href="literacy.html" class="text-gray-600 hover:text-primary whitespace-nowrap">识字与写字</a>
+                <a href="writing.html" class="text-gray-600 hover:text-primary whitespace-nowrap">表达与交流</a>
+                <a href="poetry.html" class="text-gray-600 hover:text-primary whitespace-nowrap">古诗文</a>
+                <a href="structure.html" class="text-gray-600 hover:text-primary whitespace-nowrap">课文骨架</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 面包屑导航 -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div id="breadcrumb" class="flex items-center text-gray-600">
+            <button onclick="goToLevel('grade')" class="hover:text-primary flex items-center">
+                <i class="fa fa-home mr-1"></i>语文首页
+            </button>
+        </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <!-- 第1级：12本教材选择 -->
+        <div id="grade-level" class="level">
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-8 text-center">选择教材册次</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6" id="grade-grid">
+                <!-- 教材卡片会通过JS生成 -->
+            </div>
+        </div>
+
+        <!-- 第2级：单元选择 -->
+        <div id="unit-level" class="level hidden">
+            <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-gray-800 mb-6" id="unit-title">一年级上册 · 单元列表</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5" id="unit-grid">
+                <!-- 单元卡片会通过JS生成 -->
+            </div>
+        </div>
+
+        <!-- 第3级：课文选择 -->
+        <div id="lesson-level" class="level hidden">
+            <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-gray-800 mb-6" id="lesson-title">第一单元 · 课文列表</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="lesson-grid">
+                <!-- 课文卡片会通过JS生成 -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 教材数据（12册）
+        const grades = [
+            { id: '1a', name: '一年级上册', color: 'bg-red-100 text-red-700', icon: 'fa-child' },
+            { id: '1b', name: '一年级下册', color: 'bg-orange-100 text-orange-700', icon: 'fa-smile-o' },
+            { id: '2a', name: '二年级上册', color: 'bg-yellow-100 text-yellow-700', icon: 'fa-star' },
+            { id: '2b', name: '二年级下册', color: 'bg-green-100 text-green-700', icon: 'fa-leaf' },
+            { id: '3a', name: '三年级上册', color: 'bg-teal-100 text-teal-700', icon: 'fa-pagelines' },
+            { id: '3b', name: '三年级下册', color: 'bg-cyan-100 text-cyan-700', icon: 'fa-ship' },
+            { id: '4a', name: '四年级上册', color: 'bg-blue-100 text-blue-700', icon: 'fa-cloud' },
+            { id: '4b', name: '四年级下册', color: 'bg-indigo-100 text-indigo-700', icon: 'fa-rocket' },
+            { id: '5a', name: '五年级上册', color: 'bg-purple-100 text-purple-700', icon: 'fa-book' },
+            { id: '5b', name: '五年级下册', color: 'bg-pink-100 text-pink-700', icon: 'fa-heart' },
+            { id: '6a', name: '六年级上册', color: 'bg-rose-100 text-rose-700', icon: 'fa-graduation-cap' },
+            { id: '6b', name: '六年级下册', color: 'bg-gray-100 text-gray-700', icon: 'fa-trophy' }
+        ];
+
+        // 单元数据（每册8个单元）
+        const units = Array.from({length: 8}, (_, i) => ({
+            id: i+1,
+            name: `第${['一','二','三','四','五','六','七','八'][i]}单元`,
+            count: Math.floor(Math.random()*5)+3 // 随机3-7篇课文
+        }));
+
+        // 课文数据（一年级上册前10课，其余后续补全）
+        const lessonsData = {
+            '1a': [
+                { id: 1, name: '天地人', unit: 1 },
+                { id: 2, name: '金木水火土', unit: 1 },
+                { id: 3, name: '口耳目', unit: 1 },
+                { id: 4, name: '日月水火', unit: 1 },
+                { id: 5, name: '对韵歌', unit: 1 },
+                { id: 6, name: '秋天', unit: 2 },
+                { id: 7, name: '小小的船', unit: 2 },
+                { id: 8, name: '江南', unit: 2 },
+                { id: 9, name: '四季', unit: 2 },
+                { id: 10, name: '画', unit: 3 }
+            ]
+        };
+
+        let currentGrade = null;
+        let currentUnit = null;
+
+        // 渲染教材列表
+        function renderGrades() {
+            const grid = document.getElementById('grade-grid');
+            grid.innerHTML = grades.map(grade => `
+                <button onclick="selectGrade('${grade.id}')" 
+                    class="book-card book-hover book-shadow ${grade.color} rounded-2xl p-6 text-center cursor-pointer">
+                    <i class="fa ${grade.icon} text-4xl mb-3"></i>
+                    <h3 class="text-xl font-bold">${grade.name}</h3>
+                </button>
+            `).join('');
+        }
+
+        // 选择教材，显示单元
+        function selectGrade(gradeId) {
+            currentGrade = grades.find(g => g.id === gradeId);
+            document.getElementById('unit-title').textContent = `${currentGrade.name} · 单元列表`;
+            renderUnits();
+            goToLevel('unit');
+            
+            // 更新面包屑
+            document.getElementById('breadcrumb').innerHTML = `
+                <button onclick="goToLevel('grade')" class="hover:text-primary flex items-center">
+                    <i class="fa fa-home mr-1"></i>语文首页
+                </button>
+                <i class="fa fa-angle-right mx-2 text-gray-400"></i>
+                <span class="text-gray-800">${currentGrade.name}</span>
+            `;
+        }
+
+        // 渲染单元列表
+        function renderUnits() {
+            const grid = document.getElementById('unit-grid');
+            grid.innerHTML = units.map(unit => `
+                <button onclick="selectUnit(${unit.id})" 
+                    class="bg-white book-hover book-shadow rounded-xl p-5 text-left cursor-pointer border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-gray-800">${unit.name}</h3>
+                        <span class="bg-primary/10 text-primary text-sm px-2 py-1 rounded-full">${unit.count}课</span>
+                    </div>
+                    <p class="text-gray-500 text-sm mt-2">包含课文、识字、语文园地</p>
+                </button>
+            `).join('');
+        }
+
+        // 选择单元，显示课文
+        function selectUnit(unitId) {
+            currentUnit = units.find(u => u.id === unitId);
+            document.getElementById('lesson-title').textContent = `${currentGrade.name} · ${currentUnit.name} · 课文列表`;
+            renderLessons();
+            goToLevel('lesson');
+            
+            // 更新面包屑
+            document.getElementById('breadcrumb').innerHTML = `
+                <button onclick="goToLevel('grade')" class="hover:text-primary flex items-center">
+                    <i class="fa fa-home mr-1"></i>语文首页
+                </button>
+                <i class="fa fa-angle-right mx-2 text-gray-400"></i>
+                <button onclick="goToLevel('unit')" class="hover:text-primary">${currentGrade.name}</button>
+                <i class="fa fa-angle-right mx-2 text-gray-400"></i>
+                <span class="text-gray-800">${currentUnit.name}</span>
+            `;
+        }
+
+        // 渲染课文列表
+        function renderLessons() {
+            const grid = document.getElementById('lesson-grid');
+            // 先取该册已有的课文，没有的话生成占位
+            let lessons = lessonsData[currentGrade.id]?.filter(l => l.unit === currentUnit.id) || [];
+            if (lessons.length === 0) {
+                lessons = Array.from({length: currentUnit.count}, (_, i) => ({
+                    id: i+1,
+                    name: `第${i+1}课`
+                }));
+            }
+
+            grid.innerHTML = lessons.map((lesson, idx) => `
+                <a href="../lesson-pages/chinese/${currentGrade.id}_u${currentUnit.id}_l${lesson.id}.html" 
+                    class="bg-white book-hover book-shadow rounded-xl p-4 cursor-pointer border border-gray-100 block">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center mr-3 font-bold">
+                            ${idx+1}
+                        </div>
+                        <h3 class="text-base font-medium text-gray-800">${lesson.name}</h3>
+                        <i class="fa fa-angle-right ml-auto text-gray-400"></i>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        // 层级切换
+        function goToLevel(level) {
+            document.querySelectorAll('.level').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`${level}-level`).classList.remove('hidden');
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        // 初始化
+        renderGrades();
+    </script>
+</body>
+</html>
