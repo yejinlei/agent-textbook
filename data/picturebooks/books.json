@@ -1,0 +1,1263 @@
+{
+  "_doc": "绘本主表。第一版本手录入 3 本示例（Sun-Moon-Water 来自 ASB，其余待抓取填充），结构与 ontology.json 严格对齐。每本书的 license 字段覆盖其全部内容类型的授权；audio_raw 为 null 表示只有合成音频，非空表示存在原版朗读音频。",
+  "_updated": "2026-10-13",
+  "books": [
+    {
+      "id": "sun-moon-and-water",
+      "title": "Sun, Moon, and Water",
+      "author": "Owino Ogot",
+      "translator": "Athieno Gertrude",
+      "illustrator": "Salim Kasamba",
+      "year": 2017,
+      "level": "PB3",
+      "primary_topic": "nature.cosmic",
+      "secondary_topics": [
+        "animal",
+        "narrative.hero"
+      ],
+      "source": "african-storybook",
+      "source_url": "https://www.africanstorybook.org/read.php?id=21974",
+      "target_age": "9-11",
+      "reading_time_min": 2,
+      "word_count": 279,
+      "unique_words": 136,
+      "cover_image": "images/sun-moon-and-water/cover.png",
+      "license": {
+        "text": "CC-BY-4.0",
+        "image": "CC-BY-4.0",
+        "audio_raw": null
+      },
+      "attribution": "Source: https://www.africanstorybook.org/read.php?id=21974. License: CC-BY-4.0.",
+      "covers_words": [
+        "sun",
+        "moon",
+        "water",
+        "compound",
+        "crocodile",
+        "frog",
+        "snake",
+        "turtle",
+        "snail",
+        "fish",
+        "flow",
+        "visit",
+        "build",
+        "roof"
+      ],
+      "supports_grammar": [
+        "tense.present_simple",
+        "tense.present_progressive",
+        "tense.past_simple",
+        "tense.future_going_to",
+        "be.was_were",
+        "there.be",
+        "article.the",
+        "prep.common",
+        "conj.and_or_but",
+        "pron.possessive",
+        "article.a_an"
+      ],
+      "exercises_skill": [
+        "reading.sequence",
+        "reading.summarize",
+        "output.retell"
+      ],
+      "pairs_with_unit": [
+        "c5180299-d288-46e2-a0df-9f04c94fd922:005",
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003"
+      ],
+      "extends_activity": [
+        "围绕自然现象写一段 Why/How 说明文"
+      ],
+      "tags": [
+        "folk-tale",
+        "creation-myth",
+        "african"
+      ],
+      "pages": [
+        {
+          "n": 1,
+          "text": "Sun used to visit Water very often, but Water never went to visit Sun.",
+          "image": "images/sun-moon-and-water/p1.png"
+        },
+        {
+          "n": 2,
+          "text": "At last Sun asked Water why he never came to visit. Water replied that Sun's house was too small. \"If I come with my family we will drive you out,\" he said.",
+          "image": "images/sun-moon-and-water/p2.png"
+        },
+        {
+          "n": 3,
+          "text": "Then Water said, \"If you wish me to visit you, build a very large compound. My people are very many, and take up a lot of room.\" Sun promised to build a very big compound.",
+          "image": "images/sun-moon-and-water/p3.png"
+        },
+        {
+          "n": 4,
+          "text": "Sun returned home to his wife, Moon, who greeted him with a broad smile. Sun told Moon what he had promised Water.",
+          "image": "images/sun-moon-and-water/p4.png"
+        },
+        {
+          "n": 5,
+          "text": "The next day he started building a huge compound in which to entertain his friend.",
+          "image": "images/sun-moon-and-water/p5.png"
+        },
+        {
+          "n": 6,
+          "text": "As soon as the compound was completed, he asked Water to come and visit them.",
+          "image": "images/sun-moon-and-water/p6.png"
+        },
+        {
+          "n": 7,
+          "text": "When Water arrived, he asked Sun whether it would be safe for him to enter. \"Yes, come in, my friend,\" Sun answered.",
+          "image": "images/sun-moon-and-water/p7.png"
+        },
+        {
+          "n": 8,
+          "text": "Water began to flow in. He was accompanied by crocodiles, fish, frogs, snakes, snails, flukes, turtles, and all the water animals.",
+          "image": "images/sun-moon-and-water/p8.png"
+        },
+        {
+          "n": 9,
+          "text": "Very soon Water was knee-deep. He asked Sun if it was still safe. \"Yes,\" Sun again answered. So more of water's people came in.",
+          "image": "images/sun-moon-and-water/p9.png"
+        },
+        {
+          "n": 10,
+          "text": "Water reached the level of the top of a person's head. He asked Sun, \"Can more of my people come in?\" Sun and Moon both answered, \"Yes.\" Water flowed on, until Sun and Moon had to perch themselves on the top of the roof.",
+          "image": "images/sun-moon-and-water/p10.png"
+        },
+        {
+          "n": 11,
+          "text": "Water's people continued to rush in. Very soon they reached the top of the roof. Sun and Moon were forced to go up into the sky. They have remained in the sky ever since.",
+          "image": "images/sun-moon-and-water/p11.png"
+        }
+      ],
+      "asb_id": 21974,
+      "asb_level": "First paragraphs",
+      "facets": {
+        "grade": [
+          "4",
+          "5"
+        ],
+        "grade_band": "mid_primary",
+        "text_type": "folktale",
+        "themes": [
+          "loyalty",
+          "friendship",
+          "resilience",
+          "belonging"
+        ],
+        "settings": [
+          "nature_outdoor"
+        ],
+        "word_count_bucket": "very_short",
+        "lexile": {
+          "min": 300,
+          "max": 500,
+          "mean": 400,
+          "band": "elementary_low",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "Kenyan",
+        "time_period": "timeless_fantasy",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "cultural_awareness"
+        ],
+        "supports_grammar": [
+          "tense.present_simple",
+          "tense.present_progressive",
+          "tense.past_simple",
+          "tense.future_going_to",
+          "be.was_were",
+          "there.be",
+          "article.the",
+          "prep.common",
+          "conj.and_or_but",
+          "pron.possessive",
+          "article.a_an"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "tense.past_simple",
+              "count": 11,
+              "evidence": "went"
+            },
+            {
+              "id": "article.the",
+              "count": 11,
+              "evidence": "The next"
+            },
+            {
+              "id": "prep.common",
+              "count": 10,
+              "evidence": "At"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 7,
+              "evidence": "but"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 6,
+              "evidence": "my family"
+            },
+            {
+              "id": "article.a_an",
+              "count": 6,
+              "evidence": "a very"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 5,
+              "evidence": "why he"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 5,
+              "evidence": "people"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 3,
+              "evidence": "He was"
+            },
+            {
+              "id": "be.was_were",
+              "count": 2,
+              "evidence": "He was"
+            },
+            {
+              "id": "comparative",
+              "count": 2,
+              "evidence": "more"
+            },
+            {
+              "id": "negation",
+              "count": 2,
+              "evidence": "never"
+            },
+            {
+              "id": "be.contraction",
+              "count": 1,
+              "evidence": "were"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 1,
+              "evidence": "will drive"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 1,
+              "evidence": "Can"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.042
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.0
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.167
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.0
+            },
+            {
+              "id": "rhyme",
+              "value": 0.5
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.25
+            },
+            {
+              "id": "list_like",
+              "value": 0.0
+            }
+          ],
+          "top_ids": [
+            "tense.past_simple",
+            "article.the",
+            "prep.common",
+            "conj.and_or_but",
+            "pron.possessive",
+            "article.a_an"
+          ],
+          "word_count": 279
+        }
+      }
+    },
+    {
+      "id": "the-little-salt-seller",
+      "title": "The Little Salt Seller",
+      "author": "Anselm Adjeley",
+      "translator": null,
+      "illustrator": "Anselm Adjeley",
+      "year": 2011,
+      "level": "PB2",
+      "primary_topic": "job",
+      "secondary_topics": [
+        "friendship",
+        "narrative.fantasy"
+      ],
+      "source": "pratham-books",
+      "source_url": "https://pwstories.org/books/little-salt-seller/",
+      "target_age": "8-10",
+      "reading_time_min": 5,
+      "word_count": 720,
+      "unique_words": 289,
+      "cover_image": "images/little-salt-seller/cover.jpg",
+      "license": {
+        "text": "CC-BY-4.0",
+        "image": "CC-BY-4.0",
+        "audio_raw": null
+      },
+      "attribution": "© Anselm Adjeley / Pratham Books. CC-BY 4.0.",
+      "covers_words": [
+        "salt",
+        "seller",
+        "trade",
+        "money",
+        "honey",
+        "honeycomb",
+        "ant",
+        "bees",
+        "share",
+        "fair"
+      ],
+      "supports_grammar": [
+        "grammar.tense",
+        "grammar.comparative"
+      ],
+      "exercises_skill": [
+        "reading.infer",
+        "reading.summarize",
+        "output.retell",
+        "vocab.verb",
+        "vocab.phrase"
+      ],
+      "pairs_with_unit": [],
+      "extends_activity": [],
+      "tags": [
+        "folk-tale",
+        "trade",
+        "sharing",
+        "african"
+      ],
+      "pages": [],
+      "facets": {
+        "grade": [
+          "3",
+          "4"
+        ],
+        "grade_band": "mid_primary",
+        "text_type": "folktale",
+        "themes": [
+          "trade_sharing",
+          "money_wealth",
+          "generosity",
+          "friendship"
+        ],
+        "settings": [
+          "rural_village"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 400,
+          "max": 600,
+          "mean": 500,
+          "band": "elementary_mid",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "Ghanaian",
+        "time_period": "timeless_fantasy",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "cultural_awareness",
+          "vocabulary_extension"
+        ]
+      }
+    },
+    {
+      "id": "wrong-advice",
+      "title": "Wrong advice",
+      "author": "Magabi Eynew Gessesse, Elizabeth Laird",
+      "translator": null,
+      "illustrator": "Brian Wambi",
+      "year": 2016,
+      "level": "PB1",
+      "primary_topic": "family.pets",
+      "secondary_topics": [
+        "money",
+        "family",
+        "poverty"
+      ],
+      "source": "african-storybook",
+      "source_url": "https://www.africanstorybook.org/read.php?id=21795",
+      "asb_id": 21795,
+      "asb_level": "First words",
+      "license": {
+        "text": "CC-BY-4.0",
+        "image": "CC-BY-4.0",
+        "audio_raw": null
+      },
+      "attribution": "Source: https://www.africanstorybook.org/read.php?id=21795. License: CC-BY-4.0.",
+      "tags": [],
+      "pages": [
+        {
+          "n": 1,
+          "text": "They wished they had a donkey. He would carry things for them.",
+          "image": "images/wrong-advice/p1.png"
+        },
+        {
+          "n": 2,
+          "text": "Kombe said, “Let us buy a donkey together.” They were happy.",
+          "image": "images/wrong-advice/p2.png"
+        },
+        {
+          "n": 3,
+          "text": "When Kombe's father died, Kombe inherited riches. He forgot Juma.",
+          "image": "images/wrong-advice/p3.png"
+        },
+        {
+          "n": 4,
+          "text": "Kombe wanted donkey meat for his dogs. Juma needed the donkey for work.",
+          "image": "images/wrong-advice/p4.png"
+        },
+        {
+          "n": 5,
+          "text": "The judge said, “Each of you can take half the donkey.”",
+          "image": "images/wrong-advice/p5.png"
+        },
+        {
+          "n": 6,
+          "text": "Kombe killed the donkey. Juma carried things for himself once again.",
+          "image": "images/wrong-advice/p6.png"
+        },
+        {
+          "n": 7,
+          "text": "Kombe wanted to burn his hut and build a new one.",
+          "image": "images/wrong-advice/p7.png"
+        },
+        {
+          "n": 8,
+          "text": "Juma said, “Mine will burn too.” The judge agreed with Kombe.",
+          "image": "images/wrong-advice/p8.png"
+        },
+        {
+          "n": 9,
+          "text": "Juma’s hut burned. The judge said, “Kombe burned only his hut.”",
+          "image": "images/wrong-advice/p9.png"
+        },
+        {
+          "n": 10,
+          "text": "Juma had no donkey, no hut. He slept under the tree.",
+          "image": "images/wrong-advice/p10.png"
+        },
+        {
+          "n": 11,
+          "text": "Juma worked hard. He had a good crop of peas.",
+          "image": "images/wrong-advice/p11.png"
+        },
+        {
+          "n": 12,
+          "text": "Kombe’s boys ate most of the peas from Juma’s land.",
+          "image": "images/wrong-advice/p12.png"
+        },
+        {
+          "n": 13,
+          "text": "The boys said, “Ask our father to pay for your peas.”",
+          "image": "images/wrong-advice/p13.png"
+        },
+        {
+          "n": 14,
+          "text": "Juma said, “I don’t want your money. I want my peas.”",
+          "image": "images/wrong-advice/p14.png"
+        },
+        {
+          "n": 15,
+          "text": "The judge told Juma, “Cut the boys open. Take your peas.”",
+          "image": "images/wrong-advice/p15.png"
+        },
+        {
+          "n": 16,
+          "text": "Juma refused to listen. Kombe cried, “Let the elders decide.”",
+          "image": "images/wrong-advice/p16.png"
+        },
+        {
+          "n": 17,
+          "text": "The elders told Kombe, \"You killed the donkey. You burned his hut.\"",
+          "image": "images/wrong-advice/p17.png"
+        },
+        {
+          "n": 18,
+          "text": "They said to Juma, \"Killing Kombe's sons is wrong too.\"",
+          "image": "images/wrong-advice/p18.png"
+        },
+        {
+          "n": 19,
+          "text": "Kombe gave Juma half of his property. They lived happily.",
+          "image": "images/wrong-advice/p19.png"
+        }
+      ],
+      "word_count": 211,
+      "unique_words": 101,
+      "reading_time_min": 1,
+      "pairs_with_unit": [
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:002",
+        "dd6173ba-579a-356e-900c-cb53e152229c:002",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:001"
+      ],
+      "extends_activity": [
+        "对比绘本的宠物与教材里的家庭角色，写一段描述"
+      ],
+      "facets": {
+        "grade": [
+          "3",
+          "4"
+        ],
+        "grade_band": "mid_primary",
+        "text_type": "folktale",
+        "themes": [
+          "loyalty",
+          "family",
+          "trade_sharing",
+          "generosity"
+        ],
+        "settings": [
+          "rural_village"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 300,
+          "max": 500,
+          "mean": 400,
+          "band": "elementary_low",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "African_Oral",
+        "time_period": "timeless_fantasy",
+        "target_skills": [
+          "reading_comprehension",
+          "retelling",
+          "cultural_awareness"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "pron.possessive",
+          "tense.past_simple",
+          "noun.plural_s",
+          "article.a_an",
+          "negation"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 14,
+              "evidence": "the donkey"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 10,
+              "evidence": "his dogs"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 6,
+              "evidence": "had"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 4,
+              "evidence": "dogs"
+            },
+            {
+              "id": "article.a_an",
+              "count": 4,
+              "evidence": "a donkey"
+            },
+            {
+              "id": "negation",
+              "count": 2,
+              "evidence": "no"
+            },
+            {
+              "id": "be.was_were",
+              "count": 1,
+              "evidence": "They were"
+            },
+            {
+              "id": "be.contraction",
+              "count": 1,
+              "evidence": "were"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 1,
+              "evidence": "will burn"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 1,
+              "evidence": "can"
+            },
+            {
+              "id": "imperative",
+              "count": 1,
+              "evidence": "Take your"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 1,
+              "evidence": "When Kombe"
+            },
+            {
+              "id": "prep.common",
+              "count": 1,
+              "evidence": "under"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 1,
+              "evidence": "and"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.032
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.0
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.484
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.0
+            },
+            {
+              "id": "rhyme",
+              "value": 0.5
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.0
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "pron.possessive",
+            "tense.past_simple",
+            "noun.plural_s",
+            "article.a_an",
+            "negation"
+          ],
+          "word_count": 211
+        }
+      },
+      "supports_grammar": [
+        "article.the",
+        "pron.possessive",
+        "tense.past_simple",
+        "noun.plural_s",
+        "article.a_an",
+        "negation"
+      ]
+    },
+    {
+      "id": "is-there-someone-like-me-with-activities",
+      "title": "Is there someone like me? (With activities)",
+      "author": "Fred Strydom",
+      "translator": null,
+      "illustrator": "Jess Jardim-Wedepohl",
+      "year": null,
+      "level": "PB2",
+      "primary_topic": "identity",
+      "secondary_topics": [
+        "animal",
+        "friendship",
+        "nature"
+      ],
+      "source": "african-storybook",
+      "source_url": "https://www.africanstorybook.org/read.php?id=37083",
+      "asb_id": 37083,
+      "asb_level": "Read aloud",
+      "license": {
+        "text": "CC-BY-4.0",
+        "image": "CC-BY-4.0",
+        "audio_raw": null
+      },
+      "attribution": "Source: https://www.africanstorybook.org/read.php?id=37083. License: CC-BY-4.0.",
+      "tags": [],
+      "pages": [
+        {
+          "n": 1,
+          "text": "Who looks the same. THINK ABOUT THE FOLLOWING When you look in a mirror, or a reflective surface like this water, you see a reflection of your image. An image that has one side that looks like the reflection of the other side is said to be symmetric. Most people's faces are very close to being symmetric. Do you see some things in your room that are symmetric?",
+          "image": "images/is-there-someone-like-me-with-activities/p1.png"
+        },
+        {
+          "n": 2,
+          "text": "And talks the same. ACTIVITIES This animal is listening to its echo across a canyon. Have you ever been someplace where you can hear an echo? Does your echo sound exactly like you, or is it different somehow?",
+          "image": "images/is-there-someone-like-me-with-activities/p2.png"
+        },
+        {
+          "n": 3,
+          "text": "who even has curls just like mine. ACTIVITIES The hippo and the mouse both have a tail that is curled, but they are certainly not the same as our friend. Describe some ways that those two animals are different from our friend. Pick someone you know, and describe some ways that you are similar to them and different from them.",
+          "image": "images/is-there-someone-like-me-with-activities/p3.png"
+        },
+        {
+          "n": 4,
+          "text": "Someone with eyes and ears like mine. ACTIVITIES This animal has 3 eyelashes on each side. How many eyelashes is that all together?",
+          "image": "images/is-there-someone-like-me-with-activities/p4.png"
+        },
+        {
+          "n": 5,
+          "text": "Who even laughs just like me. MORE ACTIVITIES TO DO Can you make sounds like some of the animals? Can you neigh like a horse? Oink like a pig? Meow like a cat, or bray like a donkey?",
+          "image": "images/is-there-someone-like-me-with-activities/p5.png"
+        },
+        {
+          "n": 6,
+          "text": "Who can do what I can do..... THINGS YOUR CHILD DOES They are so happy running along together. Do you feel happy when you are running freely in a big open space like that? Do you prefer to run with someone or by yourself? They are running by some rocks. How many rocks are there? There are two big rocks near the path. If you take the big rocks away, how many rocks are left?",
+          "image": "images/is-there-someone-like-me-with-activities/p6.png"
+        },
+        {
+          "n": 7,
+          "text": "...and can't do what I can't do. DIFFICULT THINGS TO DO Why are the animals having trouble peeling a banana? Can you peel a banana easily? Are there things, such as fruit or packages, that you have trouble opening?",
+          "image": "images/is-there-someone-like-me-with-activities/p7.png"
+        },
+        {
+          "n": 8,
+          "text": "I've looked and looked everywhere to find another me. I went down to the park and looked behind the trees. THINGS THAT YOUR CHILD WONDERS ABOUT What animal did he see when he looked behind the tree? Why was it another animal just like him? Is that what he was looking for?",
+          "image": "images/is-there-someone-like-me-with-activities/p8.png"
+        },
+        {
+          "n": 9,
+          "text": "I looked up and down, left and right and all around. WHAT DOES YOUR CHILD THINK? That first picture is just silly. How would that animal ever climb to the top of a tree? Do you think the bird is surprised to see it there?",
+          "image": "images/is-there-someone-like-me-with-activities/p9.png"
+        },
+        {
+          "n": 10,
+          "text": "I looked at every animal I found. CAN YOUR CHILD ADD NUMBERS? There are three animals on one side of the pond and one more on the other side. If you put them all together, how many animals are there at the pond? Similarly, if you remove the one animal on one side of the pond from the group of four animals that are at the pond, how many animals are left? The two facts – that 3 + 1 = 4 and 4 – 1 = 3 – are tied together and are called a math fact family.",
+          "image": "images/is-there-someone-like-me-with-activities/p10.png"
+        },
+        {
+          "n": 11,
+          "text": "I couldn't find anywhere, anybody who looked just like me. WHAT DOES YOUR CHILD THINK? Do you think his shadow temporarily fooled him into thinking that there was another animal just like him? Does your shadow look like you? Have you ever seen someone's shadow and thought that the shadow was really a person?",
+          "image": "images/is-there-someone-like-me-with-activities/p11.png"
+        },
+        {
+          "n": 12,
+          "text": "There's only one me in the world! I am very special you see. DIFFERENCES IN ANIMALS How many animals can you count in this picture? Describe some of the ways that each one of them is different from our friend.",
+          "image": "images/is-there-someone-like-me-with-activities/p12.png"
+        },
+        {
+          "n": 13,
+          "text": "But I am not the only special one. There is only one of you too! EACH PERSON IS UNIQUE Do you know someone who is very similar to you? Perhaps they are the same age or the same height, or perhaps their hair is similar to yours. Despite the similarities, they are probably not exactly the same as you.",
+          "image": "images/is-there-someone-like-me-with-activities/p13.png"
+        }
+      ],
+      "word_count": 677,
+      "unique_words": 234,
+      "reading_time_min": 5,
+      "pairs_with_unit": [
+        "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+        "dd6173ba-579a-356e-900c-cb53e152229c:003",
+        "18b54350-f833-4b5c-a1b9-ebbf02cf4545:005"
+      ],
+      "extends_activity": [
+        "介绍自己 vs. 教材里的自我介绍句型，做角色对比"
+      ],
+      "facets": {
+        "grade": [
+          "3",
+          "4",
+          "5"
+        ],
+        "grade_band": "mid_primary",
+        "text_type": "essay",
+        "themes": [
+          "self_acceptance",
+          "curiosity",
+          "belonging"
+        ],
+        "settings": [
+          "nature_outdoor",
+          "magical_world"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 500,
+          "max": 700,
+          "mean": 600,
+          "band": "elementary_mid",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "South_African",
+        "time_period": "modern",
+        "target_skills": [
+          "reading_comprehension",
+          "critical_thinking",
+          "vocabulary_extension"
+        ],
+        "supports_grammar": [
+          "article.the",
+          "question.wh_words",
+          "conj.and_or_but",
+          "article.a_an",
+          "pron.possessive",
+          "tense.present_simple"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "article.the",
+              "count": 33,
+              "evidence": "the same"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 25,
+              "evidence": "Who looks"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 24,
+              "evidence": "or"
+            },
+            {
+              "id": "article.a_an",
+              "count": 17,
+              "evidence": "a mirror"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 15,
+              "evidence": "your image"
+            },
+            {
+              "id": "tense.present_simple",
+              "count": 15,
+              "evidence": "he was"
+            },
+            {
+              "id": "prep.common",
+              "count": 15,
+              "evidence": "in"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 10,
+              "evidence": "can"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 9,
+              "evidence": "they are"
+            },
+            {
+              "id": "question.do_verb_invert",
+              "count": 7,
+              "evidence": "Do you"
+            },
+            {
+              "id": "tense.past_simple",
+              "count": 6,
+              "evidence": "went"
+            },
+            {
+              "id": "negation",
+              "count": 6,
+              "evidence": "not"
+            },
+            {
+              "id": "there.be",
+              "count": 3,
+              "evidence": "There are"
+            },
+            {
+              "id": "tense.present_progressive",
+              "count": 3,
+              "evidence": "is listening"
+            },
+            {
+              "id": "imperative",
+              "count": 2,
+              "evidence": "take the"
+            },
+            {
+              "id": "comparative",
+              "count": 2,
+              "evidence": "MORE"
+            },
+            {
+              "id": "be.was_were",
+              "count": 1,
+              "evidence": "he was"
+            },
+            {
+              "id": "be.contraction",
+              "count": 1,
+              "evidence": "its"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 1,
+              "evidence": "those"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 1,
+              "evidence": "is it"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 1,
+              "evidence": "people"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.286
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.0
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.222
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.0
+            },
+            {
+              "id": "rhyme",
+              "value": 0.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.5
+            },
+            {
+              "id": "list_like",
+              "value": 0.0
+            }
+          ],
+          "top_ids": [
+            "article.the",
+            "question.wh_words",
+            "conj.and_or_but",
+            "article.a_an",
+            "pron.possessive",
+            "tense.present_simple"
+          ],
+          "word_count": 677
+        }
+      },
+      "supports_grammar": [
+        "article.the",
+        "question.wh_words",
+        "conj.and_or_but",
+        "article.a_an",
+        "pron.possessive",
+        "tense.present_simple"
+      ]
+    },
+    {
+      "id": "chipego-and-pendo-the-best-of-friends",
+      "title": "Chipego and Pendo – The best of friends",
+      "author": "Ruth Odondi",
+      "translator": null,
+      "illustrator": "Rob Owen",
+      "year": 2017,
+      "level": "PB3",
+      "primary_topic": "food",
+      "secondary_topics": [
+        "number",
+        "money",
+        "family"
+      ],
+      "source": "african-storybook",
+      "source_url": "https://www.africanstorybook.org/read.php?id=35905",
+      "asb_id": 35905,
+      "asb_level": "Read aloud",
+      "license": {
+        "text": "CC-BY-4.0",
+        "image": "CC-BY-4.0",
+        "audio_raw": null
+      },
+      "attribution": "Source: https://www.africanstorybook.org/read.php?id=35905. License: CC-BY-4.0.",
+      "tags": [],
+      "pages": [
+        {
+          "n": 1,
+          "text": "Chipego sometimes earns K80.00 a week in pocket money. He spends most of the pocket money on books at the second-hand book shop in his village. So how does Chipego earn enough pocket money for these books? Read on to find out.",
+          "image": "images/chipego-and-pendo-the-best-of-friends/p1.png"
+        },
+        {
+          "n": 2,
+          "text": "Meet Pendo, the family's milking cow. She produces over 20 litres of milk per day. Chipego's father sells the milk. A cow needs food and water, and time to graze in the field. So each day after school, Chipego helps with this work. Chipego's father gives him pocket money for the work he does. And it is this money that Chipego saves to buy books each week.",
+          "image": "images/chipego-and-pendo-the-best-of-friends/p2.png"
+        },
+        {
+          "n": 3,
+          "text": "First, Chipego gives Pendo a bunch of carrots. He gives her exactly eight carrots a day. Each day he picks the carrots from his father's vegetable garden, enough for a day at a time. You can work it out. You will find that Pendo eats nearly 60 carrots a week. Can you tell exactly how many?",
+          "image": "images/chipego-and-pendo-the-best-of-friends/p3.png"
+        },
+        {
+          "n": 4,
+          "text": "After that, Chipego takes Pendo to graze in the fields. His father warned him to watch the time and give Pendo not more than three quarters of an hour to graze. Pendo usually starts grazing at about14:15 hrs, so that Chipego can take her back to the milking shed at 15 hours. In winter when it gets dark earlier, Chipego may start grazing earlier, around 13:30 hrs.",
+          "image": "images/chipego-and-pendo-the-best-of-friends/p4.png"
+        },
+        {
+          "n": 5,
+          "text": "Next Chipego gives Pendo water. Without water Pendo won't produce milk, no matter how much Chipego feeds her. Chipego fetches buckets of water from the village pump because there isn't one nearby. Pendo's trough holds about 30 litres of water. Chipego's bucket only holds 5 litres. So to fill the trough Chipego has to make many trips. Can you work out how many trips he has to make?",
+          "image": "images/chipego-and-pendo-the-best-of-friends/p5.png"
+        },
+        {
+          "n": 6,
+          "text": "Then, Chipego takes Pendo to his father to get her daily 12 kg bag of grain. Chipego calculates that's almost 90 kg a week. Each bag costs K39.00. Chipego works out the cost of grain for each week. First he works out the cost of 7 bags at K40.00, which makes K280.00 Then he subtracts K7.00 to get K273.00 \"That's over K1 000 a month!\" Chipego estimates. Is he correct?",
+          "image": "images/chipego-and-pendo-the-best-of-friends/p6.png"
+        },
+        {
+          "n": 7,
+          "text": "Chipego's father milks Pendo twice a day. She produces about 24 litres of milk a day, so about 12 litres for each milking. Sometimes Chipego helps with the milking but it is not as easy as it looks. \"One day,\" he thinks to himself, \"I will have my own cows and I will have to do all the milking myself.\"",
+          "image": "images/chipego-and-pendo-the-best-of-friends/p7.png"
+        },
+        {
+          "n": 8,
+          "text": "His father pours the milk from the big bucket into smaller two litre cans or one litre bottles. He then sells the milk for K8.00 a litre. Once a week Chipego's father donates 25 litres of milk to Bulela School feeding scheme. Each child gets a quarter litre of this milk. That means that 100 children get milk on this day.",
+          "image": "images/chipego-and-pendo-the-best-of-friends/p8.png"
+        },
+        {
+          "n": 9,
+          "text": "For each litre of milk sold, his father gives Chipego 50 ngwee. That doesn't sound like a lot, but if his father sells 24 litres a day, it adds up to quite a bit. Can you tell how much? Chipego saves his money until Saturday when he makes a trip to the book shop. Each book costs less than k10.00, so in a good week, he can buy quite a few.",
+          "image": "images/chipego-and-pendo-the-best-of-friends/p9.png"
+        },
+        {
+          "n": 10,
+          "text": "Chipego also loves to drink Pendo's milk. His father says that milk helps to build strong bones and teeth and makes a person fit and healthy. So by drinking milk and eating lots of vegetables from his father's garden, Chipego is strong and healthy. He seldom gets sick and never goes hungry. His mother loves making mabisi using Pendo's milk too. His young sister enjoys adding the milk to her chibwantu! Hmmm! Yummy!",
+          "image": "images/chipego-and-pendo-the-best-of-friends/p10.png"
+        },
+        {
+          "n": 11,
+          "text": "Chipego never forgets to thank Pendo at the end of each day. He rewards her with extra carrots or spinach leaves that he finds lying around the garden. \"Thank you Pendo, you are my best friend! It is thanks to you that I am strong, healthy and clever. If not for you I would never be able to buy all the books that help me be top of my class.\" One day I will be a veterinary doctor because of you! Pendo is very lucky because Mutinta, Chipego's mother and Father also rewards her! What an amazing cow!",
+          "image": "images/chipego-and-pendo-the-best-of-friends/p11.png"
+        }
+      ],
+      "word_count": 718,
+      "unique_words": 274,
+      "reading_time_min": 5,
+      "pairs_with_unit": [
+        "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
+        "1417c7bc-52d9-4c4d-92fd-796a92a6d275:004",
+        "02736c70-9509-438f-8e16-2902feaf5ed8:001"
+      ],
+      "extends_activity": [
+        "用绘本出现的食材造句，扩展教材里的食物词汇"
+      ],
+      "facets": {
+        "grade": [
+          "4",
+          "5",
+          "6"
+        ],
+        "grade_band": "mid_primary",
+        "text_type": "realistic_fiction",
+        "themes": [
+          "loyalty",
+          "friendship",
+          "money_wealth",
+          "generosity",
+          "family"
+        ],
+        "settings": [
+          "farm",
+          "rural_village"
+        ],
+        "word_count_bucket": "short",
+        "lexile": {
+          "min": 600,
+          "max": 900,
+          "mean": 750,
+          "band": "elementary_mid",
+          "source": "editor_estimate"
+        },
+        "cultural_origin": "Kenyan",
+        "time_period": "modern",
+        "target_skills": [
+          "reading_comprehension",
+          "vocabulary_extension",
+          "cultural_awareness"
+        ],
+        "supports_grammar": [
+          "tense.present_simple",
+          "article.a_an",
+          "article.the",
+          "pron.possessive",
+          "prep.common",
+          "conj.and_or_but"
+        ],
+        "grammar_fingerprint": {
+          "grammar_points": [
+            {
+              "id": "tense.present_simple",
+              "count": 42,
+              "evidence": "He spends"
+            },
+            {
+              "id": "article.a_an",
+              "count": 24,
+              "evidence": "a week"
+            },
+            {
+              "id": "article.the",
+              "count": 24,
+              "evidence": "the pocket"
+            },
+            {
+              "id": "pron.possessive",
+              "count": 20,
+              "evidence": "his village"
+            },
+            {
+              "id": "prep.common",
+              "count": 17,
+              "evidence": "in"
+            },
+            {
+              "id": "conj.and_or_but",
+              "count": 17,
+              "evidence": "and"
+            },
+            {
+              "id": "noun.plural_s",
+              "count": 12,
+              "evidence": "books"
+            },
+            {
+              "id": "negation",
+              "count": 10,
+              "evidence": "not"
+            },
+            {
+              "id": "question.wh_words",
+              "count": 9,
+              "evidence": "how does"
+            },
+            {
+              "id": "modal.can_could",
+              "count": 6,
+              "evidence": "can"
+            },
+            {
+              "id": "be.am_is_are",
+              "count": 5,
+              "evidence": "you are"
+            },
+            {
+              "id": "tense.future_going_to",
+              "count": 4,
+              "evidence": "will find"
+            },
+            {
+              "id": "comparative",
+              "count": 3,
+              "evidence": "more"
+            },
+            {
+              "id": "pron.possessive_noun",
+              "count": 2,
+              "evidence": "father's"
+            },
+            {
+              "id": "imperative",
+              "count": 2,
+              "evidence": "take her"
+            },
+            {
+              "id": "pron.these_those",
+              "count": 1,
+              "evidence": "these"
+            },
+            {
+              "id": "question.be_verb_invert",
+              "count": 1,
+              "evidence": "Is he"
+            }
+          ],
+          "writing_features": [
+            {
+              "id": "q_ratio",
+              "value": 0.079
+            },
+            {
+              "id": "exclamation_ratio",
+              "value": 0.016
+            },
+            {
+              "id": "short_sentence",
+              "value": 0.206
+            },
+            {
+              "id": "dialogue_heavy",
+              "value": 0.0
+            },
+            {
+              "id": "rhyme",
+              "value": 0.0
+            },
+            {
+              "id": "sentence_variety",
+              "value": 0.25
+            },
+            {
+              "id": "list_like",
+              "value": 0.0
+            }
+          ],
+          "top_ids": [
+            "tense.present_simple",
+            "article.a_an",
+            "article.the",
+            "pron.possessive",
+            "prep.common",
+            "conj.and_or_but"
+          ],
+          "word_count": 718
+        }
+      },
+      "supports_grammar": [
+        "tense.present_simple",
+        "article.a_an",
+        "article.the",
+        "pron.possessive",
+        "prep.common",
+        "conj.and_or_but"
+      ]
+    }
+  ]
+}

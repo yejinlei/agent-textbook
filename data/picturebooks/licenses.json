@@ -1,0 +1,61 @@
+{
+  "_doc": "绘本可能用到的授权类型。绘本每个内容类型（文本/插图/音频）可分别有独立授权。",
+  "licenses": {
+    "PD": {
+      "spdx": "PD",
+      "label": "公有领域 (Public Domain)",
+      "commercial_ok": true,
+      "sa_required": false,
+      "attribution_required": false,
+      "url": "https://creativecommons.org/publicdomain/"
+    },
+    "CC-BY-4.0": {
+      "spdx": "CC-BY-4.0",
+      "label": "CC BY 4.0",
+      "commercial_ok": true,
+      "sa_required": false,
+      "attribution_required": true,
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    "CC-BY-SA-4.0": {
+      "spdx": "CC-BY-SA-4.0",
+      "label": "CC BY-SA 4.0",
+      "commercial_ok": true,
+      "sa_required": true,
+      "attribution_required": true,
+      "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    "CC-BY-NC-4.0": {
+      "spdx": "CC-BY-NC-4.0",
+      "label": "CC BY-NC 4.0",
+      "commercial_ok": false,
+      "sa_required": false,
+      "attribution_required": true,
+      "url": "https://creativecommons.org/licenses/by-nc/4.0/"
+    },
+    "CC-BY-NC-SA-4.0": {
+      "spdx": "CC-BY-NC-SA-4.0",
+      "label": "CC BY-NC-SA 4.0",
+      "commercial_ok": false,
+      "sa_required": true,
+      "attribution_required": true,
+      "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    },
+    "CC0-1.0": {
+      "spdx": "CC0-1.0",
+      "label": "CC0 1.0 Universal",
+      "commercial_ok": true,
+      "sa_required": false,
+      "attribution_required": false,
+      "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+    }
+  },
+
+  "_attribution_rules": {
+    "CC-BY-4.0": "必须标注：作品名 · 作者 · 来源URL · 许可类型",
+    "CC-BY-SA-4.0": "CC-BY + 衍生作品须用同许可发布",
+    "CC-BY-NC-4.0": "CC-BY + 不可用于商业用途（学校收费教材视作商用）",
+    "PD": "无署名要求，但学术引用建议标注",
+    "CC0-1.0": "无署名要求"
+  }
+}

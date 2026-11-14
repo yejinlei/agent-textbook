@@ -1,0 +1,469 @@
+{
+  "_doc": "PairingV2：课外 Reading × 教材 Unit 挂载表。每条含 role / match_score / breakdown / reasons。",
+  "_updated": "2026-10-14",
+  "_formula_ref": "data/readings/extension_roles.json",
+  "_threshold": {
+    "min_pair": 0.5,
+    "keep_within_delta": 0.05
+  },
+  "_counts": {
+    "units": 64,
+    "readings": 27,
+    "pairings": 15,
+    "by_role": {
+      "pre_reading": 2,
+      "bridge_text": 2,
+      "consolidation": 4,
+      "extension": 2,
+      "compare_contrast": 0,
+      "writing_trigger": 5,
+      "culture_window": 0
+    }
+  },
+  "pairings": [
+    {
+      "reading_id": "fable-fox-crow",
+      "reading_title": "The Fox and the Crow",
+      "section_id": "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+      "unit_name": "Unit 3",
+      "unit_title": "Our animal friends",
+      "grade": "三年级",
+      "term": "上册",
+      "role": "writing_trigger",
+      "match_score": 0.525,
+      "match_breakdown": {
+        "topic": 0.474,
+        "skill": 1.0,
+        "word": 0.0,
+        "lexile": 0.833,
+        "role_bonus": 0.6,
+        "grammar": 0.25,
+        "writing_feature": 0.409
+      },
+      "match_reasons": [
+        "topic:animal/bird",
+        "skill:critical_thinking/reading_comprehension",
+        "lexile 边界",
+        "role_bonus=0.60",
+        "grammar_overlap=0.25"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "fable-fox-crow@b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003#writing_trigger"
+    },
+    {
+      "reading_id": "fable-fox-crow",
+      "reading_title": "The Fox and the Crow",
+      "section_id": "dd6173ba-579a-356e-900c-cb53e152229c:003",
+      "unit_name": "Unit 3",
+      "unit_title": "Our animal friends",
+      "grade": "三年级",
+      "term": "上册",
+      "role": "writing_trigger",
+      "match_score": 0.525,
+      "match_breakdown": {
+        "topic": 0.474,
+        "skill": 1.0,
+        "word": 0.0,
+        "lexile": 0.833,
+        "role_bonus": 0.6,
+        "grammar": 0.25,
+        "writing_feature": 0.409
+      },
+      "match_reasons": [
+        "topic:animal/bird",
+        "skill:critical_thinking/reading_comprehension",
+        "lexile 边界",
+        "role_bonus=0.60",
+        "grammar_overlap=0.25"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "fable-fox-crow@dd6173ba-579a-356e-900c-cb53e152229c:003#writing_trigger"
+    },
+    {
+      "reading_id": "robin-hood",
+      "reading_title": "The Merry Adventures of Robin Hood (Chapters 1-2)",
+      "section_id": "02736c70-9509-438f-8e16-2902feaf5ed8:001",
+      "unit_name": "Unit 1",
+      "unit_title": "Helping at home",
+      "grade": "四年级",
+      "term": "上册",
+      "role": "extension",
+      "match_score": 0.524,
+      "match_breakdown": {
+        "topic": 0.529,
+        "skill": 1.0,
+        "word": 0.0,
+        "lexile": 0.5,
+        "role_bonus": 0.9,
+        "grammar": 0.3,
+        "writing_feature": 0.297
+      },
+      "match_reasons": [
+        "topic:cook/doctor",
+        "skill:cultural_awareness/reading_comprehension",
+        "lexile 边界",
+        "role_bonus=0.90",
+        "grammar_overlap=0.30"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "robin-hood@02736c70-9509-438f-8e16-2902feaf5ed8:001#extension"
+    },
+    {
+      "reading_id": "robin-hood",
+      "reading_title": "The Merry Adventures of Robin Hood (Chapters 1-2)",
+      "section_id": "be6e00c8-0068-8453-927f-646f6f753a5a:001",
+      "unit_name": "Unit 1",
+      "unit_title": "Helping at home",
+      "grade": "四年级",
+      "term": "上册",
+      "role": "extension",
+      "match_score": 0.524,
+      "match_breakdown": {
+        "topic": 0.529,
+        "skill": 1.0,
+        "word": 0.0,
+        "lexile": 0.5,
+        "role_bonus": 0.9,
+        "grammar": 0.3,
+        "writing_feature": 0.297
+      },
+      "match_reasons": [
+        "topic:cook/doctor",
+        "skill:cultural_awareness/reading_comprehension",
+        "lexile 边界",
+        "role_bonus=0.90",
+        "grammar_overlap=0.30"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "robin-hood@be6e00c8-0068-8453-927f-646f6f753a5a:001#extension"
+    },
+    {
+      "reading_id": "fable-fox-crow",
+      "reading_title": "The Fox and the Crow",
+      "section_id": "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+      "unit_name": "Unit 3",
+      "unit_title": "Our animal friends",
+      "grade": "三年级",
+      "term": "上册",
+      "role": "pre_reading",
+      "match_score": 0.521,
+      "match_breakdown": {
+        "topic": 0.474,
+        "skill": 1.0,
+        "word": 0.0,
+        "lexile": 1.0,
+        "role_bonus": 0.9,
+        "grammar": 0.075,
+        "writing_feature": 0.409
+      },
+      "match_reasons": [
+        "topic:animal/bird",
+        "skill:critical_thinking/reading_comprehension",
+        "lexile 落在 pre_reading 目标区间",
+        "role_bonus=0.90"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "fable-fox-crow@b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003#pre_reading"
+    },
+    {
+      "reading_id": "fable-fox-crow",
+      "reading_title": "The Fox and the Crow",
+      "section_id": "dd6173ba-579a-356e-900c-cb53e152229c:003",
+      "unit_name": "Unit 3",
+      "unit_title": "Our animal friends",
+      "grade": "三年级",
+      "term": "上册",
+      "role": "pre_reading",
+      "match_score": 0.521,
+      "match_breakdown": {
+        "topic": 0.474,
+        "skill": 1.0,
+        "word": 0.0,
+        "lexile": 1.0,
+        "role_bonus": 0.9,
+        "grammar": 0.075,
+        "writing_feature": 0.409
+      },
+      "match_reasons": [
+        "topic:animal/bird",
+        "skill:critical_thinking/reading_comprehension",
+        "lexile 落在 pre_reading 目标区间",
+        "role_bonus=0.90"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "fable-fox-crow@dd6173ba-579a-356e-900c-cb53e152229c:003#pre_reading"
+    },
+    {
+      "reading_id": "fable-fox-crow",
+      "reading_title": "The Fox and the Crow",
+      "section_id": "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+      "unit_name": "Unit 3",
+      "unit_title": "Our animal friends",
+      "grade": "三年级",
+      "term": "上册",
+      "role": "consolidation",
+      "match_score": 0.515,
+      "match_breakdown": {
+        "topic": 0.474,
+        "skill": 1.0,
+        "word": 0.0,
+        "lexile": 0.833,
+        "role_bonus": 0.4,
+        "grammar": 0.25,
+        "writing_feature": 0.409
+      },
+      "match_reasons": [
+        "topic:animal/bird",
+        "skill:critical_thinking/reading_comprehension",
+        "lexile 边界",
+        "grammar_overlap=0.25"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "fable-fox-crow@b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003#consolidation"
+    },
+    {
+      "reading_id": "fable-fox-crow",
+      "reading_title": "The Fox and the Crow",
+      "section_id": "dd6173ba-579a-356e-900c-cb53e152229c:003",
+      "unit_name": "Unit 3",
+      "unit_title": "Our animal friends",
+      "grade": "三年级",
+      "term": "上册",
+      "role": "consolidation",
+      "match_score": 0.515,
+      "match_breakdown": {
+        "topic": 0.474,
+        "skill": 1.0,
+        "word": 0.0,
+        "lexile": 0.833,
+        "role_bonus": 0.4,
+        "grammar": 0.25,
+        "writing_feature": 0.409
+      },
+      "match_reasons": [
+        "topic:animal/bird",
+        "skill:critical_thinking/reading_comprehension",
+        "lexile 边界",
+        "grammar_overlap=0.25"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "fable-fox-crow@dd6173ba-579a-356e-900c-cb53e152229c:003#consolidation"
+    },
+    {
+      "reading_id": "a-christmas-carol",
+      "reading_title": "A Christmas Carol",
+      "section_id": "9e2878bf-964d-47fb-85ba-937cf61159a5:002",
+      "unit_name": "Unit 2",
+      "unit_title": "Getting together",
+      "grade": "六年级",
+      "term": "上册",
+      "role": "writing_trigger",
+      "match_score": 0.513,
+      "match_breakdown": {
+        "topic": 0.28,
+        "skill": 0.8,
+        "word": 0.0,
+        "lexile": 0.667,
+        "role_bonus": 0.9,
+        "grammar": 0.667,
+        "writing_feature": 0.424
+      },
+      "match_reasons": [
+        "topic:dad/family",
+        "skill:cultural_awareness/reading_comprehension",
+        "lexile 边界",
+        "role_bonus=0.90",
+        "grammar_overlap=0.67"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "a-christmas-carol@9e2878bf-964d-47fb-85ba-937cf61159a5:002#writing_trigger"
+    },
+    {
+      "reading_id": "fable-fox-crow",
+      "reading_title": "The Fox and the Crow",
+      "section_id": "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+      "unit_name": "Unit 3",
+      "unit_title": "Our animal friends",
+      "grade": "三年级",
+      "term": "上册",
+      "role": "bridge_text",
+      "match_score": 0.51,
+      "match_breakdown": {
+        "topic": 0.474,
+        "skill": 1.0,
+        "word": 0.0,
+        "lexile": 0.833,
+        "role_bonus": 0.6,
+        "grammar": 0.175,
+        "writing_feature": 0.409
+      },
+      "match_reasons": [
+        "topic:animal/bird",
+        "skill:critical_thinking/reading_comprehension",
+        "lexile 边界",
+        "role_bonus=0.60",
+        "grammar 部分重合"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "fable-fox-crow@b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003#bridge_text"
+    },
+    {
+      "reading_id": "fable-fox-crow",
+      "reading_title": "The Fox and the Crow",
+      "section_id": "dd6173ba-579a-356e-900c-cb53e152229c:003",
+      "unit_name": "Unit 3",
+      "unit_title": "Our animal friends",
+      "grade": "三年级",
+      "term": "上册",
+      "role": "bridge_text",
+      "match_score": 0.51,
+      "match_breakdown": {
+        "topic": 0.474,
+        "skill": 1.0,
+        "word": 0.0,
+        "lexile": 0.833,
+        "role_bonus": 0.6,
+        "grammar": 0.175,
+        "writing_feature": 0.409
+      },
+      "match_reasons": [
+        "topic:animal/bird",
+        "skill:critical_thinking/reading_comprehension",
+        "lexile 边界",
+        "role_bonus=0.60",
+        "grammar 部分重合"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "fable-fox-crow@dd6173ba-579a-356e-900c-cb53e152229c:003#bridge_text"
+    },
+    {
+      "reading_id": "robin-hood",
+      "reading_title": "The Merry Adventures of Robin Hood (Chapters 1-2)",
+      "section_id": "02736c70-9509-438f-8e16-2902feaf5ed8:001",
+      "unit_name": "Unit 1",
+      "unit_title": "Helping at home",
+      "grade": "四年级",
+      "term": "上册",
+      "role": "consolidation",
+      "match_score": 0.504,
+      "match_breakdown": {
+        "topic": 0.529,
+        "skill": 1.0,
+        "word": 0.0,
+        "lexile": 0.0,
+        "role_bonus": 0.7,
+        "grammar": 0.5,
+        "writing_feature": 0.297
+      },
+      "match_reasons": [
+        "topic:cook/doctor",
+        "skill:cultural_awareness/reading_comprehension",
+        "role_bonus=0.70",
+        "grammar_overlap=0.50"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "robin-hood@02736c70-9509-438f-8e16-2902feaf5ed8:001#consolidation"
+    },
+    {
+      "reading_id": "robin-hood",
+      "reading_title": "The Merry Adventures of Robin Hood (Chapters 1-2)",
+      "section_id": "be6e00c8-0068-8453-927f-646f6f753a5a:001",
+      "unit_name": "Unit 1",
+      "unit_title": "Helping at home",
+      "grade": "四年级",
+      "term": "上册",
+      "role": "consolidation",
+      "match_score": 0.504,
+      "match_breakdown": {
+        "topic": 0.529,
+        "skill": 1.0,
+        "word": 0.0,
+        "lexile": 0.0,
+        "role_bonus": 0.7,
+        "grammar": 0.5,
+        "writing_feature": 0.297
+      },
+      "match_reasons": [
+        "topic:cook/doctor",
+        "skill:cultural_awareness/reading_comprehension",
+        "role_bonus=0.70",
+        "grammar_overlap=0.50"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "robin-hood@be6e00c8-0068-8453-927f-646f6f753a5a:001#consolidation"
+    },
+    {
+      "reading_id": "fable-ugly-duckling",
+      "reading_title": "The Ugly Duckling",
+      "section_id": "b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003",
+      "unit_name": "Unit 3",
+      "unit_title": "Our animal friends",
+      "grade": "三年级",
+      "term": "上册",
+      "role": "writing_trigger",
+      "match_score": 0.502,
+      "match_breakdown": {
+        "topic": 0.423,
+        "skill": 0.8,
+        "word": 0.0,
+        "lexile": 1.0,
+        "role_bonus": 0.9,
+        "grammar": 0.25,
+        "writing_feature": 0.409
+      },
+      "match_reasons": [
+        "topic:animal/bird",
+        "skill:reading_comprehension/vocabulary_extension",
+        "lexile 落在 writing_trigger 目标区间",
+        "role_bonus=0.90",
+        "grammar_overlap=0.25"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "fable-ugly-duckling@b3c7d0d5-d148-f4c3-ed2a-ebef1e651fe6:003#writing_trigger"
+    },
+    {
+      "reading_id": "fable-ugly-duckling",
+      "reading_title": "The Ugly Duckling",
+      "section_id": "dd6173ba-579a-356e-900c-cb53e152229c:003",
+      "unit_name": "Unit 3",
+      "unit_title": "Our animal friends",
+      "grade": "三年级",
+      "term": "上册",
+      "role": "writing_trigger",
+      "match_score": 0.502,
+      "match_breakdown": {
+        "topic": 0.423,
+        "skill": 0.8,
+        "word": 0.0,
+        "lexile": 1.0,
+        "role_bonus": 0.9,
+        "grammar": 0.25,
+        "writing_feature": 0.409
+      },
+      "match_reasons": [
+        "topic:animal/bird",
+        "skill:reading_comprehension/vocabulary_extension",
+        "lexile 落在 writing_trigger 目标区间",
+        "role_bonus=0.90",
+        "grammar_overlap=0.25"
+      ],
+      "source": "auto",
+      "created_at": "2026-10-14",
+      "id": "fable-ugly-duckling@dd6173ba-579a-356e-900c-cb53e152229c:003#writing_trigger"
+    }
+  ]
+}

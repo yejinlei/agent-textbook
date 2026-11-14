@@ -8,19 +8,27 @@
 产出：pages/{index,math,chinese,english}.html + assets/ + data/*.json
 所有数据内联进 HTML，双击即可打开（file:// 下也能用）。
 """
+import hashlib
 import json
 import os
 import re
 import shutil
 
 import duckdb
+import pymupdf
 
 from .. import config
+from ..index import reorder
 from . import goals
 
 OUT_DIR = os.path.join(config.ROOT, "pages")
 ASSETS_SRC = os.path.join(os.path.dirname(__file__), "assets")
 DB_PATH = os.path.join(config.DATA_DIR, "kb.duckdb")
+IMG_DIR = os.path.join(OUT_DIR, "assets", "img", "math")
+
+# 插图占位符：[[figure page=93 x0=52 y0=100 x1=494 y1=284]]
+RE_FIGURE = re.compile(
+    r"\[\[figure\s+page=(\d+)\s+x0=(\d+)\s+y0=(\d+)\s+x1=(\d+)\s+y1=(\d+)\s*\]\]")
 
 # lessons 表没写 book_id（全空），真实册号藏在 lesson_id 的前 36 位
 BOOK_OF = "substr(lesson_id,1,36)"
@@ -63,11 +71,125 @@ def _book_sort_key(book: str):
     return (99, 99)
 
 
+# ------------------------------------------------------------- 课文重排
+# PDF 抽取时坐标已经丢了，留下的是整页的纯文本流：图、表、气泡里的字和正文
+# 句子挤在一起（"晴 / 阴 / 多云 / 天数"夹在两句话中间），读起来就是"串行"。
+# 这里做三件事：把图表上的孤词挑出去、把被换行切断的句子接回去、丢掉乱码行。
+# 行序没法百分百还原（没有坐标，顺序信息在抽取时就丢了），但正文能读通。
+
+# 成句的标志：出现这些词，基本是句子而不是标签（必须按"词"匹配——
+# 拆成单字会把"天数"（含"数"）、"多云"（含"多"）误判成句子）
+_SENT_W = ("怎样", "怎么", "什么", "多少", "哪些", "一共", "可以", "如果", "那么",
+           "这样", "表示", "比较", "最多", "最少", "还有", "就是", "也是", "都要",
+           "根据", "统计", "完成", "绘制", "回答", "发现", "信息", "建议", "喜欢",
+           "需要", "应该", "试一试", "想一想", "说一说", "做一做", "看一看",
+           "数一数", "比一比", "算一算", "认一认", "填一填", "连一连", "画一画")
+_SENT_C = "的了是能会要吗呢吧和与还就也都又再把被从向对各请您"
+# 无标点但必须留在正文里的：小标题、栏目名、图名
+_KEEP = ("统计图", "统计表", "条形", "折线", "扇形", "认识", "复习", "整理",
+         "生活中的数学", "成长小档案", "做一做", "练习", "例题", "想一想",
+         "你知道吗", "数学游戏", "综合与实践", "本单元", "我的收获")
+# 新一句开头的标志：序号或栏目锚点
+_NEW_SENT = ("做一做", "练习", "调查", "成长小档案", "生活中的数学", "本单元")
+
+
+def _junk_line(s: str) -> bool:
+    """抽取失败的行（字体没嵌入时会出一堆西里尔/东南亚字符）。"""
+    if re.search(r"[\u0400-\u04FF\u1780-\u17FF\u1A00-\u1AFF\u2070-\u209F]", s):
+        return True
+    cjk = re.findall(r"[\u4e00-\u9fff]", s)
+    if not cjk and not re.search(r"[0-9A-Za-z]", s):
+        return True                                  # 纯符号
+    if len(cjk) <= 1 and re.search(r"[^\u4e00-\u9fff0-9A-Za-z，。？！：；、（）%]", s):
+        return True                                  # 一个汉字配着怪符号
+    return False
+
+
+def _is_chart_line(s: str) -> bool:
+    """图/表里的字：孤词、刻度、数字、轴标签——不是课文句子。"""
+    if re.fullmatch(r"[0-9\.\s]+", s) or re.fullmatch(r"[一二三四五六日]+", s):
+        return True                                  # 刻度数字 / 日历表头
+    if not re.search(r"[\u4e00-\u9fff]", s):
+        return True                                  # 没有汉字：101_120 之类
+    for k in _KEEP:
+        if k in s:
+            return False                             # 小标题留在正文
+    if re.search(r"[，。？！：；、（）“”]", s):
+        return False                                 # 有标点 = 成句
+    if any(w in s for w in _SENT_W) or any(c in _SENT_C for c in s):
+        return False
+    return True
+
+
+def _is_head(s: str) -> bool:
+    """小标题：短、无标点、是栏目名或图名——它后面不再接句子。"""
+    return (len(s) <= 12 and not re.search(r"[，。？！：；、（）]", s)
+            and any(k in s for k in _KEEP))
+
+
+def _merge_body(body: list) -> list:
+    """把被换行切断的句子接回去：上一行没有结束标点就续上（中文不加空格）。"""
+    out = []
+    for s in body:
+        if (out and not re.search(r"[。？！：；]$", out[-1]) and not _is_head(out[-1])
+                and not re.match(r"^[（(]?\d+[）)]", s)
+                and not any(s.startswith(k) for k in _NEW_SENT)):
+            out[-1] += s
+        elif out and out[-1] == s:
+            continue                                 # 图注重复出现，只留一次
+        else:
+            out.append(s)
+    return out
+
+
+def _reorder(text: str):
+    """一块教材文本 → (正文行, 图表上的字)，图表字去重后保留顺序。"""
+    body, chart, seen = [], [], set()
+    for ln in (text or "").split("\n"):
+        s = ln.strip()
+        if not s or _junk_line(s):
+            continue
+        if _is_chart_line(s):
+            if s not in seen:
+                seen.add(s)
+                chart.append(s)
+        else:
+            body.append(s)
+    return _merge_body(body), chart
+
+
 # ------------------------------------------------------------------ 数学
+def _render_figures(sid, doc, blocks, generated, out_dir=IMG_DIR) -> dict:
+    """把 kind='图' 的占位块渲染成 JPG，返回 {block_index: 相对路径}。"""
+    os.makedirs(out_dir, exist_ok=True)
+    paths = {}
+    for i, b in enumerate(blocks):
+        if b.get("kind") != "图":
+            continue
+        m = RE_FIGURE.search(b.get("text") or "")
+        if not m:
+            continue
+        pno, x0, y0, x1, y1 = (int(x) for x in m.groups())
+        if pno < 0 or pno >= doc.page_count:
+            continue
+        page = doc[pno]
+        r = pymupdf.Rect(x0, y0, x1, y1)
+        pix = page.get_pixmap(clip=r, dpi=140)
+        fn = "%s_%d.jpg" % (sid.replace(":", "_"), i)
+        fp = os.path.join(out_dir, fn)
+        pix.save(fp, jpg_quality=82)
+        paths[i] = "../assets/img/math/" + fn
+        generated.add(fn)
+    return paths
+
+
 def build_math(con) -> dict:
+    # 清理不再被引用的旧插图：先收集本次生成的文件名，结尾再删旧图
+    existing = set(os.listdir(IMG_DIR)) if os.path.isdir(IMG_DIR) else set()
+    generated = set()
     # unit_no 为空的是"整理复习/附录"之类，不算单元；text 是这一单元的教材正文
-    units = _rows(con, """select section_id,grade,term,unit_no,title,
-                          page_from,page_to,text from section_text
+    units = _rows(con, """select section_id,book_id,grade,term,unit_no,title,
+                          page_from,page_to,text,blocks from section_text
                           where subject='数学' and unit_no is not null""")
     kp = {r["section_id"]: r for r in _rows(
         con, "select section_id,points,summary from section_keypoint"
@@ -95,11 +217,40 @@ def build_math(con) -> dict:
         measures[(r["grade"], r["term"], r["unit_name"])] = r
 
     out = []
+    n_derived = 0
+    docs = {}
     for u in units:
         points = [str(x).strip() for x in _j((kp.get(u["section_id"]) or {}).get("points"))]
         dom = goals.math_domain(u["title"])
         mp = maps.get((u["grade"], u["term"], u["title"]))
         ms = measures.get((u["grade"], u["term"], u["title"]))
+        # 课本原文：按教材板块（正文 / 做一做 / 练习…）分节。行序已按 PDF 版面
+        # 重排过，这里再把图、表上的孤词从句子里挑出去，正文才读得通。
+        blks = _j(u.get("blocks")) or [{"kind": "正文", "text": u.get("text") or ""}]
+        # 渲染插图占位符
+        figs = {}
+        if any(b.get("kind") == "图" for b in blks):
+            bid = u["book_id"]
+            if bid not in docs:
+                p = reorder.pdf_path(bid)
+                docs[bid] = pymupdf.open(p) if p else None
+            doc = docs.get(bid)
+            if doc:
+                figs = _render_figures(u["section_id"], doc, blks, generated)
+        secs, flat = [], []
+        if figs:
+            print("  ", u["section_id"][:8], "插图", len(figs), "张")
+        for i, b in enumerate(blks):
+            if b.get("kind") == "图":
+                img = figs.get(i)
+                if img:
+                    secs.append({"kind": "图", "body": [{"img": img}], "chart": []})
+                continue
+            body, chart = _reorder(b.get("text") or "")
+            if body:
+                secs.append({"kind": b.get("kind") or "正文",
+                             "body": body, "chart": chart})
+                flat.extend(body)
         item = {
             "sid": u["section_id"],
             "grade": u["grade"], "term": u["term"], "book": _gt(u),
@@ -109,8 +260,8 @@ def build_math(con) -> dict:
             "points": points[:12],
             "page_from": u["page_from"], "page_to": u["page_to"],
             # 教材正文（这一单元课本上写的讲解与例题引子），按行切开，不截断
-            "text": [ln.strip() for ln in (u.get("text") or "").split("\n")
-                     if ln.strip()][:160],
+            "text": flat[:160],
+            "sections": secs,
         }
         if mp:
             nodes = _j(mp.get("nodes"))
@@ -118,6 +269,17 @@ def build_math(con) -> dict:
                            "nodes": [{"id": n.get("id"), "text": n.get("text"),
                                       "parent": n.get("parent")} for n in nodes],
                            "page": mp.get("page_from")}
+        elif points:
+            # 教材不是每个单元都印知识结构图（52 个整理复习课时里只印了 31 张）。
+            # 没印的用教材知识点整理成扁平要点图，页面会注明来源，不冒充教材原图。
+            item["map"] = {
+                "topic": u["title"], "summary": "本单元教材未印结构图，按教材知识点整理",
+                "nodes": [{"id": 1, "text": u["title"], "parent": 0}] +
+                         [{"id": i + 2, "text": p, "parent": 1}
+                          for i, p in enumerate(points[:12])],
+                "page": u.get("page_from"), "derived": True,
+            }
+            n_derived += 1
         if ms:
             item["measures"] = _j(ms.get("units"))[:12]
         # 公式：同 latex 只留一条，按"定义→法则→性质→例题→计算过程→练习"排
@@ -143,6 +305,17 @@ def build_math(con) -> dict:
             "difficulty": e.get("difficulty"), "page": e.get("page_hint"),
         } for e in (ex.get(u["section_id"]) or [])[:8]]
         out.append(item)
+
+    # 删除本次不再引用的旧图
+    for fn in existing - generated:
+        try:
+            os.remove(os.path.join(IMG_DIR, fn))
+        except OSError:
+            pass
+
+    for d in docs.values():
+        if d:
+            d.close()
 
     out.sort(key=lambda x: (goals.key_of(x["grade"], x["term"]), _unum(x["unit_no"])))
     all_measures = []
@@ -175,8 +348,86 @@ def build_math(con) -> dict:
         "domains": [{"key": d["key"], "name": d["name"], "desc": d["desc"]}
                     for d in goals.MATH_DOMAINS],
         "units": out, "measures": all_measures,
-        "n_maps": len(maps),
+        "n_maps": len(maps), "n_derived_maps": n_derived,
+        "drills": build_drills(con),
     }
+
+
+# ------------------------------------------------------------------ 数学·练一练
+# 教材里能自动判分的算式：只收整数四则，答案必须能被程序算出来核对。
+# 教材 OCR/抽取会出错（实测 630 条里有 18 条是"12×7=74"这种），
+# 凡是对不上的一律丢——宁可题少，也不能让孩子练错的答案。
+RE_DRILL_EQ = re.compile(r"^(\d+)([+\-*/])(\d+)=(\d+)$")
+RE_DRILL_EX = re.compile(r"^(\d+)([+\-*/])(\d+)$")
+DRILL_OP = {"+": "+", "-": "-", "*": "×", "/": "÷"}
+
+
+def _norm_expr(s: str) -> str:
+    """教材算式写法（含 LaTeX）归一成 `12*7=84`。"""
+    s = str(s or "")
+    s = (s.replace("－", "-").replace("×", "*").replace("÷", "/")
+          .replace("\\times", "*").replace("\\div", "/").replace("\\cdot", "*"))
+    s = re.sub(r"\\d?frac\{\s*([^{}]+?)\s*\}\{\s*([^{}]+?)\s*\}", r"(\1/\2)", s)
+    s = (s.replace("\\left", "").replace("\\right", "").replace("$", "")
+          .replace("\\,", "").replace("{", "(").replace("}", ")"))
+    return re.sub(r"\s+", "", s)
+
+
+def _calc(a: int, op: str, b: int):
+    """四则运算；不整除、出现负数的一律不算（不进题库）。"""
+    if op == "+":
+        return a + b
+    if op == "-":
+        return a - b if a >= b else None
+    if op == "*":
+        return a * b
+    if op == "/":
+        return a // b if b and a % b == 0 else None
+    return None
+
+
+def build_drills(con) -> list:
+    """练一练题库：教材里抽得出、且答案能被程序核对的整数四则算式。
+
+    每题带 a/op/b 三个数，前端出"变式"时换数字再按同一规则算答案，
+    所以变式的答案也是算出来的，不是编出来的。
+    """
+    rows = _rows(con, """select grade,term,unit_name,latex,kind
+                         from section_formula""")
+    out, seen = [], set()
+    for r in rows:
+        s = _norm_expr(r.get("latex"))
+        m = RE_DRILL_EQ.match(s)
+        if m:
+            a, op, b, c = (int(m.group(1)), m.group(2),
+                           int(m.group(3)), int(m.group(4)))
+            if _calc(a, op, b) != c:      # 教材抽错的答案，丢
+                continue
+            ans = c
+        else:
+            m = RE_DRILL_EX.match(s)
+            if not m:
+                continue
+            a, op, b = int(m.group(1)), m.group(2), int(m.group(3))
+            ans = _calc(a, op, b)
+            if ans is None:
+                continue
+        # 太简单的（1+1 之类）练不出什么，也不要
+        if ans is None or (op in "+-" and max(a, b) < 2):
+            continue
+        key = (r.get("grade"), r.get("term"), r.get("unit_name"), a, op, b)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append({
+            "book": "%s%s" % (r.get("grade") or "", r.get("term") or ""),
+            "grade": r.get("grade") or "", "term": r.get("term") or "",
+            "unit": r.get("unit_name") or "", "kind": r.get("kind") or "",
+            "stem": "%d%s%d=" % (a, DRILL_OP[op], b),
+            "a": a, "op": op, "b": b, "answer": str(ans),
+        })
+    out.sort(key=lambda x: (_book_sort_key(x["book"]), x["unit"], x["stem"]))
+    return out
 
 
 # ------------------------------------------------------------------ 数学·解决问题
@@ -531,10 +782,29 @@ def build_english(con) -> dict:
                for r in pick("en_grammar", ["grade", "term", "unit_name", "point",
                                             "pattern", "rule", "category", "tense",
                                             "examples"])]
+    # 扩展语法库（data/attrs/en_grammar_ext.json）：16 时态全覆盖 + 词法句法全主题，
+    # 不来自教材，无册次标注（book 为空，前端不显示来源标签）
+    _gext = os.path.join(config.ATTRS_DIR, "en_grammar_ext.json")
+    if os.path.exists(_gext):
+        with open(_gext, encoding="utf-8") as _f:
+            for r in json.load(_f):
+                grammar.append(dict(grade="", term="", book="", unit_no="", unit="",
+                                    point=r.get("point"), pattern=r.get("pattern"),
+                                    rule=r.get("rule"), category=r.get("category"),
+                                    tense=r.get("tense"),
+                                    examples=(r.get("examples") or [])[:8]))
     phonics = [dict(base(r), letters=r.get("letters"), sound=r.get("sound"),
                     examples=_j(r.get("examples"))[:8], chant=r.get("chant"))
                for r in pick("en_phonics", ["grade", "term", "unit_name", "letters",
                                             "sound", "examples", "chant"])]
+    # 语音拼读扩展：国际音标全表 + 自然拼读规则总览，与教材数据分离
+    phonics_ext = {"ipa": [], "nat_rules": []}
+    _pext = os.path.join(config.ATTRS_DIR, "en_phonics_ext.json")
+    if os.path.exists(_pext):
+        with open(_pext, encoding="utf-8") as _f:
+            _d = json.load(_f)
+            phonics_ext["ipa"] = _d.get("ipa", [])
+            phonics_ext["nat_rules"] = _d.get("nat_rules", [])
     # 语篇即英语的"课文"：原文 + 译文 + 阅读理解题 + 重点词
     passages = [dict(base(r), name=r.get("name"), genre=r.get("genre"),
                      source=r.get("source"), text=(r.get("text") or "")[:2000],
@@ -596,10 +866,540 @@ def build_english(con) -> dict:
         "domains": [{"key": d["key"], "name": d["name"], "desc": d["desc"]}
                     for d in goals.EN_DOMAINS],
         "vocab": vocab, "grammar": grammar, "phonics": phonics,
+        "phonics_ext": phonics_ext,
         "passages": passages, "dialogues": dialogues, "songs": songs,
         "projects": projects, "revisions": revisions,
         "themes": ["人与自我", "人与社会", "人与自然"],
     }
+
+
+def _clean_reading_text(raw, limit=8000):
+    """清洗 Gutenberg 纯文本：取 *** START / *** END 之间的正文。"""
+    import re
+    # 如果原始文件是 404 网页，直接返回空
+    if re.search(r"404|Page Not Found|Not Found", raw[:500], re.I) and "<html" in raw[:500].lower():
+        return ""
+    # 优先找 *** START OF ... *** 和 *** END OF ... *** 标记
+    start_pat = re.compile(r"\*\*\* *START OF.*?\*\*\*", re.I)
+    end_pat = re.compile(r"\*\*\* *(END|FINIS).*?\*\*\*", re.I)
+    m_start = start_pat.search(raw)
+    m_end = end_pat.search(raw, m_start.end() if m_start else 0)
+    if m_start:
+        body = raw[m_start.end():]
+        if m_end:
+            body = body[:m_end.start() - m_start.end()]
+    else:
+        # 无标记：逐行跳过 # 元数据行、=== 分隔行、头部信息
+        lines = raw.split("\n")
+        out = []
+        for line in lines:
+            s = line.strip()
+            if s.startswith("#") or s.startswith("==="):
+                continue
+            if s.startswith("Title:") or s.startswith("Author:"):
+                continue
+            if s.startswith("Release Date") or s.startswith("Language:"):
+                continue
+            out.append(line)
+        body = "\n".join(out)
+    # 如果正文是 HTML 网页（404 等），提取纯文本
+    if re.search(r"<!DOCTYPE|<html|<body", body, re.I):
+        # 去掉 <script> 和 <style> 块
+        body = re.sub(r"<script[^>]*>.*?</script>", "", body, flags=re.I | re.S)
+        body = re.sub(r"<style[^>]*>.*?</style>", "", body, flags=re.I | re.S)
+        # 去掉所有 HTML 标签
+        body = re.sub(r"<[^>]+>", "", body)
+    # 折叠多余空行，去掉 BOM
+    body = body.replace("\ufeff", "").strip()
+    # 去掉正文开头的制作信息（第一个段落块如果含制作关键词则跳过）
+    first_para = re.match(r"(.*?)(?:\n\n|\Z)", body, re.S)
+    if first_para and re.search(r"(Produced by|Proofreading|Internet Archive|Transcriber|gutenberg|pgdp\.net)", first_para.group(1), re.I):
+        body = body[first_para.end():].strip()
+    body = re.sub(r"\n{3,}", "\n\n", body)
+    return body[:limit] if len(body) > limit else body
+
+
+def _load_zh_trans():
+    """data/readings/zh_trans.json → {en: zh} 课外拓展预生成译文（无则 {}）。"""
+    import os
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                        "data", "readings", "zh_trans.json")
+    if not os.path.exists(path):
+        return {}
+    try:
+        raw = json.load(open(path, encoding="utf-8"))
+        return raw.get("trans", {}) or {}
+    except Exception:
+        return {}
+
+
+def _load_readings():
+    """长文库 catalog.json → 精简后供课外拓展页展示。"""
+    import os
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                        "data", "readings", "catalog.json")
+    if not os.path.exists(path):
+        return []
+    raw = json.load(open(path, encoding="utf-8"))
+    texts_dir = os.path.join(os.path.dirname(path), "texts")
+    out = []
+    for b in raw.get("books", []):
+        f = b.get("facets", {})
+        bid = b.get("id", "")
+        # 加载全文：清洗 Gutenberg 头尾元数据，截前 8000 字符
+        text = ""
+        tp = os.path.join(texts_dir, bid + ".txt")
+        if os.path.exists(tp):
+            with open(tp, encoding="utf-8", errors="replace") as fh:
+                raw_txt = fh.read()
+            text = _clean_reading_text(raw_txt, 8000)
+        out.append({
+            "id": bid, "title": b.get("title", ""),
+            "author": b.get("author", ""),
+            "primary_topic": b.get("primary_topic", ""),
+            "secondary_topics": b.get("secondary_topics", []),
+            "text": text,
+            "facets": {
+                "grade": f.get("grade", []), "grade_band": f.get("grade_band", ""),
+                "text_type": f.get("text_type", ""),
+                "themes": f.get("themes", []), "settings": f.get("settings", []),
+                "word_count_bucket": f.get("word_count_bucket", ""),
+                "lexile": f.get("lexile", {}),
+                "cultural_origin": f.get("cultural_origin", ""),
+                "time_period": f.get("time_period", ""),
+                "target_skills": f.get("target_skills", []),
+                "text_role": f.get("text_role", []),
+            },
+            "pairs_with_unit": b.get("pairs_with_unit", []),
+        })
+    return out
+
+
+def _load_pairings():
+    """data/readings/pairings.json → 精简双向挂载表（供卡片与反向入口共用）。"""
+    import os
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                        "data", "readings", "pairings.json")
+    if not os.path.exists(path):
+        return []
+    raw = json.load(open(path, encoding="utf-8"))
+    out = []
+    for p in raw.get("pairings", []):
+        out.append({
+            "reading_id": p.get("reading_id", ""),
+            "reading_title": p.get("reading_title", ""),
+            "section_id": p.get("section_id", ""),
+            "unit_name": p.get("unit_name", ""),
+            "unit_title": p.get("unit_title", ""),
+            "grade": p.get("grade", ""),
+            "term": p.get("term", ""),
+            "role": p.get("role", ""),
+            "match_score": p.get("match_score", 0),
+            "reasons": (p.get("match_reasons") or [])[:3],
+        })
+    return out
+
+
+def _load_unit_index():
+    """data/outline/*.jsonl → {outline lesson_id: 单元定位信息}。
+
+    单元数据存在 outline 的 meta + lesson 行里，教材前端（enText）用
+    「册名 # 第N单元」做主键，而 pairings / catalog 用 outline 的 lesson_id
+    （<book_id>:<seq>）。这里做一次对照，让课外拓展卡片能跳到正确单元。
+    """
+    import os, re
+    od = os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                      "data", "outline")
+    if not os.path.isdir(od):
+        return {}
+    GRADENUM = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6,
+                "一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6}
+    def grnum(g):
+        m = re.match(r"([一二三四五六])年级", g or "")
+        return GRADENUM.get(m.group(1), 0) if m else 0
+    idx = {}
+    for fn in sorted(os.listdir(od)):
+        if not fn.endswith(".jsonl"):
+            continue
+        path = os.path.join(od, fn)
+        recs = [json.loads(l) for l in open(path, encoding="utf-8") if l.strip()]
+        meta = next((r for r in recs if r.get("type") == "meta"), None)
+        if not meta:
+            continue
+        stage = meta.get("stage") or ""
+        grade = meta.get("grade") or ""
+        term = meta.get("term") or ""
+        # 教材册名 = 年级 + 学期（如 三年级上册），与 vocab/passages 的 book 字段一致
+        book = grade + term if (grade and term) else (meta.get("book_id") or "")[:8]
+        for r in recs:
+            if r.get("type") == "meta":
+                continue
+            nid = r.get("lesson_id") or ""
+            if not nid:
+                continue
+            un = r.get("unit_no")
+            idx[nid] = {
+                "book": book,
+                "unit_no": un,
+                "unit_name": r.get("unit_name") or ("Unit " + str(un) if un else ""),
+                "unit_title": r.get("title") or "",
+                "grade": grade,
+                "term": term,
+                "printed_start": r.get("printed_start"),
+                "gr": grnum(grade),
+                "tt": 1 if "上" in term else (2 if "下" in term else 0),
+                "vid": (meta.get("version") or "").replace("（", "("),
+            }
+    return idx
+
+
+def _enrich_readings(readings, pairings, unit_index):
+    """给每本课外书补 units（带教材单元定位信息）+ 反向索引。
+
+    catalog 的 pairs_with_unit 与 pairings 的 section_id 合并去重，
+    再用 outline 索引解析出年级/册名/单元名，让前端能显示与跳转。
+    """
+    pair_of = {}
+    for p in pairings:
+        pair_of.setdefault(p.get("section_id") or "", []).append(p)
+    read_of = {}
+    for p in pairings:
+        read_of.setdefault(p.get("reading_id") or "", []).append(p)
+    reverse = {}
+    for b in readings:
+        ids = []
+        for sid in (b.get("pairs_with_unit") or []):
+            if sid not in ids:
+                ids.append(sid)
+        for p in read_of.get(b.get("id") or "", []):
+            sid = p.get("section_id") or ""
+            if sid and sid not in ids:
+                ids.append(sid)
+        units = []
+        seen = set()
+        for sid in ids:
+            u = dict(unit_index.get(sid) or {})
+            pl = pair_of.get(sid, [])
+            if pl:
+                p0 = pl[0]
+                u.setdefault("unit_title", p0.get("unit_title") or "")
+                u.setdefault("unit_name", p0.get("unit_name") or "")
+                u.setdefault("grade", p0.get("grade") or "")
+                u.setdefault("term", p0.get("term") or "")
+                u["role"] = p0.get("role") or ""
+                u["match_score"] = p0.get("match_score") or 0
+                u["reasons"] = (p0.get("match_reasons") or [])[:2]
+            # 同一「册名#单元号」只留一条（一本书可能横跨同单元的多个 lesson_id）
+            key = (u.get("book") or sid, u.get("unit_no"), u.get("unit_name"))
+            if key in seen:
+                continue
+            seen.add(key)
+            units.append(u)
+        units.sort(key=lambda u: (u.get("gr") or 0, u.get("tt") or 0,
+                                  u.get("unit_no") or 0))
+        b["units"] = units
+        b["pairs_with_unit"] = ids
+        if units:
+            reverse[b.get("id") or ""] = {
+                "id": b.get("id") or "", "title": b.get("title") or "",
+                "author": b.get("author") or "",
+                "topic": b.get("primary_topic") or "",
+            }
+    by_unit = {}
+    for rid, meta in reverse.items():
+        for u in [x for x in readings if x.get("id") == rid][0]["units"]:
+            if not u.get("book"):
+                continue
+            k = u["book"] + "#U" + str(u.get("unit_no") or 0)
+            lst = by_unit.setdefault(k, [])
+            # 同一单元下同一本书只挂一次（一本书可能横跨同单元的多个 lesson_id）
+            if not any(m.get("id") == meta.get("id") for m in lst):
+                lst.append(meta)
+    for k in by_unit:
+        by_unit[k].sort(key=lambda m: m.get("title") or "")
+    return by_unit, reverse
+
+
+def _load_picturebooks():
+    """绘本 books.json → 精简后供课外拓展页展示。"""
+    import os
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                        "data", "picturebooks", "books.json")
+    if not os.path.exists(path):
+        return []
+    raw = json.load(open(path, encoding="utf-8"))
+    out = []
+    for b in raw.get("books", []):
+        f = b.get("facets", {})
+        pages = b.get("pages", [])
+        out.append({
+            "id": b.get("id", ""), "title": b.get("title", ""),
+            "author": b.get("author", ""), "level": b.get("level", ""),
+            "primary_topic": b.get("primary_topic", ""),
+            "secondary_topics": b.get("secondary_topics", []),
+            "word_count": b.get("word_count", 0),
+            "reading_time_min": b.get("reading_time_min", 0),
+            "facets": {
+                "grade": f.get("grade", []), "grade_band": f.get("grade_band", ""),
+                "text_type": f.get("text_type", ""),
+                "themes": f.get("themes", []), "settings": f.get("settings", []),
+                "word_count_bucket": f.get("word_count_bucket", ""),
+                "lexile": f.get("lexile", {}),
+                "cultural_origin": f.get("cultural_origin", ""),
+                "time_period": f.get("time_period", ""),
+                "target_skills": f.get("target_skills", []),
+                "text_role": f.get("text_role", []),
+            },
+            "pages": [{"n": p.get("n"), "text": p.get("text", "")}
+                      for p in pages[:20]],
+        })
+    return out
+
+
+def _writing_data():
+    """英语写作教学数据：流程/六要素/文体/句型/连接词/检查表/练习。"""
+    return {
+        "process": [
+            {"step": 1, "en": "Prewriting", "zh": "构思",
+             "desc": "想清楚写什么、给谁看。用思维导图、关键词、提问列出想法。",
+             "tips": ["Who/What/When/Where/Why", "画思维导图", "列关键词"]},
+            {"step": 2, "en": "Drafting", "zh": "起草",
+             "desc": "先把想法写下来，不停笔修改。先求完整，不求完美。",
+             "tips": ["不停顿写完第一稿", "不会的词先空着或用中文", "写够字数再改"]},
+            {"step": 3, "en": "Revising", "zh": "修改",
+             "desc": "看内容与结构：顺序对不对？有没有多余的句子？开头结尾好不好？",
+             "tips": ["朗读自己的文章", "删掉重复的句子", "加连接词让更流畅"]},
+            {"step": 4, "en": "Editing", "zh": "校对",
+             "desc": "检查拼写、标点、大小写、语法。逐句检查，不放过小错误。",
+             "tips": ["检查大小写与句号", "拼写逐词核对", "时态是否一致"]},
+            {"step": 5, "en": "Publishing", "zh": "发表",
+             "desc": "工整誊抄或打字排版，加上标题，分享给同学或家人。",
+             "tips": ["标题居中加粗", "段落缩进", "分享给家人读"]}
+        ],
+        "traits": [
+            {"en": "Ideas", "zh": "思路", "icon": "💡",
+             "desc": "文章有没有一个明确的主意？细节是否支撑主旨？",
+             "check": ["我知道我要写什么", "每个段落都围绕主旨"]},
+            {"en": "Organization", "zh": "结构", "icon": "🏗",
+             "desc": "开头吸引人吗？中间有条理吗？结尾有总结吗？",
+             "check": ["开头引人入胜", "段落有逻辑顺序", "结尾呼应开头"]},
+            {"en": "Voice", "zh": "语气", "icon": "🎭",
+             "desc": "读起来像谁在说话？正式还是活泼？适合读者吗？",
+             "check": ["语气适合读者", "能感觉到作者的情感"]},
+            {"en": "Word Choice", "zh": "选词", "icon": "✏",
+             "desc": "用词准确吗？有没有重复？能不能换更好的词？",
+             "check": ["不用太多very/good/nice", "动词具体", "形容词生动"]},
+            {"en": "Sentence Fluency", "zh": "句子流畅", "icon": "🌊",
+             "desc": "句子长短搭配吗？读起来顺口吗？有没有太多流水句？",
+             "check": ["长短句搭配", "没有Run-on句", "开头不总是I/The"]},
+            {"en": "Conventions", "zh": "规范", "icon": "✓",
+             "desc": "拼写、标点、大小写、语法是否正确？",
+             "check": ["拼写正确", "标点用对", "主谓一致"]},
+            {"en": "Presentation", "zh": "呈现", "icon": "🎨",
+             "desc": "文章的版面和样子：标题、分段、字迹、插图、排版是否美观清楚？",
+             "check": ["有醒目的标题", "段落有缩进", "字迹/排版整齐", "有需要时配插图"]}
+        ],
+        "genres": [
+            {"en": "Narrative", "zh": "叙事", "icon": "📖",
+             "structure": ["开头：交代时间、地点、人物", "中间：发生了什么（按顺序）", "结尾：结果或感受"],
+             "frames": ["One day, ...", "Suddenly, ...", "Finally, ...", "In the end, ..."],
+             "example": "Last Sunday, I went to the park with my family. We played games and had a picnic. I felt very happy.",
+             "sample": "A Lucky Day on the Way to School\nLast Monday, I walked to school with my friend Ben. On the way, we saw a little dog sitting under a tree. It looked sad and hungry. We shared our bread with it and it ate quickly. Then the dog followed us to school. The teacher was surprised, but she smiled. We named the dog Lucky. At the end of the day, a kind lady came and took Lucky home. Ben and I were happy that we could help. That day, we learned that helping others makes us happy."},
+            {"en": "Descriptive", "zh": "描写", "icon": "🎨",
+             "structure": ["整体印象", "细节描写（看/听/闻/触）", "感受总结"],
+             "frames": ["It looks like ...", "I can see ...", "It smells like ...", "It makes me feel ..."],
+             "example": "My bedroom is small but cozy. The walls are light blue. There is a big window near my bed. I can hear birds singing every morning.",
+             "sample": "My Kitchen Garden\nAt the back of our house, there is a small kitchen garden. It is green and full of life. In the morning, I can see sunflowers turning their heads to the sun. I can hear bees buzzing around the flowers. When I touch the grass, it is soft and wet with dew. The tomatoes smell fresh and sweet. Sitting there, I feel calm and happy. This little garden is my favourite place at home."},
+            {"en": "Expository", "zh": "说明", "icon": "📋",
+             "structure": ["主题句：说明什么", "事实/步骤/原因", "总结句"],
+             "frames": ["First, ...", "Second, ...", "Also, ...", "In conclusion, ..."],
+             "example": "There are three things I do every morning. First, I brush my teeth. Second, I eat breakfast. Also, I read a book for ten minutes.",
+             "sample": "How to Keep My Desk Clean\nKeeping my desk clean is easy if I follow three steps. First, I put my books back on the shelf after I read them. Second, I put the pencils and erasers into my pencil case every evening. Also, I use a small box for my toys so they do not cover the desk. In conclusion, a clean desk helps me study better and find things quickly."},
+            {"en": "Persuasive", "zh": "议论", "icon": "💬",
+             "structure": ["观点：我认为……", "理由1 + 例子", "理由2 + 例子", "号召行动"],
+             "frames": ["I think ... because ...", "For example, ...", "Another reason is ...", "You should ..."],
+             "example": "I think students should have more PE classes. First, exercise keeps us healthy. Second, sports help us make friends. You should play sports every day!",
+             "sample": "We Should Read More Books\nI think every student should read more books. First, reading helps us learn new words and make our sentences better. For example, I learned many new words from a storybook. Second, reading is a fun way to rest after playing. Another reason is that a book can take us to faraway places without leaving home. You should try reading ten minutes every day!"},
+            {"en": "Letter/Email", "zh": "书信", "icon": "✉",
+             "structure": ["称呼 (Dear ...)", "正文：写什么事", "结尾问候 (Best wishes,)", "署名"],
+             "frames": ["Dear ...,", "How are you?", "I am writing to ...", "Best wishes,", "Yours, ..."],
+             "example": "Dear Tom,\nHow are you? I am writing to invite you to my birthday party. It is on Saturday at 3 pm. I hope you can come!\nBest wishes,\nLi Ming",
+             "sample": "A Thank-you Letter\nDear Grandma,\nThank you for the red gloves you sent me. They are warm and beautiful, and I wear them every day to school. The weather is getting cold here, so your gloves really help. I also love the drawings on them. I am writing to say thank you from my heart. Please come to visit us soon!\nLove,\nAmy"}
+        ],
+        "transitions": [
+            {"cat": "顺序", "zh": "Sequence", "words": ["first", "then", "next", "after that", "finally", "in the end"]},
+            {"cat": "补充", "zh": "Addition", "words": ["also", "too", "and", "besides", "what's more", "in addition"]},
+            {"cat": "对比", "zh": "Contrast", "words": ["but", "however", "although", "on the other hand", "while", "whereas"]},
+            {"cat": "因果", "zh": "Cause & Effect", "words": ["because", "so", "therefore", "as a result", "since", "due to"]},
+            {"cat": "举例", "zh": "Example", "words": ["for example", "for instance", "such as", "like", "namely"]},
+            {"cat": "总结", "zh": "Conclusion", "words": ["in conclusion", "to sum up", "in short", "all in all", "overall"]}
+        ],
+        "conventions": [
+            {"topic": "大写", "icon": "🔠",
+             "rules": ["句子开头第一个字母要大写", "专有名词要大写（人名、地名、星期、月份）", "人称代词 I 永远大写", "书名/标题的重要单词首字母大写"],
+             "example": "✓ My name is Lily.   ✗ my name is lily."},
+            {"topic": "标点", "icon": "❓",
+             "rules": ["陈述句结尾用 .", "疑问句结尾用 ?", "表达强烈情感用 !", "人名/地名字用逗号隔开（Dear Tom,）"],
+             "example": "✓ Are you ready?   ✗ Are you ready."},
+            {"topic": "拼写", "icon": "🔤",
+             "rules": ["先写完整再改拼写，别为修改打断思路", "写完逐词核对，用词典或朗读检查", "注意易混词：there / their / they're", "名词变复数别漏 s 或 es"],
+             "example": "✓ there is a book   ✗ their is a book"},
+            {"topic": "时态一致", "icon": "⏰",
+             "rules": ["同一件事不要一会儿现在时一会儿过去时", "现在经常发生用一般现在时", "上星期做的用一般过去时", "将来打算用 be going to / will"],
+             "example": "✓ Yesterday I went to the park.   ✗ Yesterday I go to the park."},
+            {"topic": "句子完整", "icon": "🧩",
+             "rules": ["每个句子都要有主语和谓语", "不要写半边句子（Fragment）", "不要一句话没写完就换行", "学会用 and / but / so 连接",
+              "例：把 I like dogs. They are cute. 连成 I like dogs because they are cute."],
+             "example": "✓ I like dogs because they are cute.   ✗ Dogs. Because cute."}
+        ],
+        "grade_guide": [
+            {"grade": "一二年级", "icon": "🌱",
+             "goal": "能写 3-5 个单词组成的简单句子", "length": "20-30 词",
+             "tips": ["会用 I like ... / I can ... 开头", "大写和句号正确", "看图写 1 句话", "抄写并工整誊写"],
+             "focus": "句子 → 简单书写"},
+            {"grade": "三年级", "icon": "🌿",
+             "goal": "能写 2-3 句连贯的简单句", "length": "30-50 词",
+             "tips": ["会给句子加 and / but", "按时间顺序写小事件", "学会问答式写作", "会写贺卡和简单信件"],
+             "focus": "段落雏形 → 书信"},
+            {"grade": "四年级", "icon": "🌲",
+             "goal": "能写 3-5 句的小段落", "length": "50-80 词",
+             "tips": ["有主题句和结尾", "按 First/Second 写步骤", "描写用感官词", "用连接词使句子连贯"],
+             "focus": "完整段落 → 说明"},
+            {"grade": "五年级", "icon": "🌳",
+             "goal": "能写多段落短文", "length": "80-120 词",
+             "tips": ["段落有结构（开头-中间-结尾）", "学会议论：观点+理由", "会写叙事故事", "检查表自查"],
+             "focus": "多段落 → 叙事/议论"},
+            {"grade": "六年级", "icon": "🏆",
+             "goal": "能写审题清晰、结构完整的短文", "length": "120-160 词",
+             "tips": ["审题：看清要求再写", "综合运用连接词与句型", "会用 there be / 比较级", "发表前做 Presentation 呈现"],
+             "focus": "审题立意 → 完整写作"}
+        ],
+        "sentence_frames": [
+            {"level": "简单句", "en": "Simple", "color": "#e8f5e9",
+             "frames": ["I like ___.", "He is ___.", "She can ___.", "They have ___.", "We went to ___."]},
+            {"level": "并列句", "en": "Compound", "color": "#e3f2fd",
+             "frames": ["I like ___, and he likes ___.", "She is tired, but she keeps going.", "We can go now, or we can wait.", "I was hungry, so I ate an apple."]},
+            {"level": "复合句", "en": "Complex", "color": "#fff3e0",
+             "frames": ["When I ___, I ___.", "Because ___, ___.", "If ___, ___.", "Although ___, ___."]}
+        ],
+        "checklist": [
+            {"item": "我的文章有标题", "cat": "结构"},
+            {"item": "每个段落只有一个主题", "cat": "结构"},
+            {"item": "开头能吸引读者", "cat": "结构"},
+            {"item": "结尾有总结或感受", "cat": "结构"},
+            {"item": "用了连接词让句子更流畅", "cat": "流畅"},
+            {"item": "没有太多重复的词", "cat": "选词"},
+            {"item": "动词用了具体词", "cat": "选词"},
+            {"item": "句子长短搭配", "cat": "流畅"},
+            {"item": "拼写都正确", "cat": "规范"},
+            {"item": "标点符号用对了", "cat": "规范"},
+            {"item": "大小写正确", "cat": "规范"},
+            {"item": "时态前后一致", "cat": "规范"}
+        ],
+        "prompts": [
+            {"type": "看图写话", "en": "Picture Description", "zh": "看图写 5 句话，描述你在图中看到了什么。", "min_words": 30},
+            {"type": "续写", "en": "Story Continuation", "zh": "It was a rainy day. Suddenly, I heard a strange sound... 续写这个故事。", "min_words": 50},
+            {"type": "仿写", "en": "Imitation", "zh": "仿写一篇 My Family 短文，介绍你的家庭（参照课文体裁）。", "min_words": 40},
+            {"type": "书信", "en": "Letter", "zh": "给你的好朋友写一封信，邀请他/她来你家玩。", "min_words": 50},
+            {"type": "议论", "en": "Opinion", "zh": "你认为小学生应该有作业吗？写出你的观点和理由。", "min_words": 40},
+            {"type": "描写", "en": "Description", "zh": "描写你最喜欢的地方（教室、公园、房间……），至少用 3 个感官词。", "min_words": 40},
+            {"type": "自由写作", "en": "Free Writing", "zh": "写任何你想写的话题，写满 5 分钟不停笔。", "min_words": 60}
+        ],
+        "creative": [
+            {"cat": "创意写作工坊", "icon": "🎭",
+             "items": [
+                 {"name": "看图写话", "en": "Picture Story", "desc": "看图先说出 5 个看到的名词，再加动作词，连成一个小故事。",
+                  "frames": ["I can see ___.", "There is a ___.", "The ___ is ___-ing.", "Suddenly, ___.", "In the end, ___."],
+                  "example": "I can see a boy and a dog. The dog is running. Suddenly, it stops and looks at me. In the end, we play together."},
+                 {"name": "故事续写", "en": "Story Extension", "desc": "给你一个开头，接着往下编，加入新角色和转折。",
+                  "frames": ["Then ___.", "After that, ___.", "But suddenly, ___.", "Finally, ___."],
+                  "example": "It was raining. Then the door opened. A tiny fox walked in. But suddenly, it spoke: 'Help me!' Finally, we became friends."},
+                 {"name": "五感描写", "en": "Five Senses", "desc": "用看/听/闻/尝/触摸五种感觉写同一个地方。",
+                  "frames": ["I can see ___.", "I can hear ___.", "It smells like ___.", "It tastes like ___.", "It feels ___-ing."],
+                  "example": "I can see a market. I can hear people talking. It smells like fresh bread. The juice tastes sweet. The fruit feels smooth."},
+                 {"name": "广告海报", "en": "Poster Ad", "desc": "为一样东西写一小段广告，把它的好处说得让人心动。",
+                  "frames": ["Come and try ___.", "It is ___.", "You will love it because ___.", "Don't miss it!", "Price: ___"],
+                   "example": "Come and try my magic eraser! It is small and cheap. You will love it because it cleans anything. Don't miss it!"},
+                 {"name": "漫画对话", "en": "Comic Talk", "desc": "写两人对话，句子短、带情绪，读起来像漫画。",
+                  "frames": ["\"Hi!\" said ___.", "\"Let's ___.\"", "\"Oh no! ___\"", "\"Haha, good idea!\""],
+                  "example": "\"Hi!\" said Tom. \"Let's fly a kite!\" \"Oh no! The kite is stuck!\" \"Don't worry. I have a ladder.\" \"Haha, good idea!\""}
+             ]},
+            {"cat": "写作小游戏", "icon": "🎲",
+             "items": [
+                 {"name": "故事接龙", "en": "Story Chain", "desc": "几个人轮流每人加一句，故事会越编越离奇。",
+                  "frames": ["Once ___.", "Then ___.", "But ___.", "And then ___.", "At last ___."],
+                  "example": "Once a cat wore shoes. Then it rode a bike. But it fell into a pond. And then a fish helped it up. At last they became friends."},
+                 {"name": "骰子造句", "en": "Dice Sentences", "desc": "掷骰子选 谁/在哪里/做什么，拼出一个滑稽句子。",
+                  "frames": ["___ (谁) ___ (在哪里) ___ (做什么).", "Suddenly, ___ (谁) ___ (做什么)."],
+                  "example": "A penguin in the kitchen sings a song. Suddenly, the penguin dances on the table."},
+                 {"name": "词云成篇", "en": "Word Cloud", "desc": "先圈 6-8 个词，再用一句话把它们全部用进去。",
+                  "frames": ["Today, I saw ___, ___, and ___ at ___.", "___ made me feel ___, so I ___."],
+                  "example": "Today, I saw a kite, an apple, and a dragonfly at the park. The dragonfly made me feel happy, so I ran after it."},
+                 {"name": "换头换尾", "en": "Swap Ending", "desc": "给一个老故事换一个新结尾，或者把主角换成动物。",
+                  "frames": ["Long ago, ___ was the hero.", "But this time, the ending was different: ___."],
+                  "example": "Long ago, a rabbit was the hero. But this time, the ending was different: the rabbit became a king!"}
+             ]},
+            {"cat": "诗歌与押韵", "icon": "🎵",
+             "items": [
+                 {"name": "押韵小诗", "en": "Rhyming Poem", "desc": "选一组押韵词（cat/bat、moon/soon）写 2-4 行小诗。",
+                  "frames": ["___ at ___", "And the ___ goes ___", "___ in the ___, / ___ and ___", "The ___ / makes us ___"],
+                  "example": "The cat sat on the mat. It chased a bat with a hat. The bat flew high, away to the sky. The cat said bye bye."},
+                 {"name": "俳句", "en": "Haiku", "desc": "日本短诗：三行，音节 5-7-5，写一处自然画面。",
+                  "frames": ["Line1 (5): ___ ___ ___ ___ ___", "Line2 (7): ___ ___ ___ ___ ___ ___ ___", "Line3 (5): ___ ___ ___ ___ ___"],
+                  "example": "Spring rain falls softly (5) / On the green leaves of the tree (7) / A bird starts to sing (5)."},
+                 {"name": "藏头诗", "en": "Acrostic", "desc": "把名字竖着写，每行以字母开头写一句。",
+                  "frames": ["S: ___", "U: ___", "N: ___", "..."],
+                  "example": "S: Summer brings sunshine. U: Under the trees we play. N: Night comes, we say goodbye."},
+                 {"name": "声音词诗", "en": "Onomatopoeia", "desc": "多用哗啦/叮咚/汪汪这类声音词，让诗「响」起来。",
+                  "frames": ["___ sounds ___", "___ goes ___", "All day, ___ and ___"],
+                  "example": "The rain goes drip drip. The bell goes ding dong. The dog says woof woof. All day we sing a noisy song."}
+             ]},
+            {"cat": "分话题创意提示库", "icon": "💡",
+             "items": [
+                 {"name": "旅行奇遇", "en": "Travel", "desc": "想象出发去一个没去过的地方。",
+                  "frames": ["I packed my bag with ___ and ___.", "When I arrived, I saw ___.", "The best part was ___."],
+                  "example": "I packed my bag with cookies and a map. When I arrived at the moon, I saw a green rabbit. The best part was hopping over craters."},
+                 {"name": "如果动物会说话", "en": "Talking Animals", "desc": "选一个你喜欢的小动物，写它第一天上学的故事。",
+                  "frames": ["I am a ___.", "On my first day, I met ___.", "We learned to ___."],
+                  "example": "I am a little duck. On my first day, I met a shy turtle. We learned to quack and swim together."},
+                 {"name": "梦想的职业", "en": "Dream Job", "desc": "写长大后想做什么，为什么，会怎样帮助别人。",
+                  "frames": ["When I grow up, I want to ___.", "Because ___.", "I will help ___."],
+                  "example": "When I grow up, I want to be a doctor. Because I can make sick kids feel better. I will help every child smile again."},
+                 {"name": "我的秘密基地", "en": "Secret Base", "desc": "写一个只有你知道的秘密角落，说清它长什么样。",
+                  "frames": ["My secret base is ___.", "It looks like ___.", "Only __ knows it.", "I go there when ___."],
+                  "example": "My secret base is under the big oak tree. It looks like a tent made of leaves. Only my cat knows it. I go there when I want to read."}
+             ]}
+        ]
+    }
+
+
+def _load_taxonomy():
+    """taxonomy.json 的分面定义 → 供 UI 渲染筛选项标签。"""
+    import os
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                        "data", "readings", "taxonomy.json")
+    if not os.path.exists(path):
+        return {}
+    raw = json.load(open(path, encoding="utf-8"))
+    dims = raw.get("dimensions", {})
+    # 精简：只保留 UI 需要的 label 映射
+    out = {}
+    for k, v in dims.items():
+        if v.get("type") == "single_enum" and isinstance(v.get("values"), dict):
+            out[k] = {"label": v.get("description", k),
+                      "values": {kk: vv for kk, vv in v["values"].items()}}
+        elif v.get("type") == "single_enum" and isinstance(v.get("values"), list):
+            out[k] = {"label": v.get("description", k), "values": v["values"]}
+        elif v.get("type") == "multi_enum" and isinstance(v.get("values"), dict):
+            out[k] = {"label": v.get("description", k),
+                      "values": {kk: vv for kk, vv in v["values"].items()}}
+        elif v.get("type") == "multi_enum" and isinstance(v.get("values"), list):
+            out[k] = {"label": v.get("description", k), "values": v["values"]}
+        elif v.get("type") == "range" and "bands" in v:
+            out[k] = {"label": v.get("description", k),
+                      "values": {kk: vv.get("grade_hint", kk)
+                                 for kk, vv in v["bands"].items()}}
+    return out
 
 
 def build_speak(con) -> dict:
@@ -722,9 +1522,9 @@ MATH_PAGES = [
 ]
 EN_PAGES = [
     ("index", "课文与语篇", "discourse",
-     "这一页可以当课本用：按册 → 单元，教材顺序排下来。情景对话逐句分行（角色、"
-     "原文、中文可遮住自测），短文原文 + 译文 + 重点词 + 理解题一并给出；"
-     "点右上角“中文对照”切换译文——纸质书做不到。"),
+     "每一课都是一个学习中心：课文默认折叠，点开就是预习、音标、自然拼读、语法、"
+     "练习、小游戏、复习自评与课外拓展。情景对话逐句分行（角色、原文、中文可遮住自测），"
+     "短文原文 + 译文 + 重点词 + 理解题一并给出；点右上角“中文对照”切换译文。"),
     ("vocab", "词汇", "vocab",
      "按话题成串收录，带音标与例句；点单词才出中文（自测），另有听写练习。"),
     ("grammar", "语法汇总", "grammar",
@@ -734,6 +1534,17 @@ EN_PAGES = [
     ("speak", "开口说", "speak",
      "教材里每一组对话按角色摊开，一句一句推进；中文可遮住自测。"
      "另有项目任务：做出一样东西要说什么、要什么材料。敢开口，从有话可说开始。"),
+    ("dictation", "听写练习", "dictation",
+     "三种模式：拼写听写（看中文/音标听发音拼写）、句子听写（听整句照听打下来）、"
+     "短文填空（读短文听发音填关键词）。支持按册次/单元/话题/难度筛选，10 题一组，"
+     "错题保留在右侧错题本，方便回头重做。"),
+    ("extra", "课外拓展", "extra",
+     "教材之外的同主题阅读：按话题串起来，短文配译文与朗读，"
+     "对话配情景与功能。想多读几篇同一个话题的，来这里。"),
+    ("writing", "英语写作", "writing",
+     "从构思到发表的完整写作流程：六要素（思路/结构/语气/选词/句子/规范）、"
+     "文体类型（叙事/描写/说明/议论/书信）、句型支架与连接词、教材范文拆解、"
+     "看图写话与仿写练习。配合写作检查表，一步步把想法变成文章。"),
 ]
 SUBJECTS = [("chinese", "语文", CN_PAGES),
             ("math", "数学", MATH_PAGES),
@@ -743,7 +1554,7 @@ PAGE = """<!DOCTYPE html>
 <html lang="zh-Hans"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title} · 小学知识大全</title>
-<link rel="stylesheet" href="{base}assets/app.css"></head>
+<link rel="stylesheet" href="{base}assets/app.css?v={v}"></head>
 <body data-page="{page}" data-base="{base}">
 <header>
   <span class="seal">课本</span>
@@ -764,9 +1575,20 @@ PAGE = """<!DOCTYPE html>
 <footer>由教材解析流水线生成 · 内容取自义务教育教科书（人教版）·
 数据本地生成，不出本机</footer>
 <script>window.DATA={data};</script>
-<script src="{base}assets/app.js"></script>
+{xscripts}<script src="{base}assets/app.js?v={v}"></script>
 </body></html>
 """
+
+
+def _asset_version():
+    """app.js/app.css 内容哈希前 8 位，作 ?v= 版本戳防浏览器缓存旧资源。"""
+    h = hashlib.sha1()
+    for fn in ("app.js", "app.css"):
+        p = os.path.join(ASSETS_SRC, fn)
+        if os.path.exists(p):
+            with open(p, "rb") as f:
+                h.update(f.read())
+    return h.hexdigest()[:8]
 
 
 def _nav(cur, base=""):
@@ -794,6 +1616,92 @@ def _esc(s):
 def _write(path, html):
     with open(path, "w", encoding="utf-8") as f:
         f.write(html)
+
+
+def build_lesson_hubs(en_d):
+    """课文与语篇页的「每课学习中心」单元级配套数据。
+
+    按 (book#U{unit_no}) 聚合：
+      grammar  —— 本单元语法条目（句型/规则/例句，瘦字段）
+      phonics  —— 本单元自然拼读（字母组合/发音/例词）
+      projects —— 本单元项目任务（课外拓展用）
+    按册聚合：
+      songs    —— 歌谣大多只标到册（unit="Songs"），挂到同册每个单元
+    前端键与 app.js 的 slot() 主键保持一致：book + "#" + ("U"+unit_no or unit)。
+    """
+    def ukey(x):
+        return (x.get("book") or "") + "#" + (
+            "U" + str(x["unit_no"]) if x.get("unit_no") else (x.get("unit") or ""))
+
+    # 入库时部分单元被重复导入过（同一 (letters,sound) / point 出现 2~3 份），
+    # 展示层按内容指纹去重，学习中心才不至于一屏翻三遍同一页。
+    units = {}
+    seen = {}
+    def slot(k):
+        return units.setdefault(k, {"grammar": [], "phonics": [], "projects": []})
+
+    for g in en_d.get("grammar", []):
+        if not g.get("unit_no"):
+            continue
+        fingerprint = (g.get("point") or "").strip().lower()
+        if not fingerprint:
+            continue
+        key = (ukey(g), fingerprint)
+        if seen.get(key):
+            continue
+        seen[key] = 1
+        slot(ukey(g))["grammar"].append({
+            "point": g.get("point") or "",
+            "pattern": g.get("pattern") or "",
+            "rule": g.get("rule") or "",
+            "examples": [{"en": e.get("en") or "", "zh": e.get("zh") or ""}
+                         for e in (g.get("examples") or [])[:3]],
+        })
+    for p in en_d.get("phonics", []):
+        if not p.get("unit_no"):
+            continue
+        fingerprint = ((p.get("letters") or "").strip() + "|" +
+                       (p.get("sound") or "").strip()).lower()
+        key = (ukey(p), fingerprint)
+        if seen.get(key):
+            continue
+        seen[key] = 1
+        slot(ukey(p))["phonics"].append({
+            "letters": p.get("letters") or "",
+            "sound": p.get("sound") or "",
+            "examples": [w for w in dict.fromkeys(p.get("examples") or [])][:8],
+            "chant": p.get("chant") or "",
+        })
+    for p in en_d.get("projects", []):
+        if not p.get("unit_no"):
+            continue
+        fingerprint = (p.get("name") or "").strip().lower()
+        if not fingerprint:
+            continue
+        key = (ukey(p), fingerprint)
+        if seen.get(key):
+            continue
+        seen[key] = 1
+        slot(ukey(p))["projects"].append({
+            "name": p.get("name") or "",
+            "type": p.get("type") or "",
+            "goal": p.get("goal") or "",
+            "steps": (p.get("steps") or [])[:6],
+            "language": (p.get("language") or [])[:8],
+            "product": p.get("product") or "",
+        })
+
+    songs = {}
+    for s in en_d.get("songs", []):
+        book = s.get("book") or ""
+        if not book:
+            continue
+        songs.setdefault(book, []).append({
+            "name": s.get("name") or "",
+            "lyrics": (s.get("lyrics") or [])[:12],
+            "topic": s.get("topic") or "",
+        })
+    return {"units": units, "songs": songs}
 
 
 def _slice(key, kind, cn_d, math_d, en_d):
@@ -826,18 +1734,45 @@ def _slice(key, kind, cn_d, math_d, en_d):
         d = {"domains": math_d["domains"], "units": units, "books": books}
         if kind == "all":
             d["measures"] = math_d["measures"]
+        # 练一练只挂在有计算的页上（课本单元 / 数与代数 / 图形与几何）
+        if kind in ("all", "num", "geo"):
+            d["drills"] = math_d["drills"]
         return d
     books = sorted({v["book"] for v in en_d["vocab"]}, key=_book_sort_key)
     if kind == "speak":
         return {"dialogues": en_d["dialogues"], "projects": en_d["projects"],
                 "exprs": en_d["exprs"], "functions": en_d["functions"],
                 "books": sorted({d["book"] for d in en_d["dialogues"]}, key=_book_sort_key)}
+    if kind == "dictation":
+        # 拼写/句子/短文三种模式分别需要 vocab / dialogues+passages / passages
+        return {"vocab": en_d["vocab"], "passages": en_d["passages"],
+                "dialogues": en_d["dialogues"], "exprs": en_d.get("exprs", []),
+                "themes": en_d["themes"], "books": books}
     keys = {"discourse": ["passages", "dialogues"], "vocab": ["vocab"],
-            "grammar": ["grammar"], "phonics": ["phonics"],
-            "use": ["songs", "projects", "revisions"]}
+            "grammar": ["grammar"], "phonics": ["phonics", "phonics_ext"],
+            "use": ["songs", "projects", "revisions"],
+            "extra": ["passages", "dialogues"],
+            "writing": ["passages", "dialogues", "vocab", "grammar"]}
     d = {"books": books, "themes": en_d["themes"], "domains": en_d["domains"]}
     for k in keys.get(kind, []):
         d[k] = en_d[k]
+    if kind == "discourse":
+        # 每课学习中心的单元级配套 + 本单元配套的课外书（反向入口）
+        hubs = build_lesson_hubs(en_d)
+        extra_by_unit, _ = _enrich_readings(_load_readings(),
+                                            _load_pairings(),
+                                            _load_unit_index())
+        hubs["extra"] = extra_by_unit
+        d["hubs"] = hubs
+    if kind == "extra":
+        # 本体论课外拓展：加载长文库 + 绘本 + 分类标准
+        readings = _load_readings()
+        _enrich_readings(readings, _load_pairings(), _load_unit_index())
+        d["readings"] = readings
+        d["picturebooks"] = _load_picturebooks()
+        d["taxonomy"] = _load_taxonomy()
+    if kind == "writing":
+        d["writing"] = _writing_data()
     if kind != "vocab":
         d["vocab"] = en_d["vocab"]      # 册次/话题下拉与课文重点词用得上
     return d
@@ -845,14 +1780,40 @@ def _slice(key, kind, cn_d, math_d, en_d):
 
 def build_pages(out_dir: str = None, verbose: bool = True) -> dict:
     """生成整站。"""
-    from . import anim      # 可选：Manim 动画（没渲染过就是空，不影响生成）
-
     out = out_dir or OUT_DIR
     os.makedirs(os.path.join(out, "assets"), exist_ok=True)
     os.makedirs(os.path.join(out, "data"), exist_ok=True)
     if os.path.isdir(ASSETS_SRC):
         for fn in os.listdir(ASSETS_SRC):
             shutil.copy(os.path.join(ASSETS_SRC, fn), os.path.join(out, "assets", fn))
+
+    # 课外拓展预生成译文：data/readings/zh_trans.json → assets/zh_trans.js
+    # （仅 english/extra.html 引用；运行时翻译先查它，没有才走 Google）
+    zh_trans = _load_zh_trans()
+    if zh_trans:
+        with open(os.path.join(out, "assets", "zh_trans.js"), "w",
+                  encoding="utf-8") as f:
+            f.write("window.ZH_TRANS="
+                    + json.dumps(zh_trans, ensure_ascii=False).replace("</", "<\\/")
+                    + ";\n")
+        if verbose:
+            print(f"→ 课外译文: {len(zh_trans)} 条 → assets/zh_trans.js")
+
+    # 英语点读音频：把 data/tts/ 合并进 pages/tts/（含 index.json 与 4 个音色子目录）
+    # 注意：pages/tts 可能已经有构建时未覆盖的批量生成音频（如 fa5563f4 的 6318x4 音色），
+    # 这里必须用增量合并，不能 rmtree —— 否则 pages/tts 会被 data/tts（只有 1500 多份）
+    # 反向覆盖，把已有的 25k+ MP3 删光。
+    from . import tts as _tts
+    if os.path.isdir(_tts.TTS_DIR):
+        tts_out = os.path.join(out, "tts")
+        os.makedirs(tts_out, exist_ok=True)
+        shutil.copytree(_tts.TTS_DIR, tts_out, dirs_exist_ok=True)
+        n_mp3 = sum(len([f for f in os.listdir(os.path.join(tts_out, v))
+                         if f.endswith(".mp3")])
+                    for v in os.listdir(tts_out)
+                    if os.path.isdir(os.path.join(tts_out, v)))
+        if verbose:
+            print(f"→ TTS: {n_mp3} MP3 已同步到 {tts_out}")
 
     con = duckdb.connect(DB_PATH, read_only=True)
     try:
@@ -918,19 +1879,22 @@ def build_pages(out_dir: str = None, verbose: bool = True) -> dict:
 
     _write(os.path.join(out, "index.html"), PAGE.format(
         title="总览", page="index", base="", subnav="", nav=_nav("index"),
-        body=index_body, data=_esc({"stats": stats})))
+        body=index_body, data=_esc({"stats": stats}), xscripts="",
+        v=_asset_version()))
 
     for key, name, pages in SUBJECTS:
         os.makedirs(os.path.join(out, key), exist_ok=True)
         for slug, title, kind, desc in pages:
-            # 数学页额外挂 Manim 动画（渲染过才有，没渲染不影响页面）
-            vids = anim.video_block(kind, out) if key == "math" else ""
+            # 课外拓展页额外挂预生成译文库（window.ZH_TRANS，见 app.js loadTranslation）
+            xscripts = ('<script src="../assets/zh_trans.js"></script>\n'
+                        if (key, slug) == ("english", "extra") else "")
             _write(os.path.join(out, key, slug + ".html"), PAGE.format(
                 title="%s · %s" % (name, title), page="%s-%s" % (key, kind),
                 base="../", nav=_nav(key, "../"), subnav=_subnav(slug, pages),
-                body='<h2>%s · %s</h2><p class="lead">%s</p>%s'
-                     % (name, title, desc, vids),
-                data=_esc(_slice(key, kind, cn_d, math_d, en_d))))
+                body='<h2>%s · %s</h2><p class="lead">%s</p>'
+                     % (name, title, desc),
+                data=_esc(_slice(key, kind, cn_d, math_d, en_d)),
+                xscripts=xscripts, v=_asset_version()))
 
     # 分页之前的单页文件不留，免得两套并存
     for f in ("chinese.html", "math.html", "english.html"):

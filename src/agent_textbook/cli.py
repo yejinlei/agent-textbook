@@ -238,6 +238,28 @@ def cmd_mathmap(args) -> None:
                            limit=args.limit, force=args.force)
 
 
+def cmd_reorder(args) -> None:
+    """按 PDF 版面坐标重排课文：图表的字不再夹在正文句子中间。
+
+    只改 section_text 的正文与分块，不动知识点/例题等已抽好的产物。
+    """
+    import duckdb
+
+    from .index import reorder
+
+    subs = [s.strip() for s in (args.subject or "数学").split(",") if s.strip()]
+    db = os.path.join(config.DATA_DIR, "kb.duckdb")
+    con = duckdb.connect(db)
+    try:
+        for s in subs:
+            reorder.reorder_sections(con, s)
+        con.commit()
+        # 语文古诗文不走这里：诗正文 + 页下注释 + 字上拼音在同一页混排，
+        # 按坐标排会把诗句和注释交错（实测反而更乱），要改用 VLM 读页区分。
+    finally:
+        con.close()
+
+
 def cmd_pages(args) -> None:
     """静态站点：按教学目标组织的"小学知识大全"。"""
     from .site import build
@@ -245,18 +267,23 @@ def cmd_pages(args) -> None:
     build.build_pages(out_dir=args.out or None)
 
 
-def cmd_anim(args) -> None:
-    """可选：用 Manim 渲染数学公式动画（需先 pip install manim）。"""
-    from .site import anim
+def cmd_tts(args) -> None:
+    """英语点读音频：Piper 批量生成 + 音色索引。"""
+    from .site import tts
 
-    r = anim.render_all(quality=args.quality or "-ql")
-    print(r["msg"])
-    for f in r.get("files", []):
-        print("  √", f)
-    for slug, err in r.get("failed", []):
-        print("  ×", slug, err.replace("\n", " ")[:160])
-    if not r["ok"]:
-        print("提示：没装 manim 就跑不了；页面里的可视化实验室不需要它。")
+    voices = [v.strip() for v in (args.voice or "").split(",") if v.strip()] or None
+    if args.action == "list":
+        tts.cmd_list()
+    elif args.action == "download":
+        tts.cmd_download(voices)
+    elif args.action == "gen":
+        tts.cmd_gen(voices=voices, limit=args.limit or None, parallel=not args.serial,
+                    force=getattr(args, "force", False))
+    elif args.action == "extract":
+        texts = tts.extract_texts()
+        print(f"{len(texts)} unique texts extracted")
+        for t in texts[:int(args.show or 0)]:
+            print(" ", t[:80])
 
 
 def cmd_writing(args) -> None:
@@ -660,13 +687,26 @@ def main() -> None:
     sp.add_argument("--force", action="store_true", help="已抽过也重跑")
     sp.set_defaults(func=cmd_mathmap)
 
+    sp = sub.add_parser("reorder", help="按 PDF 版面坐标重排课文（治图/表的字串行进正文）")
+    sp.add_argument("--subject", default="数学", help="学科，逗号分隔（如 数学,语文）")
+    sp.set_defaults(func=cmd_reorder)
+
     sp = sub.add_parser("pages", help="静态站点：按教学目标组织的「小学知识大全」")
     sp.add_argument("--out", default="", help="输出目录（默认 pages/）")
     sp.set_defaults(func=cmd_pages)
 
-    sp = sub.add_parser("anim", help="可选：用 Manim 渲染数学公式动画（需先装 manim）")
-    sp.add_argument("--quality", default="-ql", help="manim 画质参数，默认 -ql（低清快）")
-    sp.set_defaults(func=cmd_anim)
+    sp = sub.add_parser("tts", help="英语点读音频：Piper 批量生成 + 音色索引")
+    sp.add_argument("action", choices=["gen", "list", "download", "extract"],
+                    help="gen=生成音频；list=查看音色与产出；download=下载模型；extract=仅抽文本")
+    sp.add_argument("--voice", default="",
+                    help="只处理指定音色，逗号分隔：alan,jenny,amy,cori（默认全部）")
+    sp.add_argument("--limit", type=int, default=0, help="gen：只合成前 N 条")
+    sp.add_argument("--serial", action="store_true", help="gen：串行生成（默认 4 音色并发）")
+    sp.add_argument("--force", action="store_true",
+                    help="gen：忽略已有 mp3 全部重生成（用于修复旧 --text 模式音头问题）")
+    sp.add_argument("--show", type=int, default=0, help="extract：打印前 N 条文本")
+    sp.set_defaults(func=cmd_tts)
+
 
     sp = sub.add_parser("lessonkb",
                         help="每课本体论：一堂课要掌握什么（按课标学段分档）")

@@ -1,0 +1,2 @@
+window.TEXTS = window.TEXTS || {};
+window.TEXTS["jungle-book-white-seal"] = { html: "<p>Lukannon<\/p>\n<p>“Rikki-Tikki-Tavi”<\/p>\n<p>Darzee’s Chant<\/p>\n<p>Toomai of the Elephants<\/p>\n<p>Shiv and the Grasshopper<\/p>\n<p>Her Majesty’s Servants<\/p>\n<p>Parade Song of the Camp Animals<\/p>\n<p>“FUZZY-WUZZY”<\/p>\n<p>“SNARLEYOW”<\/p>\n<p>THE BALLAD OF THE “CLAMPHERDOWN”<\/p>\n<p>THE BALLAD OF THE “BOLIVAR”<\/p>\n<p>“CLEARED”<\/p>\n<p>L'ENVOI TO “LIFE'S HANDICAP”<\/p>" };
