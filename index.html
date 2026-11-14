@@ -1,1 +1,51 @@
-404: Not Found
+<!DOCTYPE html>
+<html lang="zh-Hans"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>总览 · 小学知识大全</title>
+<link rel="stylesheet" href="assets/app.css?v=a63fbb0a"></head>
+<body data-page="index" data-base="">
+<header>
+  <span class="seal">课本</span>
+  <h1>小学知识大全</h1>
+  <div class="sub">按教学目标编排 · 每条都来自教材，可核对到册次与页码</div>
+</header>
+<div class="wrap">
+  <aside class="side">
+    <p class="sidet">学科</p>
+    <nav><a href="index.html" class="on">总览</a><a href="chinese/chinese_home.html">语文</a><a href="math/index.html">数学</a><a href="english/index.html">英语</a></nav>
+    
+  </aside>
+  <main>
+<div class="hero">
+  <div class="verse">按学科 · 按教学目标 · 一条一条都对得上课本</div>
+  <div class="rule"></div>
+  <p class="lead">这里是不需要问 Agent 也能查的那部分知识：字词表、单元语文要素、
+  数学知识点与知识结构图、英语词汇句型与歌谣……<b>全部从教材里抽出来</b>，
+  每条都能核对到哪一册、哪一单元、第几页。<b>没有一条是模型编的。</b></p>
+</div>
+<h2>规模</h2>
+<div class="grid">
+<div class="card">语文 课文 <big>633</big> 篇 · 单元要素 <big>68</big> 条 · 字词 <big>7846</big> 条</div>
+<div class="card">数学 单元 <big>97</big> 个 · 知识点 <big>565</big> 条 · 结构图 <big>31</big> 张</div>
+<div class="card">英语 词汇 <big>1621</big> · 句型 <big>771</big> · 拼读 <big>251</big> · 歌谣 <big>66</big></div>
+</div>
+<h2>入口</h2>
+<div class="grid">
+<div class="card cn"><h3>语文</h3><p class="small">课文全文（按册→单元→课，含生字与课后题，可当课本）、
+识字与写字、表达与交流（习作要素）、古诗文（原文+注释+译文）。</p>
+<a href="chinese/chinese_home.html">进入 →</a></div>
+<div class="card ma"><h3>数学</h3><p class="small">按课标四大领域分页：数与代数、图形与几何、
+统计与概率、综合与实践。每单元列出知识点、公式（真渲染）、例题（分步）与知识结构图。</p>
+<a href="math/index.html">进入 →</a></div>
+<div class="card en"><h3>英语</h3><p class="small">课文与语篇（中英对照可切换）、词汇（可自测）、
+语法汇总（含时态线）、语音拼读、歌谣与项目任务。</p>
+<a href="english/index.html">进入 →</a></div>
+</div>
+<div id="app"></div>
+  </main>
+</div>
+<footer>由教材解析流水线生成 · 内容取自义务教育教科书（人教版）·
+数据本地生成，不出本机</footer>
+<script>window.DATA={"stats": {"math": {"units": 97, "points": 565, "maps": 31, "measures": 454}, "chinese": {"texts": 633, "elements": 68, "words": 7846}, "english": {"vocab": 1621, "grammar": 771, "phonics": 251, "passages": 190, "songs": 66}}};</script>
+<script src="assets/app.js?v=a63fbb0a"></script>
+</body></html>
