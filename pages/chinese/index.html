@@ -28,14 +28,20 @@
     <style type="text/tailwindcss">
         @layer utilities {
             .content-auto { content-visibility: auto; }
-            .book-card {
-                @apply bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border-2 border-transparent hover:border-primary/30;
+            .select-style {
+                @apply bg-white border border-orange-200 rounded-xl px-4 py-3 text-xl font-medium cursor-pointer outline-none hover:border-primary/50 transition-all shadow-sm appearance-none bg-no-repeat bg-right pr-10;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+                background-position: right 0.75rem center;
+                background-size: 1.25rem;
             }
-            .nav-badge {
-                @apply bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium;
+            .lesson-chip {
+                @apply bg-white border border-orange-100 hover:border-primary/30 rounded-full px-5 py-2.5 text-lg transition-all cursor-pointer hover:shadow-sm hover:-translate-y-0.5;
             }
-            .breadcrumb-item {
-                @apply hover:text-primary cursor-pointer transition-colors;
+            .lesson-chip-ready {
+                @apply hover:bg-primary/5 hover:text-primary;
+            }
+            .lesson-chip-dev {
+                @apply text-gray-400 cursor-not-allowed hover:translate-y-0 hover:shadow-none;
             }
         }
     </style>
@@ -71,410 +77,321 @@
                 <a href="chinese_legacy.html" class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full text-sm font-medium transition-colors">旧版列表</a>
             </div>
 
-            <!-- 搜索栏 -->
-            <div class="flex items-center gap-3 bg-white rounded-2xl p-4 shadow-sm border border-orange-100">
+            <!-- 筛选区域：下拉框+搜索 -->
+            <div class="flex items-center gap-3 bg-white rounded-2xl p-4 shadow-sm border border-orange-100 flex-wrap">
                 <button class="bg-primary text-white px-6 py-3 rounded-xl font-medium">全部</button>
-                <div class="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-3 flex-1">
-                    <span class="text-lg">全部册次</span>
-                    <i class="fa fa-chevron-down text-gray-400"></i>
+                <select id="book-select" class="select-style min-w-[160px]">
+                    <option value="">全部册次</option>
+                    <option value="1-上册">一年级上册</option>
+                    <option value="1-下册">一年级下册</option>
+                    <option value="2-上册">二年级上册</option>
+                    <option value="2-下册">二年级下册</option>
+                    <option value="3-上册">三年级上册</option>
+                    <option value="3-下册">三年级下册</option>
+                    <option value="4-上册">四年级上册</option>
+                    <option value="4-下册">四年级下册</option>
+                    <option value="5-上册">五年级上册</option>
+                    <option value="5-下册">五年级下册</option>
+                    <option value="6-上册">六年级上册</option>
+                    <option value="6-下册">六年级下册</option>
+                </select>
+                <select id="unit-select" class="select-style min-w-[160px]" disabled>
+                    <option value="">全部单元</option>
+                </select>
+                <div class="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-3 flex-1 min-w-[240px]">
+                    <input type="text" id="search-input" placeholder="如：草原、老舍、比喻" class="bg-transparent w-full outline-none text-lg">
                 </div>
-                <div class="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-3 flex-[3]">
-                    <input type="text" placeholder="如：草原、老舍、比喻" class="bg-transparent w-full outline-none text-lg">
-                </div>
-                <span class="text-gray-500 text-lg font-medium">384 篇课文</span>
+                <span id="lesson-count" class="text-gray-500 text-lg font-medium">384 篇课文</span>
             </div>
 
             <!-- 常找关键词 -->
-            <div class="mt-4 flex flex-wrap gap-2">
+            <div class="mt-4 flex flex-wrap gap-2 items-center">
                 <span class="text-gray-500 mr-2 py-2">常找</span>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">古诗三首</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">节选</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">词语表</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">古诗二首</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">繁星</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">文言文二则</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">村居</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">绝句</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">宝葫芦的秘密</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">田忌赛马</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">颐和园</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">古诗词三首</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">四时田园杂兴</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">清平乐</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">诺曼底号</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">遇难记</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">牛郎织女</button>
-                <button class="bg-white border border-orange-100 hover:border-primary/30 rounded-full px-4 py-2 text-lg transition-colors">古诗三首</button>
+                <button class="lesson-chip" onclick="searchKeyword('古诗三首')">古诗三首</button>
+                <button class="lesson-chip" onclick="searchKeyword('节选')">节选</button>
+                <button class="lesson-chip" onclick="searchKeyword('词语表')">词语表</button>
+                <button class="lesson-chip" onclick="searchKeyword('古诗二首')">古诗二首</button>
+                <button class="lesson-chip" onclick="searchKeyword('繁星')">繁星</button>
+                <button class="lesson-chip" onclick="searchKeyword('文言文二则')">文言文二则</button>
+                <button class="lesson-chip" onclick="searchKeyword('村居')">村居</button>
+                <button class="lesson-chip" onclick="searchKeyword('绝句')">绝句</button>
+                <button class="lesson-chip" onclick="searchKeyword('宝葫芦的秘密')">宝葫芦的秘密</button>
+                <button class="lesson-chip" onclick="searchKeyword('田忌赛马')">田忌赛马</button>
+                <button class="lesson-chip" onclick="searchKeyword('颐和园')">颐和园</button>
+                <button class="lesson-chip" onclick="searchKeyword('古诗词三首')">古诗词三首</button>
+                <button class="lesson-chip" onclick="searchKeyword('四时田园杂兴')">四时田园杂兴</button>
+                <button class="lesson-chip" onclick="searchKeyword('清平乐')">清平乐</button>
+                <button class="lesson-chip" onclick="searchKeyword('诺曼底号')">诺曼底号</button>
+                <button class="lesson-chip" onclick="searchKeyword('遇难记')">遇难记</button>
+                <button class="lesson-chip" onclick="searchKeyword('牛郎织女')">牛郎织女</button>
             </div>
         </div>
     </header>
 
     <main class="container mx-auto px-4 py-6">
-        <!-- 面包屑导航 -->
+        <!-- 面包屑 -->
         <div id="breadcrumb" class="mb-6 flex items-center gap-2 text-lg text-gray-600">
-            <span class="breadcrumb-item" onclick="showBooks()">全部教材</span>
+            <span class="text-primary font-medium">全部课文</span>
         </div>
 
-        <!-- 12册教材列表 -->
-        <div id="books-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- 一年级上册 -->
-            <div class="book-card p-6" onclick="showUnits(1, '上册')">
-                <div class="flex items-start gap-4">
-                    <div class="w-20 h-28 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md">一上</div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">一年级 上册</h3>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <span class="nav-badge">8个单元</span>
-                            <span class="nav-badge">36篇课文</span>
-                            <span class="nav-badge">识字单元</span>
-                        </div>
-                        <p class="text-gray-500 text-sm">包含拼音、识字、入门课文等内容，是小学语文学习的起点。</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 一年级下册 -->
-            <div class="book-card p-6" onclick="showUnits(1, '下册')">
-                <div class="flex items-start gap-4">
-                    <div class="w-20 h-28 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md">一下</div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">一年级 下册</h3>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <span class="nav-badge">8个单元</span>
-                            <span class="nav-badge">39篇课文</span>
-                            <span class="nav-badge">识字单元</span>
-                        </div>
-                        <p class="text-gray-500 text-sm">包含课文阅读、识字写字、口语交际等内容，培养基础阅读能力。</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 二年级上册 -->
-            <div class="book-card p-6" onclick="showUnits(2, '上册')">
-                <div class="flex items-start gap-4">
-                    <div class="w-20 h-28 bg-gradient-to-br from-secondary to-accent rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md">二上</div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">二年级 上册</h3>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <span class="nav-badge">8个单元</span>
-                            <span class="nav-badge">37篇课文</span>
-                            <span class="nav-badge">写话练习</span>
-                        </div>
-                        <p class="text-gray-500 text-sm">包含童话、寓言、故事类课文，开始练习简单写作。</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 二年级下册 -->
-            <div class="book-card p-6" onclick="showUnits(2, '下册')">
-                <div class="flex items-start gap-4">
-                    <div class="w-20 h-28 bg-gradient-to-br from-secondary to-accent rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md">二下</div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">二年级 下册</h3>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <span class="nav-badge">8个单元</span>
-                            <span class="nav-badge">38篇课文</span>
-                            <span class="nav-badge">写话练习</span>
-                        </div>
-                        <p class="text-gray-500 text-sm">包含春天、爱心、传统文化等主题课文，培养阅读理解能力。</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 三年级上册 -->
-            <div class="book-card p-6" onclick="showUnits(3, '上册')">
-                <div class="flex items-start gap-4">
-                    <div class="w-20 h-28 bg-gradient-to-br from-green-400 to-green-500 rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md">三上</div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">三年级 上册</h3>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <span class="nav-badge">8个单元</span>
-                            <span class="nav-badge">34篇课文</span>
-                            <span class="nav-badge">习作入门</span>
-                        </div>
-                        <p class="text-gray-500 text-sm">正式开始习作练习，包含写景、写人、记事类课文。</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 三年级下册 -->
-            <div class="book-card p-6" onclick="showUnits(3, '下册')">
-                <div class="flex items-start gap-4">
-                    <div class="w-20 h-28 bg-gradient-to-br from-green-400 to-green-500 rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md">三下</div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">三年级 下册</h3>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <span class="nav-badge">8个单元</span>
-                            <span class="nav-badge">34篇课文</span>
-                            <span class="nav-badge">习作练习</span>
-                        </div>
-                        <p class="text-gray-500 text-sm">包含动植物、传统文化、寓言故事等主题，提升写作能力。</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 四年级上册 -->
-            <div class="book-card p-6" onclick="showUnits(4, '上册')">
-                <div class="flex items-start gap-4">
-                    <div class="w-20 h-28 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md">四上</div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">四年级 上册</h3>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <span class="nav-badge">8个单元</span>
-                            <span class="nav-badge">34篇课文</span>
-                            <span class="nav-badge">习作提升</span>
-                        </div>
-                        <p class="text-gray-500 text-sm">包含神话、观察、成长等主题课文，开始接触文言文。</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 四年级下册 -->
-            <div class="book-card p-6" onclick="showUnits(4, '下册')">
-                <div class="flex items-start gap-4">
-                    <div class="w-20 h-28 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md">四下</div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">四年级 下册</h3>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <span class="nav-badge">8个单元</span>
-                            <span class="nav-badge">34篇课文</span>
-                            <span class="nav-badge">习作提升</span>
-                        </div>
-                        <p class="text-gray-500 text-sm">包含乡村生活、科普、人物品质等主题，多篇经典散文。</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 五年级上册 -->
-            <div class="book-card p-6" onclick="showUnits(5, '上册')">
-                <div class="flex items-start gap-4">
-                    <div class="w-20 h-28 bg-gradient-to-br from-purple-400 to-purple-500 rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md">五上</div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">五年级 上册</h3>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <span class="nav-badge">8个单元</span>
-                            <span class="nav-badge">33篇课文</span>
-                            <span class="nav-badge">说明文习作</span>
-                        </div>
-                        <p class="text-gray-500 text-sm">包含万物有灵、说明文、民间故事等主题，提升说明写作能力。</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 五年级下册 -->
-            <div class="book-card p-6" onclick="showUnits(5, '下册')">
-                <div class="flex items-start gap-4">
-                    <div class="w-20 h-28 bg-gradient-to-br from-purple-400 to-purple-500 rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md">五下</div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">五年级 下册</h3>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <span class="nav-badge">8个单元</span>
-                            <span class="nav-badge">32篇课文</span>
-                            <span class="nav-badge">古典名著</span>
-                        </div>
-                        <p class="text-gray-500 text-sm">包含四大名著节选、人物描写、古典文学等经典内容。</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 六年级上册 -->
-            <div class="book-card p-6" onclick="showUnits(6, '上册')">
-                <div class="flex items-start gap-4">
-                    <div class="w-20 h-28 bg-gradient-to-br from-red-400 to-red-500 rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md">六上</div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">六年级 上册</h3>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <span class="nav-badge">8个单元</span>
-                            <span class="nav-badge">32篇课文</span>
-                            <span class="nav-badge">小升初衔接</span>
-                        </div>
-                        <p class="text-gray-500 text-sm">包含革命文化、散文、小说等内容，为小升初做准备。</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 六年级下册 -->
-            <div class="book-card p-6" onclick="showUnits(6, '下册')">
-                <div class="flex items-start gap-4">
-                    <div class="w-20 h-28 bg-gradient-to-br from-red-400 to-red-500 rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md">六下</div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">六年级 下册</h3>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <span class="nav-badge">6个单元</span>
-                            <span class="nav-badge">22篇课文</span>
-                            <span class="nav-badge">毕业总复习</span>
-                        </div>
-                        <p class="text-gray-500 text-sm">小学最后一册，包含名家名篇、古诗词复习、毕业主题内容。</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 单元列表（默认隐藏） -->
-        <div id="units-view" class="hidden">
-            <h2 id="units-title" class="text-2xl font-bold mb-6"></h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="units-list">
-                <!-- 单元会动态生成 -->
-            </div>
-        </div>
-
-        <!-- 课文列表（默认隐藏） -->
-        <div id="lessons-view" class="hidden">
-            <h2 id="lessons-title" class="text-2xl font-bold mb-6"></h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="lessons-list">
-                <!-- 课文会动态生成 -->
-            </div>
+        <!-- 课文列表 -->
+        <div id="lesson-container">
+            <!-- 单元分组展示 -->
         </div>
     </main>
 
     <script>
-        // 一年级上册单元和课文数据
+        // 12册教材数据
         const bookData = {
             '1-上册': {
+                name: '一年级上册',
                 units: [
-                    { name: '第一单元 识字（一）', lessons: ['天地人', '金木水火土', '口耳目', '日月水火', '对韵歌'] },
-                    { name: '第二单元 拼音（一）', lessons: ['a o e', 'i u ü y w', 'b p m f', 'd t n l', 'g k h', 'j q x', 'z c s', 'zh ch sh r', 'y w'] },
-                    { name: '第三单元 拼音（二）', lessons: ['ai ei ui', 'ao ou iu', 'ie üe er', 'an en in un ün', 'ang eng ing ong'] },
-                    { name: '第四单元 课文（一）', lessons: ['秋天', '小小的船', '江南', '四季'] },
-                    { name: '第五单元 识字（二）', lessons: ['画', '大小多少', '小书包', '日月明', '升国旗'] },
-                    { name: '第六单元 课文（二）', lessons: ['影子', '比尾巴', '青蛙写诗', '雨点儿'] },
-                    { name: '第七单元 课文（三）', lessons: ['明天要远足', '大还是小', '项链'] },
-                    { name: '第八单元 课文（四）', lessons: ['雪地里的小画家', '乌鸦喝水', '小蜗牛'] }
+                    { name: '第一单元 识字', lessons: ['天地人', '金木水火土', '口耳目', '日月水火', '对韵歌'] },
+                    { name: '第二单元 汉语拼音', lessons: ['a o e', 'i u ü y w', 'b p m f', 'd t n l', 'g k h', 'j q x', 'z c s', 'zh ch sh r', 'y w'] },
+                    { name: '第三单元 汉语拼音', lessons: ['ai ei ui', 'ao ou iu', 'ie üe er', 'an en in un ün', 'ang eng ing ong'] },
+                    { name: '第四单元 课文', lessons: ['秋天', '小小的船', '江南', '四季'] },
+                    { name: '第五单元 识字', lessons: ['画', '大小多少', '小书包', '日月明', '升国旗'] },
+                    { name: '第六单元 课文', lessons: ['影子', '比尾巴', '青蛙写诗', '雨点儿'] },
+                    { name: '第七单元 课文', lessons: ['明天要远足', '大还是小', '项链'] },
+                    { name: '第八单元 课文', lessons: ['雪地里的小画家', '乌鸦喝水', '小蜗牛'] }
                 ]
             },
-            '1-下册': { units: [
-                { name: '第一单元 识字（一）', lessons: ['春夏秋冬', '姓氏歌', '小青蛙', '猜字谜'] },
-                { name: '第二单元 课文（一）', lessons: ['吃水不忘挖井人', '我多想去看看', '一个接一个', '四个太阳'] },
-                { name: '第三单元 课文（二）', lessons: ['小公鸡和小鸭子', '树和喜鹊', '怎么都快乐'] },
-                { name: '第四单元 课文（三）', lessons: ['静夜思', '夜色', '端午粽', '彩虹'] },
-                { name: '第五单元 识字（二）', lessons: ['动物儿歌', '古对今', '操场上', '人之初'] },
-                { name: '第六单元 课文（四）', lessons: ['古诗二首（池上、小池）', '荷叶圆圆', '要下雨了'] },
-                { name: '第七单元 课文（五）', lessons: ['文具的家', '一分钟', '动物王国开大会', '小猴子下山'] },
-                { name: '第八单元 课文（六）', lessons: ['棉花姑娘', '咕咚', '小壁虎借尾巴'] }
-            ]},
-            '2-上册': { units: [
-                { name: '第一单元 课文（一）', lessons: ['小蝌蚪找妈妈', '我是什么', '植物妈妈有办法'] },
-                { name: '第二单元 识字（一）', lessons: ['场景歌', '树之歌', '拍手歌', '田家四季歌'] },
-                { name: '第三单元 课文（二）', lessons: ['古诗二首（登鹳雀楼、望庐山瀑布）', '黄山奇石', '日月潭', '葡萄沟'] },
-                { name: '第四单元 课文（三）', lessons: ['古诗二首（夜宿山寺、敕勒歌）', '雾在哪里', '雪孩子'] },
-                { name: '第五单元 课文（四）', lessons: ['坐井观天', '寒号鸟', '我要的是葫芦'] },
-                { name: '第六单元 课文（五）', lessons: ['古诗二首（江雪、梅花）', '大禹治水', '朱德的扁担', '难忘的泼水节'] },
-                { name: '第七单元 课文（六）', lessons: ['古诗二首（小儿垂钓、村居）', '蓝色的树叶', '纸船和风筝', '风娃娃'] },
-                { name: '第八单元 课文（七）', lessons: ['狐假虎威', '狐狸分奶酪', '纸船和风筝', '风娃娃'] }
-            ]},
-            '2-下册': { units: [
-                { name: '第一单元 课文（一）', lessons: ['古诗二首（村居、咏柳）', '找春天', '开满鲜花的小路', '邓小平爷爷植树'] },
-                { name: '第二单元 课文（二）', lessons: ['雷锋叔叔，你在哪里', '千人糕', '一匹出色的马'] },
-                { name: '第三单元 识字（一）', lessons: ['神州谣', '传统节日', '“贝”的故事', '中国美食'] },
-                { name: '第四单元 课文（三）', lessons: ['彩色的梦', '枫树上的喜鹊', '沙滩上的童话', '我是一只小虫子'] },
-                { name: '第五单元 课文（四）', lessons: ['寓言二则（亡羊补牢、揠苗助长）', '画杨桃', '小马过河'] },
-                { name: '第六单元 课文（五）', lessons: ['古诗二首（晓出净慈寺送林子方、绝句）', '雷雨', '要是你在野外迷了路', '太空生活趣事多'] },
-                { name: '第七单元 课文（六）', lessons: ['大象的耳朵', '蜘蛛开店', '青蛙卖泥塘', '小毛虫'] },
-                { name: '第八单元 课文（七）', lessons: ['祖先的摇篮', '当世界年纪还小的时候', '羿射九日'] }
-            ]},
-            // 其余年级默认单元占位，后续补全
-            '3-上册': { units: Array.from({length:8}, (_,i) => ({name: `第${i+1}单元`, lessons: [`第${i+1}单元课文1`, `第${i+1}单元课文2`, `第${i+1}单元课文3`, `第${i+1}单元课文4`]})) },
-            '3-下册': { units: Array.from({length:8}, (_,i) => ({name: `第${i+1}单元`, lessons: [`第${i+1}单元课文1`, `第${i+1}单元课文2`, `第${i+1}单元课文3`, `第${i+1}单元课文4`]})) },
-            '4-上册': { units: Array.from({length:8}, (_,i) => ({name: `第${i+1}单元`, lessons: [`第${i+1}单元课文1`, `第${i+1}单元课文2`, `第${i+1}单元课文3`, `第${i+1}单元课文4`]})) },
-            '4-下册': { units: Array.from({length:8}, (_,i) => ({name: `第${i+1}单元`, lessons: [`第${i+1}单元课文1`, `第${i+1}单元课文2`, `第${i+1}单元课文3`, `第${i+1}单元课文4`]})) },
-            '5-上册': { units: Array.from({length:8}, (_,i) => ({name: `第${i+1}单元`, lessons: [`第${i+1}单元课文1`, `第${i+1}单元课文2`, `第${i+1}单元课文3`, `第${i+1}单元课文4`]})) },
-            '5-下册': { units: Array.from({length:8}, (_,i) => ({name: `第${i+1}单元`, lessons: [`第${i+1}单元课文1`, `第${i+1}单元课文2`, `第${i+1}单元课文3`, `第${i+1}单元课文4`]})) },
-            '6-上册': { units: Array.from({length:8}, (_,i) => ({name: `第${i+1}单元`, lessons: [`第${i+1}单元课文1`, `第${i+1}单元课文2`, `第${i+1}单元课文3`, `第${i+1}单元课文4`]})) },
-            '6-下册': { units: Array.from({length:6}, (_,i) => ({name: `第${i+1}单元`, lessons: [`第${i+1}单元课文1`, `第${i+1}单元课文2`, `第${i+1}单元课文3`, `第${i+1}单元课文4`]})) }
+            '1-下册': {
+                name: '一年级下册',
+                units: [
+                    { name: '第一单元 识字', lessons: ['春夏秋冬', '姓氏歌', '小青蛙', '猜字谜'] },
+                    { name: '第二单元 课文', lessons: ['吃水不忘挖井人', '我多想去看看', '一个接一个', '四个太阳'] },
+                    { name: '第三单元 课文', lessons: ['小公鸡和小鸭子', '树和喜鹊', '怎么都快乐'] },
+                    { name: '第四单元 课文', lessons: ['静夜思', '夜色', '端午粽', '彩虹'] },
+                    { name: '第五单元 识字', lessons: ['动物儿歌', '古对今', '操场上', '人之初'] },
+                    { name: '第六单元 课文', lessons: ['古诗二首', '荷叶圆圆', '要下雨了'] },
+                    { name: '第七单元 课文', lessons: ['文具的家', '一分钟', '动物王国开大会', '小猴子下山'] },
+                    { name: '第八单元 课文', lessons: ['棉花姑娘', '咕咚', '小壁虎借尾巴'] }
+                ]
+            },
+            '2-上册': {
+                name: '二年级上册',
+                units: Array.from({length:8}, (_,i) => ({
+                    name: `第${i+1}单元`,
+                    lessons: Array.from({length: i<4 ? 4 : 3}, (_,j) => `课文${i*4+j+1}`)
+                }))
+            },
+            '2-下册': {
+                name: '二年级下册',
+                units: Array.from({length:8}, (_,i) => ({
+                    name: `第${i+1}单元`,
+                    lessons: Array.from({length: i<4 ? 4 : 3}, (_,j) => `课文${i*4+j+1}`)
+                }))
+            },
+            '3-上册': {
+                name: '三年级上册',
+                units: Array.from({length:8}, (_,i) => ({
+                    name: `第${i+1}单元`,
+                    lessons: Array.from({length: i<4 ? 4 : 3}, (_,j) => `课文${i*4+j+1}`)
+                }))
+            },
+            '3-下册': {
+                name: '三年级下册',
+                units: [
+                    { name: '第一单元', lessons: ['古诗三首', '燕子', '荷花', '昆虫备忘录'] },
+                    { name: '第二单元', lessons: ['守株待兔', '陶罐和铁罐', '鹿角和鹿腿', '池子与河流'] },
+                    { name: '第三单元', lessons: ['古诗三首', '纸的发明', '赵州桥', '一幅名扬中外的画'] },
+                    { name: '第四单元', lessons: ['花钟', '蜜蜂', '小虾'] },
+                    { name: '第五单元', lessons: ['宇宙的另一边', '我变成了一棵树'] },
+                    { name: '第六单元', lessons: ['童年的水墨画', '肥皂泡', '灰雀', '我不能失信'] },
+                    { name: '第七单元', lessons: ['我们奇妙的世界', '海底世界', '火烧云'] },
+                    { name: '第八单元', lessons: ['慢性子裁缝和急性子顾客', '方帽子店', '漏', '枣核'] }
+                ]
+            },
+            '4-上册': {
+                name: '四年级上册',
+                units: Array.from({length:8}, (_,i) => ({
+                    name: `第${i+1}单元`,
+                    lessons: Array.from({length: i<4 ? 4 : 3}, (_,j) => `课文${i*4+j+1}`)
+                }))
+            },
+            '4-下册': {
+                name: '四年级下册',
+                units: Array.from({length:8}, (_,i) => ({
+                    name: `第${i+1}单元`,
+                    lessons: Array.from({length: i<4 ? 4 : 3}, (_,j) => `课文${i*4+j+1}`)
+                }))
+            },
+            '5-上册': {
+                name: '五年级上册',
+                units: Array.from({length:8}, (_,i) => ({
+                    name: `第${i+1}单元`,
+                    lessons: Array.from({length: i<4 ? 4 : 3}, (_,j) => `课文${i*4+j+1}`)
+                }))
+            },
+            '5-下册': {
+                name: '五年级下册',
+                units: Array.from({length:8}, (_,i) => ({
+                    name: `第${i+1}单元`,
+                    lessons: Array.from({length: i<4 ? 4 : 3}, (_,j) => `课文${i*4+j+1}`)
+                }))
+            },
+            '6-上册': {
+                name: '六年级上册',
+                units: Array.from({length:8}, (_,i) => ({
+                    name: `第${i+1}单元`,
+                    lessons: Array.from({length: i<4 ? 4 : 3}, (_,j) => `课文${i*4+j+1}`)
+                }))
+            },
+            '6-下册': {
+                name: '六年级下册',
+                units: Array.from({length:6}, (_,i) => ({
+                    name: `第${i+1}单元`,
+                    lessons: Array.from({length: 3}, (_,j) => `课文${i*3+j+1}`)
+                }))
+            }
         };
 
+        // 已完成的单课列表（一年级上册前10课）
+        const readyLessons = ['天地人', '金木水火土', '口耳目', '日月水火', '对韵歌', '秋天', '小小的船', '江南', '四季', '画'];
+
+        const bookSelect = document.getElementById('book-select');
+        const unitSelect = document.getElementById('unit-select');
+        const searchInput = document.getElementById('search-input');
+        const lessonCount = document.getElementById('lesson-count');
+        const lessonContainer = document.getElementById('lesson-container');
+        const breadcrumb = document.getElementById('breadcrumb');
+
         let currentBook = '';
+        let currentUnit = '';
+        let currentKeyword = '';
 
-        // 显示教材列表
-        function showBooks() {
-            document.getElementById('books-view').classList.remove('hidden');
-            document.getElementById('units-view').classList.add('hidden');
-            document.getElementById('lessons-view').classList.add('hidden');
-            document.getElementById('breadcrumb').innerHTML = '<span class="breadcrumb-item text-primary font-medium">全部教材</span>';
+        // 渲染课文列表
+        function renderLessons() {
+            lessonContainer.innerHTML = '';
+            let totalCount = 0;
+            let html = '';
+
+            // 确定要渲染的单元列表
+            let unitsToRender = [];
+            if (currentBook) {
+                const book = bookData[currentBook];
+                if (currentUnit) {
+                    unitsToRender = [book.units[currentUnit]];
+                } else {
+                    unitsToRender = book.units;
+                }
+            } else {
+                // 全部册次，显示所有单元
+                Object.values(bookData).forEach(book => {
+                    unitsToRender.push(...book.units.map(u => ({...u, bookName: book.name})));
+                });
+            }
+
+            unitsToRender.forEach((unit, unitIdx) => {
+                // 过滤关键词
+                const filteredLessons = unit.lessons.filter(lesson => {
+                    if (!currentKeyword) return true;
+                    return lesson.includes(currentKeyword);
+                });
+                if (filteredLessons.length === 0) return;
+                totalCount += filteredLessons.length;
+
+                const unitTitle = unit.bookName ? `${unit.bookName} · ${unit.name}` : unit.name;
+                html += `
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-bold mb-4 text-red-500 flex items-center gap-2">
+                            <i class="fa fa-caret-down"></i>
+                            ${unitTitle}
+                        </h3>
+                        <div class="flex flex-wrap gap-3">
+                `;
+                filteredLessons.forEach(lesson => {
+                    const slug = lesson.replace(/[，。、！？·]/g, '');
+                    const isReady = readyLessons.includes(lesson);
+                    html += `
+                        <button class="lesson-chip ${isReady ? 'lesson-chip-ready' : 'lesson-chip-dev'}"
+                                onclick="${isReady ? `window.location.href='/agent-textbook/lesson-pages/chinese/${slug}.html'` : `alert('该课正在制作中，敬请期待！')`}">
+                            ${lesson}
+                        </button>
+                    `;
+                });
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            lessonContainer.innerHTML = html;
+            lessonCount.textContent = `${totalCount} 篇课文`;
+
+            // 更新面包屑
+            let breadcrumbHtml = '<span class="breadcrumb-item cursor-pointer hover:text-primary transition-colors" onclick="resetFilter()">全部课文</span>';
+            if (currentBook) {
+                const bookName = bookData[currentBook].name;
+                breadcrumbHtml += `<i class="fa fa-chevron-right text-gray-400 text-xs mx-1"></i><span class="breadcrumb-item cursor-pointer hover:text-primary transition-colors" onclick="selectBook('${currentBook}')">${bookName}</span>`;
+                if (currentUnit !== '') {
+                    const unitName = bookData[currentBook].units[currentUnit].name;
+                    breadcrumbHtml += `<i class="fa fa-chevron-right text-gray-400 text-xs mx-1"></i><span class="text-primary font-medium">${unitName}</span>`;
+                }
+            }
+            if (currentKeyword) {
+                breadcrumbHtml += `<i class="fa fa-chevron-right text-gray-400 text-xs mx-1"></i><span class="text-primary font-medium">搜索：${currentKeyword}</span>`;
+            }
+            breadcrumb.innerHTML = breadcrumbHtml;
         }
 
-        // 显示单元列表
-        function showUnits(grade, term) {
-            currentBook = `${grade}-${term}`;
-            const book = bookData[currentBook];
-            document.getElementById('books-view').classList.add('hidden');
-            document.getElementById('units-view').classList.remove('hidden');
-            document.getElementById('lessons-view').classList.add('hidden');
-            
-            document.getElementById('units-title').textContent = `${grade}年级 ${term} 单元列表`;
-            const unitsList = document.getElementById('units-list');
-            unitsList.innerHTML = '';
-            
+        // 重置筛选
+        function resetFilter() {
+            currentBook = '';
+            currentUnit = '';
+            currentKeyword = '';
+            bookSelect.value = '';
+            unitSelect.value = '';
+            unitSelect.disabled = true;
+            searchInput.value = '';
+            renderLessons();
+        }
+
+        // 选择教材
+        function selectBook(bookKey) {
+            currentBook = bookKey;
+            currentUnit = '';
+            bookSelect.value = bookKey;
+            // 填充单元下拉
+            unitSelect.innerHTML = '<option value="">全部单元</option>';
+            const book = bookData[bookKey];
             book.units.forEach((unit, idx) => {
-                const unitCard = document.createElement('div');
-                unitCard.className = 'bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-5 cursor-pointer border border-gray-100 hover:border-primary/30';
-                unitCard.onclick = () => showLessons(idx, unit.name);
-                unitCard.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-lg font-bold mb-2">${unit.name}</h3>
-                            <span class="nav-badge">${unit.lessons.length}篇课文</span>
-                        </div>
-                        <i class="fa fa-chevron-right text-gray-400"></i>
-                    </div>
-                `;
-                unitsList.appendChild(unitCard);
+                unitSelect.innerHTML += `<option value="${idx}">${unit.name}</option>`;
             });
-
-            // 更新面包屑
-            document.getElementById('breadcrumb').innerHTML = `
-                <span class="breadcrumb-item" onclick="showBooks()">全部教材</span>
-                <i class="fa fa-chevron-right text-gray-400 text-xs"></i>
-                <span class="breadcrumb-item text-primary font-medium">${grade}年级 ${term}</span>
-            `;
+            unitSelect.disabled = false;
+            unitSelect.value = '';
+            renderLessons();
         }
 
-        // 显示课文列表
-        function showLessons(unitIdx, unitName) {
-            const book = bookData[currentBook];
-            const unit = book.units[unitIdx];
-            document.getElementById('units-view').classList.add('hidden');
-            document.getElementById('lessons-view').classList.remove('hidden');
-            
-            document.getElementById('lessons-title').textContent = unitName;
-            const lessonsList = document.getElementById('lessons-list');
-            lessonsList.innerHTML = '';
-            
-            unit.lessons.forEach((lesson) => {
-                const lessonCard = document.createElement('div');
-                lessonCard.className = 'bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-5 cursor-pointer border border-gray-100 hover:border-primary/30';
-                // 一年级上册前10课跳转独立单页，其余后续补全
-                const isReady = (currentBook === '1-上册' && ['天地人','金木水火土','口耳目','日月水火','对韵歌','秋天','小小的船','江南','四季','画'].includes(lesson));
-                lessonCard.onclick = () => {
-                    if (isReady) {
-                        const slug = lesson.replace(/[《》]/g, '');
-                        window.location.href = `/agent-textbook/lesson-pages/chinese/${slug}.html`;
-                    } else {
-                        alert('该课单页正在制作中，敬请期待');
-                    }
-                };
-                lessonCard.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                            <i class="fa fa-file-text-o"></i>
-                        </div>
-                        <span class="text-lg font-medium">${lesson}</span>
-                        ${isReady ? '<span class="ml-auto bg-green-100 text-green-600 text-xs px-2 py-0.5 rounded-full">已完成</span>' : '<span class="ml-auto bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">制作中</span>'}
-                    </div>
-                `;
-                lessonsList.appendChild(lessonCard);
-            });
-
-            // 更新面包屑
-            const [grade, term] = currentBook.split('-');
-            document.getElementById('breadcrumb').innerHTML = `
-                <span class="breadcrumb-item" onclick="showBooks()">全部教材</span>
-                <i class="fa fa-chevron-right text-gray-400 text-xs"></i>
-                <span class="breadcrumb-item" onclick="showUnits(${grade}, '${term}')">${grade}年级 ${term}</span>
-                <i class="fa fa-chevron-right text-gray-400 text-xs"></i>
-                <span class="breadcrumb-item text-primary font-medium">${unitName}</span>
-            `;
+        // 搜索关键词
+        function searchKeyword(keyword) {
+            currentKeyword = keyword;
+            searchInput.value = keyword;
+            renderLessons();
         }
+
+        // 事件监听
+        bookSelect.addEventListener('change', (e) => {
+            if (e.target.value) {
+                selectBook(e.target.value);
+            } else {
+                resetFilter();
+            }
+        });
+
+        unitSelect.addEventListener('change', (e) => {
+            currentUnit = e.target.value;
+            renderLessons();
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            currentKeyword = e.target.value.trim();
+            renderLessons();
+        });
+
+        // 初始渲染
+        renderLessons();
     </script>
 </body>
 </html>
