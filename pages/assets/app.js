@@ -785,110 +785,90 @@
       }).join("") + "</div></div>";
   }
 
-  function mathUnit(u, idx) {
+      function mathUnit(u, idx) {
     var dom = D.domains.filter(function (d) { return d.key === u.domain; })[0] || {};
     var lit = (u.literacy || []).map(function (x) {
       return '<span class="tag">' + esc(x) + "</span>";
     }).join("");
     var h = '<div class="item"' + (idx != null ? ' id="mu' + idx + '"' : "") +
-      '><div class="top"><span class="name">' + esc(u.title) + "</span>" + '<button class="list-mode-switch-btn" data-mid="' + idx + '" type="button">📐 单单元精学</button>' +
+      '><div class="top"><span class="name">' + (u.unit_no ? '第' + esc(u.unit_no) + '单元 · ' : '') + esc(u.title) + "</span>" +
       where(u, u.page_from) + '<span class="tag d' +
       Math.max(0, D.domains.map(function (d) { return d.key; }).indexOf(u.domain)) +
-      '">' + esc(dom.name) + "</span>" + lit + "</div>" + pts(u.points);
-    if (u.kb) {
-      h += '<div class="chips">' + M_EXTRA.map(function (e) {
-        return kbHas(u.kb, e[0])
-          ? '<span class="chip' + (ON[e[0]] ? " on" : "") + '" data-ex="' +
-            e[0] + '">' + e[1] + "</span>" : "";
-      }).join("") + "</div>";
-      h += M_EXTRA.map(function (e) {
-        return kbHas(u.kb, e[0])
-          ? '<div class="kb' + (ON[e[0]] ? " show" : "") + '" data-kb="' +
-            e[0] + '">' + mBody(u.kb, e[0]) + "</div>" : "";
-      }).join("");
-    }
-    // 课本原文：按教材板块分节（正文 / 做一做 / 练习…），图上的字单列，不打断阅读
-    if (u.sections && u.sections.length) {
+      '">' + esc(dom.name) + "</span>" + lit + "</div>";
+
+    // 1. 全新 OCR 课本原貌课文与教学插图
+    if (u.raw_text) {
+      h += '<div class="sci-textbook-card">' +
+        '<div class="sci-textbook-card-head">' +
+        '<span>📖 义务教育教科书 · 课本原文与教学例题（含原书彩图与做一做）</span>' +
+        '<span class="sci-textbook-vol-tag">' + esc(u.book) + (u.page_from ? ' · P' + u.page_from + (u.page_to ? '-' + u.page_to : '') : '') + '</span>' +
+        '</div>' +
+        '<div class="sci-textbook-body math-textbook-body">' + formatMathMd(u.raw_text, u.vol_dir) + '</div>' +
+        '</div>';
+    } else if (u.sections && u.sections.length) {
       var np = u.sections.reduce(function (a, s) { return a + s.body.length; }, 0);
       h += "<details><summary>课本原文（" + np + " 段）</summary>" +
         '<div class="full">' + u.sections.map(function (s) {
-          // 图块：直接显示从 PDF 截出来的教材插图
-          if (s.kind === "图") {
-            return s.body.map(function (p) {
-              return p && p.img
-                ? '<figure class="fig"><img src="' + esc(p.img) +
-                  '" alt="课本插图" onerror="this.style.display=\'none\'"></figure>'
-                : "";
-            }).join("");
-          }
           return '<p class="sect">' + esc(s.kind) + "</p>" +
             s.body.map(function (p) {
-              if (typeof p === "object" && p.img) {
-                return '<figure class="fig"><img src="' + esc(p.img) +
-                  '" alt="课本插图" onerror="this.style.display=\'none\'"></figure>';
-              }
               return '<p class="para">' + esc(p) + "</p>";
-            }).join("") +
-            (s.chart && s.chart.length
-              ? '<details class="cht"><summary>图上的字（' + s.chart.length +
-                '）</summary><p class="chw">' +
-                s.chart.map(esc).join(" · ") + "</p></details>"
-              : "");
-        }).join("") + "</div></details>";
-    } else if (u.text && u.text.length) {
-      h += "<details><summary>课本原文（" + u.text.length + " 段）</summary>" +
-        '<div class="full">' + u.text.map(function (p) {
-          return '<p class="para">' + esc(p) + "</p>";
+            }).join("");
         }).join("") + "</div></details>";
     }
-    // 公式：渲染成真公式（分数上下排、指数上标）
+
+    // 2. 知识要点与思维引导
+    if (u.points && u.points.length) {
+      h += '<div class="math-extra-section">' +
+        '<p class="sect-label">💡 课标核心知识点与思维引导（' + u.points.length + ' 条）</p>' +
+        pts(u.points) + '</div>';
+    }
+
+    // 3. 结构化知识库 (KB)
+    if (u.kb) {
+      h += '<div class="math-extra-section"><p class="sect-label">🧠 结构化考点深析与易错辨析</p>' +
+        '<div class="chips">' + M_EXTRA.map(function (e) {
+          return kbHas(u.kb, e[0])
+            ? '<span class="chip' + (ON[e[0]] ? " on" : "") + '" data-ex="' +
+              e[0] + '">' + e[1] + "</span>" : "";
+        }).join("") + "</div>" +
+        M_EXTRA.map(function (e) {
+          return kbHas(u.kb, e[0])
+            ? '<div class="kb' + (ON[e[0]] ? " show" : "") + '" data-kb="' +
+              e[0] + '">' + mBody(u.kb, e[0]) + "</div>" : "";
+        }).join("") + '</div>';
+    }
+
+    // 4. 公式与算式速查
     if (u.formulas && u.formulas.length) {
-      h += '<p class="small">公式与算式（' + u.formulas.length + "）</p>" +
+      h += '<div class="math-extra-section"><p class="sect-label">🧮 核心公式与算式速查（' + u.formulas.length + " 条）</p>" +
         '<div class="fboxes">' + u.formulas.map(function (f) {
           return '<span class="fbox"><span class="tex">' + tex(f.latex) + "</span>" +
-            '<span class="tag">' + esc(f.kind || "") + "</span>" +
-            (f.note ? '<span class="where">' + esc(f.note) + "</span>" : "") + "</span>";
-        }).join("") + "</div>";
+            '<span class="tag">' + esc(f.name) + "</span></span>";
+        }).join("") + "</div></div>";
     }
-    // 例题：题干 → 分步 → 答案
+
+    // 5. 典型例题精讲与思维步骤
     if (u.examples && u.examples.length) {
-      h += "<details" + (u.examples.length <= 2 ? " open" : "") +
-        "><summary>例题（" + u.examples.length + " 道）</summary>" +
-        u.examples.map(function (e) {
-          var s = '<div class="ex"><div class="stem">' + esc(e.stem || e.name) + "</div>";
-          if (e.given) s += '<div class="given">已知：' + esc(e.given) + "</div>";
-          (e.steps || []).forEach(function (stp, i) {
-            s += '<div class="step"><b>' + (i + 1) + ".</b> " + esc(stp.text || "") +
-              (stp.latex ? ' <span class="tex">' + tex(stp.latex) + "</span>" : "") + "</div>";
-          });
-          if (e.answer) {
-            s += '<div class="ans">答：' + esc(e.answer) +
-              (e.answer_latex ? "（" + tex(e.answer_latex) + "）" : "") + "</div>";
-          }
-          s += (e.difficulty ? '<span class="tag">' + esc(e.difficulty) + "</span>" : "") +
-            (e.page ? '<span class="where">' + esc(e.page) + "</span>" : "") + "</div>";
-          return s + teachCard(u, e);
-        }).join("") + "</details>";
+      h += '<div class="math-extra-section"><p class="sect-label">🎯 典型例题精讲与解题步骤（' + u.examples.length + " 道）</p>" +
+        examplesBlock(u.examples) + '</div>';
     }
-    // 生活里在哪儿用：学这个到底有什么用
-    if (u.life && u.life.length) {
-      h += '<div class="life">' + u.life.map(function (l) {
-        return '<div class="lf"><span class="tag d1">生活里</span>' + esc(l.where) +
-          '<span class="ask">算一算：' + esc(l.ask) + "</span></div>";
-      }).join("") + "</div>";
+
+    // 6. 单元做一做与巩固练习
+    var unitProblems = (D.problems || []).filter(function(p) {
+      return p.book === u.book && (has(p.unit, u.title) || has(u.title, p.unit));
+    });
+    if (unitProblems.length > 0) {
+      h += '<div class="math-extra-section"><details class="math-drill-details" open><summary>📝 单元课后巩固与自我检测（' + unitProblems.length + ' 道）</summary>' +
+        '<div class="prob-list">' + unitProblems.slice(0, 10).map(function(p) {
+          return '<div class="prob-card"><div class="prob-stem"><b>题 ' + esc(p.name || '') + '：</b>' + esc(p.stem) + '</div>' +
+            (p.steps && p.steps.length ? '<div class="prob-steps">' + p.steps.map(function(st) { return '<div>• ' + esc(st.text) + '</div>'; }).join('') + '</div>' : '') +
+            '<div class="prob-ans"><b>参考答案：</b>' + esc(p.answer) + '</div></div>';
+        }).join('') + (unitProblems.length > 10 ? '<div class="prob-more"><a href="problem.html#' + encodeURIComponent(u.title) + '">查看全部 ' + unitProblems.length + ' 道习题 &gt;</a></div>' : '') +
+        '</div></details></div>';
     }
-    if (u.map && u.map.nodes && u.map.nodes.length) {
-      h += "<details><summary>知识结构图（" + u.map.nodes.length + " 节点" +
-        (u.map.topic ? "：" + esc(u.map.topic) : "") + "）</summary>" +
-        treeSvg(u.map.nodes) + "</details>";
-    }
-    if (u.measures && u.measures.length) {
-      h += '<div class="words">' + u.measures.slice(0, 10).map(function (m) {
-        return '<span class="wb">' + esc(m.name || m) +
-          (m.rate ? " <i>" + esc(m.rate) + "</i>" : "") + "</span>";
-      }).join("") + "</div>";
-    }
-    return h + "</div>";
+
+    h += '</div>';
+    return h;
   }
 
   function measureTable() {
@@ -2304,6 +2284,84 @@
 
 
   /* ============================================================== 科学模块 (课文文本 & 科学实验) */
+
+  
+  function formatMathMd(text, volDir) {
+    if (!text) return "";
+    var s = String(text);
+
+    // 1. 移除顶层标题与 README 冗余
+    s = s.replace(/^#\s+[^\n]*\n*/gm, "");
+
+    // 2. 格式化教材页码元数据条
+    s = s.replace(/^>\s*\*\*教材页码\*\*[：: ]*(.*?)$/gm, '<div class="math-meta-bar"><span>📖 $1</span></div>');
+
+    // 3. 高清教学原书插图替换
+    s = s.replace(/!\[(.*?)\]\((?:figures\/)?([^)]+)\.(?:png|jpg|webp|jpeg)\)/gi, function (match, caption, pName) {
+      var vol = volDir || "";
+      var imgUrl = "figures/" + encodeURIComponent(vol) + "/" + pName + ".webp";
+      return '<figure class="sci-figure"><img src="' + imgUrl + '" alt="' + esc(caption) + '" loading="lazy"><figcaption>📐 ' + esc(caption) + '</figcaption></figure>';
+    });
+
+    // 4. 课本分界线
+    s = s.replace(/###\s*\[第\s*(\d+)\s*页\]/g, '<div class="sci-page-divider"><span>📘 义务教育教科书 · 第 $1 页</span></div>');
+
+    // 5. 课堂情境说明
+    s = s.replace(/\*\((本页主要为[^\)]*)\)\*/g, '<div class="math-scene-note">🎨 $1（课本教学活动详见上方插图）</div>');
+
+    // 6. KaTeX 公式解析与优化
+    s = s.replace(/([0-9a-zA-Z\+\-\*\/\=\>\<·~～÷×−\s]{1,30})?（KaTeX:\s*\$([^$]+)\$）/g, function (match, p1, p2) {
+      return ' <span class="fbox"><span class="tex">' + tex(p2) + '</span></span> ';
+    });
+    s = s.replace(/\$([^$\n]+)\$/g, function (match, p1) {
+      return ' <span class="tex">' + tex(p1) + '</span> ';
+    });
+
+    // 7. 移除 markdown 分割线
+    s = s.replace(/^-{3,}\s*$/gm, "");
+
+    // 8. 粗体、斜体、行内代码
+    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+
+    // 9. 核心教学环节标记
+    s = s.replace(/^(做一做|练习\s*[一二三四五六七八九十\d]+|整理和复习|你知道吗[？?]?|生活中的数学)\s*$/gm, function (match, tag) {
+      return '<div class="math-sect-title"><span>✍️ ' + esc(tag) + '</span></div>';
+    });
+
+    // 10. 列表
+    s = s.replace(/^[-*]\s+(.+)$/gm, '<li class="sci-list-item">$1</li>');
+    s = s.replace(/((?:<li class="sci-list-item">.*<\/li>\s*)+)/g, '<ul class="sci-list">$1</ul>');
+    s = s.replace(/^\d+\.\s+(.+)$/gm, '<li class="sci-num-item">$1</li>');
+    s = s.replace(/((?:<li class="sci-num-item">.*<\/li>\s*)+)/g, '<ol class="sci-num-list">$1</ol>');
+
+    // 11. 分段渲染
+    var lines = s.split(/\n{2,}/);
+    var out = lines.map(function (block) {
+      block = block.trim();
+      if (!block) return "";
+      if (block.startsWith("<div") || block.startsWith("<figure") || block.startsWith("<ul") || block.startsWith("<ol") || block.startsWith("<h")) {
+        return block;
+      }
+      return '<p class="para">' + block.replace(/\n/g, "<br>") + '</p>';
+    }).join("\n");
+
+    return out;
+  }
+
+  function examplesBlock(examples) {
+    if (!examples || !examples.length) return "";
+    return '<div class="prob-list">' + examples.map(function (ex, i) {
+      return '<div class="prob-card"><div class="prob-stem"><b>例题 ' + (i + 1) + ' · ' + esc(ex.name || '') + '：</b>' +
+        esc(ex.stem).replace(/\n/g, '<br>') + '</div>' +
+        (ex.steps && ex.steps.length ? '<div class="prob-steps">' + ex.steps.map(function (st) {
+          return '<div>• ' + esc(st.text) + (st.latex ? ' (' + tex(st.latex) + ')' : '') + '</div>';
+        }).join('') + '</div>' : '') +
+        (ex.answer ? '<div class="prob-ans"><b>解题思路/答案：</b>' + esc(ex.answer) + '</div>' : '') +
+        '</div>';
+    }).join('') + '</div>';
+  }
 
   function formatScienceMd(text, volDir) {
     if (!text) return "";
