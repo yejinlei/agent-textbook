@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/english-tts-spelling
+      - main
     paths:
       - pages/**
       - .github/workflows/pages.yml

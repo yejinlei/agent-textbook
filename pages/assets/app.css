@@ -2064,3 +2064,557 @@ details.aq .aa {
   transition: background-size .6s .9s cubic-bezier(.2,.7,.3,1); }
 .dk-card.on .hl-v, .dk-card.on .hl-s, .dk-card.on .hl-o,
 .dk-card.on .hl-a, .dk-card.on .hl-n, .dk-card.on .hl-q { background-size: 100% 2px; }
+
+/* ============================================================== 单课/单单元精学布局 */
+.lnav-bar {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.lnav-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lnav-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lnav-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.lnav-sel {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 14px;
+  background: #f9fafb;
+  color: var(--ink);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.lnav-sel:focus {
+  border-color: var(--c);
+  background: #fff;
+}
+
+.lnav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fdfbf7;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.lnav-btn:hover:not(:disabled) {
+  background: #f3f0e8;
+  border-color: #b5ada0;
+}
+
+.lnav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.lnav-btn.primary, .lnav-btn.on {
+  background: var(--c);
+  color: #fff;
+  border-color: var(--c);
+}
+
+.lnav-search-row {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lnav-search {
+  flex: 1 1 200px;
+  min-width: 160px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  background: #faf8f5;
+  outline: none;
+}
+
+.lnav-search:focus {
+  background: #fff;
+  border-color: var(--c);
+}
+
+.lnav-hits {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  width: 100%;
+}
+
+.lnav-hit-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #eef2f7;
+  color: var(--ink);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.lnav-hit-chip:hover {
+  background: var(--c);
+  color: #fff;
+}
+
+.lnav-toc-panel {
+  display: none;
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #fdfbf7;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.lnav-toc-panel.show {
+  display: block;
+}
+
+.lnav-toc-unit {
+  margin-bottom: 10px;
+}
+
+.lnav-toc-utitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  padding: 4px 0;
+  border-bottom: 1px solid #eee7db;
+  margin-bottom: 6px;
+}
+
+.lnav-toc-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lnav-toc-item {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid #e3ddd2;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--ink);
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.lnav-toc-item:hover {
+  background: #f2eee4;
+  border-color: #c8bead;
+}
+
+.lnav-toc-item.active {
+  background: var(--c);
+  color: #fff;
+  border-color: var(--c);
+  font-weight: 600;
+}
+
+/* 单元导引横幅 */
+.unit-banner {
+  background: #fffdf9;
+  border: 1px solid #ecd8b5;
+  border-left: 4px solid var(--c);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.unit-banner-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.unit-banner-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.unit-banner-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.unit-banner-body {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.unit-banner-body .elem {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #faf6ee;
+}
+
+/* 单课展示卡片 */
+.lesson-card {
+  background: #ffffff;
+  border: 1px solid #e5dfd3;
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+}
+
+.lesson-meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #f3efe6;
+  margin-bottom: 18px;
+}
+
+.lesson-meta-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lesson-title-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  letter-spacing: 0.5px;
+}
+
+.lesson-author-info {
+  font-size: 15px;
+  color: #4b5563;
+}
+
+.lesson-article {
+  font-size: 18px;
+  line-height: 2.1;
+  color: #24292f;
+  letter-spacing: 0.2px;
+  padding: 8px 4px;
+}
+
+.lesson-article p.para {
+  text-indent: 2em;
+  margin: 16px 0;
+}
+
+.lesson-article p.para.hl {
+  background: #faf6ec;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.lesson-article .pnote {
+  text-indent: 0;
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 13px;
+}
+
+/* 本课生字网格 */
+.char-grid-wrap {
+  margin-top: 24px;
+  padding: 16px 18px;
+  background: #faf7f0;
+  border: 1px solid #e8e2d5;
+  border-radius: 12px;
+}
+
+.char-grid-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 10px;
+}
+
+.char-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.char-card-tile {
+  width: 44px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1.5px solid #d5cbba;
+  border-radius: 8px;
+  font-size: 22px;
+  font-family: 'KaiTi', '楷体', 'STKaiti', serif;
+  font-weight: 600;
+  color: #1a1a1a;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: transform 0.1s, border-color 0.15s;
+}
+
+.char-card-tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--c);
+  color: var(--c);
+}
+
+/* 课后思考题 */
+.tasks-box-wrap {
+  margin-top: 20px;
+  padding: 16px 18px;
+  background: #fdfaf3;
+  border: 1px solid #e8e2d5;
+  border-radius: 12px;
+}
+
+.tasks-box-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+/* 底部翻课翻页栏 */
+.lesson-footer-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  margin-top: 24px;
+  background: #faf7f0;
+  border: 1px solid #e8e2d5;
+  border-radius: 12px;
+}
+
+.lesson-footer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #d5cbba;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.15s;
+  max-width: 42%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lesson-footer-btn:hover:not(:disabled) {
+  background: #f0ebe0;
+  border-color: #b3a590;
+}
+
+.lesson-footer-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.list-mode-switch-btn {
+  margin-left: 8px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid var(--c);
+  background: #fff;
+  color: var(--c);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.list-mode-switch-btn:hover {
+  background: var(--c);
+  color: #fff;
+}
+
+.single-mode-hint {
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  background: #fdf8ed;
+  border: 1px solid #ecd8b5;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #8c6d37;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer-card {
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.drawer-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--line);
+  margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+  .lesson-card { padding: 16px 14px; }
+  .lesson-title-text { font-size: 20px; }
+  .lesson-article { font-size: 16px; line-height: 1.9; }
+  .lnav-row { flex-direction: column; align-items: stretch; }
+  .lnav-group { flex-wrap: wrap; }
+  .lnav-sel { width: 100%; }
+}
+
+/* ============================================================== 数学动画与英语语音增强样式 */
+.unit-lab-matched {
+  background: #f7faff;
+  border: 1.5px solid #bdd7f5;
+  border-left: 5px solid #2471a3;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 18px 0;
+  box-shadow: 0 2px 8px rgba(36,113,163,0.06);
+}
+.unit-lab-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a5276;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.unit-lab-badge {
+  background: #2471a3;
+  color: #fff;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+.all-labs-drawer {
+  background: #fdfcf9;
+  border: 1.5px solid #d4c8b8;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 14px 0;
+}
+.en-voice-banner {
+  background: #f2faf5;
+  border: 1.5px solid #bfead0;
+  border-left: 5px solid #1e8449;
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(30,132,73,0.05);
+}
+.en-voice-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.en-voice-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #145a32;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.en-voice-hint {
+  font-size: 13px;
+  color: #27ae60;
+}
+.en-voice-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.en-play-all-btn {
+  background: #1e8449;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.15s;
+}
+.en-play-all-btn:hover {
+  background: #196f3d;
+}

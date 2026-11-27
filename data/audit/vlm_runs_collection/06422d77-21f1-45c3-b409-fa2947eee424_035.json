@@ -1,0 +1,35 @@
+{
+  "lesson_id": "06422d77-21f1-45c3-b409-fa2947eee424:035",
+  "title": "学弈",
+  "prompt": "这是语文教材第 84-84 页的扫描图。\n这一页上有合辑标题《文言文二则》，包含多篇课文。\n我只需要你提取其中标题为「学弈」的那一篇课文正文。\n当前提取的正文（有问题，含多篇混在一起）：\n```\n文言文二则学  弈弈秋②，通国③之善弈者也。使弈秋诲二人弈，其一人专心致志，惟弈秋之为听④；一人虽听之，一心以为有鸿鹄hú ⑤将至，思援⑥弓缴⑦而射之。虽与之⑧俱学，弗若⑨之矣。\n为⑩是其智弗若与？曰：非然也。\n弈，下棋。\n```\n\n请从图片识别原文，只输出「学弈」这一篇的正文，不要混入其他课文。\n输出 JSON。",
+  "response": {
+    "id": "8086493b78ba45c984deaaa341b6cbd4",
+    "created": 1793853567,
+    "model": "sensenova-6.8-flash-lite",
+    "object": "chat.completion",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"title\":\"学弈\",\"text\":\"弈秋，通国之善弈者也。使弈秋诲二人弈，其一人专心致志，惟弈秋之为听；一人虽听之，一心以为有鸿鹄将至，思援弓缴而射之。虽与之俱学，弗若之矣。\\n为是其智弗若与？曰：非然也。\",\"confidence\":0.98,\"note\":\"提取正确，仅包含《学弈》正文，无混入其他课文或注释。\"}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 811,
+      "completion_tokens": 112,
+      "total_tokens": 923,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "request_id": "8086493b78ba45c984deaaa341b6cbd4"
+  },
+  "elapsed_sec": 59.35
+}
