@@ -13,19 +13,20 @@ def run(cmd):
     return r.stdout.strip()
 
 def main():
-    # 1. Update main branch
+    # 1. Update feature and main branch
     run("git push origin feature/english-tts-spelling")
-    run("git branch -f main 36217839f")
+    head_commit = run("git rev-parse HEAD")
+    run(f"git branch -f main {head_commit}")
     run("git push origin main")
 
     # 2. Deploy gh-pages
     tree = run("git write-tree --prefix=pages/")
     print(f"Tree hash: {tree}")
     
-    parent = "36217839f"
-    print(f"Parent commit on origin: {parent}")
+    parent = run("git rev-parse origin/gh-pages")
+    print(f"Parent commit on origin/gh-pages: {parent}")
     
-    commit_cmd = f'git commit-tree {tree} -p {parent} -m "deploy: update gh-pages with Science textbook & 287 interactive simulations"'
+    commit_cmd = f'git commit-tree {tree} -p {parent} -m "deploy: upgrade math textbook with 104 units, 1349 webp figures, and single-unit reader"'
     commit = run(commit_cmd)
     print(f"New gh-pages commit: {commit}")
     
