@@ -1397,39 +1397,57 @@
   function formatScienceMd(text) {
     if (!text) return "";
     var s = String(text);
-    // Escape HTML first
-    s = s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    // Bold: **text**
+    // 移除顶部重复标题 ## 1. 标题
+    s = s.replace(/^##\s+\d+\.\s+[^\n]*\n+/g, "");
+    // 移除内嵌仿真链接行（已由仿真卡片独立承载）
+    s = s.replace(/-\s*🧪\s*\*\*配套微仿真实验\*\*[^\n]*\n*/g, "");
+    // 清理图片标记为插图标注
+    s = s.replace(/!\[(.*?)\]\([^\)]+\)/g, '<div class="sci-fig-caption">🖼️ $1</div>');
+    // 教材页码分界线
+    s = s.replace(/###\s*\[第\s*(\d+)\s*页\]/g, '<div class="sci-page-divider"><span>📘 教材第 $1 页</span></div>');
+    // 移除裸露的 markdown 水平线 ---
+    s = s.replace(/^-{3,}\s*$/gm, "");
+
+    // 粗体、斜体、行内代码
     s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    // Italic: *text*
     s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    // Code: `code`
     s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
-    // Headers: ###, ##, #
-    s = s.replace(/^###\s+(.+)$/gm, '<h4 class="sci-subhead">$1</h4>');
-    s = s.replace(/^##\s+(.+)$/gm, '<h3 class="sci-sec-title">$1</h3>');
-    s = s.replace(/^#\s+(.+)$/gm, '<h2 class="sci-sec-title">$1</h2>');
-    // Horizontal rule: ---
-    s = s.replace(/^---$/gm, '<hr class="sci-divider">');
-    // Lists: - item or * item
+
+    // 列表解析 (在卡片转换前以保留行首匹配)
     s = s.replace(/^[-*]\s+(.+)$/gm, '<li class="sci-list-item">$1</li>');
     s = s.replace(/((?:<li class="sci-list-item">.*<\/li>\s*)+)/g, '<ul class="sci-list">$1</ul>');
-    // Numbered lists: 1. item
     s = s.replace(/^\d+\.\s+(.+)$/gm, '<li class="sci-num-item">$1</li>');
     s = s.replace(/((?:<li class="sci-num-item">.*<\/li>\s*)+)/g, '<ol class="sci-num-list">$1</ol>');
-    // Paragraphs
-    var paragraphs = s.split(/\n{2,}/);
-    var res = [];
-    for (var i = 0; i < paragraphs.length; i++) {
-      var p = paragraphs[i].trim();
+
+    // 各大探究核心环节转为结构化卡片
+    s = s.replace(/####\s*🎯\s*(?:聚焦|任务|明确任务)[：: \s]*([^\n]*)/g, '<div class="sci-sec-card focus"><div class="sci-sec-head">🎯 聚焦 · 科学问题与真实情境</div><div class="sci-sec-body">$1');
+    s = s.replace(/####\s*🔬\s*(?:探索|制作|观察|实验)[：: \s]*([^\n]*)/g, '</div></div><div class="sci-sec-card exploration"><div class="sci-sec-head">🔬 探索 · 观察实验与探究过程</div><div class="sci-sec-body">$1');
+    s = s.replace(/####\s*💬\s*(?:研讨|讨论|交流)[：: \s]*([^\n]*)/g, '</div></div><div class="sci-sec-card discussion"><div class="sci-sec-head">💬 研讨 · 思维碰撞与事实论证</div><div class="sci-sec-body">$1');
+    s = s.replace(/####\s*🚀\s*(?:拓展|实践)[：: \s]*([^\n]*)/g, '</div></div><div class="sci-sec-card expansion"><div class="sci-sec-head">🚀 拓展 · 迁移应用与实践探究</div><div class="sci-sec-body">$1');
+    s = s.replace(/####\s*💡\s*(?:科学词汇|概念卡)[：: \s]*([^\n]*)/g, '</div></div><div class="sci-sec-card vocab"><div class="sci-sec-head">💡 科学词汇与核心概念</div><div class="sci-sec-body">$1');
+    s = s.replace(/####\s*📝\s*(?:记录单|活动记录)[：: \s]*([^\n]*)/g, '</div></div><div class="sci-sec-card record"><div class="sci-sec-head">📝 活动记录单与观察表</div><div class="sci-sec-body">$1');
+    s = s.replace(/####\s*🚀\s*科学家视角[^\n]*/g, '</div></div><div class="sci-frontier-box"><div class="sci-frontier-title">🚀 科学家视野 · 深度课外拓展</div><div class="sci-frontier-body">');
+
+    // 段落包装
+    var parts = s.split(/\n{2,}/);
+    var out = [];
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i].trim();
       if (!p) continue;
-      if (p.indexOf("<h") === 0 || p.indexOf("<ul") === 0 || p.indexOf("<ol") === 0 || p.indexOf("<hr") === 0) {
-        res.push(p);
+      if (p.indexOf("<div") === 0 || p.indexOf("</div>") === 0 || p.indexOf("<ul") === 0 || p.indexOf("<ol") === 0) {
+        out.push(p);
       } else {
-        res.push("<p>" + p.replace(/\n/g, "<br>") + "</p>");
+        out.push("<p>" + p.replace(/\n/g, "<br>") + "</p>");
       }
     }
-    return res.join("");
+    var res = out.join("\n");
+    // 闭合可能未闭合的卡片
+    var openCount = (res.match(/<div class="sci-(?:sec-card|frontier-box)[^"]*">/g) || []).length;
+    var closeCount = (res.match(/<\/div><\/div>/g) || []).length;
+    for (var c = closeCount; c < openCount; c++) {
+      res += "</div></div>";
+    }
+    return res;
   }
 
   /* ---------------- 科学课文文本模块 (单课精读 & 单元通读) ---------------- */
@@ -1664,7 +1682,6 @@
 
       if (state.mode === "single" && curLesson && !state.q) {
         // 单课精读视图
-        var sec = curLesson.sections || {};
         var hasPrev = curIdx > 0;
         var hasNext = curIdx >= 0 && curIdx < bookLessons.length - 1;
 
@@ -1682,31 +1699,23 @@
           '<div class="lesson-head-row">' +
           '<span class="tag d1" style="font-size:13px;padding:3px 10px;">' + esc(curLesson.domain_cn || curLesson.domain) + '</span>' +
           '<span class="tag d2" style="font-size:12px;padding:3px 8px;">' + esc(curLesson.code) + '</span>' +
-          '<span style="color:#64748b;font-size:13px;margin-left:auto;">' + esc(curLesson.book) + ' · ' + esc(curLesson.unit_title) + '</span>' +
+          '<span style="color:#64748b;font-size:13px;margin-left:auto;">' + esc(curLesson.book) + ' · ' + esc(curLesson.unit_title) + ' · 教材第 ' + (curLesson.page || 1) + ' 页</span>' +
           '</div>' +
           '<h1 class="lesson-title" style="margin:12px 0 6px;">第' + curLesson.lesson_no + '课 ' + esc(curLesson.title) + '</h1>' +
           '</div>';
 
-        // 核心学习环节卡片
         html += '<div class="lesson-body-content">';
 
-        // 1. 🎯 聚焦 Focus
-        if (sec.focus) {
-          html += '<div class="sci-sec-card focus">' +
-            '<div class="sci-sec-head">🎯 聚焦 · 科学问题与真实情境</div>' +
-            '<div class="sci-sec-body">' + formatScienceMd(sec.focus) + '</div>' +
-            '</div>';
-        }
+        // 1. 📖 完整课文文本与探究活动 (Textbook Full Content)
+        html += '<div class="sci-textbook-card">' +
+          '<div class="sci-textbook-card-head">' +
+          '<span>📖 课文原文与课堂探究指南</span>' +
+          '<span class="sci-textbook-vol-tag">' + esc(curLesson.book) + ' · ' + esc(curLesson.unit_title) + '</span>' +
+          '</div>' +
+          '<div class="sci-textbook-body">' + formatScienceMd(curLesson.raw_text) + '</div>' +
+          '</div>';
 
-        // 2. 🔬 探索 Exploration
-        if (sec.exploration) {
-          html += '<div class="sci-sec-card exploration">' +
-            '<div class="sci-sec-head">🔬 探索 · 观察实验与探究过程</div>' +
-            '<div class="sci-sec-body">' + formatScienceMd(sec.exploration) + '</div>' +
-            '</div>';
-        }
-
-        // 3. 🧪 配套交互科学微实验 (Simulation Embed)
+        // 2. 🧪 配套交互科学微实验 (Simulation Embed)
         if (curLesson.sim_file) {
           var simPath = 'simulations/' + curLesson.sim_file;
           html += '<div class="sci-sim-embed">' +
@@ -1718,42 +1727,6 @@
             '</div></div>' +
             '<iframe id="curSimIframe" src="' + simPath + '" loading="lazy" allowfullscreen></iframe>' +
             '</div>';
-        }
-
-        // 4. 💬 研讨 Discussion
-        if (sec.discussion) {
-          html += '<div class="sci-sec-card discussion">' +
-            '<div class="sci-sec-head">💬 研讨 · 思维碰撞与事实论证</div>' +
-            '<div class="sci-sec-body">' + formatScienceMd(sec.discussion) + '</div>' +
-            '</div>';
-        }
-
-        // 5. 🚀 拓展 Expansion
-        if (sec.expansion) {
-          html += '<div class="sci-sec-card expansion">' +
-            '<div class="sci-sec-head">🚀 拓展 · 迁移应用与实践探究</div>' +
-            '<div class="sci-sec-body">' + formatScienceMd(sec.expansion) + '</div>' +
-            '</div>';
-        }
-
-        // 6. 🌐 科学家视野与前沿深度卡片 (Frontier, Big Concept, Misconception)
-        if (sec.frontier || sec.big_concept || sec.misconception) {
-          html += '<div class="sci-frontier-box">' +
-            '<div class="sci-frontier-title">🚀 科学家视野 · 深度课外拓展与跨学科思维</div>';
-
-          if (sec.frontier) {
-            html += '<div class="sci-frontier-item"><b>🌐 前沿科技链接：</b>' +
-              '<div style="margin-top:4px;">' + formatScienceMd(sec.frontier) + '</div></div>';
-          }
-          if (sec.big_concept) {
-            html += '<div class="sci-frontier-item"><b>💡 跨学科大概念：</b>' +
-              '<div style="margin-top:4px;">' + formatScienceMd(sec.big_concept) + '</div></div>';
-          }
-          if (sec.misconception) {
-            html += '<div class="sci-frontier-item"><b>⚠️ 前概念迷思纠偏：</b>' +
-              '<div style="margin-top:4px;">' + formatScienceMd(sec.misconception) + '</div></div>';
-          }
-          html += '</div>';
         }
 
         html += '</div>'; // end lesson-body-content
@@ -1800,7 +1773,7 @@
           filtered = allLessons.filter(function (x) {
             return has(x.title, state.q) || has(x.unit_title, state.q) ||
               has(x.book, state.q) || has(x.domain_cn, state.q) ||
-              (x.sections && (has(x.sections.focus, state.q) || has(x.sections.exploration, state.q) || has(x.sections.frontier, state.q)));
+              has(x.raw_text, state.q);
           });
         }
 
@@ -1826,14 +1799,16 @@
               html += '<h3 class="sci-unit-banner" style="margin:24px 0 12px;padding:8px 12px;background:#f1f5f9;border-left:4px solid #0284c7;border-radius:4px;font-size:16px;color:#0f172a;">' +
                 esc(curUnit) + '</h3>';
             }
-            html += '<div class="item" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;margin-bottom:8px;background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;">' +
+            var preview = String(ls.raw_text || "").replace(/#[^\n]+/g, "").replace(/\!\[[^\]]+\]\([^\)]+\)/g, "").replace(/\s+/g, " ").trim().slice(0, 110);
+            html += '<div class="item" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;margin-bottom:10px;background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;">' +
               '<div style="flex:1;">' +
               '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
               '<span class="tag d1">' + esc(ls.domain_cn || ls.domain) + '</span>' +
               '<span class="tag d2">' + esc(ls.book) + '</span>' +
               '<span style="font-weight:700;font-size:16px;color:#0f172a;">第' + ls.lesson_no + '课 ' + esc(ls.title) + '</span>' +
               '</div>' +
-              '<div style="font-size:13px;color:#64748b;">' + esc(ls.unit_title) + (ls.sections && ls.sections.focus ? ' · 🎯 ' + esc(ls.sections.focus) : '') + '</div>' +
+              '<div style="font-size:13px;color:#64748b;margin-bottom:4px;">' + esc(ls.unit_title) + '</div>' +
+              (preview ? '<div style="font-size:13px;color:#475569;line-height:1.5;">' + esc(preview) + '...</div>' : '') +
               '</div>' +
               '<div style="display:flex;gap:8px;align-items:center;">' +
               (ls.sim_file ? '<a href="simulations/' + ls.sim_file + '" target="_blank" class="sim-btn outline" style="font-size:12px;padding:4px 8px;">🧪 实验</a>' : '') +
@@ -1878,7 +1853,6 @@
     var allLessons = D.lessons || [];
     var books = D.books || [];
 
-    // 汇总全部 287 个实验 (15 master + 260 lesson sims)
     var simList = [];
 
     masterSims.forEach(function (m, idx) {
@@ -1918,11 +1892,10 @@
       domain: "all",
       book: "all",
       q: "",
-      activeSim: simList.length ? simList[0] : null // 默认加载第一个大师沙盒
+      activeSim: simList.length ? simList[0] : null
     };
 
     function render() {
-      // 过滤列表
       var filtered = simList.filter(function (s) {
         if (state.domain === "master" && !s.is_master) return false;
         if (state.domain !== "all" && state.domain !== "master") {
@@ -2005,10 +1978,10 @@
         html += '</div>';
       }
 
-      html += '</div>'; // end sim-wrapper
+      html += '</div>';
       box.innerHTML = html;
 
-      // 绑定领域筛选按钮
+      // 绑定筛选
       var domBtns = box.querySelectorAll(".sim-domain-pill");
       domBtns.forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -2017,21 +1990,18 @@
         });
       });
 
-      // 绑定年级选择
       var bSel = document.getElementById("simBookSel");
       if (bSel) bSel.addEventListener("change", function () {
         state.book = bSel.value;
         render();
       });
 
-      // 绑定搜索
       var sInp = document.getElementById("simSearch");
       if (sInp) sInp.addEventListener("input", function () {
         state.q = sInp.value.trim().toLowerCase();
         render();
       });
 
-      // 绑定实验台按钮
       var fsBtn = document.getElementById("simFsBtn");
       if (fsBtn) fsBtn.addEventListener("click", function () {
         var f = document.getElementById("stageIframe");
@@ -2046,7 +2016,6 @@
         if (f && state.activeSim) f.src = 'simulations/' + state.activeSim.file;
       });
 
-      // 绑定卡片点击运行
       var cards = box.querySelectorAll(".sim-card");
       cards.forEach(function (card) {
         card.addEventListener("click", function (e) {

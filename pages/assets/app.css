@@ -2893,3 +2893,79 @@ details.aq .aa {
   border-color: #0284c7;
   box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
 }
+
+/* 课文阅读卡片与教材页码标注 */
+.sci-textbook-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+.sci-textbook-card-head {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-bottom: 1px solid #bae6fd;
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0369a1;
+}
+.sci-textbook-vol-tag {
+  font-size: 12px;
+  color: #0284c7;
+  background: #ffffff;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid #bae6fd;
+}
+.sci-textbook-body {
+  padding: 20px 24px;
+  font-size: 15px;
+  line-height: 1.85;
+  color: #1e293b;
+}
+.sci-textbook-body p {
+  margin: 12px 0;
+  line-height: 1.8;
+}
+.sci-page-divider {
+  display: flex;
+  align-items: center;
+  margin: 24px 0 16px;
+  text-align: center;
+}
+.sci-page-divider::before, .sci-page-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px dashed #cbd5e1;
+}
+.sci-page-divider span {
+  padding: 3px 12px;
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0 10px;
+}
+.sci-fig-caption {
+  font-size: 12px;
+  color: #64748b;
+  background: #f8fafc;
+  border-left: 3px solid #94a3b8;
+  padding: 4px 10px;
+  margin: 8px 0 14px;
+  border-radius: 0 4px 4px 0;
+}
+.sci-sec-card.vocab {
+  border-left: 4px solid #8b5cf6;
+  background: #faf5ff;
+}
+.sci-sec-card.record {
+  border-left: 4px solid #10b981;
+  background: #f0fdf4;
+}
