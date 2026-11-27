@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【6. “小房子”展示会】真实验微仿真 - 二年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+        .notes-card strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 <span>6. “小房子”展示会</span></h1>
+        <span class="badge">二年级科学·造房子</span>
+        <a href="mechanics_lever.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 建筑力学与结构工程实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g03_s1_u01_l01.html" class="">动物的“家”</a>
+<a href="sim_g03_s1_u01_l02.html" class="">我们的家</a>
+<a href="sim_g03_s1_u01_l03.html" class="">家里的物品</a>
+<a href="sim_g03_s1_u01_l04.html" class="">设计小房子</a>
+<a href="sim_g03_s1_u01_l05.html" class="">建造小房子</a>
+<a href="sim_g03_s1_u01_l06.html" class="active">“小房子”展示会</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="cv" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 建筑结构与工程测试控制台</div>
+            
+            <div class="ctrl-group">
+                <label class="ctrl-label">切换建筑工程主题</label>
+                <div class="btn-grid">
+                    <button class="btn " onclick="switchMode('design_truss')">📐 结构稳定性</button>
+                    <button class="btn " onclick="switchMode('build_steps')">🧱 搭建房屋</button>
+                    <button class="btn btn-primary" onclick="switchMode('test_inspection')">🌪️ 抗风抗压</button>
+                    <button class="btn " onclick="switchMode('materials')">🧪 材料特性</button>
+                    <button class="btn " onclick="switchMode('animal_home')">🪺 仿生鸟巢</button>
+                    <button class="btn " onclick="switchMode('our_home')">🏠 房屋布局</button>
+                </div>
+            </div>
+
+            <div id="dynamic-controls">
+                <!-- Dynamically injected controls -->
+            </div>
+
+            <div class="card-title" style="margin-top: 6px;">📊 建筑工程与力学遥测</div>
+            <div class="telemetry" id="telem">
+                [遥测就绪] 等待交互触发...
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <strong>🎯 探究目标与科学家视角：</strong><br>
+            建造房屋不仅要满足遮风避雨的生活需求，更蕴含深刻的结构工程学原理。三角形具有天然的几何稳定性，而四边形易发生剪切变形；屋顶的尖顶坡度有利于雨水快速排出和减少积雪荷载；地基、梁、柱协同传递重力，构成了坚固耐用的现代建筑框架。
+        </div>
+    </div>
+
+    <script>
+        const cv = document.getElementById('cv');
+        const ctx = cv.getContext('2d');
+        const telem = document.getElementById('telem');
+        const dynControls = document.getElementById('dynamic-controls');
+
+        // Web Audio Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type='sine', dur=0.15) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
+        }
+
+        let activeMode = "test_inspection";
+        let state = {
+            hasDiagonalTruss: true,
+            trussForce: 0,
+            buildStep: 4, // 1=地基, 2=立柱, 3=横梁, 4=尖顶屋顶
+            windSpeed: 3, // 0 to 10
+            loadWeight: 5, // 0 to 20 kg
+            roofSlope: 35, // deg
+            materialType: 'wood' // wood, brick, bamboo, glass
+        };
+
+        function switchMode(m) {
+            activeMode = m;
+            playTone(440, 'triangle', 0.1);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setupControls() {
+            let h = '';
+            if (activeMode === 'design_truss') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">框架结构受力对比 (三角形 vs 四边形)</label>
+                    <div class="btn-grid">
+                        <button class="btn btn-green" onclick="toggleTruss(true)">🔺 加上斜拉梁 (稳定三角形)</button>
+                        <button class="btn btn-rose" onclick="toggleTruss(false)">⬛ 撤去斜拉梁 (易变形四边形)</button>
+                    </div>
+                </div>
+                <div class="ctrl-group">
+                    <label class="ctrl-label">施加侧向剪切推力: <span class="val" id="force-val">${state.trussForce} N</span></label>
+                    <input type="range" min="0" max="80" value="${state.trussForce}" oninput="state.trussForce=parseInt(this.value); updateTelemetry();">
+                </div>
+                `;
+            } else if (activeMode === 'build_steps') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">建造步骤推进: 当前第 <span class="val">${state.buildStep} / 4 步</span></label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.buildStep===1?'btn-primary':''}" onclick="setBuildStep(1)">1. 平整地基</button>
+                        <button class="btn ${state.buildStep===2?'btn-primary':''}" onclick="setBuildStep(2)">2. 竖立柱子</button>
+                        <button class="btn ${state.buildStep===3?'btn-primary':''}" onclick="setBuildStep(3)">3. 搭接横梁</button>
+                        <button class="btn ${state.buildStep===4?'btn-primary':''}" onclick="setBuildStep(4)">4. 封顶盖瓦</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'test_inspection') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">风力等级测试: <span class="val" id="wind-val">${state.windSpeed} 级</span></label>
+                    <input type="range" min="0" max="10" value="${state.windSpeed}" oninput="state.windSpeed=parseInt(this.value); updateTelemetry();">
+                </div>
+                <div class="ctrl-group">
+                    <label class="ctrl-label">屋顶承重压力: <span class="val" id="load-val">${state.loadWeight} kg</span></label>
+                    <input type="range" min="0" max="20" value="${state.loadWeight}" oninput="state.loadWeight=parseInt(this.value); updateTelemetry();">
+                </div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" onclick="state.windSpeed=8; updateTelemetry(); playTone(600);">🌪️ 狂风暴雨袭击</button>
+                    <button class="btn btn-green" onclick="state.windSpeed=2; state.loadWeight=5; updateTelemetry(); playTone(400);">🌤️ 恢复常态</button>
+                </div>
+                `;
+            } else if (activeMode === 'materials') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">建筑材料属性与抗压测试</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.materialType==='wood'?'btn-primary':''}" onclick="setMat('wood')">🪵 木料 (韧性抗弯)</button>
+                        <button class="btn ${state.materialType==='brick'?'btn-primary':''}" onclick="setMat('brick')">🧱 砖石 (硬度抗压)</button>
+                        <button class="btn ${state.materialType==='bamboo'?'btn-primary':''}" onclick="setMat('bamboo')">🎋 竹条 (轻巧弹性)</button>
+                        <button class="btn ${state.materialType==='glass'?'btn-primary':''}" onclick="setMat('glass')">🪟 玻璃 (透光采光)</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'animal_home' || activeMode === 'our_home') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">建筑功能与仿生学设计</label>
+                    <div class="btn-grid">
+                        <button class="btn btn-primary" onclick="playTone(520); updateTelemetry();">🪺 鸟巢交错力学</button>
+                        <button class="btn btn-green" onclick="playTone(620); updateTelemetry();">🐝 蜂窝六边形承重</button>
+                    </div>
+                </div>
+                `;
+            }
+            dynControls.innerHTML = h;
+        }
+
+        function toggleTruss(val) {
+            state.hasDiagonalTruss = val;
+            playTone(val ? 660 : 280);
+            updateTelemetry();
+        }
+
+        function setBuildStep(s) {
+            state.buildStep = s;
+            playTone(300 + s * 80);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setMat(m) {
+            state.materialType = m;
+            playTone(480);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function updateTelemetry() {
+            let txt = `[建筑工程实验室] 模式: ${activeMode} | `;
+            if (activeMode === 'design_truss') {
+                if (state.hasDiagonalTruss) {
+                    txt += `结构: 三角形桁架 | 侧向推力: ${state.trussForce} N | 状态: 稳如泰山 (不变形)`;
+                } else {
+                    const deform = (state.trussForce * 0.4).toFixed(1);
+                    txt += `结构: 普通四边形 | 侧向推力: ${state.trussForce} N | 状态: ⚠️ 剪切变形倾斜 ${deform}° (结构脆弱)`;
+                }
+            } else if (activeMode === 'build_steps') {
+                const names = ['平整地基 (稳定承重底座)', '立柱安装 (垂直传力构件)', '搭接横梁 (水平拉结与承托)', '铺设屋顶 (尖顶利于排水抗风)'];
+                txt += `施工阶段: 第${state.buildStep}步 - ${names[state.buildStep-1]} | 检验: 合格规范`;
+            } else if (activeMode === 'test_inspection') {
+                const isSafe = state.windSpeed < 8 && state.loadWeight < 16;
+                txt += `风力: ${state.windSpeed} 级 | 荷载: ${state.loadWeight} kg | 房屋安全质检: ${isSafe?'🟢 安全合格':'⚠️ 达到极限承载预警'}`;
+            } else if (activeMode === 'materials') {
+                txt += `当前材料: ${state.materialType} | 力学特征: 建筑选材因地制宜，各取所长`;
+            } else if (activeMode === 'animal_home' || activeMode === 'our_home') {
+                txt += `仿生灵感: 自然界中鸟巢交织纤维与蜂巢密铺力学，启迪人类绿色轻量化建筑工程`;
+            }
+            telem.innerText = txt;
+        }
+
+        function drawTruss(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('框架几何稳定性实验: 三角形(稳固) vs 四边形(易变形)', cx, 40);
+
+            // Ground
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(cx - 200, cy + 120, 400, 10);
+
+            const skew = state.hasDiagonalTruss ? 0 : (state.trussForce * 0.45);
+
+            // Draw quadrilateral frame
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 6;
+            ctx.lineJoin = 'round';
+
+            const p1 = { x: cx - 90, y: cy + 120 };
+            const p2 = { x: cx + 90, y: cy + 120 };
+            const p3 = { x: cx + 90 + skew, y: cy - 40 };
+            const p4 = { x: cx - 90 + skew, y: cy - 40 };
+
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.lineTo(p3.x, p3.y);
+            ctx.lineTo(p4.x, p4.y);
+            ctx.closePath();
+            ctx.stroke();
+
+            // Diagonal truss
+            if (state.hasDiagonalTruss) {
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p3.x, p3.y);
+                ctx.stroke();
+
+                ctx.fillStyle = '#10b981';
+                ctx.font = 'bold 13px sans-serif';
+                ctx.fillText('斜拉斜撑杆形成稳定三角形！', cx, cy + 30);
+            } else {
+                ctx.fillStyle = '#f43f5e';
+                ctx.font = 'bold 13px sans-serif';
+                ctx.fillText('缺少斜拉支撑，受力极易倾斜坍塌！', cx, cy + 30);
+            }
+
+            // Hinges (pins)
+            ctx.fillStyle = '#f59e0b';
+            [p1, p2, p3, p4].forEach(p => {
+                ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI*2); ctx.fill();
+            });
+        }
+
+        function drawHouse(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('小房子施工与抗风承重性能测试', cx, 40);
+
+            // Wind visualization
+            if (state.windSpeed > 0) {
+                const t = performance.now() * 0.005;
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+                ctx.lineWidth = 2;
+                for(let i=0; i<state.windSpeed * 3; i++) {
+                    const wx = 60 + ((i * 45 + t * state.windSpeed * 50) % 600);
+                    const wy = cy - 100 + (i * 18);
+                    ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + 35, wy); ctx.stroke();
+                }
+            }
+
+            // Step 1: Foundation
+            if (state.buildStep >= 1) {
+                ctx.fillStyle = '#475569';
+                ctx.fillRect(cx - 150, cy + 100, 300, 24);
+                ctx.fillStyle = '#cbd5e1';
+                ctx.font = '12px sans-serif';
+                ctx.fillText('稳固地基基础', cx, cy + 116);
+            }
+
+            // Step 2: Columns (Pillars)
+            if (state.buildStep >= 2) {
+                ctx.fillStyle = '#b45309';
+                ctx.fillRect(cx - 120, cy - 20, 24, 120);
+                ctx.fillRect(cx + 96, cy - 20, 24, 120);
+                // Door & window
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(cx - 25, cy + 20, 50, 80);
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(cx + 40, cy, 35, 35);
+            }
+
+            // Step 3: Beams
+            if (state.buildStep >= 3) {
+                ctx.fillStyle = '#d97706';
+                ctx.fillRect(cx - 140, cy - 35, 280, 18);
+            }
+
+            // Step 4: Roof
+            if (state.buildStep >= 4) {
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - 120);
+                ctx.lineTo(cx - 160, cy - 35);
+                ctx.lineTo(cx + 160, cy - 35);
+                ctx.closePath();
+                ctx.fill();
+
+                // Roof load weight
+                if (state.loadWeight > 0) {
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(cx - 30, cy - 145, 60, 25);
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.fillText(`${state.loadWeight}kg 砝码`, cx, cy - 128);
+                }
+            }
+        }
+
+        function drawMaterials(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('建筑常用材料物理力学性能观察台', cx, 40);
+
+            const mats = [
+                { id: 'wood', name: '木料', icon: '🪵', desc: '韧性好、便于榫卯加工、保温抗震' },
+                { id: 'brick', name: '砖石', icon: '🧱', desc: '耐压、防火防水、坚固持久' },
+                { id: 'bamboo', name: '竹材', icon: '🎋', desc: '轻质高强、弹性极佳、生长迅速' },
+                { id: 'glass', name: '玻璃', icon: '🪟', desc: '采光极佳、表面光滑透明' }
+            ];
+
+            mats.forEach((m, idx) => {
+                const mx = cx - 220 + (idx % 2) * 230;
+                const my = cy - 40 + Math.floor(idx / 2) * 100;
+
+                const isSel = state.materialType === m.id;
+                ctx.fillStyle = isSel ? '#0369a1' : '#1e293b';
+                ctx.strokeStyle = isSel ? '#38bdf8' : '#334155';
+                ctx.lineWidth = 2;
+                ctx.fillRect(mx, my, 210, 80);
+                ctx.strokeRect(mx, my, 210, 80);
+
+                ctx.font = '26px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(m.icon, mx + 12, my + 45);
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText(m.name, mx + 55, my + 30);
+
+                ctx.fillStyle = '#cbd5e1';
+                ctx.font = '11px sans-serif';
+                ctx.fillText(m.desc, mx + 55, my + 55);
+            });
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            const cx = cv.width / 2;
+            const cy = cv.height / 2;
+
+            if (activeMode === 'design_truss') drawTruss(cx, cy);
+            else if (activeMode === 'build_steps' || activeMode === 'test_inspection') drawHouse(cx, cy);
+            else if (activeMode === 'materials' || activeMode === 'animal_home' || activeMode === 'our_home') drawMaterials(cx, cy);
+
+            requestAnimationFrame(render);
+        }
+
+        setupControls();
+        updateTelemetry();
+        render();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

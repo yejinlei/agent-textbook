@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【6. 制作恐龙模型】真实验微仿真 - 二年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+        .notes-card strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 <span>6. 制作恐龙模型</span></h1>
+        <span class="badge">二年级科学·探秘恐龙</span>
+        <a href="virtual_microscope.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 古生物化石与骨骼解剖实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g04_s2_u01_l01.html" class="">恐龙的故事</a>
+<a href="sim_g04_s2_u01_l02.html" class="">挖掘恐龙“化石”</a>
+<a href="sim_g04_s2_u01_l03.html" class="">测量恐龙“化石”</a>
+<a href="sim_g04_s2_u01_l04.html" class="">拼接恐龙“化石”</a>
+<a href="sim_g04_s2_u01_l05.html" class="">复原恐龙</a>
+<a href="sim_g04_s2_u01_l06.html" class="active">制作恐龙模型</a>
+<a href="sim_g04_s2_u01_l07.html" class="">我们的恐龙公园</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="cv" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 古生物考古与恐龙科学控制台</div>
+            
+            <div class="ctrl-group">
+                <label class="ctrl-label">切换古生物探究主题</label>
+                <div class="btn-grid">
+                    <button class="btn " onclick="switchMode('excavation')">⛏️ 化石发掘</button>
+                    <button class="btn " onclick="switchMode('fossil_assembly')">🦴 骨骼拼接</button>
+                    <button class="btn " onclick="switchMode('reconstruction')">🦖 恐龙复原</button>
+                    <button class="btn " onclick="switchMode('measurement')">📏 骨骼测量</button>
+                    <button class="btn btn-primary" onclick="switchMode('dino_model')">🗿 模型比例</button>
+                    <button class="btn " onclick="switchMode('dino_park')">🏞️ 恐龙生态</button>
+                </div>
+            </div>
+
+            <div id="dynamic-controls">
+                <!-- Dynamically injected controls -->
+            </div>
+
+            <div class="card-title" style="margin-top: 6px;">📊 古生物考古与解剖遥测</div>
+            <div class="telemetry" id="telem">
+                [遥测就绪] 等待交互触发...
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <strong>🎯 探究目标与科学家视角：</strong><br>
+            恐龙生活在距今约2.4亿年至6600万年前的中生代。古生物学家通过地层勘探、精密发掘岩石中的骨骼化石，并利用解剖学与比较生物学测量头骨、牙齿（尖锐肉食齿 vs 扁平植食齿）与肢骨，榫卯组装骨架，进而科学复原恐龙的肌肉、皮肤纹理、羽毛与生活习性。
+        </div>
+    </div>
+
+    <script>
+        const cv = document.getElementById('cv');
+        const ctx = cv.getContext('2d');
+        const telem = document.getElementById('telem');
+        const dynControls = document.getElementById('dynamic-controls');
+
+        // Web Audio Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type='sine', dur=0.15) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
+        }
+
+        let activeMode = "dino_model";
+        let state = {
+            excavationCleaned: 35, // 0 to 100%
+            assemblyBones: ['head', 'spine', 'ribs'], // head, spine, ribs, leg, tail
+            reconLayer: 'skin', // bones, muscle, skin
+            dinoSpecies: 'trex', // trex, triceratops, mamenchisaurus
+            measuredFemur: 120 // cm
+        };
+
+        function switchMode(m) {
+            activeMode = m;
+            playTone(440, 'triangle', 0.1);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setupControls() {
+            let h = '';
+            if (activeMode === 'excavation') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">清理岩层发掘进度: <span class="val" id="excav-val">${state.excavationCleaned}%</span></label>
+                    <input type="range" min="0" max="100" value="${state.excavationCleaned}" oninput="state.excavationCleaned=parseInt(this.value); updateTelemetry();">
+                </div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" onclick="brushFossil()">🖌️ 考古毛刷扫沙</button>
+                    <button class="btn btn-green" onclick="chiselFossil()">⛏️ 地质锤凿开围岩</button>
+                </div>
+                `;
+            } else if (activeMode === 'fossil_assembly') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">组装骨架关键部位</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.assemblyBones.includes('head')?'btn-primary':''}" onclick="toggleBone('head')">💀 拼接头骨</button>
+                        <button class="btn ${state.assemblyBones.includes('spine')?'btn-primary':''}" onclick="toggleBone('spine')">🦴 拼接脊椎</button>
+                        <button class="btn ${state.assemblyBones.includes('leg')?'btn-primary':''}" onclick="toggleBone('leg')">🦵 拼接腿骨</button>
+                        <button class="btn ${state.assemblyBones.includes('tail')?'btn-primary':''}" onclick="toggleBone('tail')">🦕 拼接尾椎</button>
+                    </div>
+                </div>
+                <div class="ctrl-group">
+                    <button class="btn btn-green" onclick="state.assemblyBones=['head','spine','ribs','leg','tail']; playTone(660); updateTelemetry();">✨ 全身骨架完成！</button>
+                </div>
+                `;
+            } else if (activeMode === 'reconstruction') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">科学复原层级透视</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.reconLayer==='bones'?'btn-primary':''}" onclick="setLayer('bones')">🦴 纯骨骼化石</button>
+                        <button class="btn ${state.reconLayer==='muscle'?'btn-primary':''}" onclick="setLayer('muscle')">🥩 肌肉动力学</button>
+                        <button class="btn ${state.reconLayer==='skin'?'btn-primary':''}" onclick="setLayer('skin')">🦎 皮肤表皮纹理</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'measurement') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">测量恐龙股骨长度: <span class="val" id="femur-val">${state.measuredFemur} cm</span></label>
+                    <input type="range" min="60" max="180" value="${state.measuredFemur}" oninput="state.measuredFemur=parseInt(this.value); updateTelemetry();">
+                </div>
+                <div class="ctrl-group">
+                    <button class="btn btn-primary" onclick="playTone(550); updateTelemetry();">📐 估算恐龙全身体长与体重</button>
+                </div>
+                `;
+            } else if (activeMode === 'dino_story' || activeMode === 'dino_model' || activeMode === 'dino_park') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">选择恐龙种类</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.dinoSpecies==='trex'?'btn-primary':''}" onclick="setSpecies('trex')">🦖 霸王龙 (肉食)</button>
+                        <button class="btn ${state.dinoSpecies==='triceratops'?'btn-primary':''}" onclick="setSpecies('triceratops')">🦏 三角龙 (植食)</button>
+                        <button class="btn ${state.dinoSpecies==='mamenchisaurus'?'btn-primary':''}" onclick="setSpecies('mamenchisaurus')">🦕 马门溪龙 (巨颈)</button>
+                    </div>
+                </div>
+                `;
+            }
+            dynControls.innerHTML = h;
+        }
+
+        function brushFossil() {
+            state.excavationCleaned = Math.min(100, state.excavationCleaned + 18);
+            playTone(480, 'triangle', 0.12);
+            const el = document.getElementById('excav-val');
+            if (el) el.innerText = `${state.excavationCleaned}%`;
+            updateTelemetry();
+        }
+
+        function chiselFossil() {
+            state.excavationCleaned = Math.min(100, state.excavationCleaned + 25);
+            playTone(220, 'square', 0.15);
+            const el = document.getElementById('excav-val');
+            if (el) el.innerText = `${state.excavationCleaned}%`;
+            updateTelemetry();
+        }
+
+        function toggleBone(b) {
+            const idx = state.assemblyBones.indexOf(b);
+            if (idx >= 0) state.assemblyBones.splice(idx, 1);
+            else state.assemblyBones.push(b);
+            playTone(400 + state.assemblyBones.length * 50);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setLayer(l) {
+            state.reconLayer = l;
+            playTone(520);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setSpecies(s) {
+            state.dinoSpecies = s;
+            playTone(390);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function updateTelemetry() {
+            let txt = `[古生物化石实验室] 模式: ${activeMode} | `;
+            if (activeMode === 'excavation') {
+                txt += `围岩剥离清理: ${state.excavationCleaned}% | 状态: ${state.excavationCleaned>=90?'🌟 化石完整显露！可提取装箱':'🔍 正在小心扫除沙石，保护脆弱骨骼'}`;
+            } else if (activeMode === 'fossil_assembly') {
+                txt += `已拼接构件: ${state.assemblyBones.join(', ')} (${state.assemblyBones.length}/5) | 完整度: ${state.assemblyBones.length*20}%`;
+            } else if (activeMode === 'reconstruction') {
+                txt += `复原图层: ${state.reconLayer==='bones'?'骨骼架构':(state.reconLayer==='muscle'?'肌肉解剖':'角质鳞片与羽毛表皮')} | 科学依据: 骨骼肌肉附着痕迹`;
+            } else if (activeMode === 'measurement') {
+                const estLen = (state.measuredFemur * 0.08).toFixed(1);
+                const estWeight = (Math.pow(state.measuredFemur / 100, 3) * 4.5).toFixed(1);
+                txt += `股骨长: ${state.measuredFemur} cm | 推算体长约: ${estLen} 米 | 推算体重约: ${estWeight} 吨`;
+            } else if (activeMode === 'dino_story' || activeMode === 'dino_model' || activeMode === 'dino_park') {
+                const names = { trex: '霸王龙 (肉食暴龙超科，巨齿达30cm)', triceratops: '三角龙 (植食角龙科，巨大颈盾与三支利角)', mamenchisaurus: '马门溪龙 (超长颈蜥脚类，以高树叶片为食)' };
+                txt += `聚焦物种: ${names[state.dinoSpecies]}`;
+            }
+            telem.innerText = txt;
+        }
+
+        function drawExcavation(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('考古野外发掘方格网与恐龙化石剥离沙盘', cx, 40);
+
+            // Rock layer block
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(cx - 240, cy - 80, 480, 200);
+
+            // Exposed bone fossil underneath
+            ctx.fillStyle = '#fef08a';
+            ctx.beginPath();
+            // Skull shape
+            ctx.roundRect(cx - 140, cy - 40, 160, 90, 20);
+            ctx.fill();
+            // Eye socket
+            ctx.fillStyle = '#451a03';
+            ctx.beginPath(); ctx.arc(cx - 40, cy - 10, 18, 0, Math.PI*2); ctx.fill();
+            // Teeth
+            ctx.fillStyle = '#ffffff';
+            for(let i=0; i<6; i++) {
+                ctx.beginPath();
+                ctx.moveTo(cx - 120 + i*16, cy + 50);
+                ctx.lineTo(cx - 112 + i*16, cy + 65);
+                ctx.lineTo(cx - 104 + i*16, cy + 50);
+                ctx.fill();
+            }
+
+            // Sand covering overlay (opacity decreases as cleaned)
+            const sandAlpha = Math.max(0, 1 - (state.excavationCleaned / 100));
+            ctx.fillStyle = `rgba(180, 83, 9, ${sandAlpha * 0.95})`;
+            ctx.fillRect(cx - 240, cy - 80, 480, 200);
+
+            // Archaeology grid lines
+            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+            ctx.lineWidth = 1;
+            for(let x = cx - 240; x <= cx + 240; x += 60) {
+                ctx.beginPath(); ctx.moveTo(x, cy - 80); ctx.lineTo(x, cy + 120); ctx.stroke();
+            }
+            for(let y = cy - 80; y <= cy + 120; y += 50) {
+                ctx.beginPath(); ctx.moveTo(cx - 240, y); ctx.lineTo(cx + 240, y); ctx.stroke();
+            }
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = '13px sans-serif';
+            ctx.fillText(`围岩清理进度: ${state.excavationCleaned}% (点击毛刷小心扫除)`, cx, cy + 150);
+        }
+
+        function drawAssembly(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('恐龙全身骨架榫卯解剖组装台', cx, 40);
+
+            ctx.strokeStyle = '#f8fafc';
+            ctx.lineWidth = 4;
+            ctx.fillStyle = '#fef08a';
+
+            // Head
+            if (state.assemblyBones.includes('head')) {
+                ctx.fillRect(cx - 160, cy - 40, 50, 35);
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath(); ctx.arc(cx - 130, cy - 30, 6, 0, Math.PI*2); ctx.fill();
+            }
+
+            // Spine
+            if (state.assemblyBones.includes('spine')) {
+                ctx.fillStyle = '#fef08a';
+                ctx.beginPath();
+                ctx.moveTo(cx - 110, cy - 25);
+                ctx.quadraticCurveTo(cx - 40, cy - 60, cx + 50, cy - 20);
+                ctx.stroke();
+            }
+
+            // Ribs
+            if (state.assemblyBones.includes('ribs')) {
+                ctx.lineWidth = 2.5;
+                for(let i=0; i<5; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(cx - 80 + i*18, cy - 35);
+                    ctx.lineTo(cx - 75 + i*18, cy + 15);
+                    ctx.stroke();
+                }
+            }
+
+            // Leg
+            if (state.assemblyBones.includes('leg')) {
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.moveTo(cx + 30, cy - 20);
+                ctx.lineTo(cx + 40, cy + 50);
+                ctx.lineTo(cx + 50, cy + 110);
+                ctx.stroke();
+            }
+
+            // Tail
+            if (state.assemblyBones.includes('tail')) {
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(cx + 50, cy - 20);
+                ctx.lineTo(cx + 170, cy + 30);
+                ctx.stroke();
+            }
+        }
+
+        function drawReconstruction(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`恐龙科学复原透视 [层级: ${state.reconLayer}]`, cx, 40);
+
+            if (state.reconLayer === 'bones') {
+                drawAssembly(cx, cy);
+            } else if (state.reconLayer === 'muscle') {
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath();
+                ctx.ellipse(cx - 40, cy - 10, 110, 45, 0, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = '12px sans-serif';
+                ctx.fillText('强健肌肉层包裹骨骼，提供爆发力', cx, cy + 120);
+            } else if (state.reconLayer === 'skin') {
+                ctx.fillStyle = '#15803d';
+                ctx.beginPath();
+                ctx.ellipse(cx - 40, cy - 10, 120, 50, 0, 0, Math.PI*2);
+                ctx.fill();
+                // Texture scales
+                ctx.strokeStyle = '#166534';
+                ctx.lineWidth = 2;
+                for(let i=0; i<15; i++) {
+                    ctx.strokeRect(cx - 100 + i*12, cy - 25, 8, 8);
+                }
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = '12px sans-serif';
+                ctx.fillText('角质鳞片与羽毛表皮，适应中生代气候', cx, cy + 120);
+            }
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            const cx = cv.width / 2;
+            const cy = cv.height / 2;
+
+            if (activeMode === 'excavation') drawExcavation(cx, cy);
+            else if (activeMode === 'fossil_assembly') drawAssembly(cx, cy);
+            else if (activeMode === 'reconstruction' || activeMode === 'measurement' || activeMode === 'dino_story' || activeMode === 'dino_model' || activeMode === 'dino_park') drawReconstruction(cx, cy);
+
+            requestAnimationFrame(render);
+        }
+
+        setupControls();
+        updateTelemetry();
+        render();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

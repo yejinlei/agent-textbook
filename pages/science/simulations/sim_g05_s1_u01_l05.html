@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【5. 观测风】现代气象综合观测实验站 - 三年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌤️ 5. 观测风</h1>
+        <span class="badge">三年级上册·第一单元《天气》</span>
+    </div>
+
+    <!-- 关联课本综合导航栏 -->
+    <div class="unit-nav">
+        <a href="sim_g05_s1_u01_l01.html" class="">我们关心天气</a>
+<a href="sim_g05_s1_u01_l02.html" class="">认识气温计</a>
+<a href="sim_g05_s1_u01_l03.html" class="">测量气温</a>
+<a href="sim_g05_s1_u01_l04.html" class="">测量降水量</a>
+<a href="sim_g05_s1_u01_l05.html" class="active">观测风</a>
+<a href="sim_g05_s1_u01_l06.html" class="">观察云</a>
+<a href="sim_g05_s1_u01_l07.html" class="">天气预报</a>
+<a href="sim_g05_s1_u01_l08.html" class="">天气的影响</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+
+            <!-- 控制项区 -->
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时气象数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化气象台...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：风向标与风旗测量风向与蒲福风力等级</p>
+            <p><strong>实验原理</strong>：天气是由云量、降水量、气温、风向和风速等气象要素共同构成的。本单元将各项气象观测仪器（气温计、雨量筒、风向标、风速计、云量观测盘）深度集成，学生可动手调节温度、模拟降雨收集、改变风向风速，掌握标准气象观测方法与数据记录。</p>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio API Synthesizer
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        // Canvas & State
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+
+        const activeMode = "wind_vane";
+
+        // Simulation State
+        const state = {
+            temp: 24,            // -10 ~ 45 °C
+            location: 'shelter', // 'shelter'(百叶箱), 'shade'(树荫), 'sun'(阳光下)
+            viewAngle: 'level',  // 'level'(平视), 'high'(俯视), 'low'(仰视)
+            rainLevel: 2,        // 0:无, 1:小雨, 2:中雨, 3:大雨, 4:暴雨
+            collectedRain: 18.5, // mm
+            windDirection: 45,   // 角度 (0:北, 90:东, 180:南, 270:西)
+            windSpeed: 3,        // 0~6 级
+            cloudCover: 2,       // 0:晴(<=1/4), 1:多云(1/4~3/4), 2:阴(>3/4)
+            cloudType: 'cumulus', // cumulus(积云), stratus(层云), cirrus(卷云)
+            rainParticles: [],
+            windParticles: []
+        };
+
+        // Init Particles
+        for (let i = 0; i < 80; i++) {
+            state.rainParticles.push({
+                x: Math.random() * 720,
+                y: Math.random() * 450,
+                l: 10 + Math.random() * 15,
+                s: 5 + Math.random() * 5
+            });
+        }
+        for (let i = 0; i < 40; i++) {
+            state.windParticles.push({
+                x: Math.random() * 720,
+                y: Math.random() * 450,
+                s: 2 + Math.random() * 3
+            });
+        }
+
+        // Setup Controls based on activeMode
+        function setupControls() {
+            let html = '';
+            if (activeMode === 'thermometer' || activeMode === 'temp_measurement') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>环境气温调节</span><span class="val" id="tempVal">${state.temp} °C</span></div>
+                        <input type="range" id="tempSlider" min="-10" max="45" value="${state.temp}" step="1">
+                    </div>
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>视线角度 (读数规范)</span></div>
+                        <div class="btn-grid">
+                            <button class="btn ${state.viewAngle==='level'?'btn-primary':''}" id="btnLevel">👀 平视 (标准)</button>
+                            <button class="btn ${state.viewAngle==='high'?'btn-rose':''}" id="btnHigh">⬆️ 俯视 (偏大)</button>
+                            <button class="btn ${state.viewAngle==='low'?'btn-rose':''}" id="btnLow">⬇️ 仰视 (偏小)</button>
+                        </div>
+                    </div>
+                `;
+            } else if (activeMode === 'rain_gauge') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>模拟降水强度</span><span class="val" id="rainVal">中雨 (2级)</span></div>
+                        <input type="range" id="rainSlider" min="0" max="4" value="${state.rainLevel}" step="1">
+                    </div>
+                    <div class="btn-grid">
+                        <button class="btn btn-green" id="btnCollect">🌧️ 降水累积收集</button>
+                        <button class="btn btn-rose" id="btnResetRain">🔄 清空雨量筒</button>
+                    </div>
+                `;
+            } else if (activeMode === 'wind_vane') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>来风方向 (角度)</span><span class="val" id="dirVal">${state.windDirection}°</span></div>
+                        <input type="range" id="dirSlider" min="0" max="359" value="${state.windDirection}" step="5">
+                    </div>
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>蒲福风力等级</span><span class="val" id="windVal">${state.windSpeed} 级</span></div>
+                        <input type="range" id="windSlider" min="0" max="6" value="${state.windSpeed}" step="1">
+                    </div>
+                `;
+            } else if (activeMode === 'cloud_cover') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>天空云量划分</span><span class="val" id="cloudVal">多云</span></div>
+                        <div class="btn-grid">
+                            <button class="btn ${state.cloudCover===0?'btn-primary':''}" id="btnCloud0">☀️ 晴天 (≤1/4)</button>
+                            <button class="btn ${state.cloudCover===1?'btn-primary':''}" id="btnCloud1">⛅ 多云 (1/4~3/4)</button>
+                            <button class="btn ${state.cloudCover===2?'btn-primary':''}" id="btnCloud2">☁️ 阴天 (>3/4)</button>
+                        </div>
+                    </div>
+                `;
+            } else if (activeMode === 'forecast') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>未来24小时气象云图推演</span></div>
+                        <div class="btn-grid">
+                            <button class="btn btn-primary" id="btnAdvanceTime">⏩ 时间步进 (+3小时)</button>
+                            <button class="btn btn-green" id="btnToggleRadar">🛰️ 切换多普勒雷达</button>
+                        </div>
+                    </div>
+                `;
+            } else if (activeMode === 'weather_impact') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>极端天气防灾与适应演练</span></div>
+                        <div class="btn-grid">
+                            <button class="btn btn-rose" id="btnTyphoon">🌀 台风暴雨预警</button>
+                            <button class="btn btn-amber" id="btnHeatwave">☀️ 高温干旱预警</button>
+                            <button class="btn btn-primary" id="btnNormal">⛅ 恢复常规天气</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>综合气象大盘实时监测</span></div>
+                        <div class="btn-grid">
+                            <button class="btn btn-primary" id="btnSunny">☀️ 晴空万里</button>
+                            <button class="btn btn-green" id="btnRainy">🌧️ 阴雨绵绵</button>
+                            <button class="btn btn-rose" id="btnStorm">⛈️ 雷雨大风</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            controlsContainer.innerHTML = html;
+            bindEvents();
+        }
+
+        
+        function bindEvents() {
+            const btnLevel = document.getElementById('btnLevel');
+            if (btnLevel) btnLevel.onclick = () => { state.viewAngle = 'level'; setupControls(); };
+            const btnHigh = document.getElementById('btnHigh');
+            if (btnHigh) btnHigh.onclick = () => { state.viewAngle = 'high'; setupControls(); };
+            const btnLow = document.getElementById('btnLow');
+            if (btnLow) btnLow.onclick = () => { state.viewAngle = 'low'; setupControls(); };
+
+            const btnCollect = document.getElementById('btnCollect');
+            if (btnCollect) btnCollect.onclick = () => { state.collectedRain = Math.min(100, (state.collectedRain || 0) + 5); setupControls(); };
+            const btnResetRain = document.getElementById('btnResetRain');
+            if (btnResetRain) btnResetRain.onclick = () => { state.collectedRain = 0; setupControls(); };
+
+            const btnCloud0 = document.getElementById('btnCloud0');
+            if (btnCloud0) btnCloud0.onclick = () => { state.cloudCover = 0; setupControls(); };
+            const btnCloud1 = document.getElementById('btnCloud1');
+            if (btnCloud1) btnCloud1.onclick = () => { state.cloudCover = 1; setupControls(); };
+            const btnCloud2 = document.getElementById('btnCloud2');
+            if (btnCloud2) btnCloud2.onclick = () => { state.cloudCover = 2; setupControls(); };
+
+            const btnAdvanceTime = document.getElementById('btnAdvanceTime');
+            if (btnAdvanceTime) btnAdvanceTime.onclick = () => { state.currentHour = ((state.currentHour || 8) + 2) % 24; setupControls(); };
+            const btnToggleRadar = document.getElementById('btnToggleRadar');
+            if (btnToggleRadar) btnToggleRadar.onclick = () => { state.showRadar = !state.showRadar; setupControls(); };
+
+            const btnTyphoon = document.getElementById('btnTyphoon');
+            if (btnTyphoon) btnTyphoon.onclick = () => { state.windSpeed = 6; state.rainLevel = 4; setupControls(); };
+            const btnHeatwave = document.getElementById('btnHeatwave');
+            if (btnHeatwave) btnHeatwave.onclick = () => { state.temp = 38; state.cloudCover = 0; setupControls(); };
+            const btnNormal = document.getElementById('btnNormal');
+            if (btnNormal) btnNormal.onclick = () => { state.temp = 22; state.rainLevel = 1; state.windSpeed = 2; setupControls(); };
+
+            const btnSunny = document.getElementById('btnSunny');
+            if (btnSunny) btnSunny.onclick = () => { state.cloudCover = 0; state.rainLevel = 0; setupControls(); };
+            const btnRainy = document.getElementById('btnRainy');
+            if (btnRainy) btnRainy.onclick = () => { state.cloudCover = 2; state.rainLevel = 2; setupControls(); };
+            const btnStorm = document.getElementById('btnStorm');
+            if (btnStorm) btnStorm.onclick = () => { state.cloudCover = 2; state.rainLevel = 4; state.windSpeed = 5; setupControls(); };
+
+            const tempSlider = document.getElementById('tempSlider');
+            if (tempSlider) tempSlider.oninput = (e) => { state.temp = parseFloat(e.target.value); };
+            const rainSlider = document.getElementById('rainSlider');
+            if (rainSlider) rainSlider.oninput = (e) => { state.rainLevel = parseInt(e.target.value); };
+            const dirSlider = document.getElementById('dirSlider');
+            if (dirSlider) dirSlider.oninput = (e) => { state.windDirection = parseInt(e.target.value); };
+            const windSlider = document.getElementById('windSlider');
+            if (windSlider) windSlider.oninput = (e) => { state.windSpeed = parseInt(e.target.value); };
+        }
+
+
+        function draw() {
+            ctx.clearRect(0, 0, 720, 450);
+
+            // Sky Background
+            let skyGrad = ctx.createLinearGradient(0, 0, 0, 450);
+            skyGrad.addColorStop(0, '#0f172a');
+            skyGrad.addColorStop(1, '#1e293b');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, 720, 450);
+
+            if (activeMode === 'thermometer' || activeMode === 'temp_measurement') {
+                drawThermometerScene();
+            } else if (activeMode === 'rain_gauge') {
+                drawRainGaugeScene();
+            } else if (activeMode === 'wind_vane') {
+                drawWindVaneScene();
+            } else if (activeMode === 'cloud_cover') {
+                drawCloudScene();
+            } else if (activeMode === 'weather_dashboard') {
+                drawDashboardScene();
+            } else if (activeMode === 'forecast') {
+                drawForecastScene();
+            } else if (activeMode === 'weather_impact') {
+                drawWeatherImpactScene();
+            } else {
+                drawDashboardScene();
+            }
+
+            updateTelemetry();
+            requestAnimationFrame(draw);
+        }
+
+        function drawThermometerScene() {
+            // Centered High Precision Thermometer
+            const cx = 360;
+            const cy = 230;
+
+            // Title banner
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(activeMode === 'temp_measurement' ? `测量环境: ${state.location==='shelter'?'百叶箱标准处(1.5m)':state.location==='shade'?'树荫通风处':'阳光直射处'}` : '标准气温计刻度读取', cx, 40);
+
+            // Thermometer Wooden Board
+            ctx.fillStyle = '#d97706';
+            ctx.beginPath();
+            ctx.roundRect(cx - 50, 70, 100, 300, 12);
+            ctx.fill();
+            ctx.strokeStyle = '#92400e';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Glass Tube
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(cx - 8, 90, 16, 240);
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(cx - 8, 90, 16, 240);
+
+            // Bulb at bottom
+            ctx.beginPath();
+            ctx.arc(cx, 335, 18, 0, Math.PI * 2);
+            ctx.fillStyle = '#dc2626';
+            ctx.fill();
+            ctx.strokeStyle = '#991b1b';
+            ctx.stroke();
+
+            // Liquid Red Column (Height depends on temp: -10 to 45 °C)
+            // -10°C -> y=320, 45°C -> y=100
+            const liquidY = 320 - ((state.temp - (-10)) / 55) * 220;
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(cx - 5, liquidY, 10, 335 - liquidY);
+
+            // Scales
+            ctx.strokeStyle = '#1e293b';
+            ctx.fillStyle = '#1e293b';
+            ctx.font = '10px monospace';
+            ctx.textAlign = 'right';
+
+            for (let t = -10; t <= 40; t += 10) {
+                const sy = 320 - ((t - (-10)) / 55) * 220;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(cx - 20, sy);
+                ctx.lineTo(cx - 8, sy);
+                ctx.stroke();
+                ctx.fillText(t + '°C', cx - 24, sy + 3);
+
+                // minor ticks
+                for (let m = 1; m < 5; m++) {
+                    const my = sy - (m * 220 / 55) * 2;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(cx - 14, my);
+                    ctx.lineTo(cx - 8, my);
+                    ctx.stroke();
+                }
+            }
+
+            // Sight line for reading
+            let sightY = liquidY;
+            let sightColor = '#10b981';
+            let readingOffset = 0;
+            if (state.viewAngle === 'high') {
+                sightY = liquidY - 25;
+                sightColor = '#f43f5e';
+                readingOffset = 2.5;
+            } else if (state.viewAngle === 'low') {
+                sightY = liquidY + 25;
+                sightColor = '#f43f5e';
+                readingOffset = -2.5;
+            }
+
+            ctx.strokeStyle = sightColor;
+            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx + 8, liquidY);
+            ctx.lineTo(cx + 140, sightY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Observer Eye
+            ctx.fillStyle = sightColor;
+            ctx.font = '13px sans-serif';
+            ctx.textAlign = 'left';
+            const apparentReading = (state.temp + readingOffset).toFixed(1);
+            ctx.fillText(`👀 视线读数: ${apparentReading} °C`, cx + 150, sightY + 4);
+            if (state.viewAngle !== 'level') {
+                ctx.fillStyle = '#f43f5e';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillText(`⚠️ 错误视线! ${state.viewAngle==='high'?'俯视导致读数偏大':'仰视导致读数偏小'}`, cx + 150, sightY + 24);
+            } else {
+                ctx.fillStyle = '#10b981';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillText(`✅ 正确视线: 眼睛与液柱顶端平视!`, cx + 150, sightY + 24);
+            }
+        }
+
+        function drawRainGaugeScene() {
+            const cx = 360;
+
+            // Falling Rain particles
+            if (state.rainLevel > 0) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.lineWidth = state.rainLevel >= 3 ? 2 : 1;
+                state.rainParticles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p.x - 2, p.y + p.l);
+                    ctx.stroke();
+                    p.y += p.s * (state.rainLevel * 0.8 + 1);
+                    if (p.y > 380) {
+                        p.y = -10;
+                        p.x = Math.random() * 720;
+                    }
+                });
+            }
+
+            // Cylinder Rain Gauge (直筒透明雨量器)
+            ctx.fillStyle = 'rgba(241, 245, 249, 0.2)';
+            ctx.fillRect(cx - 45, 140, 90, 240);
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(cx - 45, 140, 90, 240);
+
+            // Water inside rain gauge
+            const maxRainDisplay = 50; // mm
+            const waterHeight = Math.min(state.collectedRain, maxRainDisplay) / maxRainDisplay * 220;
+            const waterY = 380 - waterHeight;
+
+            ctx.fillStyle = 'rgba(14, 165, 233, 0.6)';
+            ctx.fillRect(cx - 43, waterY, 86, waterHeight);
+
+            // Graduated ruler on the cylinder
+            ctx.strokeStyle = '#f8fafc';
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '10px monospace';
+            ctx.textAlign = 'right';
+
+            for (let r = 0; r <= 50; r += 10) {
+                const ry = 380 - (r / 50) * 220;
+                ctx.beginPath();
+                ctx.moveTo(cx - 45, ry);
+                ctx.lineTo(cx - 25, ry);
+                ctx.stroke();
+                ctx.fillText(r + ' mm', cx - 50, ry + 3);
+            }
+
+            // Info Label
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('标准直筒简易雨量筒 (直筒等径)', cx, 110);
+
+            let gradeStr = '无雨';
+            if (state.collectedRain > 0 && state.collectedRain < 10) gradeStr = '小雨 (<10mm)';
+            else if (state.collectedRain < 25) gradeStr = '中雨 (10~25mm)';
+            else if (state.collectedRain < 50) gradeStr = '大雨 (25~50mm)';
+            else if (state.collectedRain >= 50) gradeStr = '暴雨 (≥50mm)';
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText(`累计降雨量: ${state.collectedRain.toFixed(1)} mm 【${gradeStr}】`, cx, 420);
+        }
+
+        function drawWindVaneScene() {
+            const cx = 360;
+            const cy = 200;
+
+            // Wind directional compass rose
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 120, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Compass letters
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('北 (N)', cx, cy - 130);
+            ctx.fillText('南 (S)', cx, cy + 145);
+            ctx.fillText('东 (E)', cx + 140, cy + 5);
+            ctx.fillText('西 (W)', cx - 140, cy + 5);
+
+            // Pole
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(cx - 6, cy - 10, 12, 190);
+
+            // Wind Vane Arrow (指向来风方向)
+            ctx.save();
+            ctx.translate(cx, cy - 20);
+            const rad = (state.windDirection - 90) * Math.PI / 180;
+            ctx.rotate(rad);
+
+            // Arrow Body
+            ctx.fillStyle = '#f59e0b';
+            ctx.strokeStyle = '#b45309';
+            ctx.lineWidth = 2;
+
+            // Arrow head
+            ctx.beginPath();
+            ctx.moveTo(80, 0);
+            ctx.lineTo(50, -18);
+            ctx.lineTo(50, 18);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Arrow tail (Feathers)
+            ctx.fillRect(-80, -2, 130, 4);
+            ctx.beginPath();
+            ctx.moveTo(-80, -25);
+            ctx.lineTo(-40, 0);
+            ctx.lineTo(-80, 25);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.restore();
+
+            // Wind streamer / flag below
+            ctx.fillStyle = '#f43f5e';
+            const flagWave = Math.sin(Date.now() * 0.01 * (state.windSpeed + 1)) * (5 + state.windSpeed * 4);
+            const flagLen = 30 + state.windSpeed * 15;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy + 40);
+            ctx.lineTo(cx + flagLen, cy + 40 + flagWave);
+            ctx.lineTo(cx + flagLen, cy + 65 + flagWave);
+            ctx.lineTo(cx, cy + 65);
+            ctx.closePath();
+            ctx.fill();
+
+            // Wind particles blowing across screen
+            if (state.windSpeed > 0) {
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                const wAngle = state.windDirection * Math.PI / 180;
+                const dx = -Math.sin(wAngle) * state.windSpeed * 3;
+                const dy = Math.cos(wAngle) * state.windSpeed * 3;
+                state.windParticles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.s, 0, Math.PI * 2);
+                    ctx.fill();
+                    p.x += dx;
+                    p.y += dy;
+                    if (p.x < 0) p.x = 720;
+                    if (p.x > 720) p.x = 0;
+                    if (p.y < 0) p.y = 450;
+                    if (p.y > 450) p.y = 0;
+                });
+            }
+
+            // Instruction Banner
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`风向标箭头指向来风方向: ${state.windDirection}° | 风速: ${state.windSpeed} 级`, cx, 30);
+        }
+
+        function drawCloudScene() {
+            const cx = 360;
+            const cy = 200;
+
+            // Sky observation Circle (四等分圆盘)
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 130, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Quadrant divider lines
+            ctx.setLineDash([6, 6]);
+            ctx.beginPath();
+            ctx.moveTo(cx - 130, cy);
+            ctx.lineTo(cx + 130, cy);
+            ctx.moveTo(cx, cy - 130);
+            ctx.lineTo(cx, cy + 130);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw clouds inside circle
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, cy, 130, 0, Math.PI * 2);
+            ctx.clip();
+
+            ctx.fillStyle = state.cloudCover === 2 ? '#475569' : '#ffffff';
+            if (state.cloudCover === 0) {
+                // <= 1/4
+                drawSingleCloud(cx + 40, cy - 40, 40);
+            } else if (state.cloudCover === 1) {
+                // 1/4 ~ 3/4
+                drawSingleCloud(cx - 30, cy - 30, 50);
+                drawSingleCloud(cx + 50, cy + 20, 60);
+            } else {
+                // > 3/4 overcast
+                drawSingleCloud(cx - 60, cy - 40, 70);
+                drawSingleCloud(cx + 40, cy - 20, 80);
+                drawSingleCloud(cx - 20, cy + 50, 90);
+                drawSingleCloud(cx + 60, cy + 60, 75);
+            }
+            ctx.restore();
+
+            // Label text
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            const cat = state.cloudCover === 0 ? '晴天 (云量 ≤ 1/4)' : state.cloudCover === 1 ? '多云 (1/4 < 云量 ≤ 3/4)' : '阴天 (云量 > 3/4)';
+            ctx.fillText(`观测结果: ${cat} | 云形态: ${state.cloudType==='cumulus'?'积云':state.cloudType==='stratus'?'层云':'卷云'}`, cx, 380);
+        }
+
+        function drawSingleCloud(x, y, r) {
+            ctx.beginPath();
+            ctx.arc(x, y, r * 0.6, 0, Math.PI * 2);
+            ctx.arc(x + r * 0.5, y - r * 0.2, r * 0.5, 0, Math.PI * 2);
+            ctx.arc(x + r, y, r * 0.6, 0, Math.PI * 2);
+            ctx.arc(x + r * 0.5, y + r * 0.2, r * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        
+        function drawForecastScene() {
+            const cx = 360;
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(40, 60, 640, 310);
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(40, 60, 640, 310);
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🛰️ 国家气象中心·高分辨率多普勒卫星云图与24小时天气预报', cx, 40);
+
+            // Draw concentric isobars
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+            ctx.lineWidth = 1.5;
+            for (let r = 50; r <= 150; r += 35) {
+                ctx.beginPath();
+                ctx.ellipse(240, 210, r * 1.3, r, 0.2, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.fillStyle = '#f43f5e';
+            ctx.font = 'bold 14px monospace';
+            ctx.fillText('低压中心 (L) 998 hPa', 240, 215);
+
+            // Cold front line with blue triangles
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(180, 100);
+            ctx.quadraticCurveTo(230, 210, 160, 320);
+            ctx.stroke();
+
+            // Blue triangles along front
+            for (let t = 0.2; t <= 0.8; t += 0.2) {
+                const fx = 180 + (230 - 180) * t;
+                const fy = 100 + (320 - 100) * t;
+                ctx.fillStyle = '#3b82f6';
+                ctx.beginPath();
+                ctx.moveTo(fx, fy);
+                ctx.lineTo(fx + 12, fy - 6);
+                ctx.lineTo(fx + 6, fy + 8);
+                ctx.fill();
+            }
+            ctx.fillText('冷锋切变线 (降温大风区)', 140, 95);
+
+            // Forecast card on the right
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(440, 80, 220, 270);
+            ctx.strokeStyle = '#475569';
+            ctx.strokeRect(440, 80, 220, 270);
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('📅 城市24小时天气预报', 455, 110);
+
+            const items = [
+                ['今日白天', '⛅ 多云转阴', '24°C / 东北风3级'],
+                ['今日夜间', '🌧️ 中到大雨', '16°C / 降温明显'],
+                ['明日白天', '☀️ 雨过天晴', '22°C / 湿度 55%'],
+                ['空气质量', '🟢 优 (AQI 28)', '适合户外活动']
+            ];
+            items.forEach((it, i) => {
+                ctx.fillStyle = '#38bdf8';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillText(it[0] + ': ' + it[1], 455, 145 + i * 50);
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '11px sans-serif';
+                ctx.fillText(it[2], 455, 165 + i * 50);
+            });
+        }
+
+        function drawWeatherImpactScene() {
+            const cx = 360;
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(40, 60, 640, 310);
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(40, 60, 640, 310);
+
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🛡️ 天气与我们的生活·极端天气影响与科学防灾演练', cx, 40);
+
+            // Three impact pillars
+            const pillars = [
+                { t: '🌾 农业生产', d: '适时播种·春雨贵如油\n防范倒春寒与暴雨涝灾', c: '#10b981', x: 70 },
+                { t: '🚗 交通出行', d: '大雾低能见度限速开启\n暴雨积水路段涉水预警', c: '#38bdf8', x: 270 },
+                { t: '🏠 市政与生活', d: '台风高空加固排险\n防暑降温与电网调峰', c: '#f43f5e', x: 470 }
+            ];
+
+            pillars.forEach(p => {
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(p.x, 90, 180, 250);
+                ctx.strokeStyle = p.c;
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(p.x, 90, 180, 250);
+
+                ctx.fillStyle = p.c;
+                ctx.font = 'bold 15px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(p.t, p.x + 90, 125);
+
+                ctx.fillStyle = '#cbd5e1';
+                ctx.font = '12px sans-serif';
+                const lines = p.d.split('\n');
+                lines.forEach((l, li) => {
+                    ctx.fillText(l, p.x + 90, 175 + li * 26);
+                });
+
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(p.x + 20, 270, 140, 36);
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = '12px sans-serif';
+                ctx.fillText('✅ 防灾应急预案', p.x + 90, 292);
+            });
+        }
+
+        function drawDashboardScene() {
+            // Multi-parameter weather station dashboard
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 18px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🏢 现代校园气象综合监测大盘', 360, 40);
+
+            // 4 Mini Panels
+            const panels = [
+                { title: '🌡️ 气温监测', val: `${state.temp} °C`, sub: state.temp > 28 ? '炎热' : state.temp < 10 ? '寒冷' : '舒适', color: '#f59e0b' },
+                { title: '🌧️ 降雨监测', val: `${state.collectedRain.toFixed(1)} mm`, sub: state.rainLevel===0?'无降水':'正在降水', color: '#38bdf8' },
+                { title: '🚩 风向风速', val: `${state.windSpeed} 级`, sub: `${state.windDirection}° 来风`, color: '#10b981' },
+                { title: '☁️ 天空云量', val: state.cloudCover===0?'晴天':state.cloudCover===1?'多云':'阴天', sub: '视线开阔', color: '#a855f7' }
+            ];
+
+            panels.forEach((p, idx) => {
+                const x = 70 + (idx % 2) * 310;
+                const y = 80 + Math.floor(idx / 2) * 140;
+
+                ctx.fillStyle = '#1e293b';
+                ctx.beginPath();
+                ctx.roundRect(x, y, 270, 115, 8);
+                ctx.fill();
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.fillStyle = p.color;
+                ctx.font = 'bold 15px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(p.title, x + 16, y + 32);
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = 'bold 24px monospace';
+                ctx.fillText(p.val, x + 16, y + 72);
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '13px sans-serif';
+                ctx.fillText(p.sub, x + 16, y + 98);
+            });
+        }
+
+        function updateTelemetry() {
+            let txt = `[气象站遥测就绪] 模式: ${activeMode} | `;
+            if (activeMode === 'thermometer' || activeMode === 'temp_measurement') {
+                txt += `当前环境温度: ${state.temp}°C | 视线: ${state.viewAngle} | 测量点: ${state.location}`;
+            } else if (activeMode === 'rain_gauge') {
+                txt += `降水等级: ${state.rainLevel}级 | 累积降水量: ${state.collectedRain.toFixed(1)} mm`;
+            } else if (activeMode === 'wind_vane') {
+                txt += `风向: ${state.windDirection}° | 风速: ${state.windSpeed}级 (${(state.windSpeed*1.8).toFixed(1)} m/s)`;
+            } else if (activeMode === 'cloud_cover') {
+                txt += `云量等级: ${state.cloudCover} (${state.cloudCover===0?'晴':state.cloudCover===1?'多云':'阴'}) | 云型: ${state.cloudType}`;
+            } else {
+                txt += `温度: ${state.temp}°C | 降水: ${state.collectedRain.toFixed(1)}mm | 风速: ${state.windSpeed}级`;
+            }
+            telem.innerText = txt;
+        }
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

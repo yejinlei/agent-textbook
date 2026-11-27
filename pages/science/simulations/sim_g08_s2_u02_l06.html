@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【导体和绝缘体】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(56, 189, 248, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--accent); cursor: pointer; }
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 导体和绝缘体 <span class="badge">四年级下册 · 电路单元</span></h2>
+            <p>教科版科学原书电路真实验 · 拒绝伪仿真</p>
+        </div>
+        <a href="circuit_sandbox.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 大师级闭合回路电子沙盒 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生真实闭合回路与电子流动画</span>
+                <span>🎧 Web Audio 拟真通电/短路警报音效</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：常见物品导电性全真检测台：将铁钉、橡皮擦、铅笔芯、铜钥匙、塑料尺放入电路检测槽中，灯泡发光判定为容易导电的导体，不发光判定为绝缘体！</div>
+            
+        <div class="c-group">
+            <p style="font-size:0.85rem; color:#cbd5e1;">放入待测物体至电路缺口：</p>
+        </div>
+        <div class="c-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+            <button class="btn btn-sec" onclick="testMaterial('铁钉', true)">🔩 铁钉 (金属)</button>
+            <button class="btn btn-sec" onclick="testMaterial('橡皮擦', false)">🧼 橡皮擦 (橡胶)</button>
+            <button class="btn btn-sec" onclick="testMaterial('铅笔芯', true)">✏️ 铅笔芯 (石墨)</button>
+            <button class="btn btn-sec" onclick="testMaterial('塑料尺', false)">📏 塑料直尺</button>
+            <button class="btn btn-sec" onclick="testMaterial('铜钥匙', true)">🔑 铜钥匙 (金属)</button>
+            <button class="btn btn-sec" onclick="testMaterial('干燥木条', false)">🪵 干燥木条</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [检测台就绪] 电路两探针间隙待命<br>
+            [科学概念] 容易导电的物体叫导体；不容易导电的物体叫绝缘体！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.2, vol=0.1) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        function playClick() { playTone(800, 'square', 0.04, 0.08); }
+        
+        let currentItem = null;
+        let isConductive = false;
+        const telem = document.getElementById('telem');
+
+        window.testMaterial = function(name, conducts) {
+            currentItem = name;
+            isConductive = conducts;
+            if(conducts) {
+                playTone(580, 'sine', 0.25);
+                telem.innerHTML = `💡 [放入 ${name}] 小灯泡瞬间发亮！<br>[分类判定] ${name} 是【导体】！内部拥有大量自由移动的电荷！`;
+            } else {
+                playTone(220, 'triangle', 0.1);
+                telem.innerHTML = `🔌 [放入 ${name}] 小灯泡不亮。<br>[分类判定] ${name} 是【绝缘体】！电荷被原子核紧密束缚无法自由流动！`;
+            }
+        };
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            // Circuit wire loop with gap at bottom
+            ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(w/2 - 60, 280); ctx.lineTo(100, 280); ctx.lineTo(100, 120);
+            ctx.lineTo(520, 120); ctx.lineTo(520, 280); ctx.lineTo(w/2 + 60, 280);
+            ctx.stroke();
+
+            // Bulb at top center
+            ctx.fillStyle = isConductive ? '#fde047' : '#475569';
+            ctx.beginPath(); ctx.arc(w/2, 120, 22, 0, Math.PI*2); ctx.fill();
+            if(isConductive) {
+                ctx.strokeStyle = '#fef08a'; ctx.lineWidth = 6; ctx.stroke();
+            }
+
+            // Test Gap Probes at bottom
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(w/2 - 65, 275, 10, 10);
+            ctx.fillRect(w/2 + 55, 275, 10, 10);
+
+            // Tested item spanning gap
+            if(currentItem) {
+                ctx.fillStyle = isConductive ? '#10b981' : '#f59e0b';
+                ctx.fillRect(w/2 - 50, 272, 100, 16);
+                ctx.fillStyle = '#0f172a'; ctx.font = '12px bold sans-serif';
+                ctx.fillText(currentItem, w/2 - 20, 285);
+            }
+
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【5. 制作塔台模型】真实验微仿真 - 六年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 5. 制作塔台模型</h1>
+        <span class="badge">六年级上册·第一单元《小小工程师》</span>
+        <a href="tower_engineering_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 塔台结构工程力学与抗风抗震物理沙盒 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g12_s2_u01_l01.html" class="">了解我们的住房</a>
+<a href="sim_g12_s2_u01_l02.html" class="">认识工程</a>
+<a href="sim_g12_s2_u01_l03.html" class="">建造塔台</a>
+<a href="sim_g12_s2_u01_l04.html" class="">设计塔台模型</a>
+<a href="sim_g12_s2_u01_l05.html" class="active">制作塔台模型</a>
+<a href="sim_g12_s2_u01_l06.html" class="">测试塔台模型</a>
+<a href="sim_g12_s2_u01_l07.html" class="">评估改进塔台模型</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时科学数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：系统探索建筑管网系统、塔台工程设计、三角形桁架稳定性与抗风抗震承重综合力学测试。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "tower_building";
+
+        
+const state = {
+    windLevel: 1, // 1~3 级风扇
+    quakeIntensity: 0, // 0~3 级震动
+    topLoadBooks: 2, // 顶端载荷书本数 1~8
+    trussType: 'triangle', // triangle(稳定), rectangle(易变形)
+    towerTiltAngle: 0,
+    towerCollapsed: false
+};
+
+
+function drawHousingSystems() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏡 了解我们的住房: 现代住宅六大工程子系统透视结构', cx, 40);
+
+    const systems = [
+        { t: '1. 承重梁柱结构', d: '钢筋混凝土框架结构\n地基桩基承载房屋荷载', c: '#f59e0b', x: 80, y: 80 },
+        { t: '2. 给水排水系统', d: '冷热水市政管道加压\n污废水分流重力排放', c: '#38bdf8', x: 280, y: 80 },
+        { t: '3. 强电弱电系统', d: '220V配电箱空开回路\n光纤网络与安防门禁', c: '#a855f7', x: 480, y: 80 },
+        { t: '4. 供暖通风系统', d: '地暖壁挂炉中央空调\n新风循环换气除湿', c: '#f43f5e', x: 80, y: 220 },
+        { t: '5. 采光隔音系统', d: '双层中空Low-E玻璃\n自然日照朝向与隔热', c: '#10b981', x: 280, y: 220 },
+        { t: '6. 燃气安全系统', d: '天然气管道自动切断阀\n可燃气体泄漏报警探测', c: '#eab308', x: 480, y: 220 }
+    ];
+
+    systems.forEach(s => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(s.x, s.y, 160, 115);
+        ctx.strokeStyle = s.c; ctx.lineWidth = 2; ctx.strokeRect(s.x, s.y, 160, 115);
+
+        ctx.fillStyle = s.c; ctx.font = 'bold 13px sans-serif';
+        ctx.fillText(s.t, s.x + 80, s.y + 26);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '11px sans-serif';
+        const lines = s.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, s.x + 80, s.y + 55 + i * 20));
+    });
+
+    ctx.fillStyle = '#38bdf8'; ctx.font = '13px sans-serif';
+    ctx.fillText('工程结论: 住房是由供水、供暖、采光、电路等多个相互协调的子系统构成的复杂有机工程', cx, 395);
+}
+
+function drawEngineeringProcess() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌉 认识工程: 港珠澳大桥工程全周期标准闭环流程 (限制条件下的科学决策)', cx, 40);
+
+    const steps = [
+        { t: '① 明确需求与限制', d: '伶仃洋通航与防台风\n跨海55公里超级工程', c: '#38bdf8' },
+        { t: '② 设计总体方案', d: '桥-岛-隧世纪组合\n海底沉管隧道技术', c: '#10b981' },
+        { t: '③ 制作缩小模型', d: '风洞吹风与水工实验\n应力抗剪切测试', c: '#f59e0b' },
+        { t: '④ 评估测试与改进', d: '毫米级沉管对接复核\n优化人工岛阻水率', c: '#f43f5e' },
+        { t: '⑤ 施工落地交付', d: '120年设计使用寿命\n百年梦圆大湾区', c: '#a855f7' }
+    ];
+
+    steps.forEach((st, i) => {
+        const y = 80 + i * 55;
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(100, y, 520, 45);
+        ctx.strokeStyle = st.c; ctx.lineWidth = 2; ctx.strokeRect(100, y, 520, 45);
+
+        ctx.fillStyle = st.c; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(st.t, 120, y + 28);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif'; ctx.textAlign = 'right';
+        ctx.fillText(st.d, 600, y + 28);
+    });
+
+    ctx.fillStyle = '#f8fafc'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('核心要义: 工程不是碰运气，而是在受成本、工期、安全与材料限制下的严谨系统化工程闭环', cx, 395);
+}
+
+function drawTowerProject() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('📑 建造塔台: 塔台工程招标标书设计书 (竞标与成本预算控制)', cx, 40);
+
+    const items = [
+        { t: '项目规格指标', d: '高度不低于60cm\n顶部安装雷达天线\n底部四足支撑稳固', c: '#38bdf8', x: 80 },
+        { t: '成本预算控制', d: '吸管总数≤40根\n胶带长度≤1米\n总预算控制在星级内', c: '#eab308', x: 280 },
+        { t: '安全验收准则', d: '抗6级强风吹不倒\n抗3级地震台晃动\n顶端承重≥3本厚书', c: '#10b981', x: 480 }
+    ];
+
+    items.forEach(it => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(it.x, 80, 160, 260);
+        ctx.strokeStyle = it.c; ctx.lineWidth = 2; ctx.strokeRect(it.x, 80, 160, 260);
+
+        ctx.fillStyle = it.c; ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(it.t, it.x + 80, 115);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+        const lines = it.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, it.x + 80, 165 + i * 26));
+
+        ctx.fillStyle = '#334155'; ctx.fillRect(it.x + 10, 280, 140, 36);
+        ctx.fillStyle = it.c; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('标书技术规范', it.x + 80, 303);
+    });
+}
+
+function drawTowerBuilding() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏗️ 制作塔台模型: 吸管与胶带空间三角形桁架抗剪切力结构组装工序', cx, 40);
+
+    // Assembly steps
+    const steps = [
+        { t: '步骤1: 底座正方形框架与对角斜撑', d: '先做正方形底座，再粘加对角吸管形成2个牢固三角形', c: '#38bdf8' },
+        { t: '步骤2: 树立四根立柱吸管 (上小下大)', d: '四根立柱向内轻微聚拢，确保重心稳定', c: '#10b981' },
+        { t: '步骤3: 逐层添加侧面交叉X形斜拉剪力撑', d: '将四边形完全转化为空间三角形，消除晃动', c: '#f59e0b' },
+        { t: '步骤4: 顶端雷达测试台平台加固', d: '固定顶层水平吸管平台，准备承重质检', c: '#a855f7' }
+    ];
+
+    steps.forEach((st, i) => {
+        const y = 80 + i * 65;
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(100, y, 520, 52);
+        ctx.strokeStyle = st.c; ctx.lineWidth = 2; ctx.strokeRect(100, y, 520, 52);
+
+        ctx.fillStyle = st.c; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(st.t, 120, y + 24);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+        ctx.fillText(st.d, 120, y + 42);
+    });
+}
+
+function drawTowerOptimization() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🔧 评估改进塔台模型: 应力缺陷诊断与顶端减重、底盘阻尼优化', cx, 40);
+
+    const fixes = [
+        { t: '缺陷1: 顶重底轻易侧翻', f: '优化方案: 底座吸管缠绕重螺母/胶带，显著降低重心高度', c: '#f43f5e', x: 100 },
+        { t: '缺陷2: 侧向风吹摆幅大', f: '优化方案: 在摇晃最大的中层追加双向三角形剪力撑', c: '#f59e0b', x: 400 }
+    ];
+
+    fixes.forEach(fx => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(fx.x, 90, 220, 250);
+        ctx.strokeStyle = fx.c; ctx.lineWidth = 2; ctx.strokeRect(fx.x, 90, 220, 250);
+
+        ctx.fillStyle = fx.c; ctx.font = 'bold 15px sans-serif';
+        ctx.fillText(fx.t, fx.x + 110, 130);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '13px sans-serif';
+        ctx.fillText(fx.f.split('优化方案: ')[0], fx.x + 110, 180);
+        ctx.fillStyle = '#10b981';
+        ctx.fillText('✅ ' + fx.f.split('优化方案: ')[1], fx.x + 110, 220);
+    });
+
+    ctx.fillStyle = '#38bdf8'; ctx.font = '13px sans-serif';
+    ctx.fillText('工程迭代原则: 发现问题 -> 根因分析 -> 局部优化设计 -> 再次承重风洞实测验证', cx, 385);
+}
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'tower_testing' || activeMode === 'tower_design_truss') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>结构基础形式</span><span class="val">${state.trussType==='triangle'?'全三角桁架 (极其稳固)':'普通四边形 (易受力形变)'}</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnTriangle">🔺 三角形桁架 (增加斜撑)</button>
+                    <button class="btn btn-rose" id="btnRect">⏹️ 纯矩形框架 (易偏斜坍塌)</button>
+                </div>
+            </div>
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>抗风能力测试 (风力等级)</span><span class="val" id="wVal">${state.windLevel} 级</span></div>
+                <input type="range" id="windSlider" min="0" max="3" value="${state.windLevel}">
+            </div>
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>抗压承重载荷 (书本数量)</span><span class="val" id="loadVal">${state.topLoadBooks} 本</span></div>
+                <input type="range" id="loadSlider" min="1" max="8" value="${state.topLoadBooks}">
+            </div>
+            <div class="btn-grid" style="margin-top:6px;">
+                <button class="btn btn-rose" id="btnSimEarthquake">⚡ 启动底部地震波模拟</button>
+                <button class="btn" id="btnResetTower">🔄 扶正复位塔台</button>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>工程系统结构与管网</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnWaterPipe">💧 供排水管网系统</button>
+                    <button class="btn btn-green" id="btnPowerGrid">⚡ 强弱电电力布线</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU1Events();
+}
+
+function bindU1Events() {
+    const btnTriangle = document.getElementById('btnTriangle');
+    if (btnTriangle) btnTriangle.onclick = () => { state.trussType = 'triangle'; state.towerCollapsed = false; setupControls(); playTone(880, 0.2); };
+    const btnRect = document.getElementById('btnRect');
+    if (btnRect) btnRect.onclick = () => { state.trussType = 'rectangle'; setupControls(); playTone(400, 0.2); };
+
+    const windSlider = document.getElementById('windSlider');
+    if (windSlider) {
+        windSlider.addEventListener('input', (e) => {
+            state.windLevel = parseInt(e.target.value);
+            document.getElementById('wVal').innerText = state.windLevel + ' 级';
+            checkTowerStability();
+        });
+    }
+    const loadSlider = document.getElementById('loadSlider');
+    if (loadSlider) {
+        loadSlider.addEventListener('input', (e) => {
+            state.topLoadBooks = parseInt(e.target.value);
+            document.getElementById('loadVal').innerText = state.topLoadBooks + ' 本';
+            checkTowerStability();
+        });
+    }
+
+    const btnSimEarthquake = document.getElementById('btnSimEarthquake');
+    if (btnSimEarthquake) btnSimEarthquake.onclick = () => {
+        state.quakeIntensity = 2;
+        checkTowerStability();
+        playTone(150, 0.4, 'sawtooth');
+    };
+    const btnResetTower = document.getElementById('btnResetTower');
+    if (btnResetTower) btnResetTower.onclick = () => {
+        state.towerCollapsed = false;
+        state.windLevel = 1;
+        state.quakeIntensity = 0;
+        state.topLoadBooks = 2;
+        setupControls();
+        playTone(600, 0.1);
+    };
+
+    const btnWaterPipe = document.getElementById('btnWaterPipe');
+    if (btnWaterPipe) btnWaterPipe.onclick = () => { playTone(600, 0.1); };
+    const btnPowerGrid = document.getElementById('btnPowerGrid');
+    if (btnPowerGrid) btnPowerGrid.onclick = () => { playTone(700, 0.1); };
+}
+
+function checkTowerStability() {
+    if (state.trussType === 'rectangle') {
+        if (state.windLevel >= 2 || state.topLoadBooks >= 5 || state.quakeIntensity > 0) {
+            state.towerCollapsed = true;
+            playTone(180, 0.4, 'sawtooth');
+        }
+    } else {
+        // Triangle truss is very strong
+        if (state.windLevel >= 3 && state.topLoadBooks >= 7 && state.quakeIntensity >= 2) {
+            state.towerCollapsed = true;
+        } else {
+            state.towerCollapsed = false;
+        }
+    }
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'housing_systems') {
+        drawHousingSystems();
+        updateTelemetry();
+        requestAnimationFrame(draw);
+        return;
+    } else if (activeMode === 'engineering_process') {
+        drawEngineeringProcess();
+        updateTelemetry();
+        requestAnimationFrame(draw);
+        return;
+    } else if (activeMode === 'tower_project') {
+        drawTowerProject();
+        updateTelemetry();
+        requestAnimationFrame(draw);
+        return;
+    } else if (activeMode === 'tower_building') {
+        drawTowerBuilding();
+        updateTelemetry();
+        requestAnimationFrame(draw);
+        return;
+    } else if (activeMode === 'tower_optimization') {
+        drawTowerOptimization();
+        updateTelemetry();
+        requestAnimationFrame(draw);
+        return;
+    }
+
+    const cx = 360;
+
+    // Ground platform (Shaker table)
+    const shakeOffset = state.quakeIntensity > 0 ? (Math.random() - 0.5) * 8 : 0;
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(180 + shakeOffset, 360, 360, 40);
+
+    // Tower Structure (Height 200px, 3 tiered levels)
+    ctx.save();
+    ctx.translate(cx + shakeOffset, 360);
+
+    if (state.towerCollapsed) {
+        ctx.rotate(0.35); // Fallen
+    } else {
+        // Slight wind sway
+        const windLean = (state.windLevel * 0.02) * (state.trussType === 'rectangle' ? 2.5 : 0.8);
+        ctx.rotate(windLean);
+    }
+
+    // Straw columns
+    ctx.strokeStyle = state.trussType === 'triangle' ? '#38bdf8' : '#f59e0b';
+    ctx.lineWidth = 4;
+
+    // 4 Corner Legs
+    ctx.beginPath();
+    ctx.moveTo(-60, 0); ctx.lineTo(-25, -200);
+    ctx.moveTo(60, 0); ctx.lineTo(25, -200);
+    ctx.stroke();
+
+    // Horizontal collars at 3 heights
+    for (let h = 1; h <= 3; h++) {
+        const y = -h * 65;
+        const w = 60 - h * 11;
+        ctx.beginPath();
+        ctx.moveTo(-w, y); ctx.lineTo(w, y);
+        ctx.stroke();
+
+        // Diagonal trusses (Triangle struts)
+        if (state.trussType === 'triangle') {
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2;
+            const prevY = -(h - 1) * 65;
+            const prevW = 60 - (h - 1) * 11;
+            ctx.beginPath();
+            ctx.moveTo(-prevW, prevY); ctx.lineTo(w, y);
+            ctx.moveTo(prevW, prevY); ctx.lineTo(-w, y);
+            ctx.stroke();
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 4;
+        }
+    }
+
+    // Top Platform Load (Books stacked on top)
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(-30, -205, 60, 6);
+    ctx.fillStyle = '#f43f5e';
+    for (let b = 0; b < state.topLoadBooks; b++) {
+        ctx.fillRect(-25, -212 - b * 9, 50, 8);
+    }
+
+    ctx.restore();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    if (state.towerCollapsed) {
+        ctx.fillText('⚠️ 塔台失稳倒塌! 结构缺少三角形支撑，抗压/抗风能力不足!', cx, 40);
+    } else {
+        ctx.fillText(`塔台工程模型性能测试: 承重 ${state.topLoadBooks} 本书 | 抗风 ${state.windLevel} 级 【${state.trussType==='triangle'?'全三角稳定结构':'普通四边形易形变'}】`, cx, 40);
+        ctx.fillStyle = '#10b981';
+        ctx.font = '14px sans-serif';
+        ctx.fillText('工程设计准则: 镂空结构减小风阻、上小下大降低重心、大量三角形桁架确保稳固!', cx, 75);
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+        
+function updateTelemetry() {
+    let txt = `[工程结构数据就绪] 模式: ${activeMode} | `;
+    txt += `基础结构: ${state.trussType} | 顶部载荷: ${state.topLoadBooks}本 | 状态: ${state.towerCollapsed?'坍塌':'稳固贴合'}`;
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

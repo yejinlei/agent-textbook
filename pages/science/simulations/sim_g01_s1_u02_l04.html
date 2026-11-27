@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【4. 气味告诉我们】真实验微仿真 - 一年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+        .notes-card strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 <span>4. 气味告诉我们</span></h1>
+        <span class="badge">一年级科学·我们自己</span>
+        <a href="g1s1_reaction_time.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 感官协同与神经反应时实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g01_s1_u02_l01.html" class="">我们的身体</a>
+<a href="sim_g01_s1_u02_l02.html" class="">发现生长</a>
+<a href="sim_g01_s1_u02_l03.html" class="">游戏中的观察</a>
+<a href="sim_g01_s1_u02_l04.html" class="active">气味告诉我们</a>
+<a href="sim_g01_s1_u02_l05.html" class="">通过感官来发现</a>
+<a href="sim_g01_s1_u02_l06.html" class="">观察与比较</a>
+<a href="sim_g01_s1_u02_l07.html" class="">做个“时间胶囊”</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="cv" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 探究控制台与感官交互</div>
+            
+            <div class="ctrl-group">
+                <label class="ctrl-label">切换探究主题视窗</label>
+                <div class="btn-grid">
+                    <button class="btn " onclick="switchMode('body_parts')">👤 身体结构</button>
+                    <button class="btn " onclick="switchMode('growth')">📏 发现生长</button>
+                    <button class="btn " onclick="switchMode('reaction')">⚡ 抓尺反应</button>
+                    <button class="btn " onclick="switchMode('senses_multimodal')">👀 感官协同</button>
+                    <button class="btn btn-primary" onclick="switchMode('smell_taste')">👃 嗅觉味觉</button>
+                    <button class="btn " onclick="switchMode('time_capsule')">⏳ 时间胶囊</button>
+                </div>
+            </div>
+
+            <div id="dynamic-controls">
+                <!-- Dynamically injected controls -->
+            </div>
+
+            <div class="card-title" style="margin-top: 6px;">📊 生理与感知遥测数据</div>
+            <div class="telemetry" id="telem">
+                [遥测就绪] 等待交互触发...
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <strong>🎯 探究目标与科学家视角：</strong><br>
+            人类身体具有奇妙的头、颈、躯干、四肢两侧对称性结构。我们通过眼（视觉）、耳（听觉）、鼻（嗅觉）、舌（味觉）、皮肤（触觉）五大感官系统感知外部世界。神经系统以毫秒级电信号协同感知与运动，通过落尺实验测量神经反射速度，理解生命的生长与发育。
+        </div>
+    </div>
+
+    <script>
+        const cv = document.getElementById('cv');
+        const ctx = cv.getContext('2d');
+        const telem = document.getElementById('telem');
+        const dynControls = document.getElementById('dynamic-controls');
+
+        // Web Audio Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type='sine', dur=0.15) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
+        }
+
+        let activeMode = "smell_taste";
+        let state = {
+            highlightPart: 'all',
+            showSymmetry: true,
+            growthAge: 7, // 0=婴儿, 3=幼儿, 7=一年级
+            rulerDropping: false,
+            rulerY: 50,
+            rulerSpeed: 0,
+            rulerCaught: false,
+            catchDistance: 0,
+            reactionTime: 0,
+            activeSense: 'eye',
+            smellType: 'flower',
+            capsuleItems: ['手印', '身高记号']
+        };
+
+        function switchMode(m) {
+            activeMode = m;
+            playTone(440, 'triangle', 0.1);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setupControls() {
+            let h = '';
+            if (activeMode === 'body_parts') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">聚焦身体部位</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.highlightPart==='head'?'btn-primary':''}" onclick="setPart('head')">头与五官</button>
+                        <button class="btn ${state.highlightPart==='trunk'?'btn-primary':''}" onclick="setPart('trunk')">躯干胸腹</button>
+                        <button class="btn ${state.highlightPart==='arms'?'btn-primary':''}" onclick="setPart('arms')">双上肢(手臂)</button>
+                        <button class="btn ${state.highlightPart==='legs'?'btn-primary':''}" onclick="setPart('legs')">双下肢(腿足)</button>
+                    </div>
+                </div>
+                <div class="ctrl-group">
+                    <button class="btn btn-green" onclick="toggleSymmetry()">⚖️ 切换左右对称基准轴线</button>
+                </div>
+                `;
+            } else if (activeMode === 'growth') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">成长发育阶段: <span class="val" id="age-val">${state.growthAge} 岁</span></label>
+                    <input type="range" id="age-range" min="0" max="7" step="1" value="${state.growthAge}" oninput="updateAge(this.value)">
+                </div>
+                <div class="btn-grid">
+                    <button class="btn" onclick="setAge(0)">👶 婴儿期(0岁)</button>
+                    <button class="btn" onclick="setAge(3)">🧒 幼儿期(3岁)</button>
+                    <button class="btn btn-primary" onclick="setAge(7)">🎒 一年级(7岁)</button>
+                    <button class="btn btn-rose" onclick="playTone(523.25); updateTelemetry();">📸 生成生长印记</button>
+                </div>
+                `;
+            } else if (activeMode === 'reaction') {
+                h = `
+                <div class="ctrl-group">
+                    <button class="btn btn-primary" onclick="startRulerDrop()">🎯 释放直尺 (等待落下抓取)</button>
+                    <button class="btn btn-rose" style="margin-top:6px;" onclick="catchRuler()">✋ 快速抓尺！(测试反应)</button>
+                </div>
+                <div class="ctrl-group">
+                    <button class="btn" onclick="resetRuler()">🔄 重置抓尺位置</button>
+                </div>
+                `;
+            } else if (activeMode === 'senses_multimodal' || activeMode === 'observation_tools') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">激活感官系统</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.activeSense==='eye'?'btn-primary':''}" onclick="setSense('eye')">👀 眼睛(视觉)</button>
+                        <button class="btn ${state.activeSense==='ear'?'btn-primary':''}" onclick="setSense('ear')">👂 耳朵(听觉)</button>
+                        <button class="btn ${state.activeSense==='nose'?'btn-primary':''}" onclick="setSense('nose')">👃 鼻子(嗅觉)</button>
+                        <button class="btn ${state.activeSense==='tongue'?'btn-primary':''}" onclick="setSense('tongue')">👅 舌头(味觉)</button>
+                        <button class="btn ${state.activeSense==='skin'?'btn-primary':''}" onclick="setSense('skin')">✋ 皮肤(触觉)</button>
+                        <button class="btn btn-green" onclick="setSense('all')">🧠 五感协同</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'smell_taste') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">选择气味与味道样品</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.smellType==='flower'?'btn-primary':''}" onclick="setSmell('flower')">🌸 鲜花(清香)</button>
+                        <button class="btn ${state.smellType==='lemon'?'btn-primary':''}" onclick="setSmell('lemon')">🍋 柠檬(酸爽)</button>
+                        <button class="btn ${state.smellType==='vinegar'?'btn-primary':''}" onclick="setSmell('vinegar')">🍶 食醋(酸香)</button>
+                        <button class="btn ${state.smellType==='honey'?'btn-primary':''}" onclick="setSmell('honey')">🍯 蜂蜜(甘甜)</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'time_capsule') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">放入时间胶囊的成长纪念品</label>
+                    <div class="btn-grid">
+                        <button class="btn btn-primary" onclick="addCapsuleItem('✋ 7岁手印')">✋ 7岁手印</button>
+                        <button class="btn btn-primary" onclick="addCapsuleItem('📏 122cm身高条')">📏 身高线</button>
+                        <button class="btn btn-primary" onclick="addCapsuleItem('🦷 换牙记录')">🦷 换牙记</button>
+                        <button class="btn btn-rose" onclick="sealCapsule()">🔒 密封胶囊</button>
+                    </div>
+                </div>
+                `;
+            }
+            dynControls.innerHTML = h;
+        }
+
+        function setPart(p) {
+            state.highlightPart = p;
+            playTone(330);
+            setupControls();
+            updateTelemetry();
+        }
+        function toggleSymmetry() {
+            state.showSymmetry = !state.showSymmetry;
+            playTone(500);
+            updateTelemetry();
+        }
+        function updateAge(v) {
+            state.growthAge = parseInt(v);
+            const valEl = document.getElementById('age-val');
+            if (valEl) valEl.innerText = `${state.growthAge} 岁`;
+            playTone(200 + state.growthAge * 40);
+            updateTelemetry();
+        }
+        function setAge(a) {
+            state.growthAge = a;
+            setupControls();
+            playTone(350);
+            updateTelemetry();
+        }
+        function startRulerDrop() {
+            if (state.rulerDropping) return;
+            resetRuler();
+            setTimeout(() => {
+                state.rulerDropping = true;
+                state.dropStartTime = performance.now();
+                playTone(600, 'square', 0.08);
+            }, 400 + Math.random() * 800);
+        }
+        function catchRuler() {
+            if (!state.rulerDropping || state.rulerCaught) return;
+            state.rulerDropping = false;
+            state.rulerCaught = true;
+            const elapsedMs = performance.now() - state.dropStartTime;
+            state.reactionTime = (elapsedMs / 1000).toFixed(3);
+            state.catchDistance = ((state.rulerY - 50) / 10).toFixed(1);
+            playTone(880, 'sine', 0.25);
+            updateTelemetry();
+        }
+        function resetRuler() {
+            state.rulerDropping = false;
+            state.rulerCaught = false;
+            state.rulerY = 50;
+            state.rulerSpeed = 0;
+            state.reactionTime = 0;
+            state.catchDistance = 0;
+            updateTelemetry();
+        }
+        function setSense(s) {
+            state.activeSense = s;
+            playTone(550);
+            setupControls();
+            updateTelemetry();
+        }
+        function setSmell(s) {
+            state.smellType = s;
+            playTone(400);
+            setupControls();
+            updateTelemetry();
+        }
+        function addCapsuleItem(item) {
+            if (!state.capsuleItems.includes(item)) state.capsuleItems.push(item);
+            playTone(660);
+            updateTelemetry();
+        }
+        function sealCapsule() {
+            playTone(880, 'triangle', 0.4);
+            telem.innerText = `[时间胶囊已封存] 存入内容: ${state.capsuleItems.join('、')}。相约五年后小学毕业时开启！`;
+        }
+
+        function updateTelemetry() {
+            let txt = `[人体与感官动力学] 模式: ${activeMode} | `;
+            if (activeMode === 'body_parts') {
+                txt += `聚焦部位: ${state.highlightPart} | 对称轴: ${state.showSymmetry?'显示开启':'关闭'} | 结构特点: 两侧对称、协调运动`;
+            } else if (activeMode === 'growth') {
+                const h = 50 + state.growthAge * 10.3;
+                const w = 3.5 + state.growthAge * 2.8;
+                txt += `成长年龄: ${state.growthAge} 岁 | 估测身高: ${h.toFixed(1)} cm | 估测体重: ${w.toFixed(1)} kg | 特征: 骨骼伸长、协调性提升`;
+            } else if (activeMode === 'reaction') {
+                if (state.rulerCaught) {
+                    txt += `抓取刻度: ${state.catchDistance} cm | 反射反应时间: ${state.reactionTime} 秒 | 评价: ${state.reactionTime < 0.22 ? '⚡ 超级神速！' : '👍 表现优秀！'}`;
+                } else if (state.rulerDropping) {
+                    txt += `直尺正自由下落... 眼睛注视，随时按 [快速抓尺]！`;
+                } else {
+                    txt += `准备就绪。点击 [释放直尺] 开始测试眼-脑-手反应时。`;
+                }
+            } else if (activeMode === 'senses_multimodal' || activeMode === 'observation_tools') {
+                txt += `激活感官: ${state.activeSense} | 神经传导: 视听触嗅味多通道脑中枢融合`;
+            } else if (activeMode === 'smell_taste') {
+                txt += `气味样品: ${state.smellType} | 感知器官: 嗅神经受体 + 舌面味蕾协同`;
+            } else if (activeMode === 'time_capsule') {
+                txt += `胶囊内含: ${state.capsuleItems.join(', ')} | 科学意义: 记录生长轨迹`;
+            }
+            telem.innerText = txt;
+        }
+
+        function drawBodyParts(cx, cy) {
+            // Body silhouette
+            ctx.save();
+            ctx.translate(cx, cy);
+
+            if (state.showSymmetry) {
+                ctx.setLineDash([6, 6]);
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(0, -180);
+                ctx.lineTo(0, 180);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#38bdf8';
+                ctx.font = '12px sans-serif';
+                ctx.fillText('对称中轴线', 10, -160);
+            }
+
+            const isHead = state.highlightPart === 'head' || state.highlightPart === 'all';
+            const isTrunk = state.highlightPart === 'trunk' || state.highlightPart === 'all';
+            const isArms = state.highlightPart === 'arms' || state.highlightPart === 'all';
+            const isLegs = state.highlightPart === 'legs' || state.highlightPart === 'all';
+
+            // Head
+            ctx.fillStyle = isHead ? '#facc15' : '#475569';
+            ctx.beginPath();
+            ctx.arc(0, -120, 34, 0, Math.PI*2);
+            ctx.fill();
+            // Neck
+            ctx.fillStyle = isHead ? '#eab308' : '#334155';
+            ctx.fillRect(-10, -88, 20, 18);
+
+            // Trunk
+            ctx.fillStyle = isTrunk ? '#38bdf8' : '#475569';
+            ctx.beginPath();
+            ctx.roundRect(-42, -70, 84, 110, 12);
+            ctx.fill();
+
+            // Arms
+            ctx.strokeStyle = isArms ? '#10b981' : '#475569';
+            ctx.lineWidth = 16;
+            ctx.lineCap = 'round';
+            // Left arm
+            ctx.beginPath();
+            ctx.moveTo(-42, -55);
+            ctx.lineTo(-95, -10);
+            ctx.lineTo(-120, 30);
+            ctx.stroke();
+            // Right arm
+            ctx.beginPath();
+            ctx.moveTo(42, -55);
+            ctx.lineTo(95, -10);
+            ctx.lineTo(120, 30);
+            ctx.stroke();
+
+            // Legs
+            ctx.strokeStyle = isLegs ? '#f43f5e' : '#475569';
+            ctx.lineWidth = 18;
+            // Left leg
+            ctx.beginPath();
+            ctx.moveTo(-24, 38);
+            ctx.lineTo(-30, 110);
+            ctx.lineTo(-34, 170);
+            ctx.stroke();
+            // Right leg
+            ctx.beginPath();
+            ctx.moveTo(24, 38);
+            ctx.lineTo(30, 110);
+            ctx.lineTo(34, 170);
+            ctx.stroke();
+
+            ctx.restore();
+
+            // Labels
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.fillText('头 (眼耳鼻口脑)', cx + 55, cy - 120);
+            ctx.fillText('颈 (连接支撑)', cx + 30, cy - 80);
+            ctx.fillText('躯干 (心胸腹背)', cx + 55, cy - 10);
+            ctx.fillText('双手与上肢', cx - 180, cy);
+            ctx.fillText('双足与下肢', cx + 60, cy + 120);
+        }
+
+        function drawGrowth(cx, cy) {
+            const age = state.growthAge;
+            const scale = 0.5 + (age / 7) * 0.5; // 0.5 to 1.0
+
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(cx - 240, cy + 150, 480, 8); // ground
+            // Height ruler
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - 200, cy + 150);
+            ctx.lineTo(cx - 200, cy - 160);
+            ctx.stroke();
+            for(let y = cy + 150; y >= cy - 160; y -= 30) {
+                ctx.beginPath(); ctx.moveTo(cx - 200, y); ctx.lineTo(cx - 190, y); ctx.stroke();
+            }
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('身高尺 (cm)', cx - 250, cy - 165);
+
+            // Draw silhouette scaled
+            ctx.save();
+            ctx.translate(cx, cy + 150);
+            ctx.scale(scale, scale);
+
+            // Head
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath(); ctx.arc(0, -260, 36, 0, Math.PI*2); ctx.fill();
+            // Body
+            ctx.fillStyle = '#38bdf8';
+            ctx.beginPath(); ctx.roundRect(-35, -220, 70, 110, 10); ctx.fill();
+            // Arms
+            ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 14; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(-35, -210); ctx.lineTo(-75, -130); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(35, -210); ctx.lineTo(75, -130); ctx.stroke();
+            // Legs
+            ctx.strokeStyle = '#0284c7'; ctx.lineWidth = 16;
+            ctx.beginPath(); ctx.moveTo(-20, -110); ctx.lineTo(-24, 0); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(20, -110); ctx.lineTo(24, 0); ctx.stroke();
+
+            ctx.restore();
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            const h = 50 + age * 10.3;
+            ctx.fillText(`${age}岁 生长指标：预计身高约 ${h.toFixed(1)} cm`, cx, cy - 140);
+        }
+
+        function drawReaction(cx, cy) {
+            // Ruler drop test visual
+            const rX = cx;
+            let rY = state.rulerY;
+
+            if (state.rulerDropping && !state.rulerCaught) {
+                state.rulerSpeed += 0.45; // gravity
+                state.rulerY += state.rulerSpeed;
+                if (state.rulerY > 320) {
+                    state.rulerDropping = false; // missed
+                    playTone(200, 'sawtooth', 0.2);
+                    telem.innerText = '[直尺掉落到底] 哎呀没接住！请点击 [重置] 后再试一次。';
+                }
+            }
+
+            // Hand ready at bottom
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.roundRect(rX - 80, 260, 45, 18, 6);
+            ctx.roundRect(rX + 35, 260, 45, 18, 6);
+            ctx.fill();
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('虎口等待区', rX - 30, 275);
+
+            // Ruler
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(rX - 14, rY, 28, 200);
+            ctx.strokeStyle = '#0284c7';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(rX - 14, rY, 28, 200);
+
+            // Ruler markings
+            ctx.strokeStyle = '#334155';
+            ctx.fillStyle = '#0f172a';
+            ctx.font = '9px sans-serif';
+            for (let i = 0; i <= 20; i++) {
+                const my = rY + i * 10;
+                ctx.beginPath();
+                ctx.moveTo(rX + 5, my);
+                ctx.lineTo(rX + 14, my);
+                ctx.stroke();
+                if (i % 5 === 0) {
+                    ctx.fillText(i + '', rX - 10, my + 3);
+                }
+            }
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('落尺反应实验: 当看到直尺滑落时，迅速按 [✋ 快速抓尺！]', cx, 35);
+        }
+
+        function drawSenses(cx, cy) {
+            // Five senses circular diagram
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('五大感觉器官与大脑协同感知模型', cx, 40);
+
+            // Center Brain
+            ctx.fillStyle = '#a855f7';
+            ctx.beginPath(); ctx.arc(cx, cy, 45, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.fillText('🧠 脑中枢', cx, cy + 5);
+
+            const senses = [
+                { name: '眼睛 (视觉)', emoji: '👀', angle: -Math.PI/2, col: '#38bdf8' },
+                { name: '耳朵 (听觉)', emoji: '👂', angle: -Math.PI/6, col: '#10b981' },
+                { name: '皮肤 (触觉)', emoji: '✋', angle: Math.PI/6, col: '#f59e0b' },
+                { name: '舌头 (味觉)', emoji: '👅', angle: 5*Math.PI/6, col: '#f43f5e' },
+                { name: '鼻子 (嗅觉)', emoji: '👃', angle: 7*Math.PI/6, col: '#ec4899' }
+            ];
+
+            const rad = 130;
+            senses.forEach(s => {
+                const sx = cx + Math.cos(s.angle) * rad;
+                const sy = cy + Math.sin(s.angle) * rad;
+
+                // Connecting pulse
+                ctx.strokeStyle = s.col;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(sx, sy);
+                ctx.stroke();
+
+                // Sense Node
+                ctx.fillStyle = s.col;
+                ctx.beginPath(); ctx.arc(sx, sy, 32, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#0f172a';
+                ctx.font = 'bold 18px sans-serif';
+                ctx.fillText(s.emoji, sx, sy + 6);
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = '12px sans-serif';
+                ctx.fillText(s.name, sx, sy + (sy > cy ? 46 : -40));
+            });
+        }
+
+        function drawSmellTaste(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`气味分子扩散与味蕾感知模型 [当前样品: ${state.smellType}]`, cx, 40);
+
+            // Source bottle
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(cx - 160, cy - 20, 60, 90);
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath(); ctx.arc(cx - 130, cy + 25, 20, 0, Math.PI*2); ctx.fill();
+
+            // Scent particles drifting to nose
+            const t = performance.now() * 0.003;
+            for(let i = 0; i < 20; i++) {
+                const px = cx - 100 + (i * 12 + t * 40) % 200;
+                const py = cy + Math.sin(i * 0.8 + t * 2) * 25 - (i * 2);
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+                ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI*2); ctx.fill();
+            }
+
+            // Nose silhouette
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(cx + 120, cy - 60);
+            ctx.lineTo(cx + 150, cy);
+            ctx.lineTo(cx + 110, cy + 30);
+            ctx.stroke();
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '13px sans-serif';
+            ctx.fillText('嗅觉神经感受器', cx + 140, cy + 60);
+        }
+
+        function drawCapsule(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('⏳ 我们的“时间胶囊”科学纪念馆', cx, 40);
+
+            // Capsule container
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.roundRect(cx - 140, cy - 90, 280, 180, 30);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText('📦 7岁成长记录舱', cx, cy - 50);
+
+            state.capsuleItems.forEach((item, idx) => {
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = '13px sans-serif';
+                ctx.fillText(`• ${item}`, cx, cy - 10 + idx * 28);
+            });
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            const cx = cv.width / 2;
+            const cy = cv.height / 2;
+
+            if (activeMode === 'body_parts') drawBodyParts(cx, cy);
+            else if (activeMode === 'growth') drawGrowth(cx, cy);
+            else if (activeMode === 'reaction') drawReaction(cx, cy);
+            else if (activeMode === 'senses_multimodal' || activeMode === 'observation_tools') drawSenses(cx, cy);
+            else if (activeMode === 'smell_taste') drawSmellTaste(cx, cy);
+            else if (activeMode === 'time_capsule') drawCapsule(cx, cy);
+
+            requestAnimationFrame(render);
+        }
+
+        setupControls();
+        updateTelemetry();
+        render();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

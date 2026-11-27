@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【点亮小灯泡】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(56, 189, 248, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--accent); cursor: pointer; }
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 点亮小灯泡 <span class="badge">四年级下册 · 电路单元</span></h2>
+            <p>教科版科学原书电路真实验 · 拒绝伪仿真</p>
+        </div>
+        <a href="circuit_sandbox.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 大师级闭合回路电子沙盒 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生真实闭合回路与电子流动画</span>
+                <span>🎧 Web Audio 拟真通电/短路警报音效</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：小灯泡内部结构与通路/短路/断路实证：电池正极通过导线连小灯泡螺纹外壳，电池负极连小灯泡底部焊点，电流流经钨丝形成闭合回路点亮小灯泡！</div>
+            
+        <div class="c-group">
+            <button class="btn" id="btnCorrect">💡 1. 正确闭合回路连接 (点亮灯泡)</button>
+            <button class="btn btn-sec" id="btnShort" style="background:#e11d48; color:#fff;">⚠️ 2. 短路连接 (导线直连电池两极)</button>
+            <button class="btn btn-sec" id="btnOpen">🔌 3. 断路连接 (导线未接触接触点)</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [电路状态] 待机连接中<br>
+            [小灯泡结构] 玻璃泡、金属架、钨丝灯丝、螺纹金属壳、底部绝缘垫圈与金属触点<br>
+            [发光条件] 电流必须流经金属壳与底部焊点之间的钨丝！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.2, vol=0.1) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        function playClick() { playTone(800, 'square', 0.04, 0.08); }
+        
+        let circuitMode = 'none';
+        let t = 0;
+        const telem = document.getElementById('telem');
+
+        document.getElementById('btnCorrect').addEventListener('click', () => {
+            circuitMode = 'correct';
+            playTone(520, 'sine', 0.2);
+            telem.innerHTML = '💡 [闭合回路] 通路连接成功！电流从电池正极流经钨丝再回负极，小灯泡发出耀眼暖光！';
+        });
+        document.getElementById('btnShort').addEventListener('click', () => {
+            circuitMode = 'short';
+            playTone(140, 'sawtooth', 0.4, 0.2);
+            telem.innerHTML = '⚠️ [危险短路！] 导线直接将电池正负极相连，未经任何用电器，电流极大，电池剧烈发热发烫可能损坏！';
+        });
+        document.getElementById('btnOpen').addEventListener('click', () => {
+            circuitMode = 'open';
+            playTone(250, 'triangle', 0.1);
+            telem.innerHTML = '🔌 [断路状态] 电路未形成完整闭合回路，电流无法流动，小灯泡不亮。';
+        });
+        function render() {
+            t += 0.05;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            // Dry Battery on left
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(100, 160, 60, 120);
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(120, 145, 20, 15); // Positive terminal (+)
+            ctx.fillStyle = '#fff'; ctx.font = '14px sans-serif';
+            ctx.fillText('+', 125, 180);
+            ctx.fillText('-', 125, 260);
+
+            // Light bulb on right
+            const bX = 400, bY = 200;
+            // Glass bulb
+            ctx.fillStyle = circuitMode === 'correct' ? 'rgba(253, 224, 71, 0.85)' : 'rgba(255, 255, 255, 0.15)';
+            ctx.beginPath(); ctx.arc(bX, bY - 30, 32, 0, Math.PI*2); ctx.fill();
+            if(circuitMode === 'correct') {
+                ctx.strokeStyle = '#fef08a'; ctx.lineWidth = 4; ctx.stroke();
+            }
+
+            // Tungsten filament
+            ctx.strokeStyle = circuitMode === 'correct' ? '#fff' : '#64748b'; ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(bX - 10, bY - 20); ctx.lineTo(bX, bY - 45); ctx.lineTo(bX + 10, bY - 20);
+            ctx.stroke();
+
+            // Metal Threaded Shell
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillRect(bX - 18, bY, 36, 25);
+            // Bottom Solder Contact Point
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(bX - 10, bY + 30, 20, 8);
+
+            // Wires
+            if(circuitMode === 'correct') {
+                // Wire 1: Battery (+) to Shell
+                ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.moveTo(130, 145); ctx.lineTo(130, 100); ctx.lineTo(bX - 18, 100); ctx.lineTo(bX - 18, bY + 12); ctx.stroke();
+                // Wire 2: Bottom Contact to Battery (-)
+                ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.moveTo(bX, bY + 38); ctx.lineTo(bX, 320); ctx.lineTo(130, 320); ctx.lineTo(130, 280); ctx.stroke();
+            } else if(circuitMode === 'short') {
+                // Direct short wire
+                ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 6;
+                ctx.beginPath(); ctx.moveTo(130, 145); ctx.lineTo(60, 145); ctx.lineTo(60, 280); ctx.lineTo(130, 280); ctx.stroke();
+                ctx.fillStyle = '#ef4444'; ctx.font = '16px bold sans-serif';
+                ctx.fillText('🔥 短路发烫！', 180, 220);
+            }
+
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

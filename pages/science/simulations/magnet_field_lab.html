@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学探究微仿真：玩磁铁与磁感线实验室（二年级下册·玩磁铁）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #38bdf8;
+      --n-pole: #ef4444;
+      --s-pole: #3b82f6;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 440px;
+      background: radial-gradient(circle at center, #111a2d 0%, #050811 100%);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #1a273f;
+      cursor: grab;
+    }
+    .canvas-box:active { cursor: grabbing; }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .controls { display: flex; flex-direction: column; gap: 14px; }
+    .control-group {
+      background: #101624;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #233147;
+    }
+    .control-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    button {
+      width: 100%;
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 8px;
+    }
+    button:hover { background: #1d4ed8; }
+    button.active {
+      background: #10b981;
+    }
+    button.secondary { background: #334155; }
+    button.secondary:hover { background: #475569; }
+
+    .state-banner {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #101624;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>🧲 神奇的磁极与磁感线铁屑实验室（二年级下册·玩磁铁）</h1>
+    <span class="badge">磁场力学交互 · 纯静态</span>
+  </header>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="canvas-box" id="container">
+        <canvas id="magnetCanvas"></canvas>
+      </div>
+      <div class="state-banner" id="stateBanner">
+        <span id="stateIcon">🤝</span>
+        <span id="stateText">可按住鼠标左键自由拖动右侧磁铁，感受磁极相互作用！</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ 磁铁探究设置</h2>
+      
+      <div class="controls">
+        <button id="btnFlipRight" style="background: #f59e0b;">🔄 翻转右侧磁铁极性 (N ↔ S)</button>
+        <button id="btnShowField" class="active">✨ 显示隐形磁感线与铁屑分布</button>
+        <button id="btnCompass" class="secondary">🧭 放置磁感应小指南针阵列</button>
+        <button id="btnReset" class="secondary">↺ 复位磁铁位置</button>
+
+        <div style="font-size: 12px; color: var(--muted); line-height: 1.6; background: #101624; padding: 10px; border-radius: 6px; border-left: 3px solid var(--primary); margin-top: 8px;">
+          📖 <strong>科学核心规律</strong>：
+          - <strong>同极相斥</strong>：N极靠近N极、或S极靠近S极时，互相排斥推开；
+          - <strong>异极相吸</strong>：N极靠近S极时，紧紧吸引在一起；
+          - <strong>磁感线</strong>：在磁铁外部，磁感线总是从 <strong>N极（红色）出发，回到 S极（蓝色）</strong>。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    // === 原生 Web Audio 纯代码合成音效引擎 (零外部文件) ===
+    const Sound = {
+      ctx: null,
+      enabled: true,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      // 清脆滴答声 (钟表/过零点)
+      tick() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.04);
+      },
+      // 成功提示音 (双音铜铃)
+      success() {
+        if (!this.enabled || !this.ctx) return;
+        [523.25, 659.25, 783.99].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.08 + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + idx * 0.08);
+          osc.stop(this.ctx.currentTime + idx * 0.08 + 0.35);
+        });
+      },
+      // 金属碰撞/咔哒声 (开关/吸附/挂钩)
+      clack() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      },
+      // 水花落水声 (浮力/入水)
+      plop() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.12);
+      },
+      // 警报声 (短路/沉没)
+      alarm() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(440, this.ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.2);
+      }
+    };
+    window.addEventListener('click', () => Sound.init(), { once: true });
+
+
+    const canvas = document.getElementById('magnetCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    // 磁铁对象定义
+    let magnet1 = { x: 180, y: 220, w: 120, h: 40, flipped: false, isDragging: false };
+    let magnet2 = { x: 420, y: 220, w: 120, h: 40, flipped: false, isDragging: false };
+
+    let showField = true;
+    let showCompass = false;
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      magnet1.y = rect.height / 2;
+      magnet2.y = rect.height / 2;
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    const btnFlipRight = document.getElementById('btnFlipRight');
+    const btnShowField = document.getElementById('btnShowField');
+    const btnCompass = document.getElementById('btnCompass');
+    const btnReset = document.getElementById('btnReset');
+    const stateText = document.getElementById('stateText');
+    const stateIcon = document.getElementById('stateIcon');
+
+    btnFlipRight.addEventListener('click', () => {
+      magnet2.flipped = !magnet2.flipped;
+      Sound.clack();
+      draw();
+    });
+
+    btnShowField.addEventListener('click', () => {
+      showField = !showField;
+      btnShowField.classList.toggle('active', showField);
+      draw();
+    });
+
+    btnCompass.addEventListener('click', () => {
+      showCompass = !showCompass;
+      btnCompass.classList.toggle('active', showCompass);
+      draw();
+    });
+
+    btnReset.addEventListener('click', () => {
+      const rect = container.getBoundingClientRect();
+      magnet1.x = rect.width * 0.3;
+      magnet1.y = rect.height * 0.5;
+      magnet2.x = rect.width * 0.7;
+      magnet2.y = rect.height * 0.5;
+      magnet1.flipped = false;
+      magnet2.flipped = false;
+      draw();
+    });
+
+    // 鼠标拖拽交互
+    let dragTarget = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    container.addEventListener('mousedown', (e) => {
+      const rect = container.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      [magnet2, magnet1].forEach(m => {
+        if (mx >= m.x - m.w/2 && mx <= m.x + m.w/2 && my >= m.y - m.h/2 && my <= m.y + m.h/2) {
+          dragTarget = m;
+          dragOffsetX = mx - m.x;
+          dragOffsetY = my - m.y;
+        }
+      });
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!dragTarget) return;
+      const rect = container.getBoundingClientRect();
+      dragTarget.x = e.clientX - rect.left - dragOffsetX;
+      dragTarget.y = e.clientY - rect.top - dragOffsetY;
+
+      // 磁极物理相吸/相斥力学碰撞判定
+      checkMagneticInteraction();
+      draw();
+    });
+
+    window.addEventListener('mouseup', () => { dragTarget = null; });
+
+    function checkMagneticInteraction() {
+      const dx = magnet2.x - magnet1.x;
+      const dy = magnet2.y - magnet1.y;
+      const dist = Math.hypot(dx, dy);
+
+      // 右端极与左端极判断
+      // magnet1 右侧极性: flipped ? 'N' : 'S'
+      const m1Right = magnet1.flipped ? 'N' : 'S';
+      // magnet2 左侧极性: flipped ? 'S' : 'N'
+      const m2Left = magnet2.flipped ? 'S' : 'N';
+
+      if (dist < 150) {
+        if (m1Right === m2Left) {
+          // 同极相斥
+          stateIcon.textContent = '⚡';
+          stateText.textContent = `【同极相斥 (${m1Right}-${m2Left})】产生排斥力，两块磁铁互相推开！`;
+          // 产生微小排斥位移
+          if (dragTarget === magnet2) {
+            magnet2.x += (150 - dist) * 0.15;
+          }
+        } else {
+          // 异极相吸
+          stateIcon.textContent = '🧲';
+          Sound.clack();
+          stateText.textContent = `【异极相吸 (${m1Right}-${m2Left})】产生强大吸引力，吸合在一起！`;
+        }
+      }
+    }
+
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 1. 绘制空间磁感线铁屑曲线
+      if (showField) {
+        drawFieldLines(w, h);
+      }
+
+      // 2. 绘制指南针微阵列
+      if (showCompass) {
+        drawCompassArray(w, h);
+      }
+
+      // 3. 绘制两块条形磁铁
+      drawBarMagnet(magnet1);
+      drawBarMagnet(magnet2);
+    }
+
+    function drawBarMagnet(m) {
+      const hw = m.w / 2;
+      const hh = m.h / 2;
+
+      ctx.save();
+      ctx.translate(m.x, m.y);
+
+      // 阴影
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.fillRect(-hw + 3, -hh + 3, m.w, m.h);
+
+      const leftColor = m.flipped ? '#3b82f6' : '#ef4444'; // S 蓝 or N 红
+      const rightColor = m.flipped ? '#ef4444' : '#3b82f6';
+      const leftLabel = m.flipped ? 'S' : 'N';
+      const rightLabel = m.flipped ? 'N' : 'S';
+
+      // 左半极
+      ctx.fillStyle = leftColor;
+      ctx.fillRect(-hw, -hh, hw, m.h);
+
+      // 右半极
+      ctx.fillStyle = rightColor;
+      ctx.fillRect(0, -hh, hw, m.h);
+
+      // 边框
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(-hw, -hh, m.w, m.h);
+
+      // 文字
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(leftLabel, -hw / 2, 0);
+      ctx.fillText(rightLabel, hw / 2, 0);
+
+      ctx.restore();
+    }
+
+    function drawFieldLines(w, h) {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1.2;
+
+      // 模拟磁感线环绕曲线
+      [magnet1, magnet2].forEach(m => {
+        const hw = m.w / 2;
+        for (let r = 25; r < 140; r += 20) {
+          ctx.beginPath();
+          ctx.ellipse(m.x, m.y, hw + r, r * 0.8, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      });
+    }
+
+    function drawCompassArray(w, h) {
+      for (let x = 60; x < w; x += 80) {
+        for (let y = 50; y < h; y += 70) {
+          // 指南针微小指针
+          const dx = x - magnet1.x;
+          const dy = y - magnet1.y;
+          const ang = Math.atan2(dy, dx);
+
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(ang);
+
+          // N红针
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(10, 0);
+          ctx.strokeStyle = '#ef4444';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // S蓝针
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(-10, 0);
+          ctx.strokeStyle = '#3b82f6';
+          ctx.stroke();
+
+          ctx.restore();
+        }
+      }
+    }
+
+    resize();
+  </script>
+</body>
+</html>

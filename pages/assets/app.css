@@ -9,6 +9,7 @@
   --zh: #c0392b;
   --ma: #2471a3;
   --en: #1e8449;
+  --sci: #0284c7;
 }
 
 * { box-sizing: border-box; }
@@ -53,6 +54,7 @@ body[data-page="index"] { --c: var(--zh); }
 body[data-page^="chinese"] { --c: var(--zh); }
 body[data-page^="math"] { --c: var(--ma); }
 body[data-page^="english"] { --c: var(--en); }
+body[data-page^="science"] { --c: var(--sci); }
 
 .wrap {
   display: flex;
@@ -636,6 +638,7 @@ body.show-zh .turn .zh { display: inline; margin-left: 8px; }
   --zh: #ff7a6b;   /* 语文：珊瑚红 */
   --ma: #47a3ff;   /* 数学：天蓝 */
   --en: #46bd6a;   /* 英语：草绿 */
+  --sci: #0ea5e9;   /* 科学：青空蓝 */
   --soft: #f6e7d0; /* 卡片底下的那道"厚边" */
 }
 
@@ -2617,4 +2620,276 @@ details.aq .aa {
 }
 .en-play-all-btn:hover {
   background: #196f3d;
+}
+
+
+/* ============================================================== 科学学科专用样式 */
+.sci-sec-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.sci-sec-card.focus {
+  border-left: 4px solid #0284c7;
+  background: #f8fafc;
+}
+.sci-sec-card.exploration {
+  border-left: 4px solid #059669;
+  background: #f0fdf4;
+}
+.sci-sec-card.discussion {
+  border-left: 4px solid #d97706;
+  background: #fffbeb;
+}
+.sci-sec-card.expansion {
+  border-left: 4px solid #7c3aed;
+  background: #faf5ff;
+}
+.sci-sec-head {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sci-sec-body {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #334155;
+  white-space: pre-wrap;
+}
+.sci-frontier-box {
+  background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%);
+  border: 1.5px solid #86efac;
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+}
+.sci-frontier-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #065f46;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sci-frontier-item {
+  margin: 10px 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #1f2937;
+}
+.sci-frontier-item b {
+  color: #047857;
+}
+.sci-sim-embed {
+  margin: 16px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1.5px solid #cbd5e1;
+  background: #0f172a;
+}
+.sci-sim-embed iframe {
+  width: 100%;
+  height: 650px;
+  border: none;
+  display: block;
+}
+
+/* 领域标签 */
+.tag.domain-physics { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+.tag.domain-biology { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+.tag.domain-earth { background: #fef3c7; color: #b45309; border-color: #fde68a; }
+.tag.domain-engineering { background: #f3e8ff; color: #7e22ce; border-color: #e9d5ff; }
+
+/* 科学实验大厅网格 */
+.sim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.sim-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  cursor: pointer;
+}
+.sim-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  border-color: #38bdf8;
+}
+.sim-card.master {
+  border-color: #bae6fd;
+  background: #f8fafc;
+}
+.sim-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.sim-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.4;
+}
+.sim-card-desc {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  flex: 1;
+}
+.sim-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 10px;
+}
+.sim-stage-box {
+  background: #0b0f19;
+  border: 2px solid #38bdf8;
+  border-radius: 14px;
+  padding: 16px;
+  margin: 20px 0;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+}
+.sim-stage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #f8fafc;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #1e293b;
+  margin-bottom: 12px;
+}
+.sim-stage-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sim-stage-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* 仿真按钮与筛选控件 */
+.sim-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  line-height: 1.4;
+}
+.sim-btn.primary {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+.sim-btn.primary:hover {
+  background: #0369a1;
+  border-color: #0369a1;
+}
+.sim-btn.secondary {
+  background: #334155;
+  color: #f8fafc;
+  border-color: #475569;
+}
+.sim-btn.secondary:hover {
+  background: #475569;
+}
+.sim-btn.outline {
+  background: #ffffff;
+  color: #0369a1;
+  border-color: #bae6fd;
+}
+.sim-btn.outline:hover {
+  background: #f0f9ff;
+  border-color: #0284c7;
+}
+.sim-stage-header .sim-btn.outline {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  border-color: #475569;
+}
+.sim-stage-header .sim-btn.outline:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: #94a3b8;
+  color: #ffffff;
+}
+
+/* 仿真实验顶部筛选区 */
+.sim-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.sim-domain-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sim-domain-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sim-domain-pill:hover {
+  border-color: #38bdf8;
+  color: #0284c7;
+  background: #f0f9ff;
+}
+.sim-domain-pill.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+  font-weight: 600;
+}
+.sim-filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.sim-card.active-playing {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
 }

@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【4. 水中的动物】真实验微仿真 - 一年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+        .notes-card strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 <span>4. 水中的动物</span></h1>
+        <span class="badge">一年级科学·常见的动物</span>
+        <a href="virtual_microscope.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 动物形态微观观察实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g02_s2_u02_l01.html" class="">我们周围的动物</a>
+<a href="sim_g02_s2_u02_l02.html" class="">观察一种动物</a>
+<a href="sim_g02_s2_u02_l03.html" class="">给蜗牛建个“家”</a>
+<a href="sim_g02_s2_u02_l04.html" class="active">水中的动物</a>
+<a href="sim_g02_s2_u02_l05.html" class="">它们吃什么</a>
+<a href="sim_g02_s2_u02_l06.html" class="">动物联欢会</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="cv" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 动物生态与微观行为控制台</div>
+            
+            <div class="ctrl-group">
+                <label class="ctrl-label">切换动物探究主题</label>
+                <div class="btn-grid">
+                    <button class="btn " onclick="switchMode('snail_anatomy')">🐌 蜗牛微观</button>
+                    <button class="btn " onclick="switchMode('snail_habitat')">🏡 蜗牛家园</button>
+                    <button class="btn btn-primary" onclick="switchMode('fish_swimming')">🐟 鱼类游动</button>
+                    <button class="btn " onclick="switchMode('feeding')">🍃 动物进食</button>
+                    <button class="btn " onclick="switchMode('diversity')">🐾 常见动物</button>
+                    <button class="btn " onclick="switchMode('party_classify')">🎪 动物联欢</button>
+                </div>
+            </div>
+
+            <div id="dynamic-controls">
+                <!-- Dynamically injected controls -->
+            </div>
+
+            <div class="card-title" style="margin-top: 6px;">📊 动物生态与行为遥测</div>
+            <div class="telemetry" id="telem">
+                [遥测就绪] 等待交互触发...
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <strong>🎯 探究目标与科学家视角：</strong><br>
+            动物是活生生的生命体，对外界刺激具有本能反应。蜗牛具有触角、眼睛、螺旋外壳与腹足，腹足通过肌肉波浪收缩并分泌黏液实现爬行；鱼生活在水中，依靠胸鳍、腹鳍保持平衡，尾鳍摆动推进，通过鱼鳃不断开合滤水吸收水中溶解氧。
+        </div>
+    </div>
+
+    <script>
+        const cv = document.getElementById('cv');
+        const ctx = cv.getContext('2d');
+        const telem = document.getElementById('telem');
+        const dynControls = document.getElementById('dynamic-controls');
+
+        // Web Audio Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type='sine', dur=0.15) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
+        }
+
+        let activeMode = "fish_swimming";
+        let state = {
+            snailPosX: 180,
+            snailTouchRetracted: false,
+            snailMucus: true,
+            habitatMoisture: 70, // %
+            habitatLeaves: true,
+            fishFinWave: 0,
+            fishGillsOpen: false,
+            feedingItem: 'leaf',
+            filterCategory: 'all'
+        };
+
+        function switchMode(m) {
+            activeMode = m;
+            playTone(440, 'triangle', 0.1);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setupControls() {
+            let h = '';
+            if (activeMode === 'snail_anatomy') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">触碰刺激与黏液实验</label>
+                    <div class="btn-grid">
+                        <button class="btn btn-rose" onclick="touchSnail()">👉 轻触触角 (应激缩回)</button>
+                        <button class="btn btn-green" onclick="feedSnail()">🥬 喂食新鲜菜叶</button>
+                    </div>
+                </div>
+                <div class="ctrl-group">
+                    <button class="btn" onclick="toggleMucus()">💧 切换腹足黏液轨迹显示</button>
+                </div>
+                `;
+            } else if (activeMode === 'snail_habitat') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">土壤湿度调控: <span class="val" id="moist-val">${state.habitatMoisture}%</span></label>
+                    <input type="range" min="20" max="95" value="${state.habitatMoisture}" oninput="updateMoisture(this.value)">
+                </div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" onclick="toggleLeaves()">🍂 增铺遮阴树叶</button>
+                    <button class="btn btn-primary" onclick="sprayWater()">💦 喷雾加湿</button>
+                </div>
+                `;
+            } else if (activeMode === 'fish_swimming') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">水生呼吸与游动协调</label>
+                    <div class="btn-grid">
+                        <button class="btn btn-primary" onclick="feedFishFood()">🍞 投喂鱼食</button>
+                        <button class="btn btn-green" onclick="boostFishSpeed()">🏊 加快尾鳍摆动</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'feeding') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">选择投喂食物</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.feedingItem==='leaf'?'btn-primary':''}" onclick="setFeed('leaf')">🥬 鲜嫩白菜叶 (蜗牛)</button>
+                        <button class="btn ${state.feedingItem==='plankton'?'btn-primary':''}" onclick="setFeed('plankton')">🦐 水蚤浮游生物 (小鱼)</button>
+                        <button class="btn ${state.feedingItem==='seed'?'btn-primary':''}" onclick="setFeed('seed')">🌾 草籽谷粒 (麻雀)</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'diversity' || activeMode === 'party_classify') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">按运动与生境分类</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.filterCategory==='all'?'btn-primary':''}" onclick="setFilter('all')">🐾 全部展示</button>
+                        <button class="btn ${state.filterCategory==='fly'?'btn-primary':''}" onclick="setFilter('fly')">🕊️ 空中飞行</button>
+                        <button class="btn ${state.filterCategory==='swim'?'btn-primary':''}" onclick="setFilter('swim')">🐟 水中游动</button>
+                        <button class="btn ${state.filterCategory==='crawl'?'btn-primary':''}" onclick="setFilter('crawl')">🐌 地面蠕动</button>
+                    </div>
+                </div>
+                `;
+            }
+            dynControls.innerHTML = h;
+        }
+
+        function touchSnail() {
+            state.snailTouchRetracted = true;
+            playTone(300, 'sawtooth', 0.2);
+            updateTelemetry();
+            setTimeout(() => {
+                state.snailTouchRetracted = false;
+                updateTelemetry();
+            }, 2000);
+        }
+
+        function feedSnail() {
+            playTone(660);
+            updateTelemetry();
+        }
+
+        function toggleMucus() {
+            state.snailMucus = !state.snailMucus;
+            playTone(400);
+            updateTelemetry();
+        }
+
+        function updateMoisture(v) {
+            state.habitatMoisture = parseInt(v);
+            const el = document.getElementById('moist-val');
+            if (el) el.innerText = `${state.habitatMoisture}%`;
+            updateTelemetry();
+        }
+
+        function toggleLeaves() {
+            state.habitatLeaves = !state.habitatLeaves;
+            playTone(520);
+            updateTelemetry();
+        }
+
+        function sprayWater() {
+            state.habitatMoisture = Math.min(90, state.habitatMoisture + 15);
+            playTone(800, 'sine', 0.25);
+            const el = document.getElementById('moist-val');
+            if (el) el.innerText = `${state.habitatMoisture}%`;
+            updateTelemetry();
+        }
+
+        function feedFishFood() {
+            playTone(750);
+            updateTelemetry();
+        }
+
+        function boostFishSpeed() {
+            playTone(880);
+            updateTelemetry();
+        }
+
+        function setFeed(f) {
+            state.feedingItem = f;
+            playTone(440);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setFilter(cat) {
+            state.filterCategory = cat;
+            playTone(500);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function updateTelemetry() {
+            let txt = `[常见动物生态实验室] 模式: ${activeMode} | `;
+            if (activeMode === 'snail_anatomy') {
+                txt += `蜗牛状态: ${state.snailTouchRetracted?'⚠️ 触角缩回贝壳(保护本能)':'🟢 腹足平稳爬行'} | 黏液: ${state.snailMucus?'减小摩擦保护腹足':'隐藏'} | 结构: 外壳、腹足、2对触角、顶端有眼`;
+            } else if (activeMode === 'snail_habitat') {
+                const comfort = (state.habitatMoisture >= 60 && state.habitatMoisture <= 85) ? '🌟 舒适宜居' : (state.habitatMoisture < 60 ? '⚠️ 过干，易休眠' : '⚠️ 过湿，需通风');
+                txt += `箱内湿度: ${state.habitatMoisture}% (${comfort}) | 遮阴落叶: ${state.habitatLeaves?'充足':'缺乏'} | 适宜环境: 阴暗、潮湿、透气`;
+            } else if (activeMode === 'fish_swimming') {
+                txt += `游动动力学: 尾鳍左右摆动推进 | 胸鳍腹鳍控制平衡与升降 | 鱼鳃滤水吸收水中溶解氧`;
+            } else if (activeMode === 'feeding') {
+                txt += `当前投喂: ${state.feedingItem==='leaf'?'白菜叶(蜗牛齿舌刮食)':'浮游微虫(鱼吸食)'} | 生物特征: 食物链消费者`;
+            } else if (activeMode === 'diversity' || activeMode === 'party_classify') {
+                txt += `分类视图: ${state.filterCategory} | 涵盖: 鸟类、鱼类、昆虫、软体动物 | 共同特征: 能移动、需食物与水、有生命`;
+            }
+            telem.innerText = txt;
+        }
+
+        function drawSnail(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('蜗牛外形结构与腹足蠕动微观观察台', cx, 40);
+
+            // Ground surface
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(80, cy + 100, 560, 10);
+
+            // Mucus trail
+            if (state.snailMucus) {
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(100, cy + 98);
+                ctx.lineTo(state.snailPosX, cy + 98);
+                ctx.stroke();
+            }
+
+            // Snail advances slowly
+            if (!state.snailTouchRetracted) {
+                state.snailPosX = 180 + (performance.now() * 0.015) % 320;
+            }
+
+            const sx = state.snailPosX;
+            const sy = cy + 95;
+
+            // Snail Foot
+            ctx.fillStyle = '#fde047';
+            ctx.beginPath();
+            ctx.ellipse(sx, sy - 8, 55, 14, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            // Shell
+            ctx.fillStyle = '#b45309';
+            ctx.beginPath();
+            ctx.arc(sx - 15, sy - 40, 36, 0, Math.PI*2);
+            ctx.fill();
+            ctx.strokeStyle = '#d97706';
+            ctx.lineWidth = 4;
+            // Spiral
+            ctx.beginPath();
+            ctx.arc(sx - 15, sy - 40, 24, 0, Math.PI*1.5);
+            ctx.stroke();
+
+            // Head and tentacles
+            if (!state.snailTouchRetracted) {
+                ctx.fillStyle = '#fde047';
+                ctx.beginPath();
+                ctx.ellipse(sx + 45, sy - 18, 16, 12, 0, 0, Math.PI*2);
+                ctx.fill();
+
+                // Long tentacles with eyes
+                ctx.strokeStyle = '#eab308';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(sx + 45, sy - 25);
+                ctx.lineTo(sx + 65, sy - 55);
+                ctx.stroke();
+                ctx.fillStyle = '#020617';
+                ctx.beginPath(); ctx.arc(sx + 65, sy - 55, 3.5, 0, Math.PI*2); ctx.fill();
+
+                // Short tentacle
+                ctx.beginPath();
+                ctx.moveTo(sx + 48, sy - 20);
+                ctx.lineTo(sx + 62, sy - 35);
+                ctx.stroke();
+            } else {
+                ctx.fillStyle = '#ef4444';
+                ctx.font = '12px sans-serif';
+                ctx.fillText('触角已警觉缩回壳内！', sx, sy - 85);
+            }
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '13px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('• 外壳: 螺旋形、保护身体', cx - 260, cy - 50);
+            ctx.fillText('• 腹足: 肌肉波浪收缩爬行', cx - 260, cy - 25);
+            ctx.fillText('• 触角: 顶端有感光眼睛', cx - 260, cy);
+            ctx.fillText('• 黏液: 湿润腹足、减小摩擦', cx - 260, cy + 25);
+        }
+
+        function drawHabitat(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('蜗牛饲养箱 (生态箱环境构建)', cx, 40);
+
+            // Terrarium tank
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(cx - 200, cy - 80, 400, 220);
+
+            // Soil layer
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(cx - 198, cy + 60, 396, 78);
+
+            // Moisture droplets in soil
+            const moistAlpha = state.habitatMoisture / 100;
+            ctx.fillStyle = `rgba(56, 189, 248, ${moistAlpha * 0.7})`;
+            ctx.fillRect(cx - 198, cy + 60, 396, 78);
+
+            // Decayed leaves
+            if (state.habitatLeaves) {
+                ctx.fillStyle = '#15803d';
+                ctx.beginPath(); ctx.ellipse(cx - 80, cy + 50, 40, 12, 0.2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(cx + 60, cy + 45, 50, 14, -0.3, 0, Math.PI*2); ctx.fill();
+            }
+
+            // Food dish
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillRect(cx - 150, cy + 45, 45, 12);
+            ctx.fillStyle = '#22c55e';
+            ctx.beginPath(); ctx.arc(cx - 128, cy + 42, 8, 0, Math.PI*2); ctx.fill();
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '13px sans-serif';
+            ctx.fillText(`箱内微气候: 湿度 ${state.habitatMoisture}% | 遮阴树叶: ${state.habitatLeaves?'有':'无'}`, cx, cy + 170);
+        }
+
+        function drawFish(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('金鱼水生游动与鳃呼吸机制', cx, 40);
+
+            // Water tank
+            ctx.fillStyle = 'rgba(14, 165, 233, 0.15)';
+            ctx.fillRect(cx - 220, cy - 80, 440, 220);
+            ctx.strokeStyle = '#0284c7';
+            ctx.strokeRect(cx - 220, cy - 80, 440, 220);
+
+            const t = performance.now() * 0.005;
+            const fishX = cx + Math.sin(t * 0.5) * 60;
+            const fishY = cy + Math.cos(t * 0.8) * 20;
+
+            // Tail fin waving
+            const tailAngle = Math.sin(t * 4) * 0.35;
+            ctx.save();
+            ctx.translate(fishX - 45, fishY);
+            ctx.rotate(tailAngle);
+            ctx.fillStyle = '#f97316';
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-35, -25);
+            ctx.lineTo(-25, 0);
+            ctx.lineTo(-35, 25);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            // Fish body
+            ctx.fillStyle = '#fb923c';
+            ctx.beginPath();
+            ctx.ellipse(fishX, fishY, 50, 28, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            // Eye
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(fishX + 30, fishY - 8, 6, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath(); ctx.arc(fishX + 32, fishY - 8, 3, 0, Math.PI*2); ctx.fill();
+
+            // Gill slit pulsating
+            const gillOffset = Math.sin(t * 5) * 4;
+            ctx.strokeStyle = '#ea580c';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(fishX + 10, fishY, 14 + gillOffset, -Math.PI/2, Math.PI/2);
+            ctx.stroke();
+
+            // Oxygen bubbles
+            for(let i=0; i<6; i++) {
+                const bx = fishX + 45 + ((i * 30 + t * 40) % 90);
+                const by = fishY - ((i * 25 + t * 50) % 110);
+                ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                ctx.beginPath(); ctx.arc(bx, by, 3 + (i%3), 0, Math.PI*2); ctx.fill();
+            }
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '13px sans-serif';
+            ctx.fillText('鱼通过开合嘴与鳃盖吞入水流，鳃丝密布毛细血管吸收水中溶解氧', cx, cy + 170);
+        }
+
+        function drawDiversity(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('大自然中多姿多彩的动物大家族', cx, 40);
+
+            const animals = [
+                { name: '麻雀', type: 'fly', icon: '🕊️', feat: '长羽毛、有喙、在空中飞翔', col: '#eab308' },
+                { name: '金鱼', type: 'swim', icon: '🐟', feat: '有鳞片、用鳍游动、鳃呼吸', col: '#38bdf8' },
+                { name: '蜗牛', type: 'crawl', icon: '🐌', feat: '有贝壳、用腹足爬行、有触角', col: '#10b981' },
+                { name: '小狗', type: 'walk', icon: '🐕', feat: '四足奔跑、体表被毛、哺乳动物', col: '#f97316' }
+            ];
+
+            const filtered = state.filterCategory === 'all' ? animals : animals.filter(a => a.type === state.filterCategory);
+
+            filtered.forEach((a, i) => {
+                const bx = cx - 220 + (i % 2) * 230;
+                const by = cy - 40 + Math.floor(i / 2) * 100;
+
+                ctx.fillStyle = '#1e293b';
+                ctx.strokeStyle = a.col;
+                ctx.lineWidth = 2;
+                ctx.fillRect(bx, by, 210, 80);
+                ctx.strokeRect(bx, by, 210, 80);
+
+                ctx.font = '28px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(a.icon, bx + 12, by + 45);
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText(a.name, bx + 55, by + 30);
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '11px sans-serif';
+                ctx.fillText(a.feat, bx + 55, by + 55);
+            });
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            const cx = cv.width / 2;
+            const cy = cv.height / 2;
+
+            if (activeMode === 'snail_anatomy') drawSnail(cx, cy);
+            else if (activeMode === 'snail_habitat') drawHabitat(cx, cy);
+            else if (activeMode === 'fish_swimming') drawFish(cx, cy);
+            else if (activeMode === 'feeding' || activeMode === 'diversity' || activeMode === 'party_classify') drawDiversity(cx, cy);
+
+            requestAnimationFrame(render);
+        }
+
+        setupControls();
+        updateTelemetry();
+        render();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【2. 昼夜交替现象】真实验微仿真 - 六年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 2. 昼夜交替现象</h1>
+        <span class="badge">六年级上册·第三单元《地球的运动》</span>
+        <a href="solar_system_gravity.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 天体自转公转与日影天文台 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g11_s1_u03_l01.html" class="">我们的地球模型</a>
+<a href="sim_g11_s1_u03_l02.html" class="active">昼夜交替现象</a>
+<a href="sim_g11_s1_u03_l03.html" class="">人类认识地球运动的历史</a>
+<a href="sim_g11_s1_u03_l04.html" class="">谁先迎来黎明</a>
+<a href="sim_g11_s1_u03_l05.html" class="">影长的四季变化</a>
+<a href="sim_g11_s1_u03_l06.html" class="">地球的公转与四季变化</a>
+<a href="sim_g11_s1_u03_l07.html" class="">昼夜和四季变化对生物的影响</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时科学数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：系统探索地球自转公转模型、地轴倾角 23.5°、昼夜更替晨昏线与正午影长四季变化规律。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "day_night_cycle";
+
+        
+const state = {
+    rotationDeg: 0,
+    season: activeMode === 'noon_shadow_seasons' ? 'summer' : 'spring', // spring, summer, autumn, winter
+    tiltAxis: true, // 23.5 deg
+    revolutionAngle: 0,
+    solarAltitude: 73.5 // degrees
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'day_night_cycle' || activeMode === 'dawn_time_zones') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>地球自西向东自转角度</span><span class="val" id="rotVal">${state.rotationDeg}°</span></div>
+                <input type="range" id="rotSlider" min="0" max="359" value="${state.rotationDeg}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-green" id="btnSpinEarth">🌍 地球自转一周 (24小时昼夜交替)</button>
+                <button class="btn btn-primary" id="btnBeijingDawn">🌅 北京迎来日出 (东八区)</button>
+            </div>
+        `;
+    } else if (activeMode === 'noon_shadow_seasons' || activeMode === 'earth_revolution') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>四季公转节气切换</span><span class="val">${state.season==='summer'?'夏至 (太阳直射北回归线)':state.season==='winter'?'冬至 (太阳直射南回归线)':'春分/秋分 (直射赤道)'}</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.season==='spring'?'btn-primary':''}" id="btnSpring">🌸 春分 (影长适中)</button>
+                    <button class="btn ${state.season==='summer'?'btn-rose':''}" id="btnSummer">☀️ 夏至 (影长最短)</button>
+                    <button class="btn ${state.season==='autumn'?'btn-primary':''}" id="btnAutumn">🍂 秋分 (影长适中)</button>
+                    <button class="btn ${state.season==='winter'?'btn-primary':''}" id="btnWinter">❄️ 冬至 (影长最长)</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>地轴倾角与模型</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.tiltAxis?'btn-green':'btn-primary'}" id="btnTilt">${state.tiltAxis?'📐 地轴倾斜 23.5° (产生四季)':'直立地轴 (无四季变化)'}</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU3Events();
+}
+
+function bindU3Events() {
+    const rotSlider = document.getElementById('rotSlider');
+    if (rotSlider) {
+        rotSlider.addEventListener('input', (e) => {
+            state.rotationDeg = parseInt(e.target.value);
+            document.getElementById('rotVal').innerText = state.rotationDeg + '°';
+            playTone(300 + state.rotationDeg * 2, 0.03);
+        });
+    }
+    const btnSpinEarth = document.getElementById('btnSpinEarth');
+    if (btnSpinEarth) btnSpinEarth.onclick = () => { playTone(600, 0.2); };
+    const btnBeijingDawn = document.getElementById('btnBeijingDawn');
+    if (btnBeijingDawn) btnBeijingDawn.onclick = () => { state.rotationDeg = 116; setupControls(); playTone(880, 0.2); };
+
+    const btnSpring = document.getElementById('btnSpring');
+    if (btnSpring) btnSpring.onclick = () => { state.season = 'spring'; state.solarAltitude = 50; setupControls(); playTone(600, 0.1); };
+    const btnSummer = document.getElementById('btnSummer');
+    if (btnSummer) btnSummer.onclick = () => { state.season = 'summer'; state.solarAltitude = 73.5; setupControls(); playTone(880, 0.1); };
+    const btnAutumn = document.getElementById('btnAutumn');
+    if (btnAutumn) btnAutumn.onclick = () => { state.season = 'autumn'; state.solarAltitude = 50; setupControls(); playTone(600, 0.1); };
+    const btnWinter = document.getElementById('btnWinter');
+    if (btnWinter) btnWinter.onclick = () => { state.season = 'winter'; state.solarAltitude = 26.5; setupControls(); playTone(400, 0.1); };
+
+    const btnTilt = document.getElementById('btnTilt');
+    if (btnTilt) btnTilt.onclick = () => { state.tiltAxis = !state.tiltAxis; setupControls(); playTone(650, 0.1); };
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'day_night_cycle' || activeMode === 'dawn_time_zones') {
+        drawDayNightEarth();
+    } else if (activeMode === 'noon_shadow_seasons') {
+        drawSeasonsShadow();
+    } else if (activeMode === 'earth_model_3d') {
+        drawEarthModel3D();
+    } else if (activeMode === 'geocentric_vs_heliocentric') {
+        drawGeocentricVsHeliocentric();
+    } else if (activeMode === 'biological_rhythms') {
+        drawBiologicalRhythms();
+    } else {
+        drawEarthOrbit();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+
+function drawEarthModel3D() {
+    const cx = 360;
+    const cy = 230;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌐 我们的地球模型: 地轴倾斜 23.5°，经纬网与自西向东自转', cx, 40);
+
+    // Tilted Earth Globe
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(23.5 * Math.PI / 180);
+
+    // Globe sphere
+    ctx.fillStyle = '#0284c7';
+    ctx.beginPath(); ctx.arc(0, 0, 110, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3; ctx.stroke();
+
+    // Earth Axis line
+    ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(0, -150); ctx.lineTo(0, 150); ctx.stroke();
+    ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('北极 (N)', 0, -160);
+    ctx.fillText('南极 (S)', 0, 175);
+
+    // Equator & Latitudes
+    ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(0, 0, 110, 30, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillText('赤道 0°', 135, 5);
+
+    ctx.restore();
+
+    ctx.fillStyle = '#10b981'; ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('模型意义: 地轴倾角恒定指向北极星，是地球产生四季交替与昼夜长短变化的根本几何原因', cx, 400);
+}
+
+function drawGeocentricVsHeliocentric() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🔭 人类认识地球运动的历史: 托勒密地心说 vs 哥白尼日心说对比', cx, 40);
+
+    // Left: Geocentric
+    ctx.fillStyle = '#1e293b'; ctx.fillRect(80, 80, 260, 270);
+    ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 2; ctx.strokeRect(80, 80, 260, 270);
+    ctx.fillStyle = '#f43f5e'; ctx.font = 'bold 15px sans-serif';
+    ctx.fillText('托勒密·地心说 (地球居中)', 210, 115);
+    ctx.fillStyle = '#0284c7'; ctx.beginPath(); ctx.arc(210, 210, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.fillText('地球', 210, 215);
+    // Sun orbiting Earth
+    ctx.strokeStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(210, 210, 65, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(275, 210, 10, 0, Math.PI * 2); ctx.fill();
+
+    // Right: Heliocentric
+    ctx.fillStyle = '#1e293b'; ctx.fillRect(380, 80, 260, 270);
+    ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2; ctx.strokeRect(380, 80, 260, 270);
+    ctx.fillStyle = '#10b981'; ctx.font = 'bold 15px sans-serif';
+    ctx.fillText('哥白尼·日心说 (太阳居中·科学真理)', 510, 115);
+    ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(510, 210, 25, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.fillText('太阳', 510, 215);
+    // Earth orbiting Sun
+    ctx.strokeStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(510, 210, 65, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#0284c7'; ctx.beginPath(); ctx.arc(575, 210, 10, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = '#38bdf8'; ctx.font = '13px sans-serif';
+    ctx.fillText('科学革命: 哥白尼《天体运行论》颠覆了千年来地心说神话，确立了地球是绕太阳公转的行星', cx, 385);
+}
+
+function drawBiologicalRhythms() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🦉 昼夜和四季变化对生物的影响: 动物生物钟与植物休眠物候节律', cx, 40);
+
+    const rhythms = [
+        { t: '🦉 动物昼夜节律', d: '猫头鹰/蝙蝠夜行昼伏\n公鸡报晓·人类日落而息\n受褪黑素与光照周期调控', c: '#a855f7', x: 100 },
+        { t: '🍂 植物四季物候', d: '春季萌芽开花·夏日繁茂\n秋季落叶叶绿素分解\n冬季休眠抵御严寒冻害', c: '#10b981', x: 400 }
+    ];
+
+    rhythms.forEach(r => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(r.x, 80, 220, 260);
+        ctx.strokeStyle = r.c; ctx.lineWidth = 2; ctx.strokeRect(r.x, 80, 220, 260);
+
+        ctx.fillStyle = r.c; ctx.font = 'bold 15px sans-serif';
+        ctx.fillText(r.t, r.x + 110, 125);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '13px sans-serif';
+        const lines = r.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, r.x + 110, 175 + i * 28));
+
+        ctx.fillStyle = '#334155'; ctx.fillRect(r.x + 20, 280, 180, 36);
+        ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('适应演化本能', r.x + 110, 303);
+    });
+}
+
+function drawDayNightEarth() {
+    const cx = 360;
+    const cy = 230;
+
+    // Sun Rays from Left
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(40, cy - 80, 60, 160);
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.fillText('☀️ 太阳平行光', 50, cy);
+
+    // Earth Sphere (Day side illuminated, Night side dark)
+    // Day side (Left half)
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 110, -Math.PI / 2, Math.PI / 2, true);
+    ctx.fill();
+
+    // Night side (Right half)
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 110, -Math.PI / 2, Math.PI / 2, false);
+    ctx.fill();
+
+    // Terminator Line (晨昏线)
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 110);
+    ctx.lineTo(cx, cy + 110);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#f43f5e';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('晨昏线', cx - 20, cy - 115);
+
+    // Rotating City markers (Beijing vs London)
+    const rad = state.rotationDeg * Math.PI / 180;
+    const bjX = cx + Math.cos(rad) * 90;
+    const bjY = cy + Math.sin(rad) * 45;
+
+    ctx.fillStyle = '#facc15';
+    ctx.beginPath(); ctx.arc(bjX, bjY, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('🇨🇳 北京', bjX + 8, bjY + 4);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('地球自西向东自转昼夜交替模拟 (周期 24 小时)', cx, 40);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('自转方向: 逆时针(北极上空俯视) -> 东方率先迎来晨光黎明!', cx, 75);
+}
+
+function drawSeasonsShadow() {
+    const cx = 360;
+    const cy = 260;
+
+    // Tabletop ground
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(80, cy, 560, 40);
+
+    // Gnomon Pillar (圭表/标杆, 高度 100px)
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(cx - 5, cy - 100, 10, 100);
+
+    // Sun altitude & shadow calculation: L = H / tan(altitude)
+    const rad = state.solarAltitude * Math.PI / 180;
+    const shadowLen = 100 / Math.tan(rad);
+
+    // Cast Shadow toward North (right side on 2D)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(cx + 5, cy, shadowLen * 2.5, 8);
+
+    // Sun in sky
+    const sunX = cx - Math.cos(rad) * 160;
+    const sunY = (cy - 100) - Math.sin(rad) * 160;
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, 22, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Sunlight Ray to tip of pillar and shadow edge
+    ctx.strokeStyle = '#fef08a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(sunX, sunY);
+    ctx.lineTo(cx, cy - 100);
+    ctx.lineTo(cx + 5 + shadowLen * 2.5, cy);
+    ctx.stroke();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`正午标杆影长四季规律: 【${state.season==='summer'?'夏至 (太阳高度73.5° 影最短)':state.season==='winter'?'冬至 (太阳高度26.5° 影最长)':'春秋分 (太阳高度50° 影适中)'}】`, cx, 40);
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 15px monospace';
+    ctx.fillText(`正午标杆影长: ${(shadowLen*2.5).toFixed(1)} px (夏至影短而直射热，冬至影长而斜射冷)`, cx, 80);
+}
+
+function drawEarthOrbit() {
+    const cx = 360;
+    const cy = 230;
+
+    // Sun in Center
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 32, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('☀️ 太阳', cx - 20, cy + 45);
+
+    // Orbit Ellipse
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 230, 110, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 4 Seasonal Earth Positions
+    const pos = [
+        {name: '春分 (3月21日)', x: cx, y: cy - 110},
+        {name: '夏至 (6月22日)', x: cx - 230, y: cy},
+        {name: '秋分 (9月23日)', x: cx, y: cy + 110},
+        {name: '冬至 (12月22日)', x: cx + 230, y: cy}
+    ];
+
+    pos.forEach(p => {
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath(); ctx.arc(p.x, p.y, 14, 0, Math.PI * 2); ctx.fill();
+
+        // Tilted axis line
+        ctx.strokeStyle = '#f43f5e';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(p.x - 8, p.y - 18); ctx.lineTo(p.x + 8, p.y + 18);
+        ctx.stroke();
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '11px sans-serif';
+        ctx.fillText(p.name, p.x - 40, p.y + 26);
+    });
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('地球绕太阳公转与地轴倾斜23.5°成因模拟 (公转周期 1 年)', cx, 40);
+}
+
+        
+function updateTelemetry() {
+    let txt = `[天体运动数据就绪] 模式: ${activeMode} | `;
+    if (activeMode === 'noon_shadow_seasons') {
+        txt += `季节: ${state.season} | 太阳高度角: ${state.solarAltitude}° | 影长反比关系`;
+    } else {
+        txt += `自转角: ${state.rotationDeg}° | 周期: 24小时 | 地轴倾角: 23.5°`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

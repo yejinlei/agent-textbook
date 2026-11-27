@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【5. 不同的季节】真实验微仿真 - 二年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+        .notes-card strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 <span>5. 不同的季节</span></h1>
+        <span class="badge">二年级科学·地球家园</span>
+        <a href="earth_sun_seasons.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 地球日照与天文时空实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g03_s1_u02_l01.html" class="">地球家园有什么</a>
+<a href="sim_g03_s1_u02_l02.html" class="">我们的校园</a>
+<a href="sim_g03_s1_u02_l03.html" class="">我们周围的空气</a>
+<a href="sim_g03_s1_u02_l04.html" class="">不同的天气</a>
+<a href="sim_g03_s1_u02_l05.html" class="active">不同的季节</a>
+<a href="sim_g03_s1_u02_l06.html" class="">太阳与白天</a>
+<a href="sim_g03_s1_u02_l07.html" class="">夜晚的月亮</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="cv" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 天文气象与地球环境控制台</div>
+            
+            <div class="ctrl-group">
+                <label class="ctrl-label">切换地球家园主题</label>
+                <div class="btn-grid">
+                    <button class="btn " onclick="switchMode('sun_shadow')">☀️ 太阳与日影</button>
+                    <button class="btn " onclick="switchMode('moon_phases')">🌙 月相圆缺</button>
+                    <button class="btn btn-primary" onclick="switchMode('four_seasons')">🌸 四季物候</button>
+                    <button class="btn " onclick="switchMode('weather_types')">🌧️ 气象变化</button>
+                    <button class="btn " onclick="switchMode('air_presence')">💨 空气实验</button>
+                    <button class="btn " onclick="switchMode('earth_overview')">🌍 蔚蓝地球</button>
+                </div>
+            </div>
+
+            <div id="dynamic-controls">
+                <!-- Dynamically injected controls -->
+            </div>
+
+            <div class="card-title" style="margin-top: 6px;">📊 天文气象与地理遥测</div>
+            <div class="telemetry" id="telem">
+                [遥测就绪] 等待交互触发...
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <strong>🎯 探究目标与科学家视角：</strong><br>
+            地球是生命繁衍生息的家园。太阳东升西落，其高度角决定了圭表日影“长—短—长”的规律变化；月球绕地球公转与受光面朝向形成农历初一到三十的月相盈亏周期；地球绕日公转与地轴倾斜造就了春夏秋冬四季轮回；空气包裹地表形成大气层，孕育了风云雨雪的多彩气象。
+        </div>
+    </div>
+
+    <script>
+        const cv = document.getElementById('cv');
+        const ctx = cv.getContext('2d');
+        const telem = document.getElementById('telem');
+        const dynControls = document.getElementById('dynamic-controls');
+
+        // Web Audio Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type='sine', dur=0.15) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
+        }
+
+        let activeMode = "four_seasons";
+        let state = {
+            hourOfDay: 12, // 6 to 18
+            moonDay: 15, // 1 to 30
+            season: 'spring', // spring, summer, autumn, winter
+            weather: 'sunny', // sunny, rain, snow, wind
+            airSubmerged: false,
+            syringePos: 50
+        };
+
+        function switchMode(m) {
+            activeMode = m;
+            playTone(440, 'triangle', 0.1);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setupControls() {
+            let h = '';
+            if (activeMode === 'sun_shadow') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">一天中时刻: <span class="val" id="hour-val">${state.hourOfDay}:00</span></label>
+                    <input type="range" min="6" max="18" step="0.5" value="${state.hourOfDay}" oninput="updateHour(this.value)">
+                </div>
+                <div class="btn-grid">
+                    <button class="btn" onclick="setHour(8)">🌅 早晨 (8:00)</button>
+                    <button class="btn btn-primary" onclick="setHour(12)">☀️ 正午 (12:00)</button>
+                    <button class="btn" onclick="setHour(16)">🌇 傍晚 (16:00)</button>
+                    <button class="btn btn-green" onclick="playTone(550); updateTelemetry();">📐 测量日影长短</button>
+                </div>
+                `;
+            } else if (activeMode === 'moon_phases') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">农历日期: <span class="val" id="moon-val">初 ${state.moonDay}</span></label>
+                    <input type="range" min="1" max="30" value="${state.moonDay}" oninput="updateMoonDay(this.value)">
+                </div>
+                <div class="btn-grid">
+                    <button class="btn" onclick="setMoonDay(1)">🌑 新月(初一)</button>
+                    <button class="btn" onclick="setMoonDay(8)">🌓 上弦月(初八)</button>
+                    <button class="btn btn-primary" onclick="setMoonDay(15)">🌕 满月(十五)</button>
+                    <button class="btn" onclick="setMoonDay(23)">🌗 下弦月(廿三)</button>
+                </div>
+                `;
+            } else if (activeMode === 'four_seasons') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">切换四季物候</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.season==='spring'?'btn-primary':''}" onclick="setSeason('spring')">🌸 春暖花开</button>
+                        <button class="btn ${state.season==='summer'?'btn-primary':''}" onclick="setSeason('summer')">☀️ 绿树浓荫</button>
+                        <button class="btn ${state.season==='autumn'?'btn-primary':''}" onclick="setSeason('autumn')">🍁 硕果累累</button>
+                        <button class="btn ${state.season==='winter'?'btn-primary':''}" onclick="setSeason('winter')">❄️ 白雪皑皑</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'weather_types') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">选择天气形态</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.weather==='sunny'?'btn-primary':''}" onclick="setWeather('sunny')">☀️ 晴朗温暖</button>
+                        <button class="btn ${state.weather==='rain'?'btn-primary':''}" onclick="setWeather('rain')">🌧️ 淅淅沥沥</button>
+                        <button class="btn ${state.weather==='snow'?'btn-primary':''}" onclick="setWeather('snow')">❄️ 鹅毛大雪</button>
+                        <button class="btn ${state.weather==='wind'?'btn-primary':''}" onclick="setWeather('wind')">💨 呼呼大风</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'air_presence') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">空气占据空间与气泡实验</label>
+                    <div class="btn-grid">
+                        <button class="btn btn-primary" onclick="toggleAirSubmerged()">🫧 塑料瓶浸水倒立倾斜</button>
+                        <button class="btn btn-green" onclick="compressSyringe()">💉 压缩针筒空气</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'earth_overview' || activeMode === 'campus_microclimate') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">地球与校园生态微环境</label>
+                    <div class="btn-grid">
+                        <button class="btn btn-primary" onclick="playTone(520); updateTelemetry();">🌍 观察三大洋七大洲</button>
+                        <button class="btn btn-green" onclick="playTone(650); updateTelemetry();">🌳 测树荫与操场地温</button>
+                    </div>
+                </div>
+                `;
+            }
+            dynControls.innerHTML = h;
+        }
+
+        function updateHour(v) {
+            state.hourOfDay = parseFloat(v);
+            const el = document.getElementById('hour-val');
+            if (el) el.innerText = `${Math.floor(state.hourOfDay)}:${(state.hourOfDay%1===0.5?'30':'00')}`;
+            playTone(300 + state.hourOfDay * 20);
+            updateTelemetry();
+        }
+        function setHour(h) {
+            state.hourOfDay = h;
+            setupControls();
+            playTone(480);
+            updateTelemetry();
+        }
+
+        function updateMoonDay(v) {
+            state.moonDay = parseInt(v);
+            const el = document.getElementById('moon-val');
+            if (el) el.innerText = `初 ${state.moonDay}`;
+            playTone(250 + state.moonDay * 15);
+            updateTelemetry();
+        }
+        function setMoonDay(d) {
+            state.moonDay = d;
+            setupControls();
+            playTone(520);
+            updateTelemetry();
+        }
+
+        function setSeason(s) {
+            state.season = s;
+            playTone(440);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setWeather(w) {
+            state.weather = w;
+            playTone(w==='rain'?330:(w==='snow'?660:500));
+            setupControls();
+            updateTelemetry();
+        }
+
+        function toggleAirSubmerged() {
+            state.airSubmerged = !state.airSubmerged;
+            playTone(600, 'triangle', 0.2);
+            updateTelemetry();
+        }
+
+        function compressSyringe() {
+            state.syringePos = state.syringePos === 50 ? 25 : 50;
+            playTone(400, 'square', 0.15);
+            updateTelemetry();
+        }
+
+        function updateTelemetry() {
+            let txt = `[地球家园时空实验室] 模式: ${activeMode} | `;
+            if (activeMode === 'sun_shadow') {
+                const normH = (state.hourOfDay - 6) / 12; // 0 to 1
+                const angleDeg = (normH * 180).toFixed(1);
+                const shadowLen = Math.abs(1 / Math.tan(Math.max(0.15, Math.sin(normH * Math.PI))));
+                const shadowDir = state.hourOfDay < 12 ? '西北偏西' : (state.hourOfDay === 12 ? '正北' : '东北偏东');
+                txt += `太阳时: ${state.hourOfDay}:00 | 高度角: ${(Math.sin(normH * Math.PI) * 75).toFixed(1)}° | 影子方向: 朝向${shadowDir} | 影子长度: ${shadowLen < 1.2 ? '极短 (正午)' : '修长'}`;
+            } else if (activeMode === 'moon_phases') {
+                let name = '满月';
+                if (state.moonDay <= 3) name = '新月 (娥眉月)';
+                else if (state.moonDay <= 10) name = '上弦月 (半圆朝西)';
+                else if (state.moonDay <= 18) name = '满月 (如玉盘)';
+                else if (state.moonDay <= 25) name = '下弦月 (半圆朝东)';
+                else name = '残月';
+                txt += `农历日期: 初 ${state.moonDay} | 月相名称: ${name} | 视亮面积: ${((1 - Math.cos((state.moonDay/30)*Math.PI*2))/2*100).toFixed(0)}%`;
+            } else if (activeMode === 'four_seasons') {
+                txt += `季节: ${state.season==='spring'?'春季(气温回暖、万物复苏)':(state.season==='summer'?'夏季(白昼漫长、草木繁茂)':(state.season==='autumn'?'秋季(凉风习习、硕果成熟)':'冬季(天寒地冻、白雪覆地)'))}`;
+            } else if (activeMode === 'weather_types') {
+                txt += `当前天气: ${state.weather} | 气象要素: 温度、降水、风向、风速、云量 | 影响: 穿衣、出行、农事`;
+            } else if (activeMode === 'air_presence') {
+                txt += `空气特性: 无色无味透明，充满周围空间；微观分子间距大，可被压缩(${state.syringePos===25?'已压缩蓄能':'常态'})；水中逸出产生气泡`;
+            } else if (activeMode === 'earth_overview' || activeMode === 'campus_microclimate') {
+                txt += `地球参数: 表面约71%海洋、29%陆地；校园日照区地温通常比树荫区高 4~8℃`;
+            }
+            telem.innerText = txt;
+        }
+
+        function drawSunShadow(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('太阳高度角变化与圭表日影“长—短—长”动态规律', cx, 40);
+
+            // Ground
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(80, cy + 90, 560, 20);
+
+            // Gnomon pole in center
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(cx - 5, cy - 20, 10, 110);
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '11px sans-serif';
+            ctx.fillText('标杆 (圭表)', cx, cy + 125);
+
+            // Sun position along arc
+            const normH = (state.hourOfDay - 6) / 12; // 0 to 1
+            const sunAngle = Math.PI - normH * Math.PI; // PI to 0
+            const arcRad = 210;
+            const sx = cx + Math.cos(sunAngle) * arcRad;
+            const sy = cy + 90 - Math.sin(sunAngle) * arcRad;
+
+            // Sun trajectory dashed line
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = '#64748b';
+            ctx.beginPath();
+            ctx.arc(cx, cy + 90, arcRad, Math.PI, 0);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Sun
+            ctx.fillStyle = '#facc15';
+            ctx.beginPath(); ctx.arc(sx, sy, 22, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 3; ctx.stroke();
+
+            // Sunlight beam
+            ctx.strokeStyle = 'rgba(250, 204, 21, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(cx, cy - 20);
+            ctx.stroke();
+
+            // Shadow on ground
+            const shadowDir = state.hourOfDay < 12 ? 1 : -1;
+            const shadowLen = Math.max(20, Math.min(260, 110 / Math.tan(Math.max(0.2, Math.sin(normH * Math.PI)))));
+            ctx.fillStyle = 'rgba(2, 6, 23, 0.85)';
+            ctx.beginPath();
+            ctx.ellipse(cx + (shadowDir * shadowLen / 2), cy + 90, shadowLen / 2, 7, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = '13px sans-serif';
+            ctx.fillText(`日影长度: ${(shadowLen / 10).toFixed(1)} cm`, cx + (shadowDir * shadowLen / 2), cy + 80);
+        }
+
+        function drawMoonPhases(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`月球公转与月相盈亏模拟器 [农历初 ${state.moonDay}]`, cx, 40);
+
+            // Large Moon View
+            const moonRad = 80;
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(cx, cy, moonRad, 0, Math.PI*2);
+            ctx.fill();
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Lit portion
+            const phase = (state.moonDay / 30) * Math.PI * 2; // 0 to 2PI
+            ctx.fillStyle = '#fef08a';
+            ctx.beginPath();
+            if (state.moonDay <= 15) {
+                // Waxing
+                const w = Math.cos(phase) * moonRad;
+                ctx.arc(cx, cy, moonRad, -Math.PI/2, Math.PI/2, false);
+                ctx.ellipse(cx, cy, Math.abs(w), moonRad, 0, Math.PI/2, -Math.PI/2, w < 0);
+            } else {
+                // Waning
+                const w = Math.cos(phase) * moonRad;
+                ctx.arc(cx, cy, moonRad, Math.PI/2, -Math.PI/2, false);
+                ctx.ellipse(cx, cy, Math.abs(w), moonRad, 0, -Math.PI/2, Math.PI/2, w > 0);
+            }
+            ctx.fill();
+
+            // Craters
+            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            ctx.beginPath(); ctx.arc(cx - 20, cy - 30, 14, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx + 30, cy + 20, 18, 0, Math.PI*2); ctx.fill();
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText('月球自身不发光，仅反射太阳光；月相盈亏周期约为 29.5 天（朔望月）', cx, cy + 140);
+        }
+
+        function drawSeasons(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`地球公转四季更替 [当前季节: ${state.season}]`, cx, 40);
+
+            // Ground & Landscape
+            let groundCol = '#15803d';
+            let treeCol = '#22c55e';
+            if (state.season === 'summer') { groundCol = '#166534'; treeCol = '#15803d'; }
+            else if (state.season === 'autumn') { groundCol = '#b45309'; treeCol = '#f59e0b'; }
+            else if (state.season === 'winter') { groundCol = '#e2e8f0'; treeCol = '#94a3b8'; }
+
+            ctx.fillStyle = groundCol;
+            ctx.fillRect(80, cy + 80, 560, 40);
+
+            // Tree Trunk
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(cx - 15, cy - 20, 30, 100);
+
+            // Foliage
+            ctx.fillStyle = treeCol;
+            ctx.beginPath();
+            ctx.arc(cx, cy - 60, 75, 0, Math.PI*2);
+            ctx.fill();
+
+            if (state.season === 'spring') {
+                ctx.fillStyle = '#f43f5e';
+                for(let i=0; i<8; i++) {
+                    ctx.beginPath(); ctx.arc(cx - 40 + (i*14), cy - 60 + Math.sin(i)*25, 6, 0, Math.PI*2); ctx.fill();
+                }
+            } else if (state.season === 'autumn') {
+                ctx.fillStyle = '#dc2626';
+                for(let i=0; i<6; i++) {
+                    ctx.beginPath(); ctx.arc(cx - 30 + (i*16), cy - 50 + (i%2)*20, 8, 0, Math.PI*2); ctx.fill();
+                }
+            }
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '13px sans-serif';
+            ctx.fillText('地轴倾斜导致太阳直射点南北移动，造成昼夜长短与气温季节演变', cx, cy + 150);
+        }
+
+        function drawWeather(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`气象要素动态观测 [天气: ${state.weather}]`, cx, 40);
+
+            const t = performance.now() * 0.005;
+
+            if (state.weather === 'sunny') {
+                ctx.fillStyle = '#facc15';
+                ctx.beginPath(); ctx.arc(cx, cy - 20, 60, 0, Math.PI*2); ctx.fill();
+            } else if (state.weather === 'rain') {
+                // Clouds
+                ctx.fillStyle = '#475569';
+                ctx.beginPath();
+                ctx.arc(cx - 50, cy - 70, 40, 0, Math.PI*2);
+                ctx.arc(cx + 20, cy - 80, 55, 0, Math.PI*2);
+                ctx.arc(cx + 80, cy - 60, 35, 0, Math.PI*2);
+                ctx.fill();
+
+                // Rain drops
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 2;
+                for(let i=0; i<30; i++) {
+                    const rx = cx - 120 + ((i * 20 + t * 50) % 240);
+                    const ry = cy - 20 + ((i * 35 + t * 150) % 140);
+                    ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx - 5, ry + 15); ctx.stroke();
+                }
+            } else if (state.weather === 'snow') {
+                ctx.fillStyle = '#ffffff';
+                for(let i=0; i<30; i++) {
+                    const sx = cx - 140 + ((i * 25 + Math.sin(t+i)*40 + 200) % 280);
+                    const sy = cy - 60 + ((i * 20 + t * 40) % 180);
+                    ctx.beginPath(); ctx.arc(sx, sy, 3, 0, Math.PI*2); ctx.fill();
+                }
+            }
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            const cx = cv.width / 2;
+            const cy = cv.height / 2;
+
+            if (activeMode === 'sun_shadow') drawSunShadow(cx, cy);
+            else if (activeMode === 'moon_phases') drawMoonPhases(cx, cy);
+            else if (activeMode === 'four_seasons') drawSeasons(cx, cy);
+            else if (activeMode === 'weather_types' || activeMode === 'air_presence' || activeMode === 'earth_overview' || activeMode === 'campus_microclimate') drawWeather(cx, cy);
+
+            requestAnimationFrame(render);
+        }
+
+        setupControls();
+        updateTelemetry();
+        render();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

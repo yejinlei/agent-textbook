@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【2. 利用自然物辨别方向】真实验微仿真 - 三年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧭 2. 利用自然物辨别方向</h1>
+        <span class="badge">三年级下册·第一单元《辨别方向》</span>
+        <a href="mechanics_lever.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 经典力学与轨道运动实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g06_s2_u01_l01.html" class="">根据太阳辨别方向</a>
+<a href="sim_g06_s2_u01_l02.html" class="active">利用自然物辨别方向</a>
+<a href="sim_g06_s2_u01_l03.html" class="">利用磁铁辨别方向</a>
+<a href="sim_g06_s2_u01_l04.html" class="">罗盘的使用</a>
+<a href="sim_g06_s2_u01_l05.html" class="">制作简易罗盘</a>
+<a href="sim_g06_s2_u01_l06.html" class="">校园方向探秘</a>
+<a href="sim_g06_s2_u01_l07.html" class="">夜间辨别方向</a>
+<a href="sim_g06_s2_u01_l08.html" class="">辨别方向的工具</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时实验数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：掌握利用太阳、大自然参照物、指南针罗盘与北极星辨别方向的科学方法。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "nature_clues";
+
+        
+const state = {
+    timeOfDay: 12, // 6 ~ 18 时
+    compassAngle: 0,
+    needleAngle: 0,
+    hasMagnetized: false,
+    beidouRotate: 0
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'sun_shadow') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>太阳位置时间 (时)</span><span class="val" id="tVal">${state.timeOfDay}:00</span></div>
+                <input type="range" id="timeSlider" min="6" max="18" value="${state.timeOfDay}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-primary" id="btnMorning">🌅 清晨 8:00 (日出东，影朝西)</button>
+                <button class="btn btn-primary" id="btnNoon">☀️ 正午 12:00 (日指南，影指北)</button>
+                <button class="btn btn-primary" id="btnEvening">🌇 傍晚 17:00 (日落西，影朝东)</button>
+            </div>
+        `;
+    } else if (activeMode === 'diy_compass' || activeMode === 'magnet_direction') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>缝衣针磁化操作</span><span class="val">${state.hasMagnetized?'已磁化':'未磁化'}</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnStroke">🧲 用条形磁铁单向摩擦20次</button>
+                    <button class="btn btn-green" id="btnFloat">💧 插入泡沫漂浮水面</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'polaris') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>星空旋转找寻北极星</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnFindPolaris">✨ 沿勺口延长5倍寻找北极星</button>
+                    <button class="btn" id="btnRotateSky">🌌 转动星空</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'compass_use') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>现代地质罗盘瞄准镜与方位角测定</span><span class="val" id="cAngleVal">${state.compassAngle}°</span></div>
+                <input type="range" id="compassSlider" min="0" max="359" value="${state.compassAngle}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-primary" id="btnAlignCompass">🧭 瞄准目标点测定方位角</button>
+            </div>
+        `;
+    } else if (activeMode === 'campus_map') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>校园平面图方向标探秘 (上北下南左西右东)</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnMapLibrary">🏢 探访图书馆 (操场以东)</button>
+                    <button class="btn btn-green" id="btnMapBuilding">🏫 探访教学楼 (操场以北)</button>
+                    <button class="btn btn-rose" id="btnMapGate">🚪 探访校门 (操场以南)</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'tools_history') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>人类定向工具演进史 (司南->罗盘->北斗卫星)</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnSinan">🥄 战国·司南</button>
+                    <button class="btn btn-green" id="btnWaterFish">🐟 宋代·水浮指南鱼</button>
+                    <button class="btn btn-rose" id="btnBDS">🛰️ 现代·北斗卫星导航</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>转动罗盘方位刻度盘</span><span class="val" id="cAngleVal">${state.compassAngle}°</span></div>
+                <input type="range" id="compassSlider" min="0" max="359" value="${state.compassAngle}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-green" id="btnAlignCompass">🧭 自动对准南北方向刻度</button>
+            </div>
+        `;
+    }
+    controlsContainer.innerHTML = html;
+    bindU1Events();
+}
+
+function bindU1Events() {
+    const timeSlider = document.getElementById('timeSlider');
+    if (timeSlider) {
+        timeSlider.addEventListener('input', (e) => {
+            state.timeOfDay = parseInt(e.target.value);
+            document.getElementById('tVal').innerText = state.timeOfDay + ':00';
+            playTone(400 + state.timeOfDay * 20, 0.05);
+        });
+    }
+    const btnMorning = document.getElementById('btnMorning');
+    if (btnMorning) btnMorning.onclick = () => { state.timeOfDay = 8; setupControls(); playTone(600, 0.1); };
+    const btnNoon = document.getElementById('btnNoon');
+    if (btnNoon) btnNoon.onclick = () => { state.timeOfDay = 12; setupControls(); playTone(800, 0.1); };
+    const btnEvening = document.getElementById('btnEvening');
+    if (btnEvening) btnEvening.onclick = () => { state.timeOfDay = 17; setupControls(); playTone(500, 0.1); };
+
+    const btnStroke = document.getElementById('btnStroke');
+    if (btnStroke) btnStroke.onclick = () => { state.hasMagnetized = true; playTone(880, 0.2); setupControls(); };
+    const btnFloat = document.getElementById('btnFloat');
+    if (btnFloat) btnFloat.onclick = () => { state.needleAngle = 0; playTone(600, 0.2); };
+
+    const compassSlider = document.getElementById('compassSlider');
+    if (compassSlider) {
+        compassSlider.addEventListener('input', (e) => {
+            state.compassAngle = parseInt(e.target.value);
+            document.getElementById('cAngleVal').innerText = state.compassAngle + '°';
+        });
+    }
+    const btnAlignCompass = document.getElementById('btnAlignCompass');
+    if (btnAlignCompass) btnAlignCompass.onclick = () => { state.compassAngle = 0; setupControls(); playTone(900, 0.2); };
+
+    const btnFindPolaris = document.getElementById('btnFindPolaris');
+    if (btnFindPolaris) btnFindPolaris.onclick = () => { playTone(1200, 0.3); };
+    const btnRotateSky = document.getElementById('btnRotateSky');
+    if (btnRotateSky) btnRotateSky.onclick = () => { state.beidouRotate += 0.2; playTone(500, 0.1); };
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    if (activeMode === 'sun_shadow') {
+        drawSunShadow();
+    } else if (activeMode === 'diy_compass' || activeMode === 'magnet_direction') {
+        drawDiyCompass();
+    } else if (activeMode === 'polaris') {
+        drawPolarisScene();
+    } else if (activeMode === 'nature_clues') {
+        drawNatureScene();
+    } else if (activeMode === 'compass_use') {
+        drawCompassUse();
+    } else if (activeMode === 'campus_map') {
+        drawCampusMap();
+    } else if (activeMode === 'tools_history') {
+        drawToolsHistory();
+    } else {
+        drawCompassScene();
+    }
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+function drawSunShadow() {
+    const cx = 360;
+    // Ground
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(0, 0, 720, 450);
+    ctx.fillStyle = '#166534';
+    ctx.fillRect(0, 320, 720, 130);
+
+    // Sun movement arc: 6:00 (East x=100) -> 12:00 (South cx=360, y=80) -> 18:00 (West x=620)
+    const prog = (state.timeOfDay - 6) / 12;
+    const sunX = 100 + prog * 520;
+    const sunY = 300 - Math.sin(prog * Math.PI) * 220;
+
+    // Sun
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, 26, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pole in center of ground
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(cx - 4, 260, 8, 60);
+
+    // Shadow cast on ground (opposite to sun)
+    const shadowLen = (state.timeOfDay - 12) * 22; // negative morning, positive evening
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.beginPath();
+    ctx.ellipse(cx - shadowLen, 325, Math.abs(shadowLen) * 0.7 + 10, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Compass labels
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('东 (East) 日出', 60, 310);
+    ctx.fillText('西 (West) 日落', 660, 310);
+    ctx.fillText('南 (South)', cx, 60);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    const dirTxt = state.timeOfDay < 12 ? '清晨: 太阳在东，影子指向西' : state.timeOfDay === 12 ? '正午: 太阳在正南，影子指向正北' : '傍晚: 太阳在西，影子指向东';
+    ctx.fillText(`${state.timeOfDay}:00 太阳视运动与日影规律 【${dirTxt}】`, cx, 30);
+}
+
+function drawDiyCompass() {
+    const cx = 360;
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    // Water Bowl
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.arc(cx, 230, 140, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Water inside
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
+    ctx.beginPath();
+    ctx.arc(cx, 230, 130, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Floating foam pad
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(cx, 230, 45, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Magnetized needle
+    ctx.save();
+    ctx.translate(cx, 230);
+    if (!state.hasMagnetized) {
+        ctx.rotate(0.8); // random angle
+    } else {
+        ctx.rotate(0); // pointing North!
+    }
+
+    // North end (Red)
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(8, 0);
+    ctx.lineTo(0, -70);
+    ctx.lineTo(-8, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // South end (Blue/Silver)
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(8, 0);
+    ctx.lineTo(0, 70);
+    ctx.lineTo(-8, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    if (state.hasMagnetized) {
+        ctx.fillText('✅ 钢针已磁化: 水面自由旋转静止后，红色针尖准确指向北极(N)', cx, 50);
+    } else {
+        ctx.fillText('⚠️ 钢针未磁化: 请点击操作用磁铁单向摩擦20次赋予磁性', cx, 50);
+    }
+}
+
+function drawPolarisScene() {
+    const cx = 360;
+    const cy = 230;
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(0, 0, 720, 450);
+
+    // North Star (Polaris) - Fixed at Center Top
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.arc(cx, 100, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.fillText('✨ 北极星 (正北恒星)', cx + 15, 105);
+
+    // Big Dipper (7 stars)
+    ctx.save();
+    ctx.translate(cx, 100);
+    ctx.rotate(state.beidouRotate);
+
+    const stars = [
+        {x: 40, y: 150},  // 天枢 (Pointer 1)
+        {x: 60, y: 190},  // 天璇 (Pointer 2)
+        {x: 110, y: 200}, // 天玑
+        {x: 100, y: 160}, // 天权
+        {x: 150, y: 140}, // 玉衡
+        {x: 190, y: 125}, // 开阳
+        {x: 230, y: 135}  // 摇光 (勺柄)
+    ];
+
+    // Draw constellation lines
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(stars[0].x, stars[0].y);
+    stars.forEach(s => ctx.lineTo(s.x, s.y));
+    ctx.stroke();
+
+    // 5x extension line from Pointer stars to Polaris
+    ctx.strokeStyle = '#f59e0b';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(stars[1].x, stars[1].y);
+    ctx.lineTo(stars[0].x, stars[0].y);
+    ctx.lineTo(0, 0); // connects to Polaris!
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Stars
+    ctx.fillStyle = '#f8fafc';
+    stars.forEach((s, idx) => {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, idx < 2 ? 6 : 4, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    ctx.restore();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('夜间寻星法: 找到北斗七星勺口两星(天璇向天枢)，延长5倍距离即为北极星(正北)', cx, 40);
+}
+
+function drawNatureScene() {
+    const cx = 360;
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    // Big Tree
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(cx - 20, 220, 40, 160);
+
+    // Foliage (South dense, North sparse)
+    // Left: North (sparse), Right: South (dense)
+    ctx.fillStyle = '#15803d';
+    // North sparse foliage
+    ctx.beginPath();
+    ctx.arc(cx - 60, 180, 50, 0, Math.PI * 2);
+    ctx.fill();
+
+    // South luxuriant foliage
+    ctx.fillStyle = '#16a34a';
+    ctx.beginPath();
+    ctx.arc(cx + 70, 160, 85, 0, Math.PI * 2);
+    ctx.arc(cx + 90, 210, 65, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Moss on North bark
+    ctx.fillStyle = '#84cc16';
+    ctx.fillRect(cx - 22, 250, 6, 80);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.fillText('🌲 北侧: 枝叶稀疏，树皮潮湿长青苔 (北)', cx - 140, 310);
+    ctx.fillText('🌳 南侧: 阳光充沛，枝叶繁茂茂盛 (南)', cx + 140, 310);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('大自然的天然指南针: 观察植物生长向阳性与树轮疏密', cx, 40);
+}
+
+
+function drawCompassUse() {
+    const cx = 360;
+    const cy = 230;
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    // Transparent Baseplate
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(cx - 160, cy - 140, 320, 280, 16);
+    ctx.fill();
+    ctx.stroke();
+
+    // Sighting Wire and Direction of Travel Arrow
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 140);
+    ctx.lineTo(cx, cy - 80);
+    ctx.stroke();
+
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 140);
+    ctx.lineTo(cx - 10, cy - 120);
+    ctx.lineTo(cx + 10, cy - 120);
+    ctx.closePath();
+    ctx.fill();
+
+    // Rotating Azimuth Ring
+    ctx.save();
+    ctx.translate(cx, cy + 20);
+    ctx.rotate(state.compassAngle * Math.PI / 180);
+
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.arc(0, 0, 95, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Azimuth ticks & degrees
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 12px monospace';
+    ctx.textAlign = 'center';
+    for (let deg = 0; deg < 360; deg += 30) {
+        const rad = (deg - 90) * Math.PI / 180;
+        const tx = Math.cos(rad) * 75;
+        const ty = Math.sin(rad) * 75;
+        ctx.fillText(deg + '°', tx, ty + 4);
+    }
+    ctx.fillStyle = '#f43f5e';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.fillText('N', 0, -80);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText('S', 0, 85);
+    ctx.fillText('E', 80, 5);
+    ctx.fillText('W', -80, 5);
+    ctx.restore();
+
+    // Magnetic Needle (Always points Geographic North)
+    ctx.save();
+    ctx.translate(cx, cy + 20);
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(8, 0); ctx.lineTo(0, -65); ctx.lineTo(-8, 0);
+    ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(8, 0); ctx.lineTo(0, 65); ctx.lineTo(-8, 0);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`专业户外罗盘使用法: 将前进方向对准目标，旋转刻度盘使底盘N与磁针红尖重合 (当前刻度: ${state.compassAngle}°)`, cx, 40);
+}
+
+function drawCampusMap() {
+    const cx = 360;
+    const cy = 230;
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    // Grid campus map
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(80, 70, 560, 320);
+    ctx.strokeStyle = '#334155';
+    ctx.strokeRect(80, 70, 560, 320);
+
+    // North Arrow Icon at top right
+    ctx.fillStyle = '#f43f5e';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('⬆ 北 (N)', 600, 100);
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(600, 140); ctx.lineTo(600, 110); ctx.stroke();
+
+    // Central Playground
+    ctx.fillStyle = '#15803d';
+    ctx.fillRect(cx - 80, cy - 40, 160, 80);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('🏃 阳光操场 (中心)', cx, cy + 5);
+
+    // North: Teaching Building
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(cx - 70, 90, 140, 45);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('🏫 教学主楼 (北面)', cx, 118);
+
+    // East: Library
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(510, cy - 35, 100, 70);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('📚 图书馆 (东面)', 560, cy + 5);
+
+    // West: Gym
+    ctx.fillStyle = '#7c3aed';
+    ctx.fillRect(110, cy - 35, 100, 70);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('🏀 体育馆 (西面)', 160, cy + 5);
+
+    // South: Gate
+    ctx.fillStyle = '#b91c1c';
+    ctx.fillRect(cx - 60, 340, 120, 35);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('🚪 校园正门 (南面)', cx, 362);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('校园平面图方向标探秘: 遵循“上北、下南、左西、右东”空间测绘规范', cx, 40);
+}
+
+function drawToolsHistory() {
+    const cx = 360;
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('定向工具的千年演进: 从战国司南到中国北斗卫星导航系统', cx, 40);
+
+    const tools = [
+        { t: '1. 战国·司南', d: '天然磁石琢磨成勺\n置于青铜地盘勺柄指南', c: '#d97706', x: 60 },
+        { t: '2. 宋代·指南鱼', d: '人工磁化薄铁叶剪成鱼\n浮于水面自由旋动指示', c: '#10b981', x: 215 },
+        { t: '3. 明清·航海罗盘', d: '磁针与方位盘一体化\n郑和下西洋跨洋导航', c: '#38bdf8', x: 370 },
+        { t: '4. 现代·北斗(BDS)', d: '55颗卫星空间组网\n毫米级高精度定位授时', c: '#a855f7', x: 525 }
+    ];
+
+    tools.forEach(tool => {
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(tool.x, 80, 140, 270);
+        ctx.strokeStyle = tool.c;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(tool.x, 80, 140, 270);
+
+        ctx.fillStyle = tool.c;
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(tool.t, tool.x + 70, 115);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '12px sans-serif';
+        const lines = tool.d.split('\n');
+        lines.forEach((l, i) => {
+            ctx.fillText(l, tool.x + 70, 160 + i * 24);
+        });
+
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(tool.x + 10, 290, 120, 36);
+        ctx.fillStyle = tool.c;
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('历史地位确立', tool.x + 70, 312);
+    });
+}
+
+function drawCompassScene() {
+    const cx = 360;
+    const cy = 230;
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    // Outer Dial
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(state.compassAngle * Math.PI / 180);
+
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.arc(0, 0, 130, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('N (北)', 0, -100);
+    ctx.fillText('S (南)', 0, 115);
+    ctx.fillText('E (东)', 105, 5);
+    ctx.fillText('W (西)', -105, 5);
+
+    ctx.restore();
+
+    // Magnetic Needle (Always points North = 0)
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + 10, cy);
+    ctx.lineTo(cx, cy - 85);
+    ctx.lineTo(cx - 10, cy);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + 10, cy);
+    ctx.lineTo(cx, cy + 85);
+    ctx.lineTo(cx - 10, cy);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    const isAligned = Math.abs(state.compassAngle) < 3;
+    ctx.fillText(isAligned ? '✅ 罗盘刻度已与磁针重合: 正确测定方位!' : '转动罗盘底盘，使底盘的“北(N)”与磁针红尖重合', cx, 40);
+}
+
+        
+function updateTelemetry() {
+    let txt = `[方向观测数据就绪] 模式: ${activeMode} | `;
+    if (activeMode === 'sun_shadow') {
+        txt += `时间: ${state.timeOfDay}:00 | 影子指向: ${state.timeOfDay<12?'西':'东'}`;
+    } else if (activeMode === 'diy_compass') {
+        txt += `磁化状态: ${state.hasMagnetized?'已磁化':'未磁化'} | 指向: 北极(N)`;
+    } else {
+        txt += `底盘偏角: ${state.compassAngle}° | 磁偏角校正: 正常`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

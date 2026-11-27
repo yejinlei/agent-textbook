@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学探究微仿真：光的反射与潜望镜（六年级上册·光）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #38bdf8;
+      --laser: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 440px;
+      background: radial-gradient(circle at center, #111a2d 0%, #050811 100%);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #1a273f;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .controls { display: flex; flex-direction: column; gap: 14px; }
+    .control-group {
+      background: #101624;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #233147;
+    }
+    .control-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    button {
+      width: 100%;
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 8px;
+    }
+    button:hover { background: #1d4ed8; }
+    button.active { background: var(--primary); color: #0b0f19; }
+    button.secondary { background: #334155; }
+    button.secondary:hover { background: #475569; }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: #334155;
+      border-radius: 3px;
+      accent-color: var(--laser);
+      cursor: pointer;
+    }
+    .state-banner {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #101624;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>🔦 光的反射定律与潜望镜光路设计（六年级上册·光）</h1>
+    <span class="badge">光线追踪拟真 · 纯静态</span>
+  </header>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="canvas-box" id="container">
+        <canvas id="opticsCanvas"></canvas>
+      </div>
+      <div class="state-banner" id="stateBanner">
+        <span>📐 入射角 = 反射角：</span>
+        <span id="angleReadout" style="color: #f87171; font-family: monospace; font-size: 14px;">∠i = 40.0°  |  ∠r = 40.0°</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ 光学实验模式</h2>
+      
+      <div class="controls">
+        <div class="control-group">
+          <div class="control-header"><span>模式切换</span></div>
+          <button id="btnLaw" class="active">📐 光的反射定律（单平面镜）</button>
+          <button id="btnPeriscope" class="secondary">🔭 制作潜望镜（双反射镜）</button>
+        </div>
+
+        <div class="control-group" id="angleControlGroup">
+          <div class="control-header">
+            <span>激光入射角调节</span>
+            <span style="color: #f87171; font-weight: bold;" id="valAngle">40°</span>
+          </div>
+          <input type="range" id="sliderIncAngle" min="10" max="80" value="40" step="1">
+        </div>
+
+        <div style="font-size: 12px; color: var(--muted); line-height: 1.6; background: #101624; padding: 10px; border-radius: 6px; border-left: 3px solid var(--primary);">
+          📖 <strong>科学核心规律</strong>：
+          - <strong>光的反射定律</strong>：反射光线、入射光线与法线在同一平面内；<strong>反射角等于入射角</strong>；
+          - <strong>潜望镜原理</strong>：两面平面镜以 <strong>45° 平行安装</strong>，光线发生两次 90° 直角反射，使水下或障碍物后的景物进入人眼！
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('opticsCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    let mode = 'law'; // 'law' or 'periscope'
+    let incAngle = 40; // 度
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    const btnLaw = document.getElementById('btnLaw');
+    const btnPeriscope = document.getElementById('btnPeriscope');
+    const sliderIncAngle = document.getElementById('sliderIncAngle');
+    const valAngle = document.getElementById('valAngle');
+    const angleReadout = document.getElementById('angleReadout');
+    const angleControlGroup = document.getElementById('angleControlGroup');
+
+    sliderIncAngle.addEventListener('input', (e) => {
+      incAngle = parseFloat(e.target.value);
+      valAngle.textContent = incAngle + '°';
+      angleReadout.textContent = `∠i = ${incAngle.toFixed(1)}°  |  ∠r = ${incAngle.toFixed(1)}°`;
+      draw();
+    });
+
+    btnLaw.addEventListener('click', () => {
+      mode = 'law';
+      btnLaw.className = 'active';
+      btnPeriscope.className = 'secondary';
+      angleControlGroup.style.display = 'block';
+      angleReadout.textContent = `∠i = ${incAngle.toFixed(1)}°  |  ∠r = ${incAngle.toFixed(1)}°`;
+      draw();
+    });
+
+    btnPeriscope.addEventListener('click', () => {
+      mode = 'periscope';
+      btnPeriscope.className = 'active';
+      btnLaw.className = 'secondary';
+      angleControlGroup.style.display = 'none';
+      angleReadout.textContent = `潜望镜光路：2 次 45° 镜面直角反射 (90°转向)`;
+      draw();
+    });
+
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      if (mode === 'law') {
+        drawReflectionLaw(w, h);
+      } else {
+        drawPeriscope(w, h);
+      }
+    }
+
+    // 绘制单反射镜与入射/反射角
+    function drawReflectionLaw(w, h) {
+      const cx = w / 2;
+      const mirrorY = h * 0.65;
+      const mirrorW = Math.min(w * 0.7, 460);
+
+      // 1. 绘制水平放置的平面镜
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(cx - mirrorW/2, mirrorY, mirrorW, 14);
+      // 镜面镀银反光
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(cx - mirrorW/2, mirrorY - 3, mirrorW, 3);
+      ctx.strokeStyle = '#64748b';
+      ctx.strokeRect(cx - mirrorW/2, mirrorY, mirrorW, 14);
+
+      // 2. 绘制法线（垂直虚线）
+      ctx.beginPath();
+      ctx.setLineDash([4, 4]);
+      ctx.moveTo(cx, mirrorY);
+      ctx.lineTo(cx, mirrorY - 180);
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '11px sans-serif';
+      ctx.fillText('法线 (垂直镜面)', cx + 8, mirrorY - 160);
+
+      // 3. 计算入射光线与反射光线 (以法线为准)
+      const rad = (incAngle * Math.PI) / 180;
+      const rayLen = 170;
+
+      // 入射点在 (cx, mirrorY)
+      const inX = cx - rayLen * Math.sin(rad);
+      const inY = mirrorY - rayLen * Math.cos(rad);
+
+      const refX = cx + rayLen * Math.sin(rad);
+      const refY = mirrorY - rayLen * Math.cos(rad);
+
+      // 绘制激光入射光束 (红)
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#ef4444';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.moveTo(inX, inY);
+      ctx.lineTo(cx, mirrorY);
+      ctx.stroke();
+
+      // 反射光束
+      ctx.beginPath();
+      ctx.moveTo(cx, mirrorY);
+      ctx.lineTo(refX, refY);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 绘制激光笔外壳
+      ctx.save();
+      ctx.translate(inX, inY);
+      ctx.rotate(-rad + Math.PI / 2);
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(-20, -6, 26, 12);
+      ctx.restore();
+
+      // 绘制角度圆弧
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.8)';
+      ctx.lineWidth = 1.5;
+      // 入射角弧
+      ctx.beginPath();
+      ctx.arc(cx, mirrorY, 40, -Math.PI / 2 - rad, -Math.PI / 2);
+      ctx.stroke();
+      // 反射角弧
+      ctx.beginPath();
+      ctx.arc(cx, mirrorY, 40, -Math.PI / 2, -Math.PI / 2 + rad);
+      ctx.stroke();
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText(`∠i=${incAngle}°`, cx - 35, mirrorY - 45);
+      ctx.fillText(`∠r=${incAngle}°`, cx + 15, mirrorY - 45);
+    }
+
+    // 绘制潜望镜光路
+    function drawPeriscope(w, h) {
+      const cx = w / 2;
+      const cy = h / 2;
+
+      // 潜望镜 Z 形管壁
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      // 上进光口
+      ctx.moveTo(cx - 160, cy - 100);
+      ctx.lineTo(cx, cy - 100);
+      ctx.lineTo(cx, cy + 100);
+      ctx.lineTo(cx + 160, cy + 100);
+      ctx.stroke();
+
+      // 平行管壁内侧
+      ctx.beginPath();
+      ctx.moveTo(cx - 160, cy - 60);
+      ctx.lineTo(cx - 40, cy - 60);
+      ctx.lineTo(cx - 40, cy + 140);
+      ctx.lineTo(cx + 160, cy + 140);
+      ctx.stroke();
+
+      // 两面 45 度平面镜
+      // 上反射镜 (cx-20, cy-80) 倾斜45°
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx - 40, cy - 100);
+      ctx.lineTo(cx, cy - 60);
+      ctx.stroke();
+
+      // 下反射镜 (cx-20, cy+120) 倾斜45°
+      ctx.beginPath();
+      ctx.moveTo(cx - 40, cy + 100);
+      ctx.lineTo(cx, cy + 140);
+      ctx.stroke();
+
+      // 绘制激光全反射光路 (红)
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#ef4444';
+      ctx.shadowBlur = 10;
+
+      ctx.beginPath();
+      ctx.moveTo(cx - 150, cy - 80); // 外部物体光线入射
+      ctx.lineTo(cx - 20, cy - 80);  // 击中上镜面
+      ctx.lineTo(cx - 20, cy + 120); // 90°垂直向下反射
+      ctx.lineTo(cx + 150, cy + 120); // 90°再次反射进入人眼
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 箭头指示
+      ctx.fillStyle = '#fde047';
+      ctx.font = '12px sans-serif';
+      ctx.fillText('上方观察目标 ➔', cx - 150, cy - 90);
+      ctx.fillText('➔ 进入眼睛观察', cx + 60, cy + 110);
+      ctx.fillText('45° 第一反射镜', cx + 10, cy - 85);
+      ctx.fillText('45° 第二反射镜', cx + 10, cy + 135);
+    }
+
+    resize();
+  </script>
+</body>
+</html>

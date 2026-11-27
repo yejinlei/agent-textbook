@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学探究微仿真：虚拟显微镜调焦实验室（五年级上册·微小世界）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #10b981;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 440px;
+      background: #020617;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #1a273f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .controls { display: flex; flex-direction: column; gap: 14px; }
+    .control-group {
+      background: #101624;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #233147;
+    }
+    .control-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    button:hover { background: #334155; }
+    button.active {
+      background: var(--primary);
+      color: #0b0f19;
+      border-color: var(--primary);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: #334155;
+      border-radius: 3px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .focus-badge {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>🔬 光学显微镜标本观察与虚拟调焦（五年级上册·微小世界）</h1>
+    <span class="badge">虚拟目镜调焦拟真 · 纯静态</span>
+  </header>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="canvas-box" id="container">
+        <canvas id="microCanvas"></canvas>
+      </div>
+      <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+        <span>🔍 目镜真实视界视野 (圆形光阑)</span>
+        <span id="focusStatus" class="focus-badge" style="background: rgba(239,68,68,0.2); color: #f87171;">视野模糊 (离焦中)</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ 显微镜准焦与标本控制</h2>
+      
+      <div class="controls">
+        <!-- 标本选择 -->
+        <div class="control-group">
+          <div class="control-header"><span>选择玻片标本</span></div>
+          <div class="btn-grid">
+            <button id="specOnion" class="active">洋葱表皮细胞</button>
+            <button id="specParamecium">水滴中的草履虫</button>
+          </div>
+        </div>
+
+        <!-- 倍率切换 -->
+        <div class="control-group">
+          <div class="control-header"><span>物镜放大倍率</span></div>
+          <div class="btn-grid">
+            <button id="mag10" class="active">10× 低倍镜 (视野大)</button>
+            <button id="mag40">40× 高倍镜 (细节清)</button>
+          </div>
+        </div>
+
+        <!-- 粗准焦螺旋 -->
+        <div class="control-group">
+          <div class="control-header">
+            <span>🎛️ 粗准焦螺旋 (大幅度调节)</span>
+            <span id="valCoarse" style="font-family: monospace; color: var(--accent);">50</span>
+          </div>
+          <input type="range" id="sliderCoarse" min="0" max="100" value="50" step="1">
+        </div>
+
+        <!-- 细准焦螺旋 -->
+        <div class="control-group">
+          <div class="control-header">
+            <span>⚙️ 细准焦螺旋 (微调清晰度)</span>
+            <span id="valFine" style="font-family: monospace; color: var(--primary);">20</span>
+          </div>
+          <input type="range" id="sliderFine" min="0" max="100" value="20" step="1">
+        </div>
+
+        <div style="font-size: 12px; color: var(--muted); line-height: 1.6; background: #101624; padding: 10px; border-radius: 6px; border-left: 3px solid var(--primary);">
+          📖 <strong>显微镜规范操作法则</strong>：
+          - <strong>对光与调焦</strong>：先用<strong>低倍镜</strong>寻找物像，转动<strong>粗准焦螺旋</strong>使镜筒缓慢上升，看到模糊轮廓后，再微调<strong>细准焦螺旋</strong>直至视野清晰！
+          - <strong>洋葱表皮</strong>：可见排列紧密的砖块状<strong>细胞壁、细胞核（小黑点）和液泡</strong>。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('microCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    let specimen = 'onion'; // 'onion' or 'paramecium'
+    let magnification = 10; // 10 or 40
+    let coarseVal = 50;
+    let fineVal = 20;
+
+    // 最佳对焦值设在 coarse=70, fine=50 左右
+    const TARGET_COARSE = 70;
+    const TARGET_FINE = 50;
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    const sliderCoarse = document.getElementById('sliderCoarse');
+    const sliderFine = document.getElementById('sliderFine');
+    const valCoarse = document.getElementById('valCoarse');
+    const valFine = document.getElementById('valFine');
+    const focusStatus = document.getElementById('focusStatus');
+
+    sliderCoarse.addEventListener('input', (e) => {
+      coarseVal = parseFloat(e.target.value);
+      valCoarse.textContent = coarseVal;
+      draw();
+    });
+
+    sliderFine.addEventListener('input', (e) => {
+      fineVal = parseFloat(e.target.value);
+      valFine.textContent = fineVal;
+      draw();
+    });
+
+    document.getElementById('specOnion').addEventListener('click', function() {
+      specimen = 'onion';
+      this.className = 'active';
+      document.getElementById('specParamecium').className = '';
+      draw();
+    });
+
+    document.getElementById('specParamecium').addEventListener('click', function() {
+      specimen = 'paramecium';
+      this.className = 'active';
+      document.getElementById('specOnion').className = '';
+      draw();
+    });
+
+    document.getElementById('mag10').addEventListener('click', function() {
+      magnification = 10;
+      this.className = 'active';
+      document.getElementById('mag40').className = '';
+      draw();
+    });
+
+    document.getElementById('mag40').addEventListener('click', function() {
+      magnification = 40;
+      this.className = 'active';
+      document.getElementById('mag10').className = '';
+      draw();
+    });
+
+    function getBlurAmount() {
+      const dCoarse = Math.abs(coarseVal - TARGET_COARSE);
+      const dFine = Math.abs(fineVal - TARGET_FINE);
+      // 综合偏离焦距
+      const totalDeviation = dCoarse * 0.8 + dFine * 0.2;
+      return totalDeviation;
+    }
+
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const r = Math.min(w, h) * 0.42;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 计算模糊度
+      const blur = getBlurAmount();
+
+      if (blur < 8) {
+        focusStatus.textContent = '✨ 完美对焦 (清晰像)';
+        focusStatus.style.background = 'rgba(16, 185, 129, 0.2)';
+        focusStatus.style.color = '#34d399';
+      } else if (blur < 22) {
+        focusStatus.textContent = '👀 接近清晰 (微调细准焦螺旋)';
+        focusStatus.style.background = 'rgba(245, 158, 11, 0.2)';
+        focusStatus.style.color = '#f59e0b';
+      } else {
+        focusStatus.textContent = '视野模糊 (离焦中)';
+        focusStatus.style.background = 'rgba(239, 68, 68, 0.2)';
+        focusStatus.style.color = '#f87171';
+      }
+
+      // 1. 绘制目镜黑色遮罩与圆形通光孔
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.clip(); // 限制在圆形视野内
+
+      // 圆形视野亮底 (微黄白光圈)
+      ctx.fillStyle = '#fefce8';
+      ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+
+      // 模拟离焦高斯模糊 (利用 filter)
+      const cssBlur = Math.min(blur * 0.4, 25);
+      ctx.filter = `blur(${cssBlur}px)`;
+
+      // 2. 根据选中的标本绘制微观结构
+      if (specimen === 'onion') {
+        drawOnionCells(cx, cy, r);
+      } else {
+        drawParamecium(cx, cy, r);
+      }
+
+      ctx.filter = 'none';
+      ctx.restore();
+
+      // 3. 绘制目镜外围金属圆环
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 14;
+      ctx.stroke();
+
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+    }
+
+    // 绘制洋葱表皮细胞 (砖墙格状)
+    function drawOnionCells(cx, cy, r) {
+      const cellW = magnification === 10 ? 45 : 120;
+      const cellH = magnification === 10 ? 25 : 65;
+
+      ctx.strokeStyle = 'rgba(100, 116, 139, 0.7)';
+      ctx.lineWidth = magnification === 10 ? 1.5 : 3;
+
+      for (let x = cx - r - 60; x < cx + r + 60; x += cellW) {
+        for (let y = cy - r - 60; y < cy + r + 60; y += cellH) {
+          // 错位砖墙
+          const offsetX = (Math.floor(y / cellH) % 2) * (cellW / 2);
+          const cellX = x + offsetX;
+
+          ctx.strokeRect(cellX, y, cellW, cellH);
+
+          // 细胞核 (小黑点)
+          ctx.fillStyle = 'rgba(71, 85, 105, 0.85)';
+          ctx.beginPath();
+          ctx.arc(cellX + cellW * 0.35, y + cellH * 0.5, magnification === 10 ? 2.5 : 6, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 液泡大浅色椭圆
+          ctx.fillStyle = 'rgba(226, 232, 240, 0.3)';
+          ctx.beginPath();
+          ctx.ellipse(cellX + cellW * 0.6, y + cellH * 0.5, cellW * 0.25, cellH * 0.3, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    // 绘制水滴中的草履虫 (鞋底形)
+    function drawParamecium(cx, cy, r) {
+      const scale = magnification === 10 ? 0.6 : 1.6;
+
+      const bugs = [
+        { x: cx - 40, y: cy - 20, ang: 0.3 },
+        { x: cx + 60, y: cy + 40, ang: -0.6 },
+        { x: cx - 20, y: cy + 80, ang: 1.2 }
+      ];
+
+      bugs.forEach(b => {
+        ctx.save();
+        ctx.translate(b.x, b.y);
+        ctx.rotate(b.ang);
+        ctx.scale(scale, scale);
+
+        // 鞋底状身体
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 50, 20, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.5)';
+        ctx.fill();
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // 纤毛 (外围小毛刺)
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        for (let a = 0; a < Math.PI * 2; a += 0.2) {
+          const px = 50 * Math.cos(a);
+          const py = 20 * Math.sin(a);
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(px + 4 * Math.cos(a), py + 4 * Math.sin(a));
+          ctx.stroke();
+        }
+
+        // 大核与小核
+        ctx.fillStyle = '#334155';
+        ctx.beginPath();
+        ctx.arc(0, 0, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      });
+    }
+
+    resize();
+  </script>
+</body>
+</html>

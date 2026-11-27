@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学大师级实验室：生物多样性分类与人类性状遗传编码沙盒（六年级下册·生物的多样性）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #10b981;
+      --accent: #38bdf8;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1240px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .header-title { display: flex; align-items: center; gap: 10px; }
+    .header-title h1 { font-size: 1.25rem; font-weight: 700; color: #fff; }
+    .badge {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    .back-btn {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+    .back-btn:hover { background: #1e293b; color: #fff; }
+    
+    .nav-tabs {
+      max-width: 1240px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      gap: 8px;
+    }
+    .tab-btn {
+      padding: 8px 18px;
+      border-radius: 8px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--primary);
+      color: #34d399;
+    }
+
+    main {
+      max-width: 1240px;
+      margin: 0 auto;
+      width: 100%;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    .canvas-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    canvas {
+      width: 100%;
+      height: 520px;
+      background: #060911;
+      border-radius: 8px;
+      border: 1px solid #1a2638;
+      display: block;
+    }
+
+    .control-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .panel-section {
+      background: #0b111e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .param-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .param-val { color: var(--text); font-weight: 600; }
+    
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .action-btn {
+      padding: 9px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #1e293b;
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .action-btn:hover { background: #334155; }
+    .action-btn.active {
+      background: #059669;
+      border-color: #10b981;
+    }
+
+    .trait-toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      background: #131c2e;
+      border-radius: 6px;
+      border: 1px solid #1e293b;
+      font-size: 0.82rem;
+    }
+    .trait-name { color: #e2e8f0; font-weight: 500; }
+    .trait-btn-pair {
+      display: flex;
+      gap: 4px;
+    }
+    .trait-opt {
+      padding: 3px 8px;
+      font-size: 0.75rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .trait-opt.selected {
+      background: #10b981;
+      border-color: #34d399;
+      color: #064e3b;
+      font-weight: 700;
+    }
+
+    .info-box {
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: #94a3b8;
+      background: rgba(16, 185, 129, 0.05);
+      border-left: 3px solid #10b981;
+      padding: 8px 12px;
+      border-radius: 0 6px 6px 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-title">
+      <span style="font-size: 1.5rem;">🧬</span>
+      <h1>生物多样性与人类性状遗传编码全景实验室</h1>
+      <span class="badge">六年级下册·生物的多样性深度研习</span>
+    </div>
+    <a href="index.html" class="back-btn">← 返回实验大厅</a>
+  </header>
+
+  <div class="nav-tabs">
+    <button class="tab-btn active" id="tabKey" onclick="switchLab('key')">🌿 生物二歧分类检索树 (林奈双名分枝)</button>
+    <button class="tab-btn" id="tabGenetics" onclick="switchLab('genetics')">👤 人类 5 对相对性状与相貌编码 (32 种组合)</button>
+    <button class="tab-btn" id="tabQuadrat" onclick="switchLab('quadrat')">🔍 样方法物种丰富度与多样性指数</button>
+  </div>
+
+  <main>
+    <div class="canvas-panel">
+      <canvas id="labCanvas" width="800" height="520"></canvas>
+    </div>
+
+    <div class="control-panel" id="controls">
+      <!-- 动态注入控制面板 -->
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('labCanvas');
+    const ctx = canvas.getContext('2d');
+    const controlsDiv = document.getElementById('controls');
+
+    let currentLab = 'key'; // 'key', 'genetics', 'quadrat'
+
+    // --- 状态1: 二歧分类树 ---
+    let keyStep = 0; // 0: 动植物分支, 1: 脊椎/无脊椎 or 草木, etc.
+    let selectedPath = [];
+    const organisms = [
+      { name: '水稻', kingdom: 'plant', wood: false, flower: true, seed: true, icon: '🌾' },
+      { name: '银杏', kingdom: 'plant', wood: true, flower: false, seed: true, icon: '🌲' },
+      { name: '向日葵', kingdom: 'plant', wood: false, flower: true, seed: true, icon: '🌻' },
+      { name: '肾蕨', kingdom: 'plant', wood: false, flower: false, seed: false, icon: '🌿' },
+      { name: '家鸽', kingdom: 'animal', spine: true, warm: true, wings: true, icon: '🕊️' },
+      { name: '鲫鱼', kingdom: 'animal', spine: true, warm: false, gills: true, icon: '🐟' },
+      { name: '青蛙', kingdom: 'animal', spine: true, warm: false, dual: true, icon: '🐸' },
+      { name: '蜜蜂', kingdom: 'animal', spine: false, insect: true, six_legs: true, icon: '🐝' }
+    ];
+
+    // --- 状态2: 人类性状组合 ---
+    const traits = {
+      eyelid: 1,     // 1: 双眼皮, 0: 单眼皮
+      earlobe: 1,    // 1: 有耳垂, 0: 无耳垂
+      hairline: 1,   // 1: 前额V尖发际, 0: 平发际
+      hair: 0,       // 1: 卷发, 0: 直发
+      tongue: 1      // 1: 能卷舌, 0: 不能卷舌
+    };
+
+    // --- 状态3: 样方生态调查 ---
+    let disturbance = 20; // 干扰度%
+    let quadratSpecies = [];
+    function initQuadrat() {
+      quadratSpecies = [];
+      const types = [
+        { name: '蒲公英', color: '#f59e0b', count: 18, radius: 4 },
+        { name: '车前草', color: '#10b981', count: 24, radius: 5 },
+        { name: '酢浆草', color: '#34d399', count: 32, radius: 3 },
+        { name: '狗尾草', color: '#84cc16', count: 15, radius: 6 },
+        { name: '瓢虫',   color: '#ef4444', count: 6,  radius: 4 },
+        { name: '蚯蚓',   color: '#d97706', count: 8,  radius: 3 }
+      ];
+      types.forEach(t => {
+        for(let i=0; i<t.count; i++) {
+          quadratSpecies.push({
+            type: t.name,
+            color: t.color,
+            x: 80 + Math.random() * 640,
+            y: 60 + Math.random() * 400,
+            r: t.radius,
+            vx: (Math.random()-0.5)*0.3,
+            vy: (Math.random()-0.5)*0.3
+          });
+        }
+      });
+    }
+    initQuadrat();
+
+    function switchLab(lab) {
+      currentLab = lab;
+      document.getElementById('tabKey').className = 'tab-btn' + (lab === 'key' ? ' active' : '');
+      document.getElementById('tabGenetics').className = 'tab-btn' + (lab === 'genetics' ? ' active' : '');
+      document.getElementById('tabQuadrat').className = 'tab-btn' + (lab === 'quadrat' ? ' active' : '');
+      renderControls();
+    }
+
+    function renderControls() {
+      if (currentLab === 'key') {
+        controlsDiv.innerHTML = `
+          <div class="panel-section">
+            <div class="section-title">二歧分类交互检索</div>
+            <p style="font-size:0.8rem; color:#94a3b8;">按照林奈二歧分类法，每一步根据互斥生物特征一分为二，层层筛选检索生物！</p>
+            <div class="btn-group" style="margin-top:6px;">
+              <button class="action-btn ${keyStep===0?'active':''}" onclick="setKeyBranch(0)">第一阶: 动物/植物</button>
+              <button class="action-btn ${keyStep===1?'active':''}" onclick="setKeyBranch(1)">第二阶: 骨骼/开花</button>
+            </div>
+            <div class="btn-group">
+              <button class="action-btn ${keyStep===2?'active':''}" onclick="setKeyBranch(2)">第三阶: 体温/种子</button>
+              <button class="action-btn" onclick="resetKey()">重置分类树</button>
+            </div>
+          </div>
+          <div class="info-box">
+            <b>🔬 科学探究要点：</b><br>
+            - 二歧分类法（Dichotomous Key）是生物学确定未知生物物种归属的核心方法。<br>
+            - 每一层级设定单一且互相对立的显著性状，避免主观模糊。
+          </div>
+        `;
+      } else if (currentLab === 'genetics') {
+        const codeNum = (traits.eyelid << 4) | (traits.earlobe << 3) | (traits.hairline << 2) | (traits.hair << 1) | traits.tongue;
+        const codeBinary = [traits.eyelid, traits.earlobe, traits.hairline, traits.hair, traits.tongue].join('');
+        controlsDiv.innerHTML = `
+          <div class="panel-section">
+            <div class="section-title">5 对相对性状微控面板</div>
+            <div class="param-row">
+              <span>相貌组合编码:</span>
+              <span class="param-val" style="color:#38bdf8;">#${codeNum + 1} (${codeBinary}B)</span>
+            </div>
+            
+            <div class="trait-toggle">
+              <span class="trait-name">眼皮特征</span>
+              <div class="trait-btn-pair">
+                <button class="trait-opt ${traits.eyelid===1?'selected':''}" onclick="setTrait('eyelid', 1)">双眼皮</button>
+                <button class="trait-opt ${traits.eyelid===0?'selected':''}" onclick="setTrait('eyelid', 0)">单眼皮</button>
+              </div>
+            </div>
+
+            <div class="trait-toggle">
+              <span class="trait-name">耳垂特征</span>
+              <div class="trait-btn-pair">
+                <button class="trait-opt ${traits.earlobe===1?'selected':''}" onclick="setTrait('earlobe', 1)">有耳垂</button>
+                <button class="trait-opt ${traits.earlobe===0?'selected':''}" onclick="setTrait('earlobe', 0)">无耳垂</button>
+              </div>
+            </div>
+
+            <div class="trait-toggle">
+              <span class="trait-name">前额发际</span>
+              <div class="trait-btn-pair">
+                <button class="trait-opt ${traits.hairline===1?'selected':''}" onclick="setTrait('hairline', 1)">V 形尖</button>
+                <button class="trait-opt ${traits.hairline===0?'selected':''}" onclick="setTrait('hairline', 0)">平发际</button>
+              </div>
+            </div>
+
+            <div class="trait-toggle">
+              <span class="trait-name">头发曲直</span>
+              <div class="trait-btn-pair">
+                <button class="trait-opt ${traits.hair===1?'selected':''}" onclick="setTrait('hair', 1)">天然卷发</button>
+                <button class="trait-opt ${traits.hair===0?'selected':''}" onclick="setTrait('hair', 0)">天然直发</button>
+              </div>
+            </div>
+
+            <div class="trait-toggle">
+              <span class="trait-name">舌部运动</span>
+              <div class="trait-btn-pair">
+                <button class="trait-opt ${traits.tongue===1?'selected':''}" onclick="setTrait('tongue', 1)">能卷舌</button>
+                <button class="trait-opt ${traits.tongue===0?'selected':''}" onclick="setTrait('tongue', 0)">不能卷舌</button>
+              </div>
+            </div>
+
+            <div class="btn-group" style="margin-top:6px;">
+              <button class="action-btn" onclick="randomizeTraits()">🎲 随机相貌性状</button>
+              <button class="action-btn" onclick="resetTraits()">重置初始值</button>
+            </div>
+          </div>
+          <div class="info-box">
+            <b>🧬 遗传与变异启示：</b><br>
+            仅选取 5 对常见相对性状，即可组合出 2^5 = 32 种相貌特征！如果选取 40 对性状，组合数超过 1 万亿，说明世上绝无两个完全相同的人。
+          </div>
+        `;
+      } else {
+        // quadrat
+        const richness = 6;
+        const totalInd = quadratSpecies.length;
+        // 计算辛普森多样性指数 D = 1 - sum(n*(n-1)/(N*(N-1)))
+        const counts = {};
+        quadratSpecies.forEach(s => { counts[s.type] = (counts[s.type]||0) + 1; });
+        let sumN = 0;
+        Object.values(counts).forEach(n => { sumN += n * (n - 1); });
+        const simpson = totalInd > 1 ? (1 - sumN / (totalInd * (totalInd - 1))).toFixed(3) : 0;
+
+        controlsDiv.innerHTML = `
+          <div class="panel-section">
+            <div class="section-title">样方生态调查监测台 (1m × 1m)</div>
+            <div class="param-row">
+              <span>物种丰富度 (Richness):</span>
+              <span class="param-val">${richness} 种</span>
+            </div>
+            <div class="param-row">
+              <span>群落总个体数 (N):</span>
+              <span class="param-val">${totalInd} 个体</span>
+            </div>
+            <div class="param-row">
+              <span>辛普森多样性指数 (D):</span>
+              <span class="param-val" style="color:#10b981;">${simpson} (高)</span>
+            </div>
+
+            <div style="margin-top:8px;">
+              <div class="param-row">
+                <span>人为环境干预/除草农药:</span>
+                <span class="param-val" id="disturbVal">${disturbance}%</span>
+              </div>
+              <input type="range" min="0" max="100" value="${disturbance}" style="width:100%; margin-top:4px;" oninput="updateDisturbance(this.value)">
+            </div>
+
+            <div class="btn-group" style="margin-top:8px;">
+              <button class="action-btn" onclick="initQuadrat()">重新随机样方</button>
+              <button class="action-btn" onclick="clearPesticide()">恢复自然生态</button>
+            </div>
+          </div>
+          <div class="info-box">
+            <b>🌱 生物多样性价值：</b><br>
+            物种多样性指数越高，生态系统的自我调节与抵抗外来病虫害能力越强。保护草地与微型生态位是维护地球生命之网的关键。
+          </div>
+        `;
+      }
+    }
+
+    function setKeyBranch(step) { keyStep = step; renderControls(); }
+    function resetKey() { keyStep = 0; renderControls(); }
+
+    function setTrait(key, val) {
+      traits[key] = val;
+      renderControls();
+    }
+    function randomizeTraits() {
+      traits.eyelid = Math.random() > 0.5 ? 1 : 0;
+      traits.earlobe = Math.random() > 0.5 ? 1 : 0;
+      traits.hairline = Math.random() > 0.5 ? 1 : 0;
+      traits.hair = Math.random() > 0.5 ? 1 : 0;
+      traits.tongue = Math.random() > 0.5 ? 1 : 0;
+      renderControls();
+    }
+    function resetTraits() {
+      traits.eyelid = 1; traits.earlobe = 1; traits.hairline = 1; traits.hair = 0; traits.tongue = 1;
+      renderControls();
+    }
+
+    function updateDisturbance(val) {
+      disturbance = parseInt(val);
+      document.getElementById('disturbVal').innerText = val + '%';
+      // 根据干扰移除部分弱抗性物种个体
+      const keepRatio = 1 - (disturbance / 140);
+      initQuadrat();
+      quadratSpecies = quadratSpecies.filter(() => Math.random() < keepRatio);
+      renderControls();
+    }
+    function clearPesticide() {
+      disturbance = 0;
+      initQuadrat();
+      renderControls();
+    }
+
+    // --- 绘制循环 ---
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (currentLab === 'key') {
+        drawKeyLab();
+      } else if (currentLab === 'genetics') {
+        drawGeneticsLab();
+      } else {
+        drawQuadratLab();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    function drawKeyLab() {
+      // 绘制二歧分类交互树图
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 15px -apple-system, sans-serif';
+      ctx.fillText('🌿 常见动植物二歧分类检索树 (Dichotomous Key)', 24, 32);
+
+      // 树根
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+
+      // 根节点
+      drawTreeNode(120, 260, '生物界界限', '#64748b');
+
+      // 分支1: 动物 vs 植物
+      drawTreeBranch(120, 260, 260, 150, '能自由运动/异养 (动物界)');
+      drawTreeBranch(120, 260, 260, 370, '自养光合作用 (植物界)');
+      drawTreeNode(260, 150, '动物界', '#38bdf8');
+      drawTreeNode(260, 370, '植物界', '#10b981');
+
+      if (keyStep >= 1) {
+        // 动物二歧分支: 脊椎 vs 无脊椎
+        drawTreeBranch(260, 150, 420, 90, '有脊柱骨 (脊椎动物)');
+        drawTreeBranch(260, 150, 420, 200, '无脊柱骨 (无脊椎动物)');
+        drawTreeNode(420, 90, '脊椎动物', '#60a5fa');
+        drawTreeNode(420, 200, '无脊椎动物', '#a78bfa');
+
+        // 植物二歧分支: 开花/种子 vs 孢子/蕨类
+        drawTreeBranch(260, 370, 420, 310, '产生种子繁育');
+        drawTreeBranch(260, 370, 420, 430, '孢子繁殖无种子');
+        drawTreeNode(420, 310, '种子植物', '#34d399');
+        drawTreeNode(420, 430, '孢子植物', '#fbbf24');
+      }
+
+      if (keyStep >= 2) {
+        // 终极物种节点
+        // 脊椎 -> 恒温/变温
+        drawTreeBranch(420, 90, 600, 60, '体温恒定/羽毛 -> 🕊️ 家鸽');
+        drawTreeBranch(420, 90, 600, 110, '变温水生/鳃呼吸 -> 🐟 鲫鱼');
+        // 无脊椎 -> 昆虫
+        drawTreeBranch(420, 200, 600, 180, '体表外骨骼/3对足 -> 🐝 蜜蜂');
+        drawTreeBranch(420, 200, 600, 220, '环节身体无足 -> 🪱 蚯蚓');
+
+        // 种子 -> 木本/草本
+        drawTreeBranch(420, 310, 600, 290, '多年生木本/裸子 -> 🌲 银杏');
+        drawTreeBranch(420, 310, 600, 340, '一年生草本/被子 -> 🌾 水稻 / 🌻 向日葵');
+        // 孢子 -> 蕨类
+        drawTreeBranch(420, 430, 600, 420, '具根茎叶维管束 -> 🌿 肾蕨');
+      }
+    }
+
+    function drawTreeNode(x, y, text, color) {
+      ctx.beginPath();
+      ctx.arc(x, y, 14, 0, Math.PI*2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 12px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(text, x, y + 26);
+    }
+
+    function drawTreeBranch(x1, y1, x2, y2, label) {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // label
+      const mx = (x1 + x2) / 2;
+      const my = (y1 + y2) / 2;
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, mx, my - 6);
+    }
+
+    function drawGeneticsLab() {
+      // 绘制人脸与性状表现型实时矢量图
+      ctx.fillStyle = '#0b111e';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 15px -apple-system, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('👤 5 对人类相对性状多维组合基因型表现图谱', 24, 32);
+
+      const cx = 400;
+      const cy = 270;
+
+      // 1. 头颅轮廓
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 110, 140, 0, 0, Math.PI * 2);
+      ctx.fillStyle = '#fed7aa'; // 肤色
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#ea580c';
+      ctx.stroke();
+
+      // 2. 发型与发际线 (hairline: 1=V型尖, 0=平发际; hair: 1=卷发, 0=直发)
+      ctx.fillStyle = '#1e1b4b'; // 黑发
+      ctx.beginPath();
+      if (traits.hairline === 1) {
+        // V形发际
+        ctx.moveTo(cx - 100, cy - 60);
+        ctx.quadraticCurveTo(cx - 50, cy - 100, cx, cy - 60);
+        ctx.quadraticCurveTo(cx + 50, cy - 100, cx + 100, cy - 60);
+        ctx.bezierCurveTo(cx + 120, cy - 160, cx - 120, cy - 160, cx - 100, cy - 60);
+      } else {
+        // 平发际
+        ctx.moveTo(cx - 100, cy - 60);
+        ctx.quadraticCurveTo(cx, cy - 85, cx + 100, cy - 60);
+        ctx.bezierCurveTo(cx + 120, cy - 160, cx - 120, cy - 160, cx - 100, cy - 60);
+      }
+      ctx.fill();
+
+      // 卷发装饰波浪
+      if (traits.hair === 1) {
+        ctx.strokeStyle = '#312e81';
+        ctx.lineWidth = 4;
+        for (let i = -80; i <= 80; i += 20) {
+          ctx.beginPath();
+          ctx.arc(cx + i, cy - 120 + Math.sin(i)*5, 12, 0, Math.PI);
+          ctx.stroke();
+        }
+      }
+
+      // 3. 耳朵与耳垂 (earlobe: 1=有耳垂, 0=无紧贴)
+      // 左耳
+      ctx.beginPath();
+      ctx.moveTo(cx - 110, cy - 20);
+      ctx.bezierCurveTo(cx - 135, cy - 10, cx - 135, cy + 30, cx - 110, cy + (traits.earlobe === 1 ? 40 : 25));
+      ctx.fillStyle = '#fed7aa';
+      ctx.fill();
+      ctx.strokeStyle = '#ea580c';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 右耳
+      ctx.beginPath();
+      ctx.moveTo(cx + 110, cy - 20);
+      ctx.bezierCurveTo(cx + 135, cy - 10, cx + 135, cy + 30, cx + 110, cy + (traits.earlobe === 1 ? 40 : 25));
+      ctx.fillStyle = '#fed7aa';
+      ctx.fill();
+      ctx.stroke();
+
+      // 4. 眉毛
+      ctx.strokeStyle = '#431407';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx - 45, cy - 25, 20, Math.PI * 1.1, Math.PI * 1.8);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx + 45, cy - 25, 20, Math.PI * 1.2, Math.PI * 1.9);
+      ctx.stroke();
+
+      // 5. 眼睛与眼皮 (eyelid: 1=双眼皮折痕, 0=单眼皮)
+      // 左眼
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.ellipse(cx - 45, cy - 10, 16, 9, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(cx - 45, cy - 10, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 右眼
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.ellipse(cx + 45, cy - 10, 16, 9, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(cx + 45, cy - 10, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 双眼皮折线
+      if (traits.eyelid === 1) {
+        ctx.strokeStyle = '#c2410c';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx - 45, cy - 14, 18, Math.PI * 1.15, Math.PI * 1.85);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx + 45, cy - 14, 18, Math.PI * 1.15, Math.PI * 1.85);
+        ctx.stroke();
+      }
+
+      // 6. 鼻子
+      ctx.strokeStyle = '#c2410c';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 10);
+      ctx.lineTo(cx - 5, cy + 25);
+      ctx.lineTo(cx + 6, cy + 25);
+      ctx.stroke();
+
+      // 7. 嘴巴与舌头 (tongue: 1=卷舌U型, 0=伸平或闭嘴)
+      ctx.beginPath();
+      ctx.arc(cx, cy + 55, 22, 0.2, Math.PI - 0.2);
+      ctx.strokeStyle = '#b91c1c';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      if (traits.tongue === 1) {
+        // U型卷舌吐出
+        ctx.fillStyle = '#f43f5e';
+        ctx.beginPath();
+        ctx.moveTo(cx - 10, cy + 62);
+        ctx.quadraticCurveTo(cx - 12, cy + 85, cx, cy + 85);
+        ctx.quadraticCurveTo(cx + 12, cy + 85, cx + 10, cy + 62);
+        ctx.fill();
+        ctx.strokeStyle = '#9f1239';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        // 卷舌凹陷中缝
+        ctx.beginPath();
+        ctx.moveTo(cx, cy + 65);
+        ctx.lineTo(cx, cy + 80);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+
+      // 标注 5 项当前性状指示卡片
+      const tags = [
+        { name: '眼皮表现', val: traits.eyelid ? '双眼皮 (显性)' : '单眼皮 (隐性)', x: 140, y: 140 },
+        { name: '发际线', val: traits.hairline ? '前额V形尖' : '平平发际', x: 140, y: 220 },
+        { name: '耳垂发育', val: traits.earlobe ? '游离大耳垂' : '贴附无耳垂', x: 140, y: 300 },
+        { name: '发质曲度', val: traits.hair ? '天然卷发' : '天然直发', x: 660, y: 180 },
+        { name: '卷舌能力', val: traits.tongue ? '能卷舌成U型' : '平舌不能卷', x: 660, y: 260 }
+      ];
+
+      tags.forEach(t => {
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1;
+        ctx.fillRect(t.x - 70, t.y - 20, 140, 42);
+        ctx.strokeRect(t.x - 70, t.y - 20, 140, 42);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(t.name, t.x, t.y - 4);
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 12px -apple-system, sans-serif';
+        ctx.fillText(t.val, t.x, t.y + 13);
+      });
+    }
+
+    function drawQuadratLab() {
+      // 绘制样方生态图
+      ctx.fillStyle = '#064e3b';
+      ctx.fillRect(60, 40, 680, 440);
+
+      // 样方格网 1m x 1m 划分 10x10 小格
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 10; i++) {
+        const x = 60 + i * 68;
+        ctx.beginPath(); ctx.moveTo(x, 40); ctx.lineTo(x, 480); ctx.stroke();
+        const y = 40 + i * 44;
+        ctx.beginPath(); ctx.moveTo(60, y); ctx.lineTo(740, y); ctx.stroke();
+      }
+
+      // 边框 (样方木框)
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(60, 40, 680, 440);
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 13px -apple-system, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('1.0 米标准草地样方木框 (1m × 1m Quadrat)', 75, 30);
+
+      // 绘制样方内生物个体
+      quadratSpecies.forEach(s => {
+        s.x += s.vx;
+        s.y += s.vy;
+        if (s.x < 70 || s.x > 730) s.vx *= -1;
+        if (s.y < 50 || s.y > 470) s.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = s.color;
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+
+      // 图例
+      const legends = [
+        { name: '蒲公英', color: '#f59e0b' },
+        { name: '车前草', color: '#10b981' },
+        { name: '酢浆草', color: '#34d399' },
+        { name: '狗尾草', color: '#84cc16' },
+        { name: '七星瓢虫', color: '#ef4444' },
+        { name: '蚯蚓',   color: '#d97706' }
+      ];
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.fillRect(75, 430, 650, 36);
+      ctx.strokeStyle = '#334155';
+      ctx.strokeRect(75, 430, 650, 36);
+
+      legends.forEach((leg, idx) => {
+        const lx = 90 + idx * 105;
+        const ly = 448;
+        ctx.beginPath();
+        ctx.arc(lx, ly, 6, 0, Math.PI*2);
+        ctx.fillStyle = leg.color;
+        ctx.fill();
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(leg.name, lx + 10, ly + 4);
+      });
+    }
+
+    renderControls();
+    draw();
+  </script>
+</body>
+</html>

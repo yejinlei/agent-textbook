@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学大师级实验室：二氧化碳气体生成、检验与阶梯蜡烛灭火全景实验台（产生新物质核心）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #10b981;
+      --accent: #f59e0b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1240px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #10b981;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-primary {
+      background: linear-gradient(135deg, #059669, #047857);
+      border-color: #10b981;
+      color: #ffffff;
+      font-weight: 700;
+    }
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .mode-tab {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--muted);
+      border: none;
+      background: transparent;
+      transition: all 0.2s;
+    }
+    .mode-tab.active {
+      background: var(--primary);
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .main-container {
+      max-width: 1240px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 960px) {
+      .main-container { grid-template-columns: 1fr; }
+    }
+
+    .canvas-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .canvas-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.4);
+    }
+    .canvas-wrapper {
+      position: relative;
+      flex: 1;
+      min-height: 520px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 50%, #102422 0%, #060e0d 100%);
+    }
+    canvas { display: block; }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #34d399;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .form-group { margin-bottom: 12px; }
+    .telemetry-card {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.75rem;
+      color: #38bdf8;
+      line-height: 1.5;
+      min-height: 95px;
+    }
+    .science-tip {
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      background: rgba(30, 41, 59, 0.5);
+      border-left: 3px solid #10b981;
+      padding: 8px 10px;
+      border-radius: 0 8px 8px 0;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>🏆 二氧化碳气体生成、检验与阶梯灭火全景实验台</h1>
+      <span class="badge">六下产生新物质·化学核心</span>
+    </div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabGen" onclick="switchMode('generate')">🧪 小苏打与白醋反应生纯气</button>
+      <button class="mode-tab" id="tabExt" onclick="switchMode('extinguish')">🕯️ 倾倒气体阶梯蜡烛熄灭</button>
+      <button class="mode-tab" id="tabLime" onclick="switchMode('limewater')">🥛 澄清石灰水变浑浊鉴别</button>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html" class="btn">← 返回大厅</a>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="canvas-panel">
+      <div class="canvas-header">
+        <span id="canvasTitle">🧪 小苏打与白醋剧烈化学反应产生二氧化碳气体</span>
+        <span style="color: var(--muted); font-size: 0.75rem;">化学反应微观气泡动力学 · 气体密度物理场</span>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="simCanvas" width="840" height="520"></canvas>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="card" id="ctrlCard">
+        <!-- Injected -->
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 化学反应与热力学遥测读数</div>
+        <div class="telemetry-card" id="telem">
+          初始化中...
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📖 科学家视角与学科大概念</div>
+        <div class="science-tip" id="scienceTip">
+          化学变化的本质是伴随新物质的生成。小苏打（碳酸氢钠）与白醋（醋酸）剧烈反应产生大量二氧化碳气体和醋酸钠，同时吸热导致溶液变凉。二氧化碳无色无味、密度比空气大、不能燃烧也不支持燃烧，通入澄清石灰水会产生碳酸钙白色沉淀。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    const telem = document.getElementById('telem');
+    const ctrlCard = document.getElementById('ctrlCard');
+    const canvasTitle = document.getElementById('canvasTitle');
+
+    let currentMode = 'generate'; // generate, extinguish, limewater
+
+    // State: Generate
+    let vinegarAdded = false;
+    let reactionTime = 0;
+    let gasBubbles = [];
+
+    // State: Extinguish
+    let co2Pouring = false;
+    let pourProgress = 0; // 0 to 1
+    let candleLowLit = true;
+    let candleHighLit = true;
+
+    // State: Limewater
+    let gasBubblingLime = false;
+    let turbidity = 0; // 0 clear -> 1 milky
+
+    function switchMode(m) {
+      currentMode = m;
+      document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+      if (m === 'generate') document.getElementById('tabGen').classList.add('active');
+      if (m === 'extinguish') document.getElementById('tabExt').classList.add('active');
+      if (m === 'limewater') document.getElementById('tabLime').classList.add('active');
+      renderSidebar();
+    }
+
+    function renderSidebar() {
+      if (currentMode === 'generate') {
+        canvasTitle.textContent = '🧪 小苏打与白醋剧烈化学反应产生二氧化碳气体';
+        ctrlCard.innerHTML = `
+          <div class="card-title">🥄 试剂添加与反应控制</div>
+          <p style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">观察烧瓶中小苏打与白醋剧烈反应冒出大量白色气泡并吸热降温！</p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn btn-primary" onclick="addVinegar()">🍶 倒入 50 mL 白醋启动剧烈反应</button>
+            <button class="btn" onclick="resetGen()">🔄 清洗烧瓶并重填小苏打</button>
+          </div>
+        `;
+      } else if (currentMode === 'extinguish') {
+        canvasTitle.textContent = '🕯️ 阶梯蜡烛熄灭受控实验（二氧化碳密度比空气大且不助燃）';
+        ctrlCard.innerHTML = `
+          <div class="card-title">🫗 二氧化碳倾倒操作</div>
+          <p style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">将集满二氧化碳的集气瓶沿烧杯壁缓缓倾倒，观察高低两支蜡烛的熄灭先后顺序！</p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn btn-primary" onclick="pourCO2()">🫗 沿烧杯壁缓缓倒入二氧化碳</button>
+            <button class="btn" onclick="resetExtinguish()">🔥 重新点燃高低两支蜡烛</button>
+          </div>
+        `;
+      } else if (currentMode === 'limewater') {
+        canvasTitle.textContent = '🥛 导气管通入澄清石灰水鉴别二氧化碳（变浑浊）';
+        ctrlCard.innerHTML = `
+          <div class="card-title">🫧 导气管通气测试</div>
+          <p style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">将反应生成的气体通入澄清石灰水（氢氧化钙溶液），验证生成碳酸钙沉淀！</p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn btn-primary" onclick="startLimeBubbling()">🫧 持续通入反应生成的气体</button>
+            <button class="btn" onclick="resetLimewater()">🔄 换取全新澄清透明石灰水</button>
+          </div>
+        `;
+      }
+    }
+
+    function addVinegar() {
+      vinegarAdded = true;
+      reactionTime = 0;
+      gasBubbles = [];
+      for (let i = 0; i < 70; i++) {
+        gasBubbles.push({
+          x: 380 + (Math.random() - 0.5) * 80,
+          y: 350 + Math.random() * 40,
+          vy: -1.5 - Math.random() * 2.5,
+          r: 2 + Math.random() * 3
+        });
+      }
+    }
+    function resetGen() {
+      vinegarAdded = false;
+      reactionTime = 0;
+      gasBubbles = [];
+    }
+
+    function pourCO2() {
+      co2Pouring = true;
+      pourProgress = 0;
+    }
+    function resetExtinguish() {
+      co2Pouring = false;
+      pourProgress = 0;
+      candleLowLit = true;
+      candleHighLit = true;
+    }
+
+    function startLimeBubbling() {
+      gasBubblingLime = true;
+    }
+    function resetLimewater() {
+      gasBubblingLime = false;
+      turbidity = 0;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (currentMode === 'generate') {
+        drawGenerate();
+      } else if (currentMode === 'extinguish') {
+        drawExtinguish();
+      } else if (currentMode === 'limewater') {
+        drawLimewater();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    // --- Mode 1: Generate ---
+    function drawGenerate() {
+      const cx = 400, cy = 250;
+
+      // Flask Body
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.12)';
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(cx - 30, cy - 140);
+      ctx.lineTo(cx + 30, cy - 140);
+      ctx.lineTo(cx + 30, cy - 50);
+      ctx.lineTo(cx + 120, cy + 140);
+      ctx.lineTo(cx - 120, cy + 140);
+      ctx.lineTo(cx - 30, cy - 50);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      // Liquid & Powder
+      ctx.fillStyle = vinegarAdded ? 'rgba(203, 213, 225, 0.4)' : '#f8fafc';
+      ctx.fillRect(cx - 110, cy + 70, 220, 68);
+
+      // Powder mound
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 130, 80, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Bubbles
+      if (vinegarAdded) {
+        reactionTime += 0.015;
+        gasBubbles.forEach(b => {
+          b.y += b.vy;
+          if (b.y < cy - 40) {
+            b.y = cy + 120;
+            b.x = cx + (Math.random() - 0.5) * 160;
+          }
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      // Gas overflow out of neck
+      if (vinegarAdded && reactionTime > 0.2) {
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.25)';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy - 145, 45, 18, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#34d399'; ctx.font = 'bold 13px sans-serif';
+        ctx.fillText('☁️ 二氧化碳溢出 (CO₂)', cx + 45, cy - 150);
+      }
+
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 15px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(vinegarAdded ? '⚡ 剧烈化学反应中！小苏打 + 白醋 ➔ 二氧化碳(气体) + 水 + 醋酸钠(吸热降温)' : '待反应：烧瓶底部盛有纯白小苏打粉末', cx, 60);
+      ctx.textAlign = 'left';
+
+      telem.innerHTML = `
+[化学反应宏观遥测]
+• 反应物: 碳酸氢钠 (小苏打粉末) + 醋酸 (白醋水溶液)
+• 反应剧烈度: ${vinegarAdded ? '⚡ 剧烈沸腾产生大量无色气泡' : '待反应'}
+• 体系温度变化: ${vinegarAdded ? '21.5 °C ➔ 16.2 °C (特征吸热化学反应，手摸瓶壁明显冰凉！)' : '21.5 °C (室温)'}
+• 化学反应本质: 生成了新物质（二氧化碳气体），属于不可逆化学变化。
+      `.trim();
+    }
+
+    // --- Mode 2: Extinguish ---
+    function drawExtinguish() {
+      const cx = 420, cy = 250;
+
+      // Large Beaker
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.08)';
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+      ctx.strokeRect(cx - 140, cy - 90, 280, 240);
+
+      // Low Candle (Right)
+      const lowX = cx + 50, lowY = cy + 100;
+      ctx.fillStyle = '#e2e8f0'; ctx.fillRect(lowX - 10, lowY - 40, 20, 80);
+      if (candleLowLit) {
+        ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.ellipse(lowX, lowY - 55, 7, 15, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.ellipse(lowX, lowY - 52, 4, 8, 0, 0, Math.PI*2); ctx.fill();
+      }
+
+      // High Candle (Left, on pedestal)
+      const highX = cx - 50, highY = cy + 20;
+      ctx.fillStyle = '#475569'; ctx.fillRect(highX - 25, highY + 40, 50, 80); // pedestal
+      ctx.fillStyle = '#e2e8f0'; ctx.fillRect(highX - 10, highY - 40, 20, 80);
+      if (candleHighLit) {
+        ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.ellipse(highX, highY - 55, 7, 15, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.ellipse(highX, highY - 52, 4, 8, 0, 0, Math.PI*2); ctx.fill();
+      }
+
+      // Pouring Gas Flow
+      if (co2Pouring) {
+        pourProgress += 0.008;
+
+        // Gas Layer rising from bottom of beaker!
+        const gasH = Math.min(230, pourProgress * 280);
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
+        ctx.fillRect(cx - 138, cy + 150 - gasH, 276, gasH);
+
+        // Bottle tilted
+        ctx.save();
+        ctx.translate(cx - 180, cy - 120);
+        ctx.rotate(0.5);
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(-25, -50, 50, 100);
+        ctx.restore();
+
+        // Extinguish events
+        if (gasH > 60 && candleLowLit) {
+          candleLowLit = false;
+        }
+        if (gasH > 150 && candleHighLit) {
+          candleHighLit = false;
+        }
+      }
+
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      if (!candleLowLit && candleHighLit) {
+        ctx.fillText('⚡ 震撼物理现象：【低处蜡烛先熄灭！】高处蜡烛仍在燃烧！', cx, 50);
+      } else if (!candleLowLit && !candleHighLit) {
+        ctx.fillText('✨ 随后【高处蜡烛接着熄灭！】证明二氧化碳像水一样从底部向上积聚！', cx, 50);
+      } else {
+        ctx.fillText('点击右侧按钮“缓缓倒入二氧化碳”，观察经典阶梯蜡烛熄灭顺序！', cx, 50);
+      }
+      ctx.textAlign = 'left';
+
+      telem.innerHTML = `
+[阶梯灭火物理遥测]
+• 低处蜡烛状态: ${candleLowLit ? '🔥 燃烧中' : '💨 先熄灭！'}
+• 高处蜡烛状态: ${candleHighLit ? '🔥 燃烧中' : '💨 随后熄灭！'}
+• 灭火原因剖析: 
+  ① 二氧化碳相对分子质量 44，比空气(29)密度明显更大，因此像水一样先在烧杯底部沉积；
+  ② 二氧化碳不能燃烧且不支持燃烧，沉入底部的气体隔绝氧气，导致低处的蜡烛先窒息熄灭！
+      `.trim();
+    }
+
+    // --- Mode 3: Limewater ---
+    function drawLimewater() {
+      const cx = 420, cy = 250;
+
+      if (gasBubblingLime && turbidity < 1) {
+        turbidity += 0.006;
+      }
+
+      // Test Tube with Limewater
+      ctx.fillStyle = `rgba(${255*turbidity + 56*(1-turbidity)}, ${255*turbidity + 189*(1-turbidity)}, ${255*turbidity + 248*(1-turbidity)}, ${0.15 + turbidity*0.75})`;
+      ctx.beginPath();
+      ctx.roundRect(cx - 50, cy - 80, 100, 240, [0, 0, 50, 50]);
+      ctx.fill();
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Delivery Tube
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(180, cy - 140);
+      ctx.lineTo(cx, cy - 140);
+      ctx.lineTo(cx, cy + 80);
+      ctx.stroke();
+
+      // Bubbles from tube tip
+      if (gasBubblingLime) {
+        for (let i = 0; i < 6; i++) {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+          ctx.beginPath();
+          ctx.arc(cx + (Math.random() - 0.5) * 16, cy + 60 - i * 25, 4 + Math.random()*2, 0, Math.PI*2);
+          ctx.fill();
+        }
+      }
+
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(turbidity > 0.5 ? '🥛 澄清石灰水生成碳酸钙沉淀，变得像牛奶一样浑浊！' : '澄清石灰水（氢氧化钙溶液）待通气鉴别', cx, 50);
+      ctx.textAlign = 'left';
+
+      telem.innerHTML = `
+[石灰水化学反应遥测]
+• 液体浑浊度: ${(turbidity * 100).toFixed(0)}% (${turbidity > 0.7 ? '乳白牛奶状悬浊液' : '轻微乳光'})
+• 化学反应方程式: Ca(OH)₂ (澄清石灰水) + CO₂ ➔ CaCO₃↓ (碳酸钙白色沉淀) + H₂O
+• 鉴别特征: 澄清石灰水变浑浊是小学科学鉴别二氧化碳气体的标志性化学实验证据！
+      `.trim();
+    }
+
+    renderSidebar();
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>

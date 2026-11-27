@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【测量肺活量】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(16, 185, 129, 0.15); color: var(--green); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(16, 185, 129, 0.08);
+            border-left: 3px solid var(--green);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--green); cursor: pointer; }
+        .btn {
+            background: var(--green);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--green);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 测量肺活量 <span class="badge">四年级上册 · 呼吸与消化</span></h2>
+            <p>教科版科学原书人体生理真实验 · 拒绝伪仿真</p>
+        </div>
+        <a href="g1s1_reaction_time.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 呼吸消化与生理动力学实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 人体生理器官动态解剖交互</span>
+                <span>🎧 Web Audio 拟真呼吸/心跳/水泡声效</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：简易排水集气肺活量测量：深吸一口气含住吹嘴全力吹气，观察吹入的气体将倒扣刻度集气瓶内的水向下排空，精确读出肺活量毫升数值！</div>
+            
+        <div class="c-group">
+            <button class="btn" id="btnBreatheIn">🫁 1. 深度吸饱一口气</button>
+            <button class="btn btn-sec" id="btnBlowOut">💨 2. 全力吹出气体 (排水测量)</button>
+            <button class="btn btn-sec" id="btnResetSpiro">↺ 重新注入水复位</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [肺活量计就绪] 集气瓶注满水 (4000 mL 刻度)<br>
+            [当前吹出气体] 0 mL<br>
+            [等级评价] 请深吸一口气后全力吹气！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.15, vol=0.08) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        function playBreath(isInhale=true) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const dur = 0.6;
+                const bufferSize = audioCtx.sampleRate * dur;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(isInhale ? 400 : 250, audioCtx.currentTime);
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+                noise.start();
+            } catch(e){}
+        }
+        function playHeartbeat() {
+            playTone(80, 'sine', 0.12, 0.15);
+            setTimeout(() => playTone(65, 'sine', 0.12, 0.12), 160);
+        }
+        
+        let blown = 0;
+        let ready = false;
+        let blowing = false;
+        const telem = document.getElementById('telem');
+
+        document.getElementById('btnBreatheIn').addEventListener('click', () => {
+            ready = true;
+            playBreath(true);
+            telem.innerHTML = '[状态] 已深吸一口气准备完毕！请点击“全力吹出气体”！';
+        });
+        document.getElementById('btnBlowOut').addEventListener('click', () => {
+            if(!ready) { alert('请先点击深度吸饱气！'); return; }
+            blowing = true;
+            playBreath(false);
+            let target = 2400 + Math.random() * 600;
+            let timer = setInterval(() => {
+                blown += 80;
+                if(blown >= target) {
+                    clearInterval(timer); blowing = false; ready = false;
+                    let rank = blown > 2600 ? "🌟 优秀 (肺功能强健)" : "良好";
+                    telem.innerHTML = `[实测肺活量] ${blown.toFixed(0)} mL<br>[健康评价] ${rank}<br>[大概念] 经常参加体育锻炼能显著增强肺通气量！`;
+                }
+            }, 50);
+        });
+        document.getElementById('btnResetSpiro').addEventListener('click', () => {
+            blown = 0; ready = false; blowing = false;
+            playTone(400, 'sine', 0.1);
+            telem.innerHTML = '[状态] 集气瓶重新灌满水，待机中。';
+        });
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            // Water Tank
+            ctx.fillStyle = 'rgba(14, 165, 233, 0.25)';
+            ctx.fillRect(100, 280, w - 200, 100);
+            ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+            ctx.strokeRect(100, 280, w - 200, 100);
+
+            // Inverted Graduated Bottle
+            const bX = w/2 - 60, bY = 70, bW = 120, bH = 260;
+            ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 3;
+            ctx.strokeRect(bX, bY, bW, bH);
+
+            // Water level inside bottle (drops as blown increases)
+            const airH = Math.min(bH - 20, (blown / 3500) * (bH - 20));
+            // Air pocket at top
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.fillRect(bX, bY, bW, airH);
+            // Remaining water below
+            ctx.fillStyle = 'rgba(14, 165, 233, 0.7)';
+            ctx.fillRect(bX, bY + airH, bW, bH - airH);
+
+            // Graduated Scale Lines
+            for(let ml=500; ml<=3500; ml+=500) {
+                const sY = bY + (ml / 3500) * (bH - 20);
+                ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.moveTo(bX, sY); ctx.lineTo(bX + 15, sY); ctx.stroke();
+                ctx.fillStyle = '#cbd5e1'; ctx.font = '10px monospace';
+                ctx.fillText(ml + 'ml', bX + 20, sY + 3);
+            }
+
+            // Blowing tube
+            ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(w/2 - 160, 310);
+            ctx.lineTo(w/2 - 20, 310);
+            ctx.lineTo(w/2 - 20, bY + airH);
+            ctx.stroke();
+
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

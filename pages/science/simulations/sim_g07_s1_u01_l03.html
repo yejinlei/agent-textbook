@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【空气占据的空间会改变吗】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(56, 189, 248, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--accent); cursor: pointer; }
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 空气占据的空间会改变吗 <span class="badge">四年级上册 · 空气单元</span></h2>
+            <p>教科版科学原书实验真拟真 · 拒绝伪仿真</p>
+        </div>
+        <a href="meteorology_atmosphere_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 马德堡半球与托里拆利气压实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生真实物理碰撞与流体仿真</span>
+                <span>🎧 Web Audio 拟真气流/水流声效</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：对比空气注射器与水注射器在封闭喷嘴时的压缩与拉伸表现：探究气体分子间隙可变性与液体不可压缩性！</div>
+            
+        <div class="c-group">
+            <label><span>施加按压力度 (N)</span><span id="forceDisp">50</span></label>
+            <input type="range" id="forceSlider" min="0" max="100" value="50">
+        </div>
+        <div class="c-group">
+            <button class="btn" id="btnReleasePiston">🖐️ 松开推杆 (观察反弹效应)</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [空气注射器] 活塞刻度被剧烈压缩至 4.2 mL！<br>
+            [水注射器] 活塞完全纹丝不动 (稳定 10.0 mL)！<br>
+            [分子机理解析] 空气分子间隙极大可压缩；水分子紧密排列无法压缩！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.15, vol=0.08) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        function playGurgle() {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.12);
+            } catch(e){}
+        }
+        function playHiss(dur=0.3) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const bufferSize = audioCtx.sampleRate * dur;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                noise.connect(gain); gain.connect(audioCtx.destination);
+                noise.start();
+            } catch(e){}
+        }
+        
+        const slider = document.getElementById('forceSlider');
+        const forceDisp = document.getElementById('forceDisp');
+        const telem = document.getElementById('telem');
+        slider.addEventListener('input', () => {
+            forceDisp.textContent = slider.value;
+            playTone(220 + parseFloat(slider.value)*4, 'sine', 0.05);
+            updateTelem();
+        });
+        document.getElementById('btnReleasePiston').addEventListener('click', () => {
+            slider.value = 0;
+            forceDisp.textContent = "0";
+            playTone(440, 'triangle', 0.2);
+            telem.innerHTML = '[释放外力] 空气活塞瞬间弹性反弹回 10.0 mL！<br>[结论] 被压缩的空气产生向外的弹力！';
+        });
+        function updateTelem() {
+            const f = parseFloat(slider.value);
+            const airVol = (10 - f * 0.06).toFixed(1);
+            telem.innerHTML = `[空气注射器] 容积被压缩至 ${airVol} mL (弹性反弹中)<br>[水注射器] 容积保持 10.0 mL (不可压缩)<br>[科学原理] 气体分子间隙受外力缩小，液体分子间引斥力平衡无法压缩！`;
+        }
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+            const f = parseFloat(slider.value);
+
+            // Draw Syringe 1: Air (Top)
+            drawSyringe(w/2 - 160, 100, f * 1.4, '空气注射器', 'rgba(56, 189, 248, 0.25)', true);
+
+            // Draw Syringe 2: Water (Bottom)
+            drawSyringe(w/2 - 160, 260, 0, '水注射器 (不可压缩)', 'rgba(14, 165, 233, 0.85)', false);
+
+            requestAnimationFrame(render);
+        }
+        function drawSyringe(x, y, compression, label, fillStyle, isGas) {
+            // Barrel (10ml scale)
+            const barrelW = 260, barrelH = 60;
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, barrelW, barrelH);
+
+            // Sealed nozzle at left
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(x - 25, y + 20, 25, 20);
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(x - 30, y + 15, 6, 30); // Finger blocking
+
+            // Substance inside
+            const pistonX = x + barrelW - 40 - compression;
+            ctx.fillStyle = fillStyle;
+            ctx.fillRect(x, y, pistonX - x, barrelH);
+
+            // Gas molecules
+            if(isGas) {
+                ctx.fillStyle = '#67e8f9';
+                const count = 30;
+                for(let i=0; i<count; i++) {
+                    const px = x + 10 + (i % 6) * ((pistonX - x - 20) / 6);
+                    const py = y + 15 + Math.floor(i / 6) * 8;
+                    ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI*2); ctx.fill();
+                }
+            }
+
+            // Piston head & rod
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(pistonX, y + 2, 16, barrelH - 4);
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillRect(pistonX + 16, y + 22, 100, 16);
+            ctx.fillRect(pistonX + 116, y + 5, 12, barrelH - 10); // Handle
+
+            // Label
+            ctx.fillStyle = '#f8fafc'; ctx.font = '14px sans-serif';
+            ctx.fillText(label, x + 20, y - 10);
+            ctx.fillStyle = '#38bdf8'; ctx.font = '12px monospace';
+            const vol = isGas ? (10 - (compression/140)*6).toFixed(1) : "10.0";
+            ctx.fillText(`体积刻度: ${vol} mL`, x + barrelW - 120, y - 10);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

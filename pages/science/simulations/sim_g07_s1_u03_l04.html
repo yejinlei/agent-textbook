@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【乐器的声音变化】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(56, 189, 248, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--accent); cursor: pointer; }
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 乐器的声音变化 <span class="badge">四年级上册 · 声音单元</span></h2>
+            <p>教科版科学原书真实声学物理实验 · 拒绝伪仿真</p>
+        </div>
+        <a href="acoustics_oscilloscope.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 双通道声波示波器与音调实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生真实声学振动与物理波形仿真</span>
+                <span>🎧 Web Audio 真实音调与频谱生成</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：吉他琴弦音调调谐物理沙盒：探究琴弦粗细（粗弦低音 vs 细弦高音）与琴弦松紧度（旋钮拉紧音调飙升），体验真实调音师手感！</div>
+            
+        <div class="c-group">
+            <label><span>琴弦张力 (旋钮松紧)</span><span id="tensionDisp">标准张力</span></label>
+            <input type="range" id="tensionSlider" min="20" max="100" value="50">
+        </div>
+        <div class="c-group">
+            <button class="btn" id="btnPluckThin">🎸 拨动 1 弦 (细弦/高音)</button>
+            <button class="btn btn-sec" id="btnPluckThick">🎸 拨动 6 弦 (粗弦/重低音)</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [琴弦调谐] 旋钮拉力 50 N<br>
+            [1弦基频] 330 Hz (E4 细弦)<br>
+            [6弦基频] 82.4 Hz (E2 粗弦)<br>
+            [大概念] 弦越紧、越细、越短，振动越快，音调越高！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.3, vol=0.1) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        
+        let t = 0;
+        let v1 = 0, v6 = 0;
+        const slider = document.getElementById('tensionSlider');
+        const disp = document.getElementById('tensionDisp');
+        const telem = document.getElementById('telem');
+
+        slider.addEventListener('input', () => {
+            const ten = parseFloat(slider.value);
+            disp.textContent = ten > 70 ? '紧绷 (高音)' : (ten < 35 ? '松弛 (低沉)' : '标准张力');
+        });
+        document.getElementById('btnPluckThin').addEventListener('click', () => {
+            const ten = parseFloat(slider.value);
+            const freq = Math.round(200 + ten * 2.8);
+            v1 = 15;
+            playTone(freq, 'sawtooth', 0.6, 0.12);
+            telem.innerHTML = `[细弦拨响] 振动极快！频率 ${freq} Hz (清亮高音)<br>[张力影响] 旋钮越紧，回弹力越大，音调越高！`;
+        });
+        document.getElementById('btnPluckThick').addEventListener('click', () => {
+            const ten = parseFloat(slider.value);
+            const freq = Math.round(50 + ten * 0.8);
+            v6 = 25;
+            playTone(freq, 'triangle', 0.8, 0.2);
+            telem.innerHTML = `[粗弦拨响] 质量惯性大振动迟缓！频率 ${freq} Hz (深沉低音)<br>[粗细规律] 相同张力下粗弦音调远低于细弦！`;
+        });
+        function render() {
+            t += 0.1;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            // Guitar Fretboard & Headstock
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(80, 160, 460, 100);
+
+            // Frets
+            for(let x=120; x<500; x+=50) {
+                ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(x, 160); ctx.lineTo(x, 260); ctx.stroke();
+            }
+
+            // String 1 (Thin, at top)
+            const vibe1 = Math.sin(t*35) * v1;
+            ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(80, 180);
+            ctx.quadraticCurveTo(w/2, 180 + vibe1, 540, 180);
+            ctx.stroke();
+
+            // String 6 (Thick, at bottom)
+            const vibe6 = Math.sin(t*15) * v6;
+            ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 6;
+            ctx.beginPath(); ctx.moveTo(80, 240);
+            ctx.quadraticCurveTo(w/2, 240 + vibe6, 540, 240);
+            ctx.stroke();
+
+            v1 *= 0.95; v6 *= 0.95;
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【4. 身体的“总指挥”】真实验微仿真 - 六年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 4. 身体的“总指挥”</h1>
+        <span class="badge">六年级上册·第一单元《健康生活》</span>
+        <a href="g1s1_reaction_time.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 神经反射与心肺机能实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g11_s1_u01_l01.html" class="">生长发育的信息</a>
+<a href="sim_g11_s1_u01_l02.html" class="">食物中的营养</a>
+<a href="sim_g11_s1_u01_l03.html" class="">营养要均衡</a>
+<a href="sim_g11_s1_u01_l04.html" class="active">身体的“总指挥”</a>
+<a href="sim_g11_s1_u01_l05.html" class="">身体的“联络员”</a>
+<a href="sim_g11_s1_u01_l06.html" class="">管理我们的情绪</a>
+<a href="sim_g11_s1_u01_l07.html" class="">制订健康生活计划</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时科学数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：系统探索生长发育数据曲线、神经系统抓尺反应时测试与自主神经情绪心率调控。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "brain_hemispheres";
+
+        
+const state = {
+    reactionState: 'waiting', // waiting, dropped, caught
+    rulerY: 80,
+    startTime: 0,
+    reactionTimeMs: 0,
+    rulerCatchCm: 0,
+    heartRate: 75,
+    deepBreathing: false
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'reflex_reaction_time') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>神经反射抓尺子测试</span><span class="val">${state.reactionTimeMs>0?state.reactionTimeMs+' ms':'等待测试'}</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnDropRuler">📏 释放尺子 (随机下落)</button>
+                    <button class="btn btn-rose" id="btnCatchRuler">✋ 瞬间抓握! (测反应时)</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'emotion_heartbeat') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>情绪管理与深呼吸调节</span><span class="val" id="hrVal">${state.heartRate} bpm</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-rose" id="btnStress">⚡ 紧张与焦虑刺激 (心率飙升)</button>
+                    <button class="btn btn-green" id="btnBreathe">🧘 深呼吸放松训练 (心率平复)</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>健康生活多模态监测</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnBrain">🧠 大脑半球功能</button>
+                    <button class="btn btn-green" id="btnDiet">🥗 均衡饮食宝塔</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU1Events();
+}
+
+function bindU1Events() {
+    const btnDropRuler = document.getElementById('btnDropRuler');
+    if (btnDropRuler) btnDropRuler.onclick = () => {
+        state.reactionState = 'dropped';
+        state.rulerY = 80;
+        state.startTime = Date.now();
+        playTone(600, 0.1);
+    };
+    const btnCatchRuler = document.getElementById('btnCatchRuler');
+    if (btnCatchRuler) btnCatchRuler.onclick = () => {
+        if (state.reactionState === 'dropped') {
+            state.reactionState = 'caught';
+            state.reactionTimeMs = Date.now() - state.startTime;
+            state.rulerCatchCm = ((state.rulerY - 80) / 10).toFixed(1);
+            playTone(880, 0.2);
+            setupControls();
+        }
+    };
+
+    const btnStress = document.getElementById('btnStress');
+    if (btnStress) btnStress.onclick = () => {
+        state.heartRate = 125;
+        setupControls();
+        playTone(300, 0.2, 'sawtooth');
+    };
+    const btnBreathe = document.getElementById('btnBreathe');
+    if (btnBreathe) btnBreathe.onclick = () => {
+        state.heartRate = 72;
+        setupControls();
+        playTone(600, 0.3);
+    };
+
+    const btnBrain = document.getElementById('btnBrain');
+    if (btnBrain) btnBrain.onclick = () => { playTone(700, 0.1); };
+    const btnDiet = document.getElementById('btnDiet');
+    if (btnDiet) btnDiet.onclick = () => { playTone(600, 0.1); };
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'reflex_reaction_time') {
+        drawReactionTest();
+    } else if (activeMode === 'emotion_heartbeat') {
+        drawEmotionHeart();
+    } else if (activeMode === 'growth_data') {
+        drawGrowthData();
+    } else if (activeMode === 'food_nutrition') {
+        drawFoodNutrition();
+    } else if (activeMode === 'balanced_diet') {
+        drawBalancedDiet();
+    } else if (activeMode === 'brain_hemispheres') {
+        drawBrainHemispheres();
+    } else if (activeMode === 'health_plan') {
+        drawHealthPlan();
+    } else {
+        drawHealthOverview();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+function drawReactionTest() {
+    const cx = 360;
+
+    if (state.reactionState === 'dropped' && state.rulerY < 320) {
+        state.rulerY += 5.5; // falling speed
+    }
+
+    // Ruler falling
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(cx - 15, state.rulerY, 30, 240);
+    ctx.strokeStyle = '#ca8a04';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cx - 15, state.rulerY, 30, 240);
+
+    // Scale on ruler
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '10px monospace';
+    for (let cm = 0; cm <= 20; cm += 5) {
+        const ry = state.rulerY + cm * 11;
+        ctx.beginPath();
+        ctx.moveTo(cx - 15, ry); ctx.lineTo(cx - 3, ry); ctx.stroke();
+        ctx.fillText(cm + 'cm', cx + 2, ry + 3);
+    }
+
+    // Catcher Hand position at y=280
+    ctx.fillStyle = state.reactionState === 'caught' ? '#10b981' : '#f59e0b';
+    ctx.fillRect(cx - 45, 275, 25, 20); // Thumb
+    ctx.fillRect(cx + 20, 275, 25, 20); // Fingers
+    ctx.fillText('✋ 抓握手位', cx - 30, 315);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    if (state.reactionState === 'caught') {
+        ctx.fillText(`抓尺反应测试结果: 抓住刻度 ${state.rulerCatchCm} cm | 反应时间: ${state.reactionTimeMs} 毫秒!`, cx, 40);
+        ctx.fillStyle = '#10b981';
+        ctx.font = '14px sans-serif';
+        ctx.fillText('神经反射弧路径: 眼睛视网膜 -> 视神经 -> 脑神经中枢 -> 脊髓 -> 传出神经 -> 手部骨骼肌抓握', cx, 80);
+    } else {
+        ctx.fillText('神经系统反射时测试: 准备好后点击“释放尺子”，随即迅速点击“抓握”!', cx, 40);
+    }
+}
+
+function drawEmotionHeart() {
+    const cx = 360;
+    const cy = 220;
+
+    // Heart beating animation
+    const beatScale = 1 + Math.sin(Date.now() * 0.015 * (state.heartRate / 60)) * 0.15;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(beatScale, beatScale);
+
+    // Heart shape
+    ctx.fillStyle = state.heartRate > 100 ? '#dc2626' : '#ec4899';
+    ctx.beginPath();
+    ctx.moveTo(0, 15);
+    ctx.bezierCurveTo(-50, -40, -90, 20, 0, 80);
+    ctx.bezierCurveTo(90, 20, 50, -40, 0, 15);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+
+    // Pulse Waveform across bottom
+    ctx.strokeStyle = state.heartRate > 100 ? '#f43f5e' : '#10b981';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    const t = Date.now() * 0.005;
+    for (let x = 80; x < 640; x++) {
+        const y = 370 + Math.sin(x * 0.05 - t * state.heartRate * 0.1) * (state.heartRate > 100 ? 25 : 12);
+        if (x === 80) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`自主神经与心率监测: ${state.heartRate} 次/分 【${state.heartRate>100?'交感神经兴奋 (应激焦虑)':'副交感神经占优 (平稳放松)'}】`, cx, 40);
+}
+
+
+function drawGrowthData() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('📊 生长发育的信息: 青少年生长发育曲线 (身高/体重增长黄金期与BMI指数)', cx, 40);
+
+    // Coordinate grid
+    ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
+    ctx.strokeRect(100, 80, 520, 260);
+
+    // Grid lines
+    for (let y = 120; y <= 320; y += 40) {
+        ctx.beginPath(); ctx.moveTo(100, y); ctx.lineTo(620, y); ctx.stroke();
+    }
+
+    // Height Curve (Blue)
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(120, 310);
+    ctx.quadraticCurveTo(280, 290, 380, 180);
+    ctx.lineTo(600, 120);
+    ctx.stroke();
+
+    // Weight Curve (Green)
+    ctx.strokeStyle = '#10b981'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(120, 320);
+    ctx.quadraticCurveTo(300, 310, 420, 230);
+    ctx.lineTo(600, 160);
+    ctx.stroke();
+
+    ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('—— 身高增长曲线 (10~14岁迎来青春期生长突增高峰)', 280, 95);
+    ctx.fillStyle = '#10b981';
+    ctx.fillText('—— 体重增长曲线', 540, 95);
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillText('科学提示: 保证每日9~10小时充足睡眠、规律运动与均衡摄入营养是健康成长的三大基石', cx, 385);
+}
+
+function drawFoodNutrition() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🧪 食物中的营养: 鉴定淀粉、脂肪与蛋白质的三大经典显色鉴别实验', cx, 40);
+
+    const tests = [
+        { t: '1. 滴碘酒测淀粉', d: '马铃薯/米饭滴加碘酒\n立刻变为蓝紫色\n证明含有丰富淀粉', c: '#a855f7', x: 80 },
+        { t: '2. 白纸涂抹测脂肪', d: '花生/核桃在白纸挤压涂抹\n留下半透明油迹不散\n证明含有丰富脂肪', c: '#eab308', x: 280 },
+        { t: '3. 燃烧法测蛋白质', d: '燃烧瘦肉/蛋清/头发\n产生特殊烧焦羽毛气味\n证明富含蛋白质', c: '#f43f5e', x: 480 }
+    ];
+
+    tests.forEach(test => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(test.x, 80, 160, 260);
+        ctx.strokeStyle = test.c; ctx.lineWidth = 2; ctx.strokeRect(test.x, 80, 160, 260);
+
+        ctx.fillStyle = test.c; ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(test.t, test.x + 80, 115);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+        const lines = test.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, test.x + 80, 165 + i * 26));
+
+        ctx.fillStyle = '#334155'; ctx.fillRect(test.x + 10, 280, 140, 36);
+        ctx.fillStyle = test.c; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('显色鉴别阳性', test.x + 80, 303);
+    });
+}
+
+function drawBalancedDiet() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🥗 营养要均衡: 中国居民平衡膳食宝塔 (五层科学膳食摄入比例)', cx, 40);
+
+    const levels = [
+        { t: '第5层: 油盐调味品 (油≤30g, 盐≤5g)', w: 100, y: 90, c: '#f43f5e' },
+        { t: '第4层: 奶类与大豆坚果 (奶300g, 豆25g)', w: 180, y: 140, c: '#eab308' },
+        { t: '第3层: 禽肉水产蛋类 (120~200g)', w: 260, y: 190, c: '#f97316' },
+        { t: '第2层: 蔬菜与新鲜水果 (菜300~500g, 果200~350g)', w: 340, y: 240, c: '#10b981' },
+        { t: '第1层: 谷薯类主食 (200~300g·能量基石)', w: 420, y: 290, c: '#38bdf8' }
+    ];
+
+    levels.forEach(lv => {
+        ctx.fillStyle = lv.c;
+        ctx.fillRect(cx - lv.w / 2, lv.y, lv.w, 42);
+        ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2;
+        ctx.strokeRect(cx - lv.w / 2, lv.y, lv.w, 42);
+
+        ctx.fillStyle = '#0f172a'; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(lv.t, cx, lv.y + 26);
+    });
+
+    ctx.fillStyle = '#f8fafc'; ctx.font = '13px sans-serif';
+    ctx.fillText('营养准则: 食物多样、谷类为主，多吃蔬果奶豆，适量鱼禽蛋瘦肉，少盐少油控糖', cx, 385);
+}
+
+function drawBrainHemispheres() {
+    drawHealthOverview();
+}
+
+function drawHealthPlan() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('📋 制订健康生活计划: 科学饮食 + 充足睡眠 + 规律锻炼 + 良好心理素质', cx, 40);
+
+    const plans = [
+        { t: '💤 睡眠作息', d: '早睡早起不熬夜\n每天保证9~10小时高质量睡眠\n促进生长激素夜间分泌', c: '#a855f7', x: 80 },
+        { t: '🏃 阳光体育', d: '每天坚持1小时户外运动\n跳绳、跑步或球类运动\n增强心肺功能与骨骼密度', c: '#10b981', x: 280 },
+        { t: '🧘 心理情绪', d: '学会合理宣泄情绪\n多与老师同学沟通倾诉\n积极面对挫折与压力', c: '#38bdf8', x: 480 }
+    ];
+
+    plans.forEach(p => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(p.x, 80, 160, 260);
+        ctx.strokeStyle = p.c; ctx.lineWidth = 2; ctx.strokeRect(p.x, 80, 160, 260);
+
+        ctx.fillStyle = p.c; ctx.font = 'bold 15px sans-serif';
+        ctx.fillText(p.t, p.x + 80, 115);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+        const lines = p.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, p.x + 80, 165 + i * 26));
+
+        ctx.fillStyle = '#334155'; ctx.fillRect(p.x + 10, 280, 140, 36);
+        ctx.fillStyle = p.c; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('打卡执行计划', p.x + 80, 303);
+    });
+}
+
+function drawHealthOverview() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('身体的“总指挥”——人脑左右两半球解剖功能图解', cx, 40);
+
+    // Left & Right Hemispheres
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.ellipse(cx - 80, 220, 75, 110, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ec4899';
+    ctx.beginPath();
+    ctx.ellipse(cx + 80, 220, 75, 110, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('左半球 (理性)', cx - 120, 210);
+    ctx.font = '11px sans-serif';
+    ctx.fillText('语言·数学·逻辑分析', cx - 130, 235);
+
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('右半球 (感性)', cx + 45, 210);
+    ctx.font = '11px sans-serif';
+    ctx.fillText('音乐·绘画·空间直觉', cx + 40, 235);
+}
+
+        
+function updateTelemetry() {
+    let txt = `[生理健康数据就绪] 模式: ${activeMode} | `;
+    if (activeMode === 'reflex_reaction_time') {
+        txt += `神经反射时: ${state.reactionTimeMs}ms | 抓尺位移: ${state.rulerCatchCm}cm`;
+    } else {
+        txt += `实时心率: ${state.heartRate}bpm | 神经调控: ${state.heartRate>100?'交感':'副交感'}`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

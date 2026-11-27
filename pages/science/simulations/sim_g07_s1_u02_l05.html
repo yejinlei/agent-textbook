@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【口腔里的消化】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(16, 185, 129, 0.15); color: var(--green); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(16, 185, 129, 0.08);
+            border-left: 3px solid var(--green);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--green); cursor: pointer; }
+        .btn {
+            background: var(--green);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--green);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 口腔里的消化 <span class="badge">四年级上册 · 呼吸与消化</span></h2>
+            <p>教科版科学原书人体生理真实验 · 拒绝伪仿真</p>
+        </div>
+        <a href="g1s1_reaction_time.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 呼吸消化与生理动力学实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 人体生理器官动态解剖交互</span>
+                <span>🎧 Web Audio 拟真呼吸/心跳/水泡声效</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：口腔机械研磨与唾液淀粉酶化学水解实验：门齿切断、臼齿磨碎米饭，加入唾液在 37°C 恒温下将淀粉水解为麦芽糖，滴入碘酒检验颜色对比！</div>
+            
+        <div class="c-group">
+            <button class="btn" id="btnChew">🦷 1. 牙齿咀嚼 (门齿切断/臼齿研磨)</button>
+            <button class="btn btn-sec" id="btnSaliva">💧 2. 注入唾液淀粉酶 (37°C恒温催化)</button>
+            <button class="btn btn-sec" id="btnIodine">🧪 3. 滴入碘酒试剂检验</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [食物状态] 完整大米饭粒 (富含淀粉)<br>
+            [化学状态] 未水解<br>
+            [科学真相] 咀嚼越充分，唾液淀粉酶接触面积越大，消化越高效！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.15, vol=0.08) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        function playBreath(isInhale=true) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const dur = 0.6;
+                const bufferSize = audioCtx.sampleRate * dur;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(isInhale ? 400 : 250, audioCtx.currentTime);
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+                noise.start();
+            } catch(e){}
+        }
+        function playHeartbeat() {
+            playTone(80, 'sine', 0.12, 0.15);
+            setTimeout(() => playTone(65, 'sine', 0.12, 0.12), 160);
+        }
+        
+        let chewed = false;
+        let salivaAdded = false;
+        let tested = false;
+        const telem = document.getElementById('telem');
+
+        document.getElementById('btnChew').addEventListener('click', () => {
+            chewed = true;
+            playTone(180, 'square', 0.15);
+            telem.innerHTML = '[机械消化完成] 门齿切断、臼齿磨碎成细小食糜！表面积大增！';
+        });
+        document.getElementById('btnSaliva').addEventListener('click', () => {
+            if(!chewed) { alert('请先进行牙齿咀嚼！'); return; }
+            salivaAdded = true;
+            playTone(450, 'triangle', 0.2);
+            telem.innerHTML = '[化学消化中] 唾液中的淀粉酶将大分子淀粉水解为微甜的麦芽糖！';
+        });
+        document.getElementById('btnIodine').addEventListener('click', () => {
+            tested = true;
+            playTone(600, 'sine', 0.2);
+            if(salivaAdded) {
+                telem.innerHTML = '🧪 [滴入碘酒检验] 试管呈现淡黄色 (不变蓝！)<br>[结论] 淀粉已被唾液淀粉酶彻底完全水解成麦芽糖！';
+            } else {
+                telem.innerHTML = '🧪 [滴入碘酒检验] 瞬间变深蓝色！<br>[结论] 未经唾液消化，淀粉遇碘变蓝！';
+            }
+        });
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            // Two Test Tubes: A (Control: Water), B (Saliva)
+            drawTube(w/2 - 100, 100, '试管 A (清水)', false);
+            drawTube(w/2 + 60, 100, '试管 B (唾液消化)', true);
+
+            requestAnimationFrame(render);
+        }
+        function drawTube(x, y, label, isSaliva) {
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, 50, 180);
+            ctx.beginPath(); ctx.arc(x + 25, y + 180, 25, 0, Math.PI); ctx.stroke();
+
+            // Liquid inside
+            let col = 'rgba(56, 189, 248, 0.4)';
+            if(tested) {
+                col = isSaliva ? '#fef08a' : '#1e3a8a'; // Yellow (hydrolyzed) vs Deep Blue (starch)
+            }
+            ctx.fillStyle = col;
+            ctx.fillRect(x + 2, y + 80, 46, 100);
+            ctx.beginPath(); ctx.arc(x + 25, y + 180, 23, 0, Math.PI); ctx.fill();
+
+            // Food particles
+            ctx.fillStyle = '#f8fafc';
+            const count = chewed ? 18 : 3;
+            for(let i=0; i<count; i++) {
+                ctx.beginPath();
+                ctx.arc(x + 15 + (i%3)*10, y + 120 + Math.floor(i/3)*8, chewed ? 2 : 5, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            ctx.fillStyle = '#f8fafc'; ctx.font = '12px sans-serif';
+            ctx.fillText(label, x - 10, y - 10);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

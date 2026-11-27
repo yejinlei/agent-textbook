@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【6. 推动社会发展的印刷术】真实验微仿真 - 五年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .header h1 {
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+        }
+        .badge {
+            background: #0369a1;
+            color: #e0f2fe;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+        }
+        .unit-nav a {
+            color: var(--muted);
+            text-decoration: none;
+            padding: 6px 12px;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a:hover {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            color: var(--text);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+        .notes-card strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚙️ <span>6. 推动社会发展的印刷术</span></h1>
+        <span class="badge">五年级上册·第二单元《工具与技术》</span>
+        <a href="mechanics_lever.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 简单机械与杠杆滑轮实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g09_s1_u02_l01.html" class="">紧密联系的工具和技术</a>
+<a href="sim_g09_s1_u02_l02.html" class="">斜面</a>
+<a href="sim_g09_s1_u02_l03.html" class="">不简单的杠杆</a>
+<a href="sim_g09_s1_u02_l04.html" class="">改变运输的轮轴</a>
+<a href="sim_g09_s1_u02_l05.html" class="">灵活巧妙的剪刀</a>
+<a href="sim_g09_s1_u02_l06.html" class="active">推动社会发展的印刷术</a>
+<a href="sim_g09_s1_u02_l07.html" class="">信息的交流与传播</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 机械原理与技术工序控制台</div>
+            
+            <div id="controlsContainer">
+                <!-- Dynamically injected controls -->
+            </div>
+
+            <div class="card-title" style="margin-top: 6px;">📊 机械利益与力学遥测</div>
+            <div class="telemetry" id="telem">
+                [遥测就绪] 等待交互触发...
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <strong>🎯 探究目标与原书要点：</strong><br>
+            系统探索斜面、杠杆、轮轴等简单机械的工作原理与活字印刷技术演进规律。
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+
+        const activeMode = "movable_type";
+
+        // Web Audio Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, dur=0.15) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
+        }
+
+        
+const state = {
+    rampAngle: 30,
+    loadWeight: 5,
+    leverEffortArm: 4,
+    leverLoadArm: 2,
+    leverLoadWeights: 2,
+    wheelRadius: 60,
+    axleRadius: 20,
+    scissorsType: 'tailor', // tailor, iron, paper
+    printStep: 1, // 1: 排版选字, 2: 刷墨均匀, 3: 拓印施压, 4: 揭纸成品
+    inkDensity: 80, // %
+    printPressure: 50, // %
+    selectedTool: 'opener'
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'tools_tech') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>选择生产生活工具</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.selectedTool==='opener'?'btn-primary':''}" id="btnOpen">🍾 开瓶器 (省力杠杆)</button>
+                    <button class="btn ${state.selectedTool==='screw'?'btn-primary':''}" id="btnScrew">丝 螺丝钉 (螺线斜面)</button>
+                    <button class="btn ${state.selectedTool==='plier'?'btn-primary':''}" id="btnPlier">🔧 钢丝钳 (复合简单机械)</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'inclined_plane') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>斜面倾角 (坡度)</span><span class="val" id="angVal">${state.rampAngle}°</span></div>
+                <input type="range" id="angleSlider" min="15" max="60" value="${state.rampAngle}">
+            </div>
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>提升重物重力 (G)</span><span class="val" id="loadVal">${state.loadWeight} N</span></div>
+                <input type="range" id="loadSlider" min="2" max="10" value="${state.loadWeight}">
+            </div>
+        `;
+    } else if (activeMode === 'lever_balance') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>动力臂长度 (左侧挂点距支点)</span><span class="val" id="effArmVal">${state.leverEffortArm} 格</span></div>
+                <input type="range" id="effArmSlider" min="1" max="6" value="${state.leverEffortArm}">
+            </div>
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>阻力臂长度 (右侧挂点距支点)</span><span class="val" id="loadArmVal">${state.leverLoadArm} 格</span></div>
+                <input type="range" id="loadArmSlider" min="1" max="6" value="${state.leverLoadArm}">
+            </div>
+        `;
+    } else if (activeMode === 'wheel_axle') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>轮半径 (外轮用力)</span><span class="val" id="wheelVal">${state.wheelRadius} mm</span></div>
+                <input type="range" id="wheelSlider" min="40" max="80" value="${state.wheelRadius}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-green" id="btnWheelEffort">🎡 轮上用力 (省力省力气)</button>
+                <button class="btn btn-rose" id="btnAxleEffort">⚙️ 轴上用力 (费力但省距离)</button>
+            </div>
+        `;
+    } else if (activeMode === 'scissors_mech') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>选择剪刀用途与结构类型</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.scissorsType==='iron'?'btn-primary':''}" id="btnSciIron">✂️ 剪铁皮剪刀 (短刃长柄·极大剪切力)</button>
+                    <button class="btn ${state.scissorsType==='hair'?'btn-primary':''}" id="btnSciHair">✂️ 理发剪刀 (长刃短柄·精巧省移动)</button>
+                    <button class="btn ${state.scissorsType==='tailor'?'btn-primary':''}" id="btnSciTailor">✂️ 裁缝剪刀 (斜面锋利·走线平稳)</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'movable_type') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>活字印刷术 4 步工序体验</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.printStep===1?'btn-primary':''}" id="btnPrintStep1">1. 检字排版</button>
+                    <button class="btn ${state.printStep===2?'btn-primary':''}" id="btnPrintStep2">2. 刷涂油墨</button>
+                    <button class="btn ${state.printStep===3?'btn-primary':''}" id="btnPrintStep3">3. 覆纸拓印</button>
+                    <button class="btn ${state.printStep===4?'btn-primary':''}" id="btnPrintStep4">4. 揭纸成品</button>
+                </div>
+            </div>
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>油墨浓度与拓印压力</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnAutoPrint">⚡ 一键全自动拓印古诗</button>
+                    <button class="btn" id="btnResetPrint">🔄 清洗字盘重置</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'info_comm') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>信息传播载体效率大比拼</span></div>
+                <div class="btn-grid">
+                    <button class="btn" id="btnHandwrite">✍️ 手工抄写 (慢且易错)</button>
+                    <button class="btn btn-primary" id="btnMovableSpeed">📜 活字印刷 (快速大批量复制)</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU2Events();
+}
+
+function bindU2Events() {
+    const angleSlider = document.getElementById('angleSlider');
+    if (angleSlider) {
+        angleSlider.oninput = (e) => {
+            state.rampAngle = parseInt(e.target.value);
+            document.getElementById('angVal').innerText = state.rampAngle + '°';
+            playTone(300 + state.rampAngle * 8, 0.04);
+            updateTelemetry();
+        };
+    }
+    const loadSlider = document.getElementById('loadSlider');
+    if (loadSlider) {
+        loadSlider.oninput = (e) => {
+            state.loadWeight = parseInt(e.target.value);
+            document.getElementById('loadVal').innerText = state.loadWeight + ' N';
+            updateTelemetry();
+        };
+    }
+
+    const effArmSlider = document.getElementById('effArmSlider');
+    if (effArmSlider) {
+        effArmSlider.oninput = (e) => {
+            state.leverEffortArm = parseInt(e.target.value);
+            document.getElementById('effArmVal').innerText = state.leverEffortArm + ' 格';
+            playTone(400 + state.leverEffortArm * 50, 0.05);
+            updateTelemetry();
+        };
+    }
+    const loadArmSlider = document.getElementById('loadArmSlider');
+    if (loadArmSlider) {
+        loadArmSlider.oninput = (e) => {
+            state.leverLoadArm = parseInt(e.target.value);
+            document.getElementById('loadArmVal').innerText = state.leverLoadArm + ' 格';
+            playTone(400 + state.leverLoadArm * 50, 0.05);
+            updateTelemetry();
+        };
+    }
+
+    const wheelSlider = document.getElementById('wheelSlider');
+    if (wheelSlider) {
+        wheelSlider.oninput = (e) => {
+            state.wheelRadius = parseInt(e.target.value);
+            document.getElementById('wheelVal').innerText = state.wheelRadius + ' mm';
+            updateTelemetry();
+        };
+    }
+
+    const btnPrintStep1 = document.getElementById('btnPrintStep1');
+    if (btnPrintStep1) btnPrintStep1.onclick = () => { state.printStep = 1; setupControls(); playTone(440, 0.1); };
+    const btnPrintStep2 = document.getElementById('btnPrintStep2');
+    if (btnPrintStep2) btnPrintStep2.onclick = () => { state.printStep = 2; setupControls(); playTone(550, 0.1); };
+    const btnPrintStep3 = document.getElementById('btnPrintStep3');
+    if (btnPrintStep3) btnPrintStep3.onclick = () => { state.printStep = 3; setupControls(); playTone(660, 0.1); };
+    const btnPrintStep4 = document.getElementById('btnPrintStep4');
+    if (btnPrintStep4) btnPrintStep4.onclick = () => { state.printStep = 4; setupControls(); playTone(880, 0.2); };
+
+    const btnAutoPrint = document.getElementById('btnAutoPrint');
+    if (btnAutoPrint) btnAutoPrint.onclick = () => {
+        state.printStep = 4;
+        setupControls();
+        playTone(900, 0.3);
+    };
+    const btnResetPrint = document.getElementById('btnResetPrint');
+    if (btnResetPrint) btnResetPrint.onclick = () => {
+        state.printStep = 1;
+        setupControls();
+        playTone(300, 0.1);
+    };
+
+    const btnSciIron = document.getElementById('btnSciIron');
+    if (btnSciIron) btnSciIron.onclick = () => { state.scissorsType = 'iron'; setupControls(); playTone(400, 0.1); };
+    const btnSciHair = document.getElementById('btnSciHair');
+    if (btnSciHair) btnSciHair.onclick = () => { state.scissorsType = 'hair'; setupControls(); playTone(600, 0.1); };
+    const btnSciTailor = document.getElementById('btnSciTailor');
+    if (btnSciTailor) btnSciTailor.onclick = () => { state.scissorsType = 'tailor'; setupControls(); playTone(500, 0.1); };
+
+    const btnOpen = document.getElementById('btnOpen');
+    if (btnOpen) btnOpen.onclick = () => { state.selectedTool = 'opener'; setupControls(); playTone(480, 0.1); };
+    const btnScrew = document.getElementById('btnScrew');
+    if (btnScrew) btnScrew.onclick = () => { state.selectedTool = 'screw'; setupControls(); playTone(560, 0.1); };
+    const btnPlier = document.getElementById('btnPlier');
+    if (btnPlier) btnPlier.onclick = () => { state.selectedTool = 'plier'; setupControls(); playTone(640, 0.1); };
+}
+
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'tools_tech') {
+        drawToolsTech();
+    } else if (activeMode === 'inclined_plane') {
+        drawInclinedPlane();
+    } else if (activeMode === 'lever_balance') {
+        drawLeverBalance();
+    } else if (activeMode === 'wheel_axle') {
+        drawWheelAxle();
+    } else if (activeMode === 'scissors_mech') {
+        drawScissorsMech();
+    } else if (activeMode === 'movable_type') {
+        drawMovableType();
+    } else if (activeMode === 'info_comm') {
+        drawInfoComm();
+    } else {
+        drawToolsTech();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+function drawToolsTech() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`常用工具与人类技术的协同进化 [当前选定: ${state.selectedTool==='opener'?'开瓶器 (杠杆)':(state.selectedTool==='screw'?'螺丝钉 (斜面盘绕)':'钢丝钳 (复合机械)')}]`, cx, 40);
+
+    if (state.selectedTool === 'opener') {
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(cx - 120, cy - 15, 240, 30);
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath(); ctx.arc(cx - 100, cy, 14, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(cx - 70, cy - 25, 20, 10);
+        ctx.fillStyle = '#f8fafc'; ctx.font = '13px sans-serif';
+        ctx.fillText('支点 (瓶盖中心卡位)', cx - 100, cy + 35);
+        ctx.fillText('阻力点 (瓶盖边缘受切向力)', cx - 50, cy - 35);
+        ctx.fillText('动力点 (手向上拉提)', cx + 80, cy + 35);
+    } else if (state.selectedTool === 'screw') {
+        ctx.fillStyle = '#cbd5e1';
+        ctx.beginPath();
+        ctx.moveTo(cx - 20, cy - 80); ctx.lineTo(cx + 20, cy - 80);
+        ctx.lineTo(cx + 5, cy + 80); ctx.lineTo(cx - 5, cy + 80);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#0284c7'; ctx.lineWidth = 4;
+        for (let y = cy - 60; y <= cy + 60; y += 20) {
+            ctx.beginPath(); ctx.moveTo(cx - 18, y); ctx.lineTo(cx + 18, y + 10); ctx.stroke();
+        }
+        ctx.fillStyle = '#f8fafc'; ctx.font = '13px sans-serif';
+        ctx.fillText('螺纹是缠绕在圆柱体上的变形斜面，螺距越小转动越省力', cx, cy + 120);
+    } else {
+        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 10;
+        ctx.beginPath(); ctx.moveTo(cx - 70, cy - 60); ctx.lineTo(cx + 80, cy + 60); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx - 70, cy + 60); ctx.lineTo(cx + 80, cy - 60); ctx.stroke();
+        ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(cx - 20, cy, 12, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#f8fafc'; ctx.font = '13px sans-serif';
+        ctx.fillText('钢丝钳: 支点前置形成超强省力杠杆，钳口为尖锐双斜面', cx, cy + 120);
+    }
+}
+
+function drawInclinedPlane() {
+    const cx = 360, cy = 250;
+    const rad = state.rampAngle * Math.PI / 180;
+    const rampLen = 340;
+    const bx = cx - 170, by = cy + 60;
+    const tx = bx + Math.cos(rad) * rampLen;
+    const ty = by - Math.sin(rad) * rampLen;
+
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(tx, by); ctx.lineTo(tx, ty); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 4; ctx.stroke();
+
+    const t = 0.55;
+    const blockX = bx + Math.cos(rad) * rampLen * t;
+    const blockY = by - Math.sin(rad) * rampLen * t;
+
+    ctx.save();
+    ctx.translate(blockX, blockY);
+    ctx.rotate(-rad);
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(-25, -35, 50, 35);
+    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(25, -17); ctx.lineTo(85, -17); ctx.stroke();
+    ctx.restore();
+
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    const fEffort = (state.loadWeight * Math.sin(rad) + 0.2).toFixed(1);
+    ctx.fillText(`斜面测力: 坡度 ${state.rampAngle}° | 垂直重力 ${state.loadWeight}N -> 沿斜面拉力 ${fEffort}N (省力 ${(state.loadWeight/fEffort).toFixed(1)} 倍)`, cx, 40);
+}
+
+function drawLeverBalance() {
+    const cx = 360, cy = 230;
+    ctx.fillStyle = '#334155';
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx - 30, cy + 90); ctx.lineTo(cx + 30, cy + 90); ctx.closePath(); ctx.fill();
+
+    const reqEffort = (state.leverLoadWeights * state.leverLoadArm) / state.leverEffortArm;
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(cx - 240, cy - 8, 480, 16);
+
+    ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 2;
+    for (let i = -6; i <= 6; i++) {
+        const gx = cx + i * 35;
+        ctx.beginPath(); ctx.moveTo(gx, cy - 8); ctx.lineTo(gx, cy + 8); ctx.stroke();
+    }
+
+    const effortX = cx - state.leverEffortArm * 35;
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath(); ctx.arc(effortX, cy + 25, 12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#f8fafc'; ctx.font = '12px sans-serif';
+    ctx.fillText(`动力: ${reqEffort.toFixed(1)} N`, effortX - 35, cy + 55);
+
+    const loadX = cx + state.leverLoadArm * 35;
+    ctx.fillStyle = '#f43f5e';
+    for (let h = 0; h < state.leverLoadWeights; h++) {
+        ctx.fillRect(loadX - 10, cy + 15 + h * 22, 20, 18);
+    }
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillText(`阻力物: ${state.leverLoadWeights} N`, loadX - 25, cy + 85);
+
+    let leverType = state.leverEffortArm > state.leverLoadArm ? '省力杠杆' : (state.leverEffortArm < state.leverLoadArm ? '费力杠杆' : '等臂杠杆');
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(`杠杆平衡条件: 动力 × 动力臂 = 阻力 × 阻力臂 【${leverType}】`, cx, 40);
+}
+
+function drawWheelAxle() {
+    const cx = 360, cy = 230;
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.arc(cx, cy, state.wheelRadius * 1.5, 0, Math.PI * 2); ctx.stroke();
+
+    ctx.fillStyle = '#d97706';
+    ctx.beginPath(); ctx.arc(cx, cy, state.axleRadius * 1.5, 0, Math.PI * 2); ctx.fill();
+
+    ctx.strokeStyle = '#64748b'; ctx.lineWidth = 3;
+    for (let a = 0; a < Math.PI * 2; a += Math.PI / 3) {
+        ctx.beginPath(); ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(a) * state.wheelRadius * 1.5, cy + Math.sin(a) * state.wheelRadius * 1.5);
+        ctx.stroke();
+    }
+
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    const adv = (state.wheelRadius / state.axleRadius).toFixed(1);
+    ctx.fillText(`轮轴机械利益: 轮半径/轴半径 = ${adv} 倍 (轮上用力省力 ${adv} 倍)`, cx, 40);
+}
+
+function drawScissorsMech() {
+    const cx = 360, cy = 230;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+
+    let title = '裁缝剪刀: 锋利薄刀刃平稳走线';
+    let bladeLen = 90, handleLen = 80;
+    if (state.scissorsType === 'iron') {
+        title = '剪铁皮剪刀: 短刃长柄 (动力臂远大于阻力臂，输出巨大剪切力)';
+        bladeLen = 45; handleLen = 130;
+    } else if (state.scissorsType === 'hair') {
+        title = '理发剪刀: 长刃短柄 (移动距离大，便于精细快速修剪)';
+        bladeLen = 120; handleLen = 60;
+    }
+    ctx.fillText(title, cx, 40);
+
+    ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.moveTo(cx - handleLen, cy - 35); ctx.lineTo(cx + bladeLen, cy + 30); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx - handleLen, cy + 35); ctx.lineTo(cx + bladeLen, cy - 30); ctx.stroke();
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#0f172a'; ctx.font = 'bold 11px sans-serif'; ctx.fillText('支点', cx - 11, cy + 4);
+
+    ctx.fillStyle = '#38bdf8'; ctx.font = '13px sans-serif';
+    ctx.fillText(`动力臂: ${handleLen}px | 阻力臂: ${bladeLen}px | 力学倍率: ${(handleLen/bladeLen).toFixed(2)}x`, cx, cy + 120);
+}
+
+function drawMovableType() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(`活字印刷全流程模拟 【第 ${state.printStep} 步: ${state.printStep===1?'检字排版(阳文反字)':(state.printStep===2?'刷涂墨汁':(state.printStep===3?'铺纸均匀施压':'起纸晾干成品'))}】`, cx, 40);
+
+    const poem = ['春', '眠', '不', '觉', '晓'];
+
+    // Movable Type Printing Bed (字盘框)
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(cx - 200, cy - 80, 400, 160);
+    ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 4;
+    ctx.strokeRect(cx - 200, cy - 80, 400, 160);
+
+    // Clay type blocks
+    poem.forEach((char, idx) => {
+        const tx = cx - 160 + idx * 75;
+        const ty = cy - 40;
+
+        // Block body
+        ctx.fillStyle = state.printStep >= 2 ? '#1e293b' : '#a16207';
+        ctx.fillRect(tx, ty, 60, 80);
+        ctx.strokeStyle = '#fef08a'; ctx.lineWidth = 2;
+        ctx.strokeRect(tx, ty, 60, 80);
+
+        // Character text
+        ctx.save();
+        ctx.translate(tx + 30, ty + 50);
+        if (state.printStep < 4) {
+            // Mirror image (阳文反字)
+            ctx.scale(-1, 1);
+            ctx.fillStyle = state.printStep >= 2 ? '#000000' : '#fef08a';
+        } else {
+            // Printed正字 on white paper
+            ctx.fillStyle = '#000000';
+        }
+        ctx.font = 'bold 32px "KaiTi", "STKaiti", serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(char, 0, 0);
+        ctx.restore();
+    });
+
+    // Step 3 or 4: White Xuan Paper overlay
+    if (state.printStep >= 3) {
+        ctx.fillStyle = state.printStep === 3 ? 'rgba(255, 255, 255, 0.7)' : 'rgba(255, 255, 255, 0.95)';
+        ctx.fillRect(cx - 180, cy - 60, 360, 120);
+        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2;
+        ctx.strokeRect(cx - 180, cy - 60, 360, 120);
+
+        if (state.printStep === 4) {
+            poem.forEach((char, idx) => {
+                const px = cx - 130 + idx * 75;
+                ctx.fillStyle = '#0f172a';
+                ctx.font = 'bold 34px "KaiTi", "STKaiti", serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(char, px, cy + 10);
+            });
+            ctx.fillStyle = '#dc2626';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText('✓ 拓印大成功！正立清晰唐诗一首，可无限次快速复制', cx, cy + 120);
+        } else {
+            ctx.fillStyle = '#0284c7';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.fillText('正在用拓印擦子施加均匀压力...', cx, cy + 10);
+        }
+    }
+}
+
+function drawInfoComm() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('信息传播介质效率飞跃对比: 抄写 vs 印刷 vs 数字网络', cx, 40);
+
+    const media = [
+        { name: '古代手抄本', speed: '约 60 字/小时', err: '易漏字错字', cost: '极高(仅少数贵族)', col: '#eab308', icon: '✍️' },
+        { name: '活字印刷术', speed: '约 2000 册/日', err: '排版无误即全准', cost: '大幅降低大众化', col: '#0284c7', icon: '📜' },
+        { name: '现代光纤互联', speed: '数亿字/毫秒', err: '数字校验零失真', cost: '全球即时共享', col: '#10b981', icon: '🌐' }
+    ];
+
+    media.forEach((m, idx) => {
+        const mx = 100 + idx * 180;
+        ctx.fillStyle = '#1e293b'; ctx.strokeStyle = m.col; ctx.lineWidth = 3;
+        ctx.fillRect(mx, cy - 70, 160, 160);
+        ctx.strokeRect(mx, cy - 70, 160, 160);
+
+        ctx.font = '36px sans-serif';
+        ctx.fillText(m.icon, mx + 80, cy - 20);
+
+        ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(m.name, mx + 80, cy + 15);
+        ctx.fillStyle = '#94a3b8'; ctx.font = '11px sans-serif';
+        ctx.fillText(m.speed, mx + 80, cy + 40);
+        ctx.fillText(m.err, mx + 80, cy + 60);
+    });
+
+    ctx.fillStyle = '#38bdf8'; ctx.font = '13px sans-serif';
+    ctx.fillText('印刷术极大地推动了科学知识普及与人类文明的飞速传播！', cx, cy + 130);
+}
+
+
+        
+function updateTelemetry() {
+    let txt = `[工具与技术数据] 模式: ${activeMode} | `;
+    if (activeMode === 'inclined_plane') {
+        const rad = state.rampAngle * Math.PI / 180;
+        const f = (state.loadWeight * Math.sin(rad) + 0.2).toFixed(2);
+        txt += `斜面倾角: ${state.rampAngle}° | 垂直重力: ${state.loadWeight}N | 沿斜面拉力: ${f}N (省力效果显著)`;
+    } else if (activeMode === 'lever_balance') {
+        txt += `动力臂: ${state.leverEffortArm}格 | 阻力臂: ${state.leverLoadArm}格 | 平衡所需动力: ${((state.leverLoadWeights*state.leverLoadArm)/state.leverEffortArm).toFixed(1)}N`;
+    } else if (activeMode === 'wheel_axle') {
+        txt += `轮半径: ${state.wheelRadius}mm | 轴半径: ${state.axleRadius}mm | 机械利益: ${(state.wheelRadius/state.axleRadius).toFixed(1)}x`;
+    } else if (activeMode === 'scissors_mech') {
+        txt += `剪刀类型: ${state.scissorsType} | 机械特性: 杠杆与双斜面巧妙组合`;
+    } else if (activeMode === 'movable_type') {
+        txt += `活字印刷工序: 第 ${state.printStep} 步 | 科学特点: 阳文反字、墨水适中、均匀拓印、大批量复制`;
+    } else if (activeMode === 'info_comm') {
+        txt += `传播载体对比: 活字印刷较手抄本效率提升百倍以上，催生知识大普及`;
+    } else {
+        txt += `工具类型: ${state.selectedTool} | 机械原理: 人类双手与智慧的延伸`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        updateTelemetry();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

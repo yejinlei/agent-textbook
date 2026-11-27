@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【7. 加快溶解】水的相变与溶解综合实验室 - 三年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💧 7. 加快溶解</h1>
+        <span class="badge">三年级上册·第二单元《水》</span>
+    </div>
+
+    <!-- 关联课本综合导航栏 -->
+    <div class="unit-nav">
+        <a href="sim_g05_s1_u02_l01.html" class="">水到哪里去了</a>
+<a href="sim_g05_s1_u02_l02.html" class="">水珠从哪里来</a>
+<a href="sim_g05_s1_u02_l03.html" class="">水沸腾了</a>
+<a href="sim_g05_s1_u02_l04.html" class="">水结冰了</a>
+<a href="sim_g05_s1_u02_l05.html" class="">冰融化了</a>
+<a href="sim_g05_s1_u02_l06.html" class="">水能溶解多少物质</a>
+<a href="sim_g05_s1_u02_l07.html" class="active">加快溶解</a>
+<a href="sim_g05_s1_u02_l08.html" class="">用水分离</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+
+            <!-- 控制项区 -->
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时实验数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">水相变实验室初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：水温、搅拌与颗粒粗细三组单变量对照实验</p>
+            <p><strong>实验原理</strong>：水具有气态、液态和固态三种形态。常温下水蒸发为水蒸气，遇冷凝结为水滴；加热到100°C剧烈汽化沸腾；降温至0°C凝固结冰且体积膨胀；水能溶解食盐和小苏打等物质，加热、搅拌和研碎能显著加快溶解速度；利用过滤和蒸发结晶可将水中的不溶物和可溶物分离。</p>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio Synthesizer
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+
+        const activeMode = "speed_up";
+
+        // State Machine
+        const state = {
+            waterTemp: activeMode === 'boiling' ? 85 : activeMode === 'freezing' ? 5 : activeMode === 'melting' ? 0 : 25,
+            isHeating: activeMode === 'boiling',
+            isStirring: false,
+            sealed: false,
+            saltGrams: 0,
+            substance: 'salt', // salt (36g max), baking_soda (10g max)
+            waterVol: 100, // ml
+            grainSize: 'fine', // fine, coarse
+            filterProgress: 0,
+            evaporationDone: false,
+            bubbles: [],
+            steamParticles: []
+        };
+
+        for (let i = 0; i < 30; i++) {
+            state.bubbles.push({
+                x: 320 + Math.random() * 80,
+                y: 280 + Math.random() * 60,
+                r: 2 + Math.random() * 4,
+                speed: 1 + Math.random() * 2
+            });
+        }
+        for (let i = 0; i < 40; i++) {
+            state.steamParticles.push({
+                x: 340 + Math.random() * 40,
+                y: 220 + Math.random() * 40,
+                r: 3 + Math.random() * 5,
+                opacity: Math.random() * 0.6,
+                speedY: 0.8 + Math.random() * 1.5,
+                speedX: (Math.random() - 0.5) * 0.8
+            });
+        }
+
+        function setupControls() {
+            let html = '';
+            if (activeMode === 'evaporation') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>杯口状态</span><span class="val">${state.sealed?'保鲜膜密封':'敞口常温'}</span></div>
+                        <div class="btn-grid">
+                            <button class="btn ${!state.sealed?'btn-primary':''}" id="btnOpenCup">🥤 敞口水杯 (自由蒸发)</button>
+                            <button class="btn ${state.sealed?'btn-primary':''}" id="btnSealCup">📦 保鲜膜密封 (防蒸发)</button>
+                        </div>
+                    </div>
+                `;
+            } else if (activeMode === 'condensation') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>杯内水温条件</span><span class="val">${state.waterTemp} °C</span></div>
+                        <div class="btn-grid">
+                            <button class="btn btn-primary" id="btnIceWater">🧊 倒入冰水 (0°C)</button>
+                            <button class="btn" id="btnWarmWater">☕ 倒入温水 (40°C)</button>
+                        </div>
+                    </div>
+                    <div class="btn-grid">
+                        <button class="btn btn-green" id="btnWipe">🧻 干纸巾擦拭外壁</button>
+                    </div>
+                `;
+            } else if (activeMode === 'boiling') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>酒精灯加热状态</span><span class="val">${state.isHeating?'正在持续加热':'已熄灭'}</span></div>
+                        <div class="btn-grid">
+                            <button class="btn ${state.isHeating?'btn-rose':'btn-primary'}" id="btnToggleHeat">${state.isHeating?'🔥 熄灭酒精灯':'🔥 点燃酒精灯加热'}</button>
+                            <button class="btn" id="btnResetBoil">🔄 冷却重新实验</button>
+                        </div>
+                    </div>
+                `;
+            } else if (activeMode === 'freezing' || activeMode === 'melting') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>环境介质</span><span class="val">${activeMode==='freezing'?'冰盐降温浴':'室温融化'}</span></div>
+                        <div class="btn-grid">
+                            <button class="btn btn-primary" id="btnFreezeStep">❄️ 降温凝固 (水->冰)</button>
+                            <button class="btn btn-green" id="btnMeltStep">☀️ 吸热融化 (冰->水)</button>
+                        </div>
+                    </div>
+                `;
+            } else if (activeMode === 'solubility') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>溶解溶质种类</span><span class="val">${state.substance==='salt'?'食盐 (约36g饱和)':'小苏打 (约10g饱和)'}</span></div>
+                        <div class="btn-grid">
+                            <button class="btn ${state.substance==='salt'?'btn-primary':''}" id="btnChooseSalt">🧂 食盐 (100ml)</button>
+                            <button class="btn ${state.substance==='baking_soda'?'btn-primary':''}" id="btnChooseSoda">⚪ 小苏打 (100ml)</button>
+                        </div>
+                    </div>
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>溶质添加份数 (每次2克)</span><span class="val">${state.saltGrams} g</span></div>
+                        <div class="btn-grid">
+                            <button class="btn btn-green" id="btnAdd2g">➕ 倒入 2 克</button>
+                            <button class="btn btn-rose" id="btnResetSol">🔄 换新水重新测</button>
+                        </div>
+                    </div>
+                `;
+            } else if (activeMode === 'speed_up') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>对比变量控制</span></div>
+                        <div class="btn-grid">
+                            <button class="btn ${state.waterTemp>50?'btn-rose':'btn-primary'}" id="btnToggleTemp">${state.waterTemp>50?'🔥 热水 (60°C)':'💧 常温水 (20°C)'}</button>
+                            <button class="btn ${state.isStirring?'btn-green':'btn-primary'}" id="btnToggleStir">${state.isStirring?'🌀 正在搅拌':'🛑 静置不搅拌'}</button>
+                        </div>
+                        <div class="btn-grid" style="margin-top:6px;">
+                            <button class="btn ${state.grainSize==='fine'?'btn-primary':''}" id="btnFine">🧂 细盐粉末</button>
+                            <button class="btn ${state.grainSize==='coarse'?'btn-primary':''}" id="btnCoarse">🪨 粗盐块</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // separation
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>分离实验步骤</span></div>
+                        <div class="btn-grid">
+                            <button class="btn btn-primary" id="btnFilter">🧪 步骤一: 过滤漏斗分离沙子</button>
+                            <button class="btn btn-rose" id="btnEvap">🔥 步骤二: 蒸发皿结晶食盐</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            controlsContainer.innerHTML = html;
+            bindEvents();
+        }
+
+        function bindEvents() {
+            const btnOpenCup = document.getElementById('btnOpenCup');
+            if (btnOpenCup) btnOpenCup.onclick = () => { state.sealed = false; playTone(500, 0.1); setupControls(); };
+            const btnSealCup = document.getElementById('btnSealCup');
+            if (btnSealCup) btnSealCup.onclick = () => { state.sealed = true; playTone(700, 0.1); setupControls(); };
+
+            const btnIceWater = document.getElementById('btnIceWater');
+            if (btnIceWater) btnIceWater.onclick = () => { state.waterTemp = 0; playTone(400, 0.15); setupControls(); };
+            const btnWarmWater = document.getElementById('btnWarmWater');
+            if (btnWarmWater) btnWarmWater.onclick = () => { state.waterTemp = 40; playTone(600, 0.15); setupControls(); };
+            const btnWipe = document.getElementById('btnWipe');
+            if (btnWipe) btnWipe.onclick = () => { state.waterTemp = 20; playTone(900, 0.1); setupControls(); };
+
+            const btnToggleHeat = document.getElementById('btnToggleHeat');
+            if (btnToggleHeat) btnToggleHeat.onclick = () => {
+                state.isHeating = !state.isHeating;
+                playTone(state.isHeating ? 600 : 300, 0.15);
+                setupControls();
+            };
+            const btnResetBoil = document.getElementById('btnResetBoil');
+            if (btnResetBoil) btnResetBoil.onclick = () => {
+                state.waterTemp = 25; state.isHeating = false; playTone(400, 0.1); setupControls();
+            };
+
+            const btnFreezeStep = document.getElementById('btnFreezeStep');
+            if (btnFreezeStep) btnFreezeStep.onclick = () => {
+                if (state.waterTemp > -5) state.waterTemp -= 2;
+                playTone(300, 0.1);
+            };
+            const btnMeltStep = document.getElementById('btnMeltStep');
+            if (btnMeltStep) btnMeltStep.onclick = () => {
+                if (state.waterTemp < 20) state.waterTemp += 2;
+                playTone(600, 0.1);
+            };
+
+            const btnChooseSalt = document.getElementById('btnChooseSalt');
+            if (btnChooseSalt) btnChooseSalt.onclick = () => { state.substance = 'salt'; state.saltGrams = 0; setupControls(); };
+            const btnChooseSoda = document.getElementById('btnChooseSoda');
+            if (btnChooseSoda) btnChooseSoda.onclick = () => { state.substance = 'baking_soda'; state.saltGrams = 0; setupControls(); };
+            const btnAdd2g = document.getElementById('btnAdd2g');
+            if (btnAdd2g) btnAdd2g.onclick = () => {
+                state.saltGrams += 2;
+                playTone(550 + state.saltGrams * 20, 0.08);
+                setupControls();
+            };
+            const btnResetSol = document.getElementById('btnResetSol');
+            if (btnResetSol) btnResetSol.onclick = () => { state.saltGrams = 0; playTone(300, 0.1); setupControls(); };
+
+            const btnToggleTemp = document.getElementById('btnToggleTemp');
+            if (btnToggleTemp) btnToggleTemp.onclick = () => {
+                state.waterTemp = state.waterTemp > 50 ? 20 : 60;
+                playTone(600, 0.1);
+                setupControls();
+            };
+            const btnToggleStir = document.getElementById('btnToggleStir');
+            if (btnToggleStir) btnToggleStir.onclick = () => {
+                state.isStirring = !state.isStirring;
+                playTone(800, 0.1);
+                setupControls();
+            };
+            const btnFine = document.getElementById('btnFine');
+            if (btnFine) btnFine.onclick = () => { state.grainSize = 'fine'; setupControls(); };
+            const btnCoarse = document.getElementById('btnCoarse');
+            if (btnCoarse) btnCoarse.onclick = () => { state.grainSize = 'coarse'; setupControls(); };
+
+            const btnFilter = document.getElementById('btnFilter');
+            if (btnFilter) btnFilter.onclick = () => {
+                state.filterProgress = 100;
+                playTone(700, 0.2);
+            };
+            const btnEvap = document.getElementById('btnEvap');
+            if (btnEvap) btnEvap.onclick = () => {
+                state.evaporationDone = true;
+                playTone(850, 0.2);
+            };
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, 720, 450);
+
+            // Lab Bench Background
+            const grad = ctx.createLinearGradient(0, 0, 0, 450);
+            grad.addColorStop(0, '#0f172a');
+            grad.addColorStop(0.7, '#1e293b');
+            grad.addColorStop(1, '#0f172a');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 720, 450);
+
+            // Lab Table
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(0, 360, 720, 90);
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(0, 360, 720, 8);
+
+            // Dynamic updates for heat/boil
+            if (activeMode === 'boiling') {
+                if (state.isHeating && state.waterTemp < 100) {
+                    state.waterTemp += 0.08;
+                } else if (!state.isHeating && state.waterTemp > 25) {
+                    state.waterTemp -= 0.05;
+                }
+            }
+
+            if (activeMode === 'evaporation') {
+                drawEvaporation();
+            } else if (activeMode === 'condensation') {
+                drawCondensation();
+            } else if (activeMode === 'boiling') {
+                drawBoiling();
+            } else if (activeMode === 'freezing' || activeMode === 'melting') {
+                drawFreezingMelting();
+            } else if (activeMode === 'solubility') {
+                drawSolubility();
+            } else if (activeMode === 'speed_up') {
+                drawSpeedUp();
+            } else if (activeMode === 'separation') {
+                drawSeparation();
+            } else {
+                drawSeparation();
+            }
+
+            updateTelemetry();
+            requestAnimationFrame(draw);
+        }
+
+        function drawEvaporation() {
+            const cx = 360;
+            // Glass Cup
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(cx - 70, 160, 140, 200);
+
+            // Water
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+            ctx.fillRect(cx - 68, 240, 136, 118);
+
+            // Water surface
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(cx - 68, 238, 136, 4);
+
+            // Water vapor molecules (animated)
+            if (!state.sealed) {
+                state.steamParticles.forEach(p => {
+                    ctx.fillStyle = `rgba(186, 230, 253, ${p.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                    p.y -= p.speedY;
+                    p.x += p.speedX;
+                    if (p.y < 120) {
+                        p.y = 230;
+                        p.x = cx - 50 + Math.random() * 100;
+                    }
+                });
+                ctx.fillStyle = '#38bdf8';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('水分子不断挥发进入空气中 (水蒸发)', cx, 110);
+            } else {
+                // Sealed plastic wrap
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(cx - 75, 160);
+                ctx.lineTo(cx + 75, 160);
+                ctx.stroke();
+
+                // Condensed small drops under wrap
+                ctx.fillStyle = '#38bdf8';
+                for (let i = -60; i <= 60; i += 15) {
+                    ctx.beginPath();
+                    ctx.arc(cx + i, 168, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.fillStyle = '#f59e0b';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('保鲜膜阻挡水蒸气逃逸，在膜内壁凝结成小水珠', cx, 110);
+            }
+        }
+
+        function drawCondensation() {
+            const cx = 360;
+            // Metal/Glass cup
+            ctx.fillStyle = state.waterTemp <= 5 ? '#e2e8f0' : '#cbd5e1';
+            ctx.fillRect(cx - 70, 160, 140, 200);
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(cx - 70, 160, 140, 200);
+
+            // Ice cubes floating if <= 5°C
+            if (state.waterTemp <= 5) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.fillRect(cx - 45, 180, 30, 25);
+                ctx.fillRect(cx + 10, 185, 35, 28);
+                ctx.strokeStyle = '#38bdf8';
+                ctx.strokeRect(cx - 45, 180, 30, 25);
+                ctx.strokeRect(cx + 10, 185, 35, 28);
+
+                // Water droplets on the outer surface
+                ctx.fillStyle = '#38bdf8';
+                for (let y = 190; y < 340; y += 22) {
+                    ctx.beginPath();
+                    ctx.arc(cx - 74, y, 4, 0, Math.PI * 2);
+                    ctx.arc(cx + 74, y + 10, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = '#10b981';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('外壁凝结大量小水珠 (空气中水蒸气遇冷液化)', cx, 110);
+            } else {
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('外壁干燥无水珠 (温水杯外壁温度高，水蒸气不凝结)', cx, 110);
+            }
+        }
+
+        function drawBoiling() {
+            const cx = 360;
+
+            // Tripod & Gauze
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(cx - 80, 360);
+            ctx.lineTo(cx - 50, 310);
+            ctx.lineTo(cx + 50, 310);
+            ctx.lineTo(cx + 80, 360);
+            ctx.stroke();
+
+            // Wire Gauze
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(cx - 55, 308, 110, 4);
+
+            // Beaker
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(cx - 50, 170, 100, 138);
+
+            // Water inside
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+            ctx.fillRect(cx - 48, 200, 96, 106);
+
+            // Boiling bubbles
+            if (state.waterTemp >= 90) {
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                state.bubbles.forEach(b => {
+                    ctx.beginPath();
+                    ctx.arc(b.x, b.y, b.r * (state.waterTemp >= 99 ? 1.5 : 0.8), 0, Math.PI * 2);
+                    ctx.stroke();
+                    b.y -= b.speed * (state.waterTemp >= 99 ? 2.5 : 1);
+                    if (b.y < 200) {
+                        b.y = 300;
+                        b.x = cx - 40 + Math.random() * 80;
+                    }
+                });
+
+                // Steam above beaker
+                state.steamParticles.forEach(p => {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r * 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    p.y -= p.speedY * 1.8;
+                    if (p.y < 120) {
+                        p.y = 195;
+                        p.x = cx - 35 + Math.random() * 70;
+                    }
+                });
+            }
+
+            // Alcohol Lamp below
+            if (state.isHeating) {
+                // Flame
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.moveTo(cx - 15, 335);
+                ctx.quadraticCurveTo(cx, 285 + Math.sin(Date.now() * 0.02) * 6, cx + 15, 335);
+                ctx.closePath();
+                ctx.fill();
+                // Blue inner core
+                ctx.fillStyle = '#38bdf8';
+                ctx.beginPath();
+                ctx.moveTo(cx - 8, 335);
+                ctx.quadraticCurveTo(cx, 305, cx + 8, 335);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Lamp Body
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(cx - 25, 335, 50, 25);
+
+            // Thermometer in Beaker
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(cx + 20, 120, 6, 170);
+            ctx.beginPath();
+            ctx.arc(cx + 23, 290, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Text
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            const boilState = state.waterTemp >= 99.5 ? '剧烈沸腾中 (温度保持100°C不变)' : state.waterTemp > 80 ? '产生大量气泡上升并变大' : '正在缓慢升温';
+            ctx.fillText(`水温: ${state.waterTemp.toFixed(1)} °C 【${boilState}】`, cx, 80);
+        }
+
+        function drawFreezingMelting() {
+            const cx = 360;
+            // Test Tube in Beaker
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(cx - 70, 220, 140, 140); // outer ice-salt bath
+
+            // Salt ice bath
+            ctx.fillStyle = 'rgba(203, 213, 225, 0.4)';
+            ctx.fillRect(cx - 68, 240, 136, 118);
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('碎冰 + 食盐 (冰盐降温浴)', cx, 350);
+
+            // Inner test tube
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2.5;
+            ctx.strokeRect(cx - 18, 140, 36, 170);
+
+            // Content in tube: Ice vs Water
+            const isFrozen = state.waterTemp <= 0;
+            ctx.fillStyle = isFrozen ? 'rgba(255, 255, 255, 0.75)' : 'rgba(56, 189, 248, 0.6)';
+            const topY = isFrozen ? 200 : 215; // Volume expansion when frozen!
+            ctx.fillRect(cx - 16, topY, 32, 308 - topY);
+
+            // Red marker line for original water level
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - 28, 215);
+            ctx.lineTo(cx + 28, 215);
+            ctx.stroke();
+
+            ctx.fillStyle = '#f43f5e';
+            ctx.font = '11px sans-serif';
+            ctx.fillText('原水面标记', cx + 60, 218);
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            if (isFrozen) {
+                ctx.fillText(`水已结冰 (0°C以下) -> 观察: 冰柱明显高出红线 (水结冰体积膨胀!)`, cx, 80);
+            } else {
+                ctx.fillText(`水温: ${state.waterTemp} °C (水保持液态)`, cx, 80);
+            }
+        }
+
+        function drawSolubility() {
+            const cx = 360;
+            const maxGrams = state.substance === 'salt' ? 36 : 10;
+            const isSaturated = state.saltGrams >= maxGrams;
+
+            // Beaker with 100ml water
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(cx - 70, 180, 140, 180);
+
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
+            ctx.fillRect(cx - 68, 230, 136, 128);
+
+            // Precipitate at bottom if saturated
+            if (isSaturated) {
+                ctx.fillStyle = state.substance === 'salt' ? '#ffffff' : '#f8fafc';
+                const pHeight = Math.min((state.saltGrams - maxGrams) * 3, 25);
+                ctx.fillRect(cx - 60, 358 - pHeight, 120, pHeight);
+
+                ctx.fillStyle = '#f43f5e';
+                ctx.font = 'bold 13px sans-serif';
+                ctx.fillText('⚠️ 达到饱和极限! 底部出现沉淀无法继续溶解', cx, 340);
+            }
+
+            // Scale & Info
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`100ml 水常温溶解定量探究: ${state.substance==='salt'?'食盐':'小苏打'}`, cx, 70);
+
+            ctx.fillStyle = isSaturated ? '#f43f5e' : '#10b981';
+            ctx.font = 'bold 18px monospace';
+            ctx.fillText(`已加入: ${state.saltGrams} g / 极限约 ${maxGrams} g 【${isSaturated?'已饱和沉淀':'完全溶解'}】`, cx, 110);
+        }
+
+        function drawSpeedUp() {
+            const cx = 360;
+            // Two comparison cups
+            // Left: Control
+            // Right: Experimental
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('加快溶解对比实验 (水温 / 搅拌 / 颗粒大小)', cx, 70);
+
+            // Beaker
+            ctx.strokeStyle = state.waterTemp > 50 ? '#f43f5e' : '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(cx - 60, 180, 120, 180);
+
+            ctx.fillStyle = state.waterTemp > 50 ? 'rgba(244, 63, 94, 0.3)' : 'rgba(56, 189, 248, 0.3)';
+            ctx.fillRect(cx - 58, 230, 116, 128);
+
+            // Stirring rod
+            ctx.save();
+            ctx.translate(cx, 260);
+            if (state.isStirring) {
+                ctx.rotate(Math.sin(Date.now() * 0.015) * 0.25);
+            }
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.moveTo(0, -90);
+            ctx.lineTo(0, 90);
+            ctx.stroke();
+            ctx.restore();
+
+            // Dissolving particles
+            ctx.fillStyle = '#ffffff';
+            const rSize = state.grainSize === 'fine' ? 2 : 5;
+            for (let i = 0; i < 20; i++) {
+                const px = cx - 40 + (i * 13) % 80;
+                const py = 290 + (i * 17) % 60;
+                ctx.beginPath();
+                ctx.arc(px, py, rSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Evaluation speed
+            let speedScore = 1;
+            if (state.waterTemp > 50) speedScore += 2;
+            if (state.isStirring) speedScore += 2;
+            if (state.grainSize === 'fine') speedScore += 1;
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText(`当前溶解速率评估: ${speedScore} 倍速 (${state.waterTemp>50?'热水':'冷水'} + ${state.isStirring?'强力搅拌':'静置'} + ${state.grainSize==='fine'?'粉末':'粗颗粒'})`, cx, 400);
+        }
+
+        function drawSeparation() {
+            const cx = 360;
+            // Funnel with filter paper & Evaporating dish
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('食盐与沙的分离两步法 (过滤 + 蒸发结晶)', cx, 70);
+
+            // Funnel
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx - 50, 150);
+            ctx.lineTo(cx - 10, 220);
+            ctx.lineTo(cx - 10, 260);
+            ctx.lineTo(cx + 10, 260);
+            ctx.lineTo(cx + 10, 220);
+            ctx.lineTo(cx + 50, 150);
+            ctx.closePath();
+            ctx.stroke();
+
+            // Filter paper inside
+            ctx.fillStyle = '#f1f5f9';
+            ctx.beginPath();
+            ctx.moveTo(cx - 42, 155);
+            ctx.lineTo(cx, 215);
+            ctx.lineTo(cx + 42, 155);
+            ctx.closePath();
+            ctx.fill();
+
+            // Sand trapped in filter paper
+            ctx.fillStyle = '#d97706';
+            ctx.beginPath();
+            ctx.arc(cx, 195, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '11px sans-serif';
+            ctx.fillText('沙子 (不溶物)', cx + 45, 195);
+
+            // Beaker below collecting salt water
+            ctx.strokeStyle = '#64748b';
+            ctx.strokeRect(cx - 40, 270, 80, 90);
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+            ctx.fillRect(cx - 38, 310, 76, 48);
+
+            ctx.fillStyle = '#10b981';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('清澈食盐水', cx, 340);
+
+            if (state.evaporationDone) {
+                // Show crystal evaporating dish
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = 'bold 15px sans-serif';
+                ctx.fillText('🔥 蒸发完成: 皿底析出白色立方体食盐晶体!', cx, 400);
+            }
+        }
+
+        function updateTelemetry() {
+            let txt = `[水实验数据就绪] 模式: ${activeMode} | `;
+            if (activeMode === 'boiling') {
+                txt += `水温: ${state.waterTemp.toFixed(1)}°C | 加热: ${state.isHeating?'开启':'熄灭'} | 状态: ${state.waterTemp>=99.5?'沸腾':'未沸腾'}`;
+            } else if (activeMode === 'solubility') {
+                txt += `溶质: ${state.substance} | 加入量: ${state.saltGrams}g / 100ml 水`;
+            } else if (activeMode === 'freezing' || activeMode === 'melting') {
+                txt += `温度: ${state.waterTemp}°C | 状态: ${state.waterTemp<=0?'固态冰(膨胀)':'液态水'}`;
+            } else {
+                txt += `温度: ${state.waterTemp}°C | 搅拌: ${state.isStirring} | 密封: ${state.sealed}`;
+            }
+            telem.innerText = txt;
+        }
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

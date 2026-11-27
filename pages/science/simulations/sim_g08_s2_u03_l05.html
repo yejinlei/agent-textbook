@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【岩石、沙和黏土】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #f59e0b;
+            --green: #10b981;
+            --cyan: #38bdf8;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(245, 158, 11, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--cyan); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(245, 158, 11, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--accent); cursor: pointer; }
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 岩石、沙和黏土 <span class="badge">四年级下册 · 岩石与土壤</span></h2>
+            <p>教科版科学原书地质与土壤实验真拟真 · 拒绝伪仿真</p>
+        </div>
+        <a href="mineral_soil_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 矿物晶体与土壤成分实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生岩土物理与矿物学仿真</span>
+                <span>🎧 Web Audio 拟真刻画/水流/滴答声效</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：颗粒粗细筛选与加水搓捏塑性对比：大块岩石破裂成粗沙，再风化成极细黏土！加水后黏土粘性极强可搓成细泥条不裂，沙子松散无法成团！</div>
+            
+        <div class="c-group">
+            <button class="btn" id="btnRollClay">🖐️ 尝试将湿黏土搓成细泥条</button>
+            <button class="btn btn-sec" id="btnRollSand">🖐️ 尝试将湿沙子揉捏成团</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [微观颗粒大小] 岩石碎屑 > 粗沙 > 细沙 > 粉砂 > 黏土 (小于 0.005mm)<br>
+            [物理特性] 黏土微粒比表面积巨大，水膜张力强，具有优异的可塑性！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.2, vol=0.1) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        function playScratch() {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const dur = 0.15;
+                const bufferSize = audioCtx.sampleRate * dur;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.4;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                noise.connect(gain); gain.connect(audioCtx.destination);
+                noise.start();
+            } catch(e){}
+        }
+        
+        let rollType = 'none';
+        const telem = document.getElementById('telem');
+
+        document.getElementById('btnRollClay').addEventListener('click', () => {
+            rollType = 'clay'; playTone(350, 'triangle', 0.2);
+            telem.innerHTML = '🖐️ [搓捏黏土] 黏土细腻粘手！顺利搓成长长的泥条并且弯折不断裂！证明黏土黏性极强！';
+        });
+        document.getElementById('btnRollSand').addEventListener('click', () => {
+            rollType = 'sand'; playTone(200, 'sine', 0.15);
+            telem.innerHTML = '🖐️ [揉捏沙子] 沙粒粗糙松散，一松手泥沙立刻崩塌散落，无法成团！证明沙子缺少黏聚力！';
+        });
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            if(rollType === 'clay') {
+                // Smooth rolled clay rope
+                ctx.fillStyle = '#b45309';
+                ctx.beginPath();
+                ctx.ellipse(w/2, 210, 120, 18, 0, 0, Math.PI*2);
+                ctx.fill();
+                ctx.strokeStyle = '#78350f'; ctx.lineWidth = 3; ctx.stroke();
+            } else if(rollType === 'sand') {
+                // Crumbled loose sand pile
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.moveTo(w/2 - 80, 240); ctx.lineTo(w/2, 170); ctx.lineTo(w/2 + 80, 240);
+                ctx.closePath();
+                ctx.fill();
+            } else {
+                ctx.fillStyle = '#94a3b8'; ctx.font = '14px sans-serif';
+                ctx.fillText('请点击按钮对比黏土与沙子的搓泥塑性实验！', w/2 - 130, 210);
+            }
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

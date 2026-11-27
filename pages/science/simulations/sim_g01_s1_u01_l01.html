@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【1. 我们知道的植物】真实验微仿真 - 一年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+        .notes-card strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 <span>1. 我们知道的植物</span></h1>
+        <span class="badge">一年级科学·周围的植物</span>
+        <a href="virtual_microscope.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 微观植物与叶片实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g01_s1_u01_l01.html" class="active">我们知道的植物</a>
+<a href="sim_g01_s1_u01_l02.html" class="">观察一棵植物</a>
+<a href="sim_g01_s1_u01_l03.html" class="">观察叶</a>
+<a href="sim_g01_s1_u01_l04.html" class="">这是谁的叶</a>
+<a href="sim_g01_s1_u01_l05.html" class="">植物想“长大”</a>
+<a href="sim_g01_s1_u01_l06.html" class="">校园里的植物</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 植物生命与形态观测控制台</div>
+            
+            <div id="controlsContainer">
+                <!-- Dynamically injected controls -->
+            </div>
+
+            <div class="card-title" style="margin-top: 6px;">📊 植物生长与器官特征遥测</div>
+            <div class="telemetry" id="telem">
+                [遥测就绪] 等待交互触发...
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <strong>🎯 探究目标与科学家视角：</strong><br>
+            植物是活生生的生命体，拥有根、茎、叶、花、果实等器官。植物通过根吸收水分与无机盐，通过绿叶进行光合作用制造养料；不同的植物生长在不同的生境中，叶片具有银杏扇形、柳树披针形、枫树掌状等千姿百态的奇妙形态。
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+
+        const activeMode = "plant_alive";
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, dur=0.15) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
+        }
+
+        
+const state = {
+    hasSun: true,
+    hasWater: true,
+    growthDays: 15,
+    selectedOrgan: 'leaf', // root, stem, leaf, flower
+    habitatType: 'soil', // soil, water, rock, tree
+    leafSpecies: 'ginkgo', // ginkgo, maple, willow
+    drawVein: true,
+    seasonState: 'spring' // spring, summer, autumn, winter
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'plant_alive') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>植物生存要素控制 (阳光与水分)</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.hasSun?'btn-primary':''}" id="btnSun">${state.hasSun?'☀️ 阳光照射充分':'☁️ 遮阴无阳光'}</button>
+                    <button class="btn ${state.hasWater?'btn-green':''}" id="btnWater">${state.hasWater?'💧 定期浇水湿润':'🏜️ 缺水干旱枯萎'}</button>
+                </div>
+            </div>
+            <div class="ctrl-group">
+                <button class="btn btn-rose" id="btnBreath">🫁 观察植物蒸腾与呼吸气孔</button>
+            </div>
+        `;
+    } else if (activeMode === 'plant_parts') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>点击聚焦植物各器官构造</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.selectedOrgan==='root'?'btn-primary':''}" id="btnPartRoot">🌱 根 (吸水固土)</button>
+                    <button class="btn ${state.selectedOrgan==='stem'?'btn-primary':''}" id="btnPartStem">🎋 茎 (支撑输导)</button>
+                    <button class="btn ${state.selectedOrgan==='leaf'?'btn-primary':''}" id="btnPartLeaf">🍃 叶 (光合蒸腾)</button>
+                    <button class="btn ${state.selectedOrgan==='flower'?'btn-primary':''}" id="btnPartFlower">🌸 花 (繁衍结实)</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'plant_habitat') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>植物生长生境切换</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.habitatType==='soil'?'btn-primary':''}" id="btnHabSoil">🏡 泥土中 (向日葵)</button>
+                    <button class="btn ${state.habitatType==='water'?'btn-primary':''}" id="btnHabWater">🌊 水里 (睡莲水生)</button>
+                    <button class="btn ${state.habitatType==='rock'?'btn-primary':''}" id="btnHabRock">🧗 石缝中 (坚韧青松)</button>
+                    <button class="btn ${state.habitatType==='tree'?'btn-primary':''}" id="btnHabTree">🌳 树干附生 (苔藓蕨类)</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'leaf_drawing' || activeMode === 'leaf_matching') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>选择典型特征树叶观察</span><span class="val">${state.leafSpecies==='ginkgo'?'银杏叶(扇形)':state.leafSpecies==='maple'?'枫树叶(掌形)':state.leafSpecies==='willow'?'垂柳叶(披针形)':'桑叶(卵形)'}</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.leafSpecies==='ginkgo'?'btn-primary':''}" id="btnLgGinkgo">🍂 银杏叶 (扇形波状)</button>
+                    <button class="btn ${state.leafSpecies==='maple'?'btn-primary':''}" id="btnLgMaple">🍁 枫树叶 (掌状五裂)</button>
+                    <button class="btn ${state.leafSpecies==='willow'?'btn-primary':''}" id="btnLgWillow">🌿 垂柳叶 (细长披针)</button>
+                    <button class="btn ${state.leafSpecies==='mulberry'?'btn-primary':''}" id="btnLgMulberry">🍃 桑树叶 (宽卵形)</button>
+                </div>
+            </div>
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>叶片结构透视与解剖标示</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnToggleVein">${state.drawVein?'🔬 显示叶脉纹理':'🌿 仅看叶片外形'}</button>
+                    <button class="btn btn-primary" id="btnMatchTree">🌳 匹配对应的母树</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'plant_growth_change') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>观察四季植物变化</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.seasonState==='spring'?'btn-primary':''}" id="btnSeaSp">🌸 春季萌芽嫩绿</button>
+                    <button class="btn ${state.seasonState==='summer'?'btn-primary':''}" id="btnSeaSu">☀️ 夏季枝繁叶茂</button>
+                    <button class="btn ${state.seasonState==='autumn'?'btn-primary':''}" id="btnSeaAu">🍁 秋季叶黄飘落</button>
+                    <button class="btn ${state.seasonState==='winter'?'btn-primary':''}" id="btnSeaWi">❄️ 冬季落叶休眠</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'campus_plants') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>校园常见树木叶片辨认</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.leafSpecies==='ginkgo'?'btn-primary':''}" id="btnLgGinkgo">🍂 银杏 (扇形波状)</button>
+                    <button class="btn ${state.leafSpecies==='maple'?'btn-primary':''}" id="btnLgMaple">🍁 枫树 (五角掌状)</button>
+                    <button class="btn ${state.leafSpecies==='willow'?'btn-primary':''}" id="btnLgWillow">🌿 垂柳 (细长披针形)</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindG1U1Events();
+}
+
+function bindG1U1Events() {
+    const btnSun = document.getElementById('btnSun');
+    if (btnSun) btnSun.onclick = () => { state.hasSun = !state.hasSun; setupControls(); playTone(600, 0.1); };
+    const btnWater = document.getElementById('btnWater');
+    if (btnWater) btnWater.onclick = () => { state.hasWater = !state.hasWater; setupControls(); playTone(500, 0.1); };
+
+    const btnPartRoot = document.getElementById('btnPartRoot');
+    if (btnPartRoot) btnPartRoot.onclick = () => { state.selectedOrgan = 'root'; setupControls(); playTone(350, 0.1); };
+    const btnPartStem = document.getElementById('btnPartStem');
+    if (btnPartStem) btnPartStem.onclick = () => { state.selectedOrgan = 'stem'; setupControls(); playTone(450, 0.1); };
+    const btnPartLeaf = document.getElementById('btnPartLeaf');
+    if (btnPartLeaf) btnPartLeaf.onclick = () => { state.selectedOrgan = 'leaf'; setupControls(); playTone(550, 0.1); };
+    const btnPartFlower = document.getElementById('btnPartFlower');
+    if (btnPartFlower) btnPartFlower.onclick = () => { state.selectedOrgan = 'flower'; setupControls(); playTone(650, 0.1); };
+
+    const btnHabSoil = document.getElementById('btnHabSoil');
+    if (btnHabSoil) btnHabSoil.onclick = () => { state.habitatType = 'soil'; setupControls(); playTone(400, 0.1); };
+    const btnHabWater = document.getElementById('btnHabWater');
+    if (btnHabWater) btnHabWater.onclick = () => { state.habitatType = 'water'; setupControls(); playTone(480, 0.1); };
+    const btnHabRock = document.getElementById('btnHabRock');
+    if (btnHabRock) btnHabRock.onclick = () => { state.habitatType = 'rock'; setupControls(); playTone(540, 0.1); };
+    const btnHabTree = document.getElementById('btnHabTree');
+    if (btnHabTree) btnHabTree.onclick = () => { state.habitatType = 'tree'; setupControls(); playTone(620, 0.1); };
+
+    const btnToggleVein = document.getElementById('btnToggleVein');
+    if (btnToggleVein) btnToggleVein.onclick = () => { state.drawVein = !state.drawVein; setupControls(); playTone(580, 0.1); };
+
+    const btnSeaSp = document.getElementById('btnSeaSp');
+    if (btnSeaSp) btnSeaSp.onclick = () => { state.seasonState = 'spring'; setupControls(); playTone(520, 0.1); };
+    const btnSeaSu = document.getElementById('btnSeaSu');
+    if (btnSeaSu) btnSeaSu.onclick = () => { state.seasonState = 'summer'; setupControls(); playTone(650, 0.1); };
+    const btnSeaAu = document.getElementById('btnSeaAu');
+    if (btnSeaAu) btnSeaAu.onclick = () => { state.seasonState = 'autumn'; setupControls(); playTone(480, 0.1); };
+    const btnSeaWi = document.getElementById('btnSeaWi');
+    if (btnSeaWi) btnSeaWi.onclick = () => { state.seasonState = 'winter'; setupControls(); playTone(360, 0.1); };
+
+    const btnLgGinkgo = document.getElementById('btnLgGinkgo');
+    if (btnLgGinkgo) btnLgGinkgo.onclick = () => { state.leafSpecies = 'ginkgo'; setupControls(); playTone(500, 0.1); };
+    const btnLgMaple = document.getElementById('btnLgMaple');
+    if (btnLgMaple) btnLgMaple.onclick = () => { state.leafSpecies = 'maple'; setupControls(); playTone(600, 0.1); };
+    const btnLgWillow = document.getElementById('btnLgWillow');
+    if (btnLgWillow) btnLgWillow.onclick = () => { state.leafSpecies = 'willow'; setupControls(); playTone(700, 0.1); };
+    const btnLgMulberry = document.getElementById('btnLgMulberry');
+    if (btnLgMulberry) btnLgMulberry.onclick = () => { state.leafSpecies = 'mulberry'; setupControls(); playTone(650, 0.1); };
+    const btnMatchTree = document.getElementById('btnMatchTree');
+    if (btnMatchTree) btnMatchTree.onclick = () => { playTone(880, 0.2); };
+}
+
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'plant_alive') {
+        drawPlantAlive();
+    } else if (activeMode === 'plant_parts') {
+        drawPlantParts();
+    } else if (activeMode === 'plant_habitat') {
+        drawPlantHabitat();
+    } else if (activeMode === 'leaf_drawing' || activeMode === 'leaf_matching') {
+        drawLeafMatchingScene();
+    } else if (activeMode === 'plant_growth_change') {
+        drawPlantGrowthChange();
+    } else if (activeMode === 'campus_plants') {
+        drawCampusPlants();
+    } else {
+        drawPlantAlive();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+function drawPlantAlive() {
+    const cx = 360, cy = 230;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('我们知道的植物: 植物是活生生的生命体，需要阳光与水分才能茂盛生长', cx, 40);
+
+    // Sun on top left
+    if (state.hasSun) {
+        ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(120, 100, 35, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = 'rgba(250, 204, 21, 0.35)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(120, 100); ctx.lineTo(cx, cy); ctx.stroke();
+    }
+
+    // Soil
+    ctx.fillStyle = '#78350f'; ctx.fillRect(100, cy + 90, 520, 90);
+
+    const isHealthy = state.hasSun && state.hasWater;
+    const plantCol = isHealthy ? '#22c55e' : (state.hasWater ? '#84cc16' : '#a16207');
+
+    // Plant stem
+    ctx.strokeStyle = plantCol; ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.moveTo(cx, cy + 90);
+    if (!state.hasWater) {
+        // Drooping withered stem
+        ctx.quadraticCurveTo(cx + 40, cy, cx + 50, cy - 30);
+    } else {
+        ctx.lineTo(cx, cy - 50);
+    }
+    ctx.stroke();
+
+    // Leaves
+    ctx.fillStyle = plantCol;
+    if (isHealthy) {
+        ctx.beginPath(); ctx.ellipse(cx - 35, cy, 32, 14, -0.4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(cx + 35, cy - 20, 32, 14, 0.4, 0, Math.PI*2); ctx.fill();
+        // Flower
+        ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(cx, cy - 65, 18, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(cx, cy - 65, 8, 0, Math.PI*2); ctx.fill();
+    } else if (!state.hasWater) {
+        ctx.fillStyle = '#a16207';
+        ctx.beginPath(); ctx.ellipse(cx + 25, cy + 10, 20, 8, 0.6, 0, Math.PI*2); ctx.fill();
+    }
+
+    // Rain droplets if watered
+    if (state.hasWater) {
+        ctx.fillStyle = '#38bdf8';
+        for (let i = 0; i < 6; i++) {
+            const rx = cx - 80 + i * 30;
+            const ry = cy + 100 + (performance.now()*0.05 + i*15) % 40;
+            ctx.beginPath(); ctx.arc(rx, ry, 3, 0, Math.PI*2); ctx.fill();
+        }
+    }
+
+    ctx.fillStyle = isHealthy ? '#10b981' : '#f59e0b'; ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(isHealthy ? '🌟 阳光充足、水分滋润，植物叶片翠绿、花朵盛开！' : (state.hasWater ? '⚠️ 缺少阳光，光合作用不足，植株徒长发黄' : '⚠️ 严重缺水，叶片枯黄下垂萎蔫！'), cx, cy + 140);
+}
+
+function drawPlantParts() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('一棵完整植物的器官结构: 根、茎、叶、花', cx, 40);
+
+    // Soil line
+    ctx.fillStyle = '#78350f'; ctx.fillRect(100, cy + 80, 520, 100);
+    ctx.fillStyle = '#cbd5e1'; ctx.font = '11px sans-serif'; ctx.fillText('地面分界线', 160, cy + 75);
+
+    // 1. Root (根)
+    ctx.strokeStyle = state.selectedOrgan === 'root' ? '#f59e0b' : '#ca8a04';
+    ctx.lineWidth = state.selectedOrgan === 'root' ? 5 : 3;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + 80); ctx.lineTo(cx, cy + 150);
+    ctx.moveTo(cx, cy + 100); ctx.lineTo(cx - 40, cy + 140);
+    ctx.moveTo(cx, cy + 115); ctx.lineTo(cx + 45, cy + 145);
+    ctx.stroke();
+
+    // 2. Stem (茎)
+    ctx.strokeStyle = state.selectedOrgan === 'stem' ? '#38bdf8' : '#15803d';
+    ctx.lineWidth = state.selectedOrgan === 'stem' ? 12 : 8;
+    ctx.beginPath(); ctx.moveTo(cx, cy + 80); ctx.lineTo(cx, cy - 50); ctx.stroke();
+
+    // 3. Leaf (叶)
+    ctx.fillStyle = state.selectedOrgan === 'leaf' ? '#10b981' : '#16a34a';
+    ctx.beginPath(); ctx.ellipse(cx - 45, cy + 10, 42, 16, -0.4, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx + 45, cy - 20, 42, 16, 0.4, 0, Math.PI*2); ctx.fill();
+
+    // 4. Flower (花)
+    ctx.fillStyle = state.selectedOrgan === 'flower' ? '#ec4899' : '#f43f5e';
+    for (let p = 0; p < 5; p++) {
+        const a = p * Math.PI * 2 / 5;
+        ctx.beginPath(); ctx.arc(cx + Math.cos(a)*18, cy - 65 + Math.sin(a)*18, 12, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(cx, cy - 65, 10, 0, Math.PI*2); ctx.fill();
+
+    // Highlight text
+    ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 14px sans-serif';
+    const organDesc = {
+        root: '根：扎根土壤固定植物，吸收水分和矿物质养分',
+        stem: '茎：支撑植物向上生长，体内导管运输水分与养分',
+        leaf: '叶：吸收阳光进行光合作用，制造营养物质',
+        flower: '花：孕育花粉与胚珠，繁衍结出种子与果实'
+    };
+    ctx.fillText(`【当前聚焦】 ${organDesc[state.selectedOrgan]}`, cx, cy + 150);
+}
+
+function drawPlantHabitat() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+
+    if (state.habitatType === 'soil') {
+        ctx.fillText('植物生境 1: 肥沃泥土中 (向日葵茎杆挺拔，根系扎深)', cx, 40);
+        ctx.fillStyle = '#78350f'; ctx.fillRect(100, cy + 60, 520, 120);
+        ctx.fillStyle = '#22c55e';
+        ctx.fillRect(cx - 6, cy - 50, 12, 110);
+        ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(cx, cy - 70, 30, 0, Math.PI*2); ctx.fill();
+    } else if (state.habitatType === 'water') {
+        ctx.fillText('植物生境 2: 池塘水里 (睡莲叶片漂浮在水面，叶柄柔软长长延伸)', cx, 40);
+        ctx.fillStyle = 'rgba(14, 165, 233, 0.4)'; ctx.fillRect(100, cy - 20, 520, 200);
+        ctx.fillStyle = '#16a34a'; ctx.beginPath(); ctx.ellipse(cx, cy - 20, 70, 20, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(cx, cy - 35, 15, 0, Math.PI*2); ctx.fill();
+    } else if (state.habitatType === 'rock') {
+        ctx.fillText('植物生境 3: 陡峭悬崖岩石缝隙中 (黄山松顽强扎根在坚硬石缝)', cx, 40);
+        ctx.fillStyle = '#475569';
+        ctx.beginPath(); ctx.moveTo(cx - 150, cy + 140); ctx.lineTo(cx, cy - 40); ctx.lineTo(cx + 150, cy + 140); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#15803d'; ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.moveTo(cx, cy - 40); ctx.lineTo(cx + 40, cy - 90); ctx.stroke();
+    } else {
+        ctx.fillText('植物生境 4: 阴湿大树树干表面 (附生苔藓与绿色蕨类植物)', cx, 40);
+        ctx.fillStyle = '#b45309'; ctx.fillRect(cx - 80, cy - 100, 160, 260);
+        ctx.fillStyle = '#16a34a';
+        for (let i = 0; i < 20; i++) {
+            ctx.beginPath(); ctx.arc(cx - 70 + (i*13)%140, cy - 80 + i*10, 6, 0, Math.PI*2); ctx.fill();
+        }
+    }
+}
+
+
+function drawLeafMatchingScene() {
+    const cx = 360, cy = 210;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    const titleTxt = activeMode === 'leaf_matching' ? '这是谁的叶: 观察叶片形状、边缘与叶脉，帮树叶找到妈妈' : '观察叶: 仔细观察不同植物叶片的叶柄、叶片与叶脉特征';
+    ctx.fillText(titleTxt, cx, 36);
+
+    // Draw the realistic leaf
+    drawRealisticLeaf(cx, cy + 20, state.leafSpecies, state.drawVein);
+
+    // Botanical Description card at bottom
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.roundRect(80, 345, 560, 85, 8);
+    ctx.fill();
+    ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5; ctx.stroke();
+
+    ctx.textAlign = 'left';
+    if (state.leafSpecies === 'ginkgo') {
+        ctx.fillStyle = '#facc15'; ctx.font = 'bold 15px sans-serif';
+        ctx.fillText('🍂 银杏叶 (Ginkgo)', 105, 372);
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '13px sans-serif';
+        ctx.fillText('• 叶片形态: 扇形，顶端边缘呈波浪状微折，中央常有微小 V 形切口凹陷', 105, 396);
+        ctx.fillText('• 叶脉特征: 二歧平行放射分叉叶脉 (从叶柄处呈辐射状分枝，无主脉)', 105, 418);
+    } else if (state.leafSpecies === 'maple') {
+        ctx.fillStyle = '#ef4444'; ctx.font = 'bold 15px sans-serif';
+        ctx.fillText('🍁 枫树叶 (Maple)', 105, 372);
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '13px sans-serif';
+        ctx.fillText('• 叶片形态: 掌状五裂形 (像张开的五指)，裂片边缘具锐利锯齿', 105, 396);
+        ctx.fillText('• 叶脉特征: 掌状辐射五主脉 (从叶基向五个裂片辐射延伸，网状交织)', 105, 418);
+    } else if (state.leafSpecies === 'willow') {
+        ctx.fillStyle = '#22c55e'; ctx.font = 'bold 15px sans-serif';
+        ctx.fillText('🌿 垂柳叶 (Willow)', 105, 372);
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '13px sans-serif';
+        ctx.fillText('• 叶片形态: 狭长披针形，两端渐尖，边缘有细微浅锯齿，质地柔韧', 105, 396);
+        ctx.fillText('• 叶脉特征: 显著中央主脉 (贯穿整叶)，两侧斜出密集纤细羽状侧脉', 105, 418);
+    } else {
+        ctx.fillStyle = '#10b981'; ctx.font = 'bold 15px sans-serif';
+        ctx.fillText('🍃 桑树叶 (Mulberry)', 105, 372);
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '13px sans-serif';
+        ctx.fillText('• 叶片形态: 宽卵形或心形，叶端锐尖，叶缘粗锯齿，春季蚕宝宝最爱美食', 105, 396);
+        ctx.fillText('• 叶脉特征: 三出脉或羽状网脉，主脉凸起明显，侧脉清晰网织', 105, 418);
+    }
+}
+
+function drawCampusPlants() {
+    drawLeafMatchingScene();
+}
+
+function drawRealisticLeaf(cx, cy, species, showVeins) {
+    if (species === 'ginkgo') {
+        drawGinkgoLeaf(cx, cy, showVeins);
+    } else if (species === 'maple') {
+        drawMapleLeaf(cx, cy, showVeins);
+    } else if (species === 'willow') {
+        drawWillowLeaf(cx, cy, showVeins);
+    } else {
+        drawMulberryLeaf(cx, cy, showVeins);
+    }
+}
+
+function drawGinkgoLeaf(cx, cy, showVeins) {
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    // 1. Petiole (长而细韧的叶柄)
+    ctx.strokeStyle = '#92400e';
+    ctx.lineWidth = 3.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, 95);
+    ctx.quadraticCurveTo(8, 45, 0, 0);
+    ctx.stroke();
+
+    // 2. Leaf Blade Gradient
+    const grad = ctx.createRadialGradient(0, -60, 20, 0, -60, 160);
+    grad.addColorStop(0, '#fef08a');
+    grad.addColorStop(0.4, '#facc15');
+    grad.addColorStop(0.85, '#eab308');
+    grad.addColorStop(1, '#ca8a04');
+
+    // 3. Leaf Blade Outline with Wavy Rim and Central Notch
+    ctx.fillStyle = grad;
+    ctx.strokeStyle = '#a16207';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 0); // Petiole attachment at base
+
+    // Left base curving up
+    ctx.bezierCurveTo(-45, -20, -110, -50, -135, -95);
+
+    // Left wavy fan margin
+    ctx.bezierCurveTo(-140, -115, -120, -135, -90, -145);
+    ctx.bezierCurveTo(-65, -152, -40, -148, -15, -140);
+
+    // Central Apical Notch (中央V形切槽凹陷)
+    ctx.quadraticCurveTo(0, -115, 15, -140);
+
+    // Right wavy fan margin
+    ctx.bezierCurveTo(40, -148, 65, -152, 90, -145);
+    ctx.bezierCurveTo(120, -135, 140, -115, 135, -95);
+
+    // Right base curving down to petiole
+    ctx.bezierCurveTo(110, -50, 45, -20, 0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 4. Radiating Dichotomous Veins (二歧分叉辐射平行叶脉)
+    if (showVeins) {
+        ctx.strokeStyle = 'rgba(161, 98, 7, 0.5)';
+        ctx.lineWidth = 1.2;
+        for (let angle = -120; angle <= 120; angle += 6) {
+            if (Math.abs(angle) < 4) continue; // Notch gap
+            const rad = (angle - 90) * Math.PI / 180;
+            const len = 115 + Math.cos(angle * 0.04) * 25 - (Math.abs(angle) < 25 ? 18 : 0);
+            
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            const midX = Math.cos(rad) * (len * 0.55);
+            const midY = Math.sin(rad) * (len * 0.55);
+            const endX = Math.cos(rad) * len;
+            const endY = Math.sin(rad) * len;
+            
+            ctx.quadraticCurveTo(midX + (angle > 0 ? 3 : -3), midY, endX, endY);
+            ctx.stroke();
+
+            // Fork branch
+            if (Math.abs(angle) % 12 === 0 && len > 85) {
+                ctx.beginPath();
+                ctx.moveTo(midX, midY);
+                ctx.lineTo(endX + (angle > 0 ? 6 : -6), endY - 4);
+                ctx.stroke();
+            }
+        }
+    }
+
+    // Anatomical Labels
+    ctx.fillStyle = '#f8fafc'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('▲ 顶端中央凹陷波浪缘', 0, -155);
+    ctx.fillText('叶柄 ▼', 30, 90);
+
+    ctx.restore();
+}
+
+function drawMapleLeaf(cx, cy, showVeins) {
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    // 1. Petiole (叶柄)
+    ctx.strokeStyle = '#991b1b';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, 105);
+    ctx.quadraticCurveTo(6, 45, 0, 0);
+    ctx.stroke();
+
+    // 2. Leaf Gradient
+    const grad = ctx.createRadialGradient(0, -40, 10, 0, -40, 150);
+    grad.addColorStop(0, '#fef08a');
+    grad.addColorStop(0.3, '#f97316');
+    grad.addColorStop(0.7, '#dc2626');
+    grad.addColorStop(1, '#991b1b');
+
+    ctx.fillStyle = grad;
+    ctx.strokeStyle = '#7f1d1d';
+    ctx.lineWidth = 2;
+
+    // 3. 5-lobed Palmate Maple Outline with Serrated Teeth
+    ctx.beginPath();
+    ctx.moveTo(0, 0); // Base
+
+    // Left Bottom Lobe
+    ctx.lineTo(-35, -10); ctx.lineTo(-55, -8); ctx.lineTo(-50, -20);
+    ctx.lineTo(-72, -26); ctx.lineTo(-60, -42);
+
+    // Left Main Lobe
+    ctx.lineTo(-85, -50); ctx.lineTo(-75, -65); ctx.lineTo(-102, -82);
+    ctx.lineTo(-80, -92); ctx.lineTo(-92, -112); ctx.lineTo(-68, -105);
+    ctx.lineTo(-50, -122); ctx.lineTo(-40, -105);
+
+    // Center Main Lobe (Top)
+    ctx.lineTo(-26, -132); ctx.lineTo(-16, -122);
+    ctx.lineTo(0, -155); // Central Apex Tip
+    ctx.lineTo(16, -122); ctx.lineTo(26, -132);
+
+    // Right Main Lobe
+    ctx.lineTo(40, -105); ctx.lineTo(50, -122); ctx.lineTo(68, -105);
+    ctx.lineTo(92, -112); ctx.lineTo(80, -92); ctx.lineTo(102, -82);
+    ctx.lineTo(75, -65); ctx.lineTo(85, -50);
+
+    // Right Bottom Lobe
+    ctx.lineTo(60, -42); ctx.lineTo(72, -26); ctx.lineTo(50, -20);
+    ctx.lineTo(55, -8); ctx.lineTo(35, -10);
+    ctx.closePath();
+
+    ctx.fill();
+    ctx.stroke();
+
+    // 4. 5 Palmate Main Veins (掌状五辐射主脉)
+    if (showVeins) {
+        ctx.strokeStyle = '#fee2e2';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(0, 0); ctx.lineTo(0, -150);
+        ctx.moveTo(0, 0); ctx.lineTo(-88, -108);
+        ctx.moveTo(0, 0); ctx.lineTo(88, -108);
+        ctx.moveTo(0, 0); ctx.lineTo(-68, -24);
+        ctx.moveTo(0, 0); ctx.lineTo(68, -24);
+        ctx.stroke();
+
+        // Secondary network veins
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(254, 226, 226, 0.55)';
+        for (let y = -25; y >= -115; y -= 18) {
+            ctx.beginPath();
+            ctx.moveTo(0, y); ctx.lineTo(-22, y - 14);
+            ctx.moveTo(0, y); ctx.lineTo(22, y - 14);
+            ctx.stroke();
+        }
+    }
+
+    ctx.fillStyle = '#f8fafc'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('▲ 掌状五裂·锯齿尖', 0, -165);
+    ctx.fillText('叶柄 ▼', 30, 100);
+
+    ctx.restore();
+}
+
+function drawWillowLeaf(cx, cy, showVeins) {
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    // 1. Petiole (细叶柄)
+    ctx.strokeStyle = '#15803d';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, 105);
+    ctx.quadraticCurveTo(-5, 55, 0, 15);
+    ctx.stroke();
+
+    // 2. Leaf Blade Gradient
+    const grad = ctx.createLinearGradient(-25, 0, 25, 0);
+    grad.addColorStop(0, '#4ade80');
+    grad.addColorStop(0.3, '#22c55e');
+    grad.addColorStop(0.7, '#16a34a');
+    grad.addColorStop(1, '#15803d');
+
+    // 3. Graceful Curved Lanceolate Blade (细长披针形·两端渐尖)
+    ctx.fillStyle = grad;
+    ctx.strokeStyle = '#14532d';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(0, 15);
+
+    ctx.bezierCurveTo(-26, -20, -30, -85, -16, -145);
+    ctx.quadraticCurveTo(-5, -178, 0, -200); // Acute Tip
+
+    ctx.quadraticCurveTo(5, -178, 16, -145);
+    ctx.bezierCurveTo(30, -85, 26, -20, 0, 15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 4. Central Midrib (主脉与密集侧脉)
+    if (showVeins) {
+        ctx.strokeStyle = '#bbf7d0';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(0, 15);
+        ctx.quadraticCurveTo(-2, -85, 0, -195);
+        ctx.stroke();
+
+        ctx.lineWidth = 1.0;
+        ctx.strokeStyle = 'rgba(187, 247, 208, 0.55)';
+        for (let y = 0; y >= -170; y -= 15) {
+            ctx.beginPath();
+            ctx.moveTo(0, y); ctx.lineTo(-14, y - 9);
+            ctx.moveTo(0, y); ctx.lineTo(14, y - 9);
+            ctx.stroke();
+        }
+    }
+
+    ctx.fillStyle = '#f8fafc'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('▲ 披针形渐尖叶尖', 0, -210);
+    ctx.fillText('细长叶柄 ▼', 30, 100);
+
+    ctx.restore();
+}
+
+function drawMulberryLeaf(cx, cy, showVeins) {
+    ctx.save();
+    ctx.translate(cx, cy + 15);
+
+    // 1. Petiole
+    ctx.strokeStyle = '#15803d'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(0, 85); ctx.lineTo(0, 5); ctx.stroke();
+
+    // 2. Wide Ovate Blade with subtle serration
+    ctx.fillStyle = '#16a34a'; ctx.strokeStyle = '#14532d'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 5);
+    ctx.bezierCurveTo(-65, -15, -75, -80, -35, -125);
+    ctx.lineTo(0, -150); // Acute tip
+    ctx.lineTo(35, -125);
+    ctx.bezierCurveTo(75, -80, 65, -15, 0, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 3. Veins
+    if (showVeins) {
+        ctx.strokeStyle = '#bbf7d0'; ctx.lineWidth = 2.2;
+        ctx.beginPath(); ctx.moveTo(0, 5); ctx.lineTo(0, -145); ctx.stroke();
+        ctx.lineWidth = 1.2;
+        for (let y = -10; y >= -115; y -= 20) {
+            ctx.beginPath();
+            ctx.moveTo(0, y); ctx.lineTo(-32, y - 16);
+            ctx.moveTo(0, y); ctx.lineTo(32, y - 16);
+            ctx.stroke();
+        }
+    }
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('▲ 宽卵形·心形基部', 0, -158);
+    ctx.fillText('叶柄 ▼', 28, 80);
+
+    ctx.restore();
+}
+
+function drawPlantGrowthChange() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(`植物的季相变化 【当前季节: ${state.seasonState==='spring'?'春季(发芽)':(state.seasonState==='summer'?'夏季(茂密)':(state.seasonState==='autumn'?'秋季(叶黄飘落)':'冬季(落叶休眠)'))}】`, cx, 40);
+
+    // Tree Trunk
+    ctx.fillStyle = '#78350f'; ctx.fillRect(cx - 18, cy, 36, 140);
+
+    let foliageCol = '#4ade80';
+    if (state.seasonState === 'summer') foliageCol = '#15803d';
+    else if (state.seasonState === 'autumn') foliageCol = '#eab308';
+    else if (state.seasonState === 'winter') foliageCol = '#64748b';
+
+    if (state.seasonState !== 'winter') {
+        ctx.fillStyle = foliageCol;
+        ctx.beginPath(); ctx.arc(cx, cy - 40, 80, 0, Math.PI*2); ctx.fill();
+    } else {
+        // Bare winter branches
+        ctx.strokeStyle = '#78350f'; ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy); ctx.lineTo(cx - 50, cy - 60);
+        ctx.moveTo(cx, cy); ctx.lineTo(cx + 50, cy - 60);
+        ctx.moveTo(cx, cy - 20); ctx.lineTo(cx, cy - 80);
+        ctx.stroke();
+    }
+
+    if (state.seasonState === 'autumn') {
+        // Falling leaves
+        ctx.fillStyle = '#f59e0b';
+        for (let i = 0; i < 6; i++) {
+            const lx = cx - 90 + i * 35;
+            const ly = cy + 40 + (i % 3) * 25;
+            ctx.beginPath(); ctx.ellipse(lx, ly, 12, 6, 0.4, 0, Math.PI*2); ctx.fill();
+        }
+    }
+}
+
+
+        
+function updateTelemetry() {
+    let txt = `[植物探究遥测] 模式: ${activeMode} | `;
+    if (activeMode === 'plant_alive') {
+        txt += `阳光: ${state.hasSun?'充足':'缺失'} | 水分: ${state.hasWater?'湿润':'干旱'} | 生长状态: ${state.hasSun&&state.hasWater?'旺盛翠绿':'受阻萎蔫'}`;
+    } else if (activeMode === 'plant_parts') {
+        txt += `器官聚焦: ${state.selectedOrgan} | 生命结构: 根茎叶花果实协同分工`;
+    } else if (activeMode === 'plant_habitat') {
+        txt += `生境类型: ${state.habitatType} | 生态适应: 植物具备极强的环境适应性`;
+    } else if (activeMode === 'leaf_drawing') {
+        txt += `观察特征: 叶片外形 + 叶脉网格 + 叶柄支持`;
+    } else if (activeMode === 'plant_growth_change') {
+        txt += `当前季节: ${state.seasonState} | 物候变化: 萌芽、繁茂、变黄飘落、休眠`;
+    } else if (activeMode === 'campus_plants') {
+        txt += `模式: ${activeMode} | 器官聚焦: leaf | 叶片种类: ${state.leafSpecies} | 结构完整: 叶柄+叶片+叶脉`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        updateTelemetry();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学大师级实验室：矿物晶体、硬度光泽与土壤成分全景实验室（四年级下册·岩石与土壤）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #f59e0b;
+      --primary-hover: #d97706;
+      --accent: #38bdf8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1240px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-color: #d97706;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: #0f172a;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    }
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .mode-tab {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--muted);
+      border: none;
+      background: transparent;
+      transition: all 0.2s;
+    }
+    .mode-tab.active {
+      background: var(--primary);
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .main-container {
+      max-width: 1240px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 960px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .canvas-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .canvas-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.4);
+    }
+    .canvas-wrapper {
+      position: relative;
+      flex: 1;
+      min-height: 520px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 40%, #17243c 0%, #0b1120 100%);
+    }
+    canvas {
+      display: block;
+      cursor: crosshair;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fbbf24;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    .form-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+    .option-btn {
+      padding: 8px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.5);
+      color: var(--text);
+      font-size: 0.78rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .option-btn:hover {
+      border-color: var(--primary);
+    }
+    .option-btn.active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--primary);
+      color: #fbbf24;
+      font-weight: 700;
+    }
+
+    .telemetry-card {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.75rem;
+      color: #38bdf8;
+      line-height: 1.5;
+      min-height: 90px;
+    }
+
+    .science-tip {
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      background: rgba(30, 41, 59, 0.5);
+      border-left: 3px solid #f59e0b;
+      padding: 8px 10px;
+      border-radius: 0 8px 8px 0;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>🏆 矿物晶体与土壤成分全景实验室</h1>
+      <span class="badge">四年级下册·大师级核心</span>
+    </div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabMinerals" onclick="switchMode('minerals')">💎 矿物晶体鉴定台</button>
+      <button class="mode-tab" id="tabSediment" onclick="switchMode('sediment')">🧪 土壤沉降分层柱</button>
+      <button class="mode-tab" id="tabPermeability" onclick="switchMode('permeability')">💧 三联土壤渗水对比</button>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html" class="btn">← 返回大厅</a>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="canvas-panel">
+      <div class="canvas-header">
+        <span id="canvasTitle">💎 矿物晶体物理特征综合鉴定台（光泽度、条痕与莫氏硬度）</span>
+        <span style="color: var(--muted); font-size: 0.75rem;">直接在画布拖拽测试 · 真实粒子反馈</span>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="mainCanvas" width="840" height="520"></canvas>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="card" id="controlCard">
+        <!-- Dynamically injected controls -->
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 探究遥测与物理读数</div>
+        <div class="telemetry-card" id="telemDisplay">
+          初始化中...
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📖 科学家视角与学科大概念</div>
+        <div class="science-tip" id="scienceConcept">
+          岩石是由一种或几种矿物组成的集合体。矿物的颜色、条痕、光泽和硬度是鉴别矿物的重要特征；土壤是动植物生存的根基，由沙、黏土、腐殖质、水和空气等共同组成。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="master_science_suite.js"></script>
+  <script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const telem = document.getElementById('telemDisplay');
+    const ctrlCard = document.getElementById('controlCard');
+    const canvasTitle = document.getElementById('canvasTitle');
+
+    // Web Audio Synthesizer
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTone(freq, dur=0.15, type='sine') {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + dur);
+      } catch(e){}
+    }
+    function playScratchSound() {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const bufferSize = audioCtx.sampleRate * 0.2;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
+        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1800;
+        const gain = audioCtx.createGain();
+        gain.gain.value = 0.25;
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start();
+      } catch(e){}
+    }
+
+    let currentMode = 'minerals'; // minerals, sediment, permeability
+
+    // --- State: Minerals ---
+    const mineralDB = {
+      quartz: {
+        name: '石英 (Quartz)',
+        color: '#f1f5f9',
+        streak: '无色/白色',
+        streakColor: '#ffffff',
+        luster: '玻璃光泽 (强反光)',
+        lusterType: 'glass',
+        hardness: 7.0,
+        desc: '六角柱状双锥，晶莹透亮，小刀无法刻划，断口贝壳状。'
+      },
+      feldspar: {
+        name: '长石 (Feldspar)',
+        color: '#fca5a5',
+        streak: '白色/浅肉红',
+        streakColor: '#fecdd3',
+        luster: '玻璃光泽至珍珠光泽',
+        lusterType: 'pearl',
+        hardness: 6.0,
+        desc: '肉红色板状晶体，小刀非常勉强刻划，两组解理近直角。'
+      },
+      mica: {
+        name: '云母 (Mica)',
+        color: '#334155',
+        streak: '无色/白色',
+        streakColor: '#e2e8f0',
+        luster: '珍珠光泽/丝绢光泽',
+        lusterType: 'silk',
+        hardness: 2.5,
+        desc: '片状解理极发育，能剥离为极薄透明鳞片，指甲可刻划。'
+      },
+      pyrite: {
+        name: '黄铁矿 (愚人金)',
+        color: '#fbbf24',
+        streak: '绿黑色 (特征条痕!)',
+        streakColor: '#1e2920',
+        luster: '金属光泽 (耀眼金光)',
+        lusterType: 'metal',
+        hardness: 6.5,
+        desc: '外表耀眼金黄常被误认为黄金，但瓷板条痕为绿黑色！'
+      },
+      hematite: {
+        name: '赤铁矿 (Hematite)',
+        color: '#451a03',
+        streak: '樱红色 (特征条痕!)',
+        streakColor: '#881337',
+        luster: '半金属光泽至土状光泽',
+        lusterType: 'metal',
+        hardness: 5.5,
+        desc: '外表常为黑灰铁色，但在白瓷板上划擦呈现鲜艳樱红色粉末。'
+      },
+      talc: {
+        name: '滑石 (Talc)',
+        color: '#e2e8f0',
+        streak: '白色',
+        streakColor: '#ffffff',
+        luster: '蜡状光泽/油脂光泽',
+        lusterType: 'wax',
+        hardness: 1.0,
+        desc: '莫氏硬度计基准1级！极其柔软，指甲轻易划出深深沟槽，手摸滑腻。'
+      }
+    };
+
+    const hardnessTools = {
+      nail: { name: '手指甲', hardness: 2.5, icon: '💅' },
+      key: { name: '黄铜钥匙', hardness: 3.5, icon: '🔑' },
+      knife: { name: '钢制小刀', hardness: 5.5, icon: '🔪' },
+      quartz_pen: { name: '石英硬度计笔', hardness: 7.0, icon: '🖊️' }
+    };
+
+    let selectedMineral = 'pyrite';
+    let selectedTool = 'knife';
+    let scratchProgress = 0; // 0 to 1
+    let streakDrawn = false;
+    let lightAngle = 0.8; // for luster highlight
+
+    // Particles for Scratch & Streak
+    let scratchParticles = [];
+
+    // --- State: Sediment ---
+    let sedimentShaking = false;
+    let sedimentTime = 0; // 0 to 1 settling
+    let settlingSpeed = 1;
+    let sedimentParticles = [];
+
+    // --- State: Permeability ---
+    let waterPouring = false;
+    let waterTime = 0;
+    let waterDrops = [];
+
+    function switchMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+      if (mode === 'minerals') document.getElementById('tabMinerals').classList.add('active');
+      if (mode === 'sediment') document.getElementById('tabSediment').classList.add('active');
+      if (mode === 'permeability') document.getElementById('tabPermeability').classList.add('active');
+      renderSidebar();
+      playTone(480, 0.1);
+    }
+
+    function renderSidebar() {
+      if (currentMode === 'minerals') {
+        canvasTitle.textContent = '💎 矿物晶体物理特征综合鉴定台（光泽度、条痕与莫氏硬度）';
+        ctrlCard.innerHTML = `
+          <div class="card-title">💎 待检矿物标本选择</div>
+          <div class="grid-2 form-group">
+            ${Object.keys(mineralDB).map(k => `
+              <button class="option-btn ${selectedMineral === k ? 'active' : ''}" onclick="selectMineral('${k}')">
+                ${mineralDB[k].name.split(' ')[0]}
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="card-title">🧪 刻划硬度工具</div>
+          <div class="grid-2 form-group">
+            ${Object.keys(hardnessTools).map(k => `
+              <button class="option-btn ${selectedTool === k ? 'active' : ''}" onclick="selectHardnessTool('${k}')">
+                ${hardnessTools[k].icon} ${hardnessTools[k].name} (H≈${hardnessTools[k].hardness})
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="form-group" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+            <button class="btn btn-primary" onclick="triggerScratchTest()">🔨 实施刻划硬度对比测试</button>
+            <button class="btn" onclick="triggerStreakTest()" style="border-color: #38bdf8; color: #38bdf8;">⚪ 在白瓷板上划出条痕色</button>
+            <button class="btn" onclick="resetMineralTests()">🔄 清理测试台面</button>
+          </div>
+        `;
+      } else if (currentMode === 'sediment') {
+        canvasTitle.textContent = '🧪 土壤重力沉降与粒径分层实验（微观颗粒分离柱）';
+        ctrlCard.innerHTML = `
+          <div class="card-title">🌪️ 土壤沉降控制台</div>
+          <p style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">观察土壤微粒在水中的沉降分层现象（沙砾、沙、黏土与腐殖质）。</p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn btn-primary" onclick="startSedimentShake()">🌀 注入清水并充分剧烈振荡</button>
+            <button class="btn" onclick="speedUpSettling()">⚡ 加速重力沉降过程</button>
+            <button class="btn" onclick="resetSediment()">🔄 重置实验量筒</button>
+          </div>
+        `;
+      } else if (currentMode === 'permeability') {
+        canvasTitle.textContent = '💧 沙质土、壤土与黏质土三联渗水对比实验台';
+        ctrlCard.innerHTML = `
+          <div class="card-title">🚰 渗水对比控制台</div>
+          <p style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">在3个相同漏斗中装入等量沙质土、壤土、黏质土，同时倒入 100mL 水对比保水性能。</p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn btn-primary" onclick="startWaterPour()">🚰 同时向 3 组漏斗注水 100 mL</button>
+            <button class="btn" onclick="resetPermeability()">🔄 倒空量杯并重新装填土壤</button>
+          </div>
+        `;
+      }
+    }
+
+    // --- Action Handlers: Minerals ---
+    function selectMineral(k) {
+      selectedMineral = k;
+      scratchProgress = 0;
+      streakDrawn = false;
+      renderSidebar();
+      playTone(600, 0.1);
+    }
+    function selectHardnessTool(k) {
+      selectedTool = k;
+      scratchProgress = 0;
+      renderSidebar();
+      playTone(520, 0.1);
+    }
+    function triggerScratchTest() {
+      scratchProgress = 0.05;
+      playScratchSound();
+      // spawn particles
+      const m = mineralDB[selectedMineral];
+      const t = hardnessTools[selectedTool];
+      const canScratch = t.hardness >= m.hardness;
+      for (let i = 0; i < 25; i++) {
+        scratchParticles.push({
+          x: 230 + Math.random() * 40,
+          y: 220 + Math.random() * 40,
+          vx: (Math.random() - 0.5) * 6,
+          vy: (Math.random() - 1) * 5,
+          color: canScratch ? m.color : '#cbd5e1',
+          life: 1.0,
+          size: Math.random() * 3 + 1.5
+        });
+      }
+    }
+    function triggerStreakTest() {
+      streakDrawn = true;
+      playScratchSound();
+      const m = mineralDB[selectedMineral];
+      for (let i = 0; i < 20; i++) {
+        scratchParticles.push({
+          x: 600 + Math.random() * 60,
+          y: 270 + Math.random() * 20,
+          vx: (Math.random() - 0.5) * 4,
+          vy: (Math.random() - 0.8) * 3,
+          color: m.streakColor,
+          life: 0.9,
+          size: 2
+        });
+      }
+    }
+    function resetMineralTests() {
+      scratchProgress = 0;
+      streakDrawn = false;
+      scratchParticles = [];
+      playTone(350, 0.1);
+    }
+
+    // --- Action Handlers: Sediment ---
+    function startSedimentShake() {
+      sedimentShaking = true;
+      sedimentTime = 0;
+      playTone(280, 0.3, 'sawtooth');
+      // generate 200 mixed particles
+      sedimentParticles = [];
+      for (let i = 0; i < 240; i++) {
+        const typeRand = Math.random();
+        let type = 'fine'; // fine sand
+        let color = '#d97706';
+        let settleRate = 0.003;
+        let finalY = 410 - Math.random() * 30;
+        let r = 2;
+        if (typeRand < 0.25) { // gravel (heavy)
+          type = 'gravel';
+          color = '#78716c';
+          settleRate = 0.012;
+          finalY = 445 - Math.random() * 20;
+          r = 4 + Math.random() * 2;
+        } else if (typeRand < 0.55) { // coarse sand
+          type = 'sand';
+          color = '#b45309';
+          settleRate = 0.007;
+          finalY = 425 - Math.random() * 20;
+          r = 2.5 + Math.random() * 1.5;
+        } else if (typeRand < 0.85) { // clay
+          type = 'clay';
+          color = '#92400e';
+          settleRate = 0.002;
+          finalY = 380 - Math.random() * 30;
+          r = 1.5;
+        } else { // humus (floats!)
+          type = 'humus';
+          color = '#1c1917';
+          settleRate = -0.003; // floats up!
+          finalY = 175 + Math.random() * 15;
+          r = 3;
+        }
+        sedimentParticles.push({
+          x: 350 + Math.random() * 140,
+          y: 200 + Math.random() * 230,
+          vx: (Math.random() - 0.5) * 8,
+          vy: (Math.random() - 0.5) * 8,
+          type, color, settleRate, finalY, r,
+          settled: false
+        });
+      }
+      setTimeout(() => { sedimentShaking = false; }, 800);
+    }
+    function speedUpSettling() {
+      if (sedimentTime < 1) {
+        sedimentTime = Math.min(1, sedimentTime + 0.35);
+        playTone(550, 0.1);
+      }
+    }
+    function resetSediment() {
+      sedimentShaking = false;
+      sedimentTime = 0;
+      sedimentParticles = [];
+      playTone(320, 0.1);
+    }
+
+    // --- Action Handlers: Permeability ---
+    function startWaterPour() {
+      waterPouring = true;
+      waterTime = 0;
+      waterDrops = [];
+      playTone(650, 0.2);
+    }
+    function resetPermeability() {
+      waterPouring = false;
+      waterTime = 0;
+      waterDrops = [];
+      playTone(350, 0.1);
+    }
+
+    // --- Main Render Loop ---
+    function updatePhysics() {
+      // Mineral Scratch
+      if (scratchProgress > 0 && scratchProgress < 1) {
+        scratchProgress += 0.04;
+        if (scratchProgress >= 1) scratchProgress = 1;
+      }
+      // Scratch particles
+      for (let i = scratchParticles.length - 1; i >= 0; i--) {
+        const p = scratchParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.25; // gravity
+        p.life -= 0.03;
+        if (p.life <= 0) scratchParticles.splice(i, 1);
+      }
+
+      // Sediment
+      if (!sedimentShaking && sedimentParticles.length > 0 && sedimentTime < 1) {
+        sedimentTime += 0.002;
+        if (sedimentTime > 1) sedimentTime = 1;
+        sedimentParticles.forEach(p => {
+          if (!p.settled) {
+            if (p.type === 'humus') {
+              p.y -= 0.8;
+              if (p.y <= p.finalY) { p.y = p.finalY; p.settled = true; }
+            } else {
+              p.y += p.settleRate * 180;
+              if (p.y >= p.finalY) { p.y = p.finalY; p.settled = true; }
+            }
+          }
+        });
+      } else if (sedimentShaking) {
+        sedimentParticles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 355 || p.x > 485) p.vx *= -0.8;
+          if (p.y < 180 || p.y > 450) p.vy *= -0.8;
+        });
+      }
+
+      // Permeability
+      if (waterPouring) {
+        if (waterTime < 1) {
+          waterTime += 0.0035;
+          if (Math.random() < 0.6) {
+            // drops from sandy (fast)
+            if (waterTime > 0.05 && waterTime < 0.85) {
+              waterDrops.push({ x: 180 + (Math.random() - 0.5) * 6, y: 310, vy: 3 + Math.random() * 2, col: 0 });
+            }
+            // drops from loam (medium)
+            if (waterTime > 0.15 && waterTime < 0.95 && Math.random() < 0.55) {
+              waterDrops.push({ x: 420 + (Math.random() - 0.5) * 6, y: 310, vy: 3 + Math.random() * 2, col: 1 });
+            }
+            // drops from clay (slow)
+            if (waterTime > 0.4 && Math.random() < 0.18) {
+              waterDrops.push({ x: 660 + (Math.random() - 0.5) * 6, y: 310, vy: 2 + Math.random() * 1.5, col: 2 });
+            }
+          }
+        } else {
+          waterPouring = false;
+        }
+      }
+      for (let i = waterDrops.length - 1; i >= 0; i--) {
+        const d = waterDrops[i];
+        d.y += d.vy;
+        d.vy += 0.2;
+        if (d.y > 440) waterDrops.splice(i, 1);
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (currentMode === 'minerals') {
+        drawMineralsScene();
+      } else if (currentMode === 'sediment') {
+        drawSedimentScene();
+      } else if (currentMode === 'permeability') {
+        drawPermeabilityScene();
+      }
+
+      requestAnimationFrame(() => {
+        updatePhysics();
+        draw();
+      });
+    }
+
+    // --- Mode 1: Minerals Drawing ---
+    function drawMineralsScene() {
+      const m = mineralDB[selectedMineral];
+      const t = hardnessTools[selectedTool];
+
+      // Left Box: Mineral Specimen & Scratch Tester
+      ctx.fillStyle = 'rgba(19, 28, 46, 0.7)';
+      ctx.strokeStyle = '#24344d';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(40, 40, 360, 440, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 15px sans-serif';
+      ctx.fillText('🔬 矿物标本台与硬度刻划', 60, 72);
+
+      // Specimen Pedestal
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.ellipse(220, 320, 110, 40, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#334155';
+      ctx.stroke();
+
+      // Draw 3D Crystal Body
+      ctx.save();
+      ctx.translate(220, 240);
+      const isScratched = scratchProgress > 0 && t.hardness >= m.hardness;
+
+      // Faceted 3D shading
+      ctx.beginPath();
+      ctx.moveTo(-65, -40);
+      ctx.lineTo(0, -95);
+      ctx.lineTo(65, -40);
+      ctx.lineTo(50, 45);
+      ctx.lineTo(-50, 45);
+      ctx.closePath();
+      
+      const grad = ctx.createLinearGradient(-60, -90, 60, 50);
+      grad.addColorStop(0, m.color);
+      grad.addColorStop(1, '#0f172a');
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Crystal facet ridges
+      ctx.beginPath();
+      ctx.moveTo(0, -95); ctx.lineTo(0, 45);
+      ctx.moveTo(0, -95); ctx.lineTo(-20, -10); ctx.lineTo(-50, 45);
+      ctx.moveTo(0, -95); ctx.lineTo(25, -10); ctx.lineTo(50, 45);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Luster specular reflection
+      if (m.lusterType === 'metal') {
+        const hG = ctx.createRadialGradient(15, -35, 2, 15, -35, 45);
+        hG.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+        hG.addColorStop(0.3, 'rgba(251, 191, 36, 0.5)');
+        hG.addColorStop(1, 'transparent');
+        ctx.fillStyle = hG;
+        ctx.beginPath();
+        ctx.arc(15, -35, 45, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (m.lusterType === 'glass') {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.beginPath();
+        ctx.ellipse(-15, -45, 30, 8, -0.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Scratch Groove if tested
+      if (scratchProgress > 0) {
+        ctx.beginPath();
+        ctx.moveTo(-35, -10);
+        ctx.lineTo(-35 + 70 * scratchProgress, 10 * scratchProgress);
+        ctx.lineWidth = isScratched ? 4 : 1.5;
+        ctx.strokeStyle = isScratched ? '#ffffff' : 'rgba(255, 255, 255, 0.4)';
+        ctx.stroke();
+
+        if (isScratched) {
+          ctx.fillStyle = '#ef4444';
+          ctx.font = 'bold 12px sans-serif';
+          ctx.fillText('⚡ 刻划出明显凹痕！', -45, 35);
+        } else {
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = 'bold 12px sans-serif';
+          ctx.fillText('🛡️ 未产生划痕 (矿物更硬)', -55, 35);
+        }
+      }
+
+      ctx.restore();
+
+      // Tool Icon hovering
+      if (scratchProgress > 0 && scratchProgress < 1) {
+        ctx.font = '32px sans-serif';
+        ctx.fillText(t.icon, 200 + 40 * scratchProgress, 210);
+      }
+
+      // Info badge on left box
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '13px sans-serif';
+      ctx.fillText(`标本: ${m.name}`, 60, 400);
+      ctx.fillText(`光泽特征: ${m.luster}`, 60, 424);
+      ctx.fillText(`莫氏硬度: ${m.hardness} 级`, 60, 448);
+
+      // Right Box: White Porcelain Streak Plate
+      ctx.fillStyle = 'rgba(19, 28, 46, 0.7)';
+      ctx.strokeStyle = '#24344d';
+      ctx.beginPath();
+      ctx.roundRect(440, 40, 360, 440, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 15px sans-serif';
+      ctx.fillText('⚪ 白色无釉瓷板 (条痕色对比台)', 460, 72);
+
+      // Porcelain Plate 3D slab
+      ctx.fillStyle = '#f8fafc';
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(480, 120, 280, 220, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '11px sans-serif';
+      ctx.fillText('WHITE UNGLAZED PORCELAIN STREAK PLATE', 500, 145);
+
+      // Streak mark if drawn
+      if (streakDrawn) {
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = m.streakColor;
+        ctx.beginPath();
+        ctx.moveTo(520, 230);
+        ctx.bezierCurveTo(570, 210, 620, 250, 720, 220);
+        ctx.stroke();
+
+        ctx.fillStyle = m.streakColor === '#ffffff' ? '#0f172a' : m.streakColor;
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(`条痕粉末色: ${m.streak}`, 530, 280);
+
+        ctx.fillStyle = '#475569';
+        ctx.font = '12px sans-serif';
+        ctx.fillText(`(外表颜色: ${m.color} vs 真实条痕: ${m.streak})`, 530, 305);
+      } else {
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('点击右侧按钮“在白瓷板上划出条痕色”', 505, 230);
+      }
+
+      // Explanation box
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
+      ctx.beginPath();
+      ctx.roundRect(460, 365, 320, 95, 8);
+      ctx.fill();
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('💡 科学小锦囊：条痕比外表更真实！', 475, 390);
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = '12px sans-serif';
+      ctx.fillText('矿物条痕是其粉末的颜色，消除了光照和微量杂质', 475, 412);
+      ctx.fillText('引起的假象。例如黄铁矿外表金黄，条痕却是绿黑色！', 475, 432);
+
+      // Draw Particles
+      scratchParticles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Update Telemetry
+      const scratchVerdict = scratchProgress === 0 ? '待测' : (t.hardness >= m.hardness ? `被${t.name}划破 (刻划成立)` : `硬度超过${t.name} (坚固无痕)`);
+      telem.innerHTML = `
+[矿物测试遥测] 当前标本: ${m.name}
+• 莫氏硬度: ${m.hardness} 级 | 选用工具: ${t.name}(H≈${t.hardness})
+• 硬度判定: ${scratchVerdict}
+• 光泽度评定: ${m.luster}
+• 条痕特征色: ${streakDrawn ? m.streak : '未测试'}
+      `.trim();
+    }
+
+    // --- Mode 2: Sediment Drawing ---
+    function drawSedimentScene() {
+      // Background Lab Bench
+      ctx.fillStyle = 'rgba(19, 28, 46, 0.7)';
+      ctx.strokeStyle = '#24344d';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(40, 40, 760, 440, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      // Title & Progress
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 15px sans-serif';
+      ctx.fillText('🌪️ 土壤颗粒水中重力沉降柱与微观分层', 60, 72);
+
+      // Glass Cylinder
+      const cx = 420, cy = 140, w = 150, h = 310;
+      
+      // Water body
+      const waterGrad = ctx.createLinearGradient(cx - w/2, cy + 20, cx - w/2, cy + h);
+      const clarity = sedimentTime; // 0 murky -> 1 clear
+      waterGrad.addColorStop(0, `rgba(180, 83, 9, ${0.7 - clarity * 0.5})`);
+      waterGrad.addColorStop(1, `rgba(30, 41, 59, ${0.85 - clarity * 0.3})`);
+      ctx.fillStyle = waterGrad;
+      ctx.fillRect(cx - w/2, cy + 30, w, h - 30);
+
+      // Sediment Layers when settled
+      if (sedimentTime > 0.1) {
+        const s = sedimentTime;
+        // Layer 1: Gravel 底层沙砾
+        ctx.fillStyle = '#57534e';
+        ctx.fillRect(cx - w/2 + 2, cy + h - 25 * s, w - 4, 25 * s);
+        // Layer 2: Coarse Sand 中下层粗沙
+        ctx.fillStyle = '#b45309';
+        ctx.fillRect(cx - w/2 + 2, cy + h - (25 + 35) * s, w - 4, 35 * s);
+        // Layer 3: Fine Sand & Silt 中上层细沙粉沙
+        ctx.fillStyle = '#d97706';
+        ctx.fillRect(cx - w/2 + 2, cy + h - (60 + 35) * s, w - 4, 35 * s);
+        // Layer 4: Clay 最上层黏土胶体薄层
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(cx - w/2 + 2, cy + h - (95 + 25) * s, w - 4, 25 * s);
+
+        // Layer 5: Humus (Floats on water top!)
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(cx - w/2 + 4, cy + 30, w - 8, 12 * s);
+      }
+
+      // Cylinder outline & graduation ticks
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(cx - w/2, cy + 30, w, h - 30);
+
+      // Ticks
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+      ctx.lineWidth = 1;
+      for (let y = cy + 50; y < cy + h; y += 25) {
+        ctx.beginPath();
+        ctx.moveTo(cx - w/2, y);
+        ctx.lineTo(cx - w/2 + 12, y);
+        ctx.stroke();
+      }
+
+      // Draw floating particles
+      sedimentParticles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Layer annotation tags
+      if (sedimentTime > 0.4) {
+        ctx.font = '12px sans-serif';
+        // Humus Tag
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText('← 动植物腐殖质 (轻，漂浮水面)', cx + w/2 + 15, cy + 38);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.beginPath(); ctx.moveTo(cx + w/2 + 2, cy + 35); ctx.lineTo(cx + w/2 + 12, cy + 35); ctx.stroke();
+
+        // Clay Tag
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText('← 细腻黏土层 (粒径极细，缓慢沉积)', cx + w/2 + 15, cy + h - 110);
+        
+        // Fine Sand Tag
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText('← 细沙与粉沙层', cx + w/2 + 15, cy + h - 75);
+
+        // Coarse Sand Tag
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText('← 粗沙层', cx + w/2 + 15, cy + h - 45);
+
+        // Gravel Tag
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillText('← 沙砾层 (颗粒最重，最先沉积到底层)', cx + w/2 + 15, cy + h - 15);
+      }
+
+      // Left explanation card
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
+      ctx.beginPath();
+      ctx.roundRect(60, 140, 240, 290, 8);
+      ctx.fill();
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillText('🔬 实验沉降原理 (Stokes 定律)', 80, 170);
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = '12px sans-serif';
+      ctx.fillText('• 大颗粒沙砾重力大，沉降速度最快', 80, 205);
+      ctx.fillText('• 黏土颗粒极小呈胶体，长时间悬浮', 80, 235);
+      ctx.fillText('• 腐殖质由动植物残体腐烂形成，', 80, 265);
+      ctx.fillText('  密度小于水，因而漂浮于表层。', 80, 285);
+      ctx.fillText('• 清水逐渐澄清，证明土壤并非单一', 80, 315);
+      ctx.fillText('  物质，而是混合了多种成分。', 80, 335);
+
+      const statusStr = sedimentShaking ? '剧烈振荡中...' : (sedimentTime >= 1 ? '完全沉降分层' : (sedimentTime > 0 ? `沉降中 ${(sedimentTime*100).toFixed(0)}%` : '待振荡'));
+      telem.innerHTML = `
+[土壤沉降遥测]
+• 实验状态: ${statusStr}
+• 颗粒分层: 沙砾(底) > 粗沙 > 细沙 > 黏土 > 腐殖质(顶浮)
+• 水体澄清度: ${(sedimentTime * 100).toFixed(0)}%
+• 结论: 土壤是由沙粒、黏土、腐殖质、水和空气组成的复杂混合物。
+      `.trim();
+    }
+
+    // --- Mode 3: Permeability Drawing ---
+    function drawPermeabilityScene() {
+      // Outer Bench
+      ctx.fillStyle = 'rgba(19, 28, 46, 0.7)';
+      ctx.strokeStyle = '#24344d';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(40, 40, 760, 440, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 15px sans-serif';
+      ctx.fillText('💧 三联土壤渗水性与保水能力控制变量对照实验台', 60, 72);
+
+      const soils = [
+        { name: '沙质土 (Sandy)', fill: '#b45309', rate: 0.88, leakVol: 88, desc: '颗粒粗、缝隙大、渗水最快、保水差' },
+        { name: '壤土 (Loam)', fill: '#92400e', rate: 0.52, leakVol: 52, desc: '沙黏比例适中、渗水适中、通气保水俱佳' },
+        { name: '黏质土 (Clay)', fill: '#78350f', rate: 0.14, leakVol: 14, desc: '颗粒细腻黏手、缝隙极小、渗水极慢积水' }
+      ];
+
+      const xs = [180, 420, 660];
+      for (let i = 0; i < 3; i++) {
+        const x = xs[i];
+        const s = soils[i];
+
+        // Funnel
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x - 55, 120);
+        ctx.lineTo(x + 55, 120);
+        ctx.lineTo(x + 12, 230);
+        ctx.lineTo(x + 12, 300);
+        ctx.lineTo(x - 12, 300);
+        ctx.lineTo(x - 12, 230);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Soil packed inside funnel
+        ctx.fillStyle = s.fill;
+        ctx.beginPath();
+        ctx.moveTo(x - 45, 150);
+        ctx.lineTo(x + 45, 150);
+        ctx.lineTo(x + 12, 230);
+        ctx.lineTo(x - 12, 230);
+        ctx.closePath();
+        ctx.fill();
+
+        // Water on top of soil
+        if (waterTime > 0 && waterTime < 0.95) {
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+          ctx.fillRect(x - 45, 135, 90, 15);
+        }
+
+        // Receiving Beaker
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x - 45, 340, 90, 100);
+
+        // Water level in beaker
+        const curWaterH = 90 * (s.rate * waterTime);
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+        ctx.fillRect(x - 43, 440 - curWaterH, 86, curWaterH);
+
+        // Label above funnel
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(s.name, x, 108);
+
+        // Beaker reading
+        const leaked = (s.leakVol * waterTime).toFixed(1);
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(`渗出: ${leaked} mL`, x, 380);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px sans-serif';
+        ctx.fillText(`保水: ${(100 - leaked).toFixed(1)} mL`, x, 400);
+
+        ctx.textAlign = 'left';
+      }
+
+      // Draw water drops
+      ctx.fillStyle = '#38bdf8';
+      waterDrops.forEach(d => {
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      telem.innerHTML = `
+[三联土壤渗水对照遥测] 注入清水总量: 100 mL
+• 沙质土: 渗出水 ${(88*waterTime).toFixed(1)} mL | 渗水极快，保水力最差 (适合耐旱西瓜、花生)
+• 壤土:   渗出水 ${(52*waterTime).toFixed(1)} mL | 渗水保水平衡，最适宜绝大多数农作物与花卉
+• 黏质土: 渗出水 ${(14*waterTime).toFixed(1)} mL | 渗水极慢积水，保水力极强 (适合水稻、荷花)
+      `.trim();
+    }
+
+    // Init
+    renderSidebar();
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>

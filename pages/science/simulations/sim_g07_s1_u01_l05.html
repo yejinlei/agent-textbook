@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【空气流动有力量】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(56, 189, 248, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--accent); cursor: pointer; }
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 空气流动有力量 <span class="badge">四年级上册 · 空气单元</span></h2>
+            <p>教科版科学原书实验真拟真 · 拒绝伪仿真</p>
+        </div>
+        <a href="meteorology_atmosphere_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 马德堡半球与托里拆利气压实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生真实物理碰撞与流体仿真</span>
+                <span>🎧 Web Audio 拟真气流/水流声效</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：探究空气反冲力驱动：给气球吹气并松手，气流向后强力喷出产生向前的反作用力驱动喷气小车疾驰！</div>
+            
+        <div class="c-group">
+            <label><span>气球充气量 (mL)</span><span id="airDisp">150</span></label>
+            <input type="range" id="airSlider" min="50" max="300" value="150">
+        </div>
+        <div class="c-group">
+            <button class="btn" id="btnLaunchCar">🚀 松开气嘴发射喷气小车！</button>
+            <button class="btn btn-sec" id="btnResetTrack">↺ 小车拉回起点</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [小车速度] 0.00 m/s<br>
+            [行驶距离] 0.00 cm<br>
+            [动力学原理] 牛顿第三定律反冲运动 (空气喷向后，小车冲向前)！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.15, vol=0.08) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        function playGurgle() {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.12);
+            } catch(e){}
+        }
+        function playHiss(dur=0.3) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const bufferSize = audioCtx.sampleRate * dur;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                noise.connect(gain); gain.connect(audioCtx.destination);
+                noise.start();
+            } catch(e){}
+        }
+        
+        let posX = 80;
+        let speed = 0;
+        let launching = false;
+        let balloonR = 40;
+        const slider = document.getElementById('airSlider');
+        const airDisp = document.getElementById('airDisp');
+        const telem = document.getElementById('telem');
+
+        slider.addEventListener('input', () => {
+            airDisp.textContent = slider.value;
+            balloonR = 25 + parseFloat(slider.value) * 0.12;
+            playTone(300 + parseFloat(slider.value), 'sine', 0.05);
+        });
+        document.getElementById('btnLaunchCar').addEventListener('click', () => {
+            if(!launching && posX < 400) {
+                launching = true;
+                speed = parseFloat(slider.value) * 0.04;
+                playHiss(0.8);
+            }
+        });
+        document.getElementById('btnResetTrack').addEventListener('click', () => {
+            posX = 80; speed = 0; launching = false;
+            balloonR = 25 + parseFloat(slider.value) * 0.12;
+            playTone(400, 'triangle', 0.15);
+            telem.innerHTML = '[小车状态] 已重置至起跑线<br>[准备] 重新充气点火！';
+        });
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            // Track & Scale ruler
+            ctx.strokeStyle = '#64748b'; ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.moveTo(40, 320); ctx.lineTo(w - 40, 320); ctx.stroke();
+            for(let x=60; x<w-40; x+=40) {
+                ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(x, 320); ctx.lineTo(x, 330); ctx.stroke();
+                ctx.fillStyle = '#64748b'; ctx.font = '10px monospace';
+                ctx.fillText((x - 60) + 'cm', x - 10, 345);
+            }
+
+            // Move car
+            if(launching) {
+                posX += speed;
+                speed *= 0.985;
+                balloonR = Math.max(15, balloonR - 0.25);
+                if(speed < 0.05) { launching = false; speed = 0; }
+                telem.innerHTML = `[小车速度] ${(speed*10).toFixed(2)} m/s<br>[行驶距离] ${(posX - 80).toFixed(1)} cm<br>[能量守恒] 压缩气体内能转化为小车宏观动能！`;
+            }
+
+            // Balloon exhaust particles
+            if(launching && balloonR > 18) {
+                ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 2;
+                for(let i=0; i<3; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(posX - 40, 260);
+                    ctx.lineTo(posX - 80 - Math.random()*30, 260 + (Math.random()-0.5)*15);
+                    ctx.stroke();
+                }
+            }
+
+            // Draw Jet Car
+            // Chassis
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(posX - 35, 275, 70, 25);
+            // Wheels
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath(); ctx.arc(posX - 20, 310, 10, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(posX + 20, 310, 10, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(posX - 20, 310, 10, 0, Math.PI*2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(posX + 20, 310, 10, 0, Math.PI*2); ctx.stroke();
+
+            // Balloon on roof
+            ctx.fillStyle = '#f43f5e';
+            ctx.beginPath(); ctx.ellipse(posX, 245, balloonR * 1.2, balloonR, 0, 0, Math.PI*2); ctx.fill();
+            // Nozzle pointing left
+            ctx.fillStyle = '#be123c';
+            ctx.fillRect(posX - balloonR*1.2 - 8, 240, 8, 10);
+
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

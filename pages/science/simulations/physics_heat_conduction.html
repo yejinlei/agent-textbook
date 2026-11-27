@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学探究微仿真：金属热传导与火柴熔化实验（五年级下册·热）</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --primary: #38bdf8;
+      --accent: #f59e0b;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-container {
+      position: relative;
+      flex: 1;
+      min-height: 420px;
+      background: radial-gradient(circle at center, #1e293b 0%, #0b0f19 100%);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #283548;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .controls { display: flex; flex-direction: column; gap: 14px; }
+    .control-group {
+      background: #151e2e;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #233147;
+    }
+    .control-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    button:hover { background: #1d4ed8; }
+    button.active { background: var(--accent); color: #0b0f19; }
+    button.heat-btn {
+      background: linear-gradient(135deg, #ea580c 0%, #ef4444 100%);
+      grid-column: span 2;
+      padding: 12px;
+      font-size: 15px;
+    }
+    button.heat-btn.stop { background: #475569; }
+    button.secondary { background: #334155; }
+    button.secondary:hover { background: #475569; }
+
+    .drop-log {
+      margin-top: 10px;
+      background: #151e2e;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 12px;
+      font-family: monospace;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .drop-item { color: #fde047; margin-bottom: 4px; }
+    .guide-box {
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--muted);
+      background: rgba(245, 158, 11, 0.08);
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 3px solid var(--accent);
+      margin-top: 8px;
+    }
+    .guide-box strong { color: var(--accent); }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>🔥 金属热传导与微观热扩散实验（五年级下册·热）</h1>
+    <span class="badge">动态温度场拟真 · 纯静态</span>
+  </header>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="canvas-container" id="container">
+        <canvas id="heatCanvas"></canvas>
+      </div>
+      <div class="guide-box">
+        💡 <strong>科学结论引导</strong>：热在固体中总是<strong>从温度高的一端（加热点）传向温度低的一端</strong>。无论是金属条还是金属圆盘，热都是从加热点向周围逐渐辐射扩散传递的。
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ 实验装置与加热点设置</h2>
+      
+      <div class="controls">
+        <button id="btnHeat" class="heat-btn">🔥 点燃酒精灯：开始加热</button>
+        <button id="btnReset" class="secondary">↺ 重置实验装置</button>
+
+        <!-- 实验构型 -->
+        <div class="control-group">
+          <div class="control-header"><span>🧪 观察物体形状</span></div>
+          <div class="btn-grid">
+            <button id="modeBar" class="active">长条形铜棒</button>
+            <button id="modeDisk">圆形铜薄盘</button>
+          </div>
+        </div>
+
+        <!-- 加热位置 -->
+        <div class="control-group">
+          <div class="control-header"><span>📍 加热源位置</span></div>
+          <div class="btn-grid">
+            <button id="posEdge" class="active">一端 / 边缘加热</button>
+            <button id="posCenter">中间 / 中心加热</button>
+          </div>
+        </div>
+
+        <!-- 火柴掉落日志 -->
+        <div class="control-group">
+          <div class="control-header"><span>⏱️ 火柴掉落实录（凡士林熔化）</span></div>
+          <div class="drop-log" id="dropLog">
+            <div style="color: var(--muted);">点击“点燃酒精灯”开始记录...</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('heatCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    let shapeMode = 'bar'; // 'bar' or 'disk'
+    let heatPos = 'edge'; // 'edge' or 'center'
+    let isHeating = false;
+    let heatTime = 0;
+    let lastTime = null;
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const btnHeat = document.getElementById('btnHeat');
+    const btnReset = document.getElementById('btnReset');
+    const modeBar = document.getElementById('modeBar');
+    const modeDisk = document.getElementById('modeDisk');
+    const posEdge = document.getElementById('posEdge');
+    const posCenter = document.getElementById('posCenter');
+    const dropLog = document.getElementById('dropLog');
+
+    btnHeat.addEventListener('click', () => {
+      isHeating = !isHeating;
+      if (isHeating) {
+        btnHeat.textContent = '⏹ 熄灭酒精灯：停止加热';
+        btnHeat.className = 'heat-btn stop';
+        lastTime = performance.now();
+      } else {
+        btnHeat.textContent = '🔥 点燃酒精灯：继续加热';
+        btnHeat.className = 'heat-btn';
+      }
+    });
+
+    btnReset.addEventListener('click', reset);
+
+    modeBar.addEventListener('click', () => {
+      shapeMode = 'bar';
+      modeBar.classList.add('active');
+      modeDisk.classList.remove('active');
+      reset();
+    });
+    modeDisk.addEventListener('click', () => {
+      shapeMode = 'disk';
+      modeDisk.classList.add('active');
+      modeBar.classList.remove('active');
+      reset();
+    });
+
+    posEdge.addEventListener('click', () => {
+      heatPos = 'edge';
+      posEdge.classList.add('active');
+      posCenter.classList.remove('active');
+      reset();
+    });
+    posCenter.addEventListener('click', () => {
+      heatPos = 'center';
+      posCenter.classList.add('active');
+      posEdge.classList.remove('active');
+      reset();
+    });
+
+    // 定义火柴实体
+    let matches = [];
+
+    function initMatches() {
+      matches = [];
+      dropLog.innerHTML = '<div style="color: var(--muted);">等待加热...</div>';
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h / 2 - 20;
+
+      if (shapeMode === 'bar') {
+        const barLen = Math.min(w * 0.7, 450);
+        const startX = cx - barLen / 2;
+        // 5 根火柴沿铜棒等距分布
+        for (let i = 0; i < 5; i++) {
+          const x = startX + 40 + i * ((barLen - 80) / 4);
+          matches.push({ id: i + 1, x: x, y: cy + 10, dropped: false, dropY: cy + 10, dropVy: 0 });
+        }
+      } else {
+        // 圆盘上的 4 个同心圆或不同方向火柴
+        const r = Math.min(w, h) * 0.28;
+        const angles = [0, Math.PI / 2, Math.PI, 1.5 * Math.PI];
+        for (let i = 0; i < 4; i++) {
+          const dist = heatPos === 'center' ? r * 0.65 : (i === 0 ? r * 0.3 : r * 0.7);
+          const x = cx + dist * Math.cos(angles[i]);
+          const y = cy + dist * Math.sin(angles[i]);
+          matches.push({ id: i + 1, x: x, y: y, dropped: false, dropY: y, dropVy: 0 });
+        }
+      }
+    }
+
+    function reset() {
+      isHeating = false;
+      heatTime = 0;
+      btnHeat.textContent = '🔥 点燃酒精灯：开始加热';
+      btnHeat.className = 'heat-btn';
+      initMatches();
+    }
+
+    initMatches();
+
+    function update(dt) {
+      if (isHeating) {
+        heatTime += dt;
+      }
+
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h / 2 - 20;
+
+      let heatSourceX = cx;
+      let heatSourceY = cy;
+
+      if (shapeMode === 'bar') {
+        const barLen = Math.min(w * 0.7, 450);
+        heatSourceX = heatPos === 'edge' ? cx - barLen / 2 + 15 : cx;
+        heatSourceY = cy;
+      } else {
+        const r = Math.min(w, h) * 0.28;
+        heatSourceX = heatPos === 'edge' ? cx - r + 10 : cx;
+        heatSourceY = cy;
+      }
+
+      // 检查火柴掉落逻辑 (温度传导时间与距离成正比 t ~ distance * 0.04)
+      matches.forEach(m => {
+        if (!m.dropped) {
+          const dist = Math.hypot(m.x - heatSourceX, m.y - heatSourceY);
+          // 所需热传递时间
+          const meltTime = dist * 0.035;
+          if (heatTime >= meltTime) {
+            m.dropped = true;
+            // 记录日志
+            const logItem = document.createElement('div');
+            logItem.className = 'drop-item';
+            logItem.textContent = `[${heatTime.toFixed(1)}s] 火柴 #${m.id} 凡士林熔化掉落！`;
+            if (dropLog.querySelector('div[style*="color"]')) dropLog.innerHTML = '';
+            dropLog.prepend(logItem);
+          }
+        } else {
+          // 掉落重力下坠
+          if (m.dropY < h - 40) {
+            m.dropVy += 600 * dt;
+            m.dropY += m.dropVy * dt;
+          }
+        }
+      });
+    }
+
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h / 2 - 20;
+
+      ctx.clearRect(0, 0, w, h);
+
+      let heatSourceX = cx;
+      let heatSourceY = cy;
+
+      if (shapeMode === 'bar') {
+        const barLen = Math.min(w * 0.7, 450);
+        heatSourceX = heatPos === 'edge' ? cx - barLen / 2 + 15 : cx;
+      } else {
+        const r = Math.min(w, h) * 0.28;
+        heatSourceX = heatPos === 'edge' ? cx - r + 10 : cx;
+      }
+
+      // 1. 绘制金属主体
+      if (shapeMode === 'bar') {
+        const barLen = Math.min(w * 0.7, 450);
+        const bx = cx - barLen / 2;
+        const by = cy - 8;
+
+        // 铜棒底色
+        ctx.fillStyle = '#b45309';
+        ctx.fillRect(bx, by, barLen, 16);
+
+        // 热力温度场梯度
+        if (heatTime > 0) {
+          const heatRadius = Math.min(heatTime * 35, barLen);
+          const grad = ctx.createRadialGradient(heatSourceX, cy, 2, heatSourceX, cy, heatRadius);
+          grad.addColorStop(0, '#fef08a');
+          grad.addColorStop(0.3, '#f97316');
+          grad.addColorStop(0.7, '#dc2626');
+          grad.addColorStop(1, 'rgba(180, 83, 9, 0)');
+
+          ctx.fillStyle = grad;
+          ctx.fillRect(bx, by, barLen, 16);
+        }
+
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(bx, by, barLen, 16);
+
+        // 铁架台支撑
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(bx - 10, by - 4, 12, 180);
+        ctx.fillRect(bx + barLen - 2, by - 4, 12, 180);
+      } else {
+        // 圆形铜盘
+        const r = Math.min(w, h) * 0.28;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = '#b45309';
+        ctx.fill();
+
+        if (heatTime > 0) {
+          const heatRadius = Math.min(heatTime * 35, r * 2.2);
+          const grad = ctx.createRadialGradient(heatSourceX, heatSourceY, 2, heatSourceX, heatSourceY, heatRadius);
+          grad.addColorStop(0, '#fef08a');
+          grad.addColorStop(0.3, '#f97316');
+          grad.addColorStop(0.7, '#dc2626');
+          grad.addColorStop(1, 'rgba(180, 83, 9, 0)');
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+        }
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // 2. 绘制酒精灯火焰 (如果加热中)
+      if (isHeating) {
+        drawFlame(heatSourceX, cy + (shapeMode === 'bar' ? 12 : 16));
+      }
+
+      // 3. 绘制火柴与凡士林蜡滴
+      matches.forEach(m => {
+        // 凡士林粘连点
+        if (!m.dropped) {
+          ctx.fillStyle = '#fef3c7';
+          ctx.beginPath();
+          ctx.arc(m.x, m.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 火柴梗
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#fde68a';
+        ctx.beginPath();
+        ctx.moveTo(m.x, m.dropY);
+        ctx.lineTo(m.x, m.dropY + 22);
+        ctx.stroke();
+
+        // 红火柴头
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(m.x, m.dropY + 23, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 编号标签
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('#' + m.id, m.x, m.dropY - 6);
+      });
+    }
+
+    function drawFlame(fx, fy) {
+      // 酒精灯玻璃底座
+      ctx.fillStyle = 'rgba(255,255,255,0.2)';
+      ctx.fillRect(fx - 14, fy + 24, 28, 30);
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(fx - 4, fy + 16, 8, 8); // 灯芯
+
+      // 动态闪烁火焰
+      const flicker = Math.sin(Date.now() * 0.02) * 2;
+      const flameGrad = ctx.createRadialGradient(fx, fy + 8, 2, fx, fy, 16);
+      flameGrad.addColorStop(0, '#ffffff');
+      flameGrad.addColorStop(0.3, '#fde047');
+      flameGrad.addColorStop(0.7, '#ea580c');
+      flameGrad.addColorStop(1, 'rgba(234, 88, 12, 0)');
+
+      ctx.beginPath();
+      ctx.moveTo(fx - 8, fy + 16);
+      ctx.quadraticCurveTo(fx - 10 + flicker, fy + 4, fx, fy - 10 + flicker);
+      ctx.quadraticCurveTo(fx + 10 + flicker, fy + 4, fx + 8, fy + 16);
+      ctx.closePath();
+      ctx.fillStyle = flameGrad;
+      ctx.fill();
+    }
+
+    function loop(timestamp) {
+      if (lastTime === null) lastTime = timestamp;
+      const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+      lastTime = timestamp;
+
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

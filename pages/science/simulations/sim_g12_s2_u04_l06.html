@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【6. 生命体中的化学变化】真实验微仿真 - 六年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 6. 生命体中的化学变化</h1>
+        <span class="badge">六年级上册·第四单元《物质的变化》</span>
+        <a href="gas_combustion_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 气体生成与阶梯蜡烛燃烧灭火实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g12_s2_u04_l01.html" class="">厨房里的物质与变化</a>
+<a href="sim_g12_s2_u04_l02.html" class="">产生气体的变化</a>
+<a href="sim_g12_s2_u04_l03.html" class="">发现变化中的新物质</a>
+<a href="sim_g12_s2_u04_l04.html" class="">变化中伴随的现象</a>
+<a href="sim_g12_s2_u04_l05.html" class="">地球家园的化学变化</a>
+<a href="sim_g12_s2_u04_l06.html" class="active">生命体中的化学变化</a>
+<a href="sim_g12_s2_u04_l07.html" class="">美丽的化学变化</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时科学数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：系统探索物理变化与化学变化本质区别、小苏打白醋生成二氧化碳气体灭火与硫酸铜置换析出金属铜。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "digestion_chemistry";
+
+        
+const state = {
+    vinegarReacting: activeMode === 'baking_soda_vinegar',
+    gasBubbleCount: 30,
+    ironNailCopperPlated: activeMode === 'copper_sulfate_iron',
+    candleBurning: activeMode === 'candle_combustion',
+    matchExtinguished: false
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'baking_soda_vinegar') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>小苏打与白醋剧烈反应</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnPourVinegar">🧪 倒入白醋 (剧烈冒出CO₂气泡)</button>
+                    <button class="btn btn-rose" id="btnTestFlame">🔥 放入燃烧火柴 (检验熄灭)</button>
+                </div>
+            </div>
+            <div class="btn-grid" style="margin-top:6px;">
+                <button class="btn" id="btnResetGas">🔄 重新配置反应杯</button>
+            </div>
+        `;
+    } else if (activeMode === 'copper_sulfate_iron') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>硫酸铜溶液与铁钉置换反应</span><span class="val">${state.ironNailCopperPlated?'表面析出红铜，溶液变浅绿':'铁钉尚未浸入'}</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnDipNail">🔩 将洁净铁钉浸入蓝色硫酸铜溶液</button>
+                    <button class="btn btn-rose" id="btnResetCu">🔄 重置硫酸铜溶液</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>物质变化本质探究</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnPhys">🧊 物理变化 (仅形态/状态改变)</button>
+                    <button class="btn btn-rose" id="btnChem">🔥 化学变化 (生成了新物质!)</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU4Events();
+}
+
+function bindU4Events() {
+    const btnPourVinegar = document.getElementById('btnPourVinegar');
+    if (btnPourVinegar) btnPourVinegar.onclick = () => {
+        state.vinegarReacting = true;
+        playTone(300, 0.4, 'sawtooth');
+    };
+    const btnTestFlame = document.getElementById('btnTestFlame');
+    if (btnTestFlame) btnTestFlame.onclick = () => {
+        state.matchExtinguished = true;
+        playTone(200, 0.2);
+    };
+    const btnResetGas = document.getElementById('btnResetGas');
+    if (btnResetGas) btnResetGas.onclick = () => {
+        state.vinegarReacting = false;
+        state.matchExtinguished = false;
+        setupControls();
+        playTone(400, 0.1);
+    };
+
+    const btnDipNail = document.getElementById('btnDipNail');
+    if (btnDipNail) btnDipNail.onclick = () => {
+        state.ironNailCopperPlated = true;
+        setupControls();
+        playTone(750, 0.2);
+    };
+    const btnResetCu = document.getElementById('btnResetCu');
+    if (btnResetCu) btnResetCu.onclick = () => {
+        state.ironNailCopperPlated = false;
+        setupControls();
+        playTone(300, 0.1);
+    };
+
+    const btnPhys = document.getElementById('btnPhys');
+    if (btnPhys) btnPhys.onclick = () => { playTone(600, 0.1); };
+    const btnChem = document.getElementById('btnChem');
+    if (btnChem) btnChem.onclick = () => { playTone(880, 0.2); };
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'baking_soda_vinegar') {
+        drawBakingSodaVinegar();
+    } else if (activeMode === 'copper_sulfate_iron') {
+        drawCopperSulfate();
+    } else if (activeMode === 'physical_vs_chemical') {
+        drawPhysicalVsChemical();
+    } else if (activeMode === 'reaction_phenomena') {
+        drawReactionPhenomena();
+    } else if (activeMode === 'photosynthesis_earth') {
+        drawPhotosynthesisEarth();
+    } else if (activeMode === 'digestion_chemistry') {
+        drawDigestionChemistry();
+    } else {
+        drawChemicalOverview();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+
+function drawPhysicalVsChemical() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🍳 厨房里的物质与变化: 物理变化(无新物质生成) vs 化学变化(产生新物质)', cx, 40);
+
+    // Left: Physical Changes
+    ctx.fillStyle = '#1e293b'; ctx.fillRect(80, 80, 260, 270);
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.strokeRect(80, 80, 260, 270);
+    ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('物理变化 (形态/状态改变)', 210, 115);
+    ctx.fillStyle = '#cbd5e1'; ctx.font = '13px sans-serif';
+    ctx.fillText('• 水结成冰 / 冰融化为水', 210, 160);
+    ctx.fillText('• 研磨折断粉碎食盐颗粒', 210, 195);
+    ctx.fillText('• 易拉罐压扁 / 玻璃打碎', 210, 230);
+    ctx.fillStyle = '#10b981';
+    ctx.fillText('分子种类不变·可逆', 210, 280);
+
+    // Right: Chemical Changes
+    ctx.fillStyle = '#1e293b'; ctx.fillRect(380, 80, 260, 270);
+    ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 2; ctx.strokeRect(380, 80, 260, 270);
+    ctx.fillStyle = '#f43f5e'; ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('化学变化 (有新物质生成!)', 510, 115);
+    ctx.fillStyle = '#cbd5e1'; ctx.font = '13px sans-serif';
+    ctx.fillText('• 燃气灶蓝火燃烧 (释放CO2+水)', 510, 160);
+    ctx.fillText('• 铁锅潮湿生锈 (生成铁锈)', 510, 195);
+    ctx.fillText('• 酵母菌发酵面粉 (产生气泡膨胀)', 510, 230);
+    ctx.fillStyle = '#f43f5e';
+    ctx.fillText('生成新物质·化学键重组', 510, 280);
+
+    ctx.fillStyle = '#f8fafc'; ctx.font = '13px sans-serif';
+    ctx.fillText('判断本质依据: 是否产生了新物质 (如发光发热、产生气体、改变颜色、析出沉淀)', cx, 395);
+}
+
+function drawReactionPhenomena() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('✨ 变化中伴随的现象: 化学变化四大特征现象 (发光发热/气体/变色/沉淀)', cx, 40);
+
+    const phenomena = [
+        { t: '1. 发光发热', d: '蜡烛燃烧·剧烈放热\n放出明亮火光', c: '#f59e0b', x: 60 },
+        { t: '2. 产生气体', d: '小苏打遇白醋\n剧烈冒出二氧化碳气泡', c: '#38bdf8', x: 215 },
+        { t: '3. 改变颜色', d: '铁钉浸入硫酸铜溶液\n铁钉表面镀上一层紫红铜', c: '#f43f5e', x: 370 },
+        { t: '4. 产生沉淀', d: '澄清石灰水通入CO2\n变浑浊析出碳酸钙沉淀', c: '#10b981', x: 525 }
+    ];
+
+    phenomena.forEach(p => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(p.x, 80, 140, 270);
+        ctx.strokeStyle = p.c; ctx.lineWidth = 2; ctx.strokeRect(p.x, 80, 140, 270);
+
+        ctx.fillStyle = p.c; ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(p.t, p.x + 70, 115);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+        const lines = p.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, p.x + 70, 160 + i * 24));
+
+        ctx.fillStyle = '#334155'; ctx.fillRect(p.x + 10, 290, 120, 36);
+        ctx.fillStyle = p.c; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('伴随现象证实', p.x + 70, 312);
+    });
+}
+
+function drawPhotosynthesisEarth() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌍 地球家园的化学变化: 绿色植物光合作用是地球碳氧循环的生命动力', cx, 40);
+
+    // Chemical Equation Formula Banner
+    ctx.fillStyle = '#1e293b'; ctx.fillRect(100, 90, 520, 70);
+    ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2; ctx.strokeRect(100, 90, 520, 70);
+
+    ctx.fillStyle = '#10b981'; ctx.font = 'bold 16px monospace';
+    ctx.fillText('6CO₂ + 6H₂O ───(光能+叶绿体)───> C₆H₁₂O₆(有机物葡萄糖) + 6O₂↑', cx, 132);
+
+    const cycles = [
+        { t: '碳氧平衡奇迹', d: '绿色植物年吸收数千亿吨CO2\n为地球所有需氧生物提供生命氧气', c: '#38bdf8', x: 100 },
+        { t: '化石能源储藏', d: '远古植物被掩埋地下经历亿万年化学变化\n转化为煤炭、石油和天然气', c: '#f59e0b', x: 400 }
+    ];
+
+    cycles.forEach(cyc => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(cyc.x, 190, 220, 150);
+        ctx.strokeStyle = cyc.c; ctx.lineWidth = 2; ctx.strokeRect(cyc.x, 190, 220, 150);
+
+        ctx.fillStyle = cyc.c; ctx.font = 'bold 15px sans-serif';
+        ctx.fillText(cyc.t, cyc.x + 110, 225);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+        const lines = cyc.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, cyc.x + 110, 265 + i * 24));
+    });
+}
+
+function drawDigestionChemistry() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🍎 生命体中的化学变化: 人体消化酶生物催化水解 (淀粉水解为麦芽糖葡萄糖)', cx, 40);
+
+    const organs = [
+        { t: '1. 口腔 (唾液淀粉酶)', d: '咀嚼馒头变甜\n淀粉被酶催化水解为麦芽糖', c: '#f59e0b', x: 80 },
+        { t: '2. 胃部 (胃蛋白酶+胃酸)', d: '强酸性环境分解蛋白质\n使大分子多肽初步降解', c: '#f43f5e', x: 280 },
+        { t: '3. 小肠 (胰液+肠液终极吸收)', d: '彻底水解为氨基酸与葡萄糖\n由绒毛毛细血管吸收供给全身细胞', c: '#10b981', x: 480 }
+    ];
+
+    organs.forEach(org => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(org.x, 80, 160, 260);
+        ctx.strokeStyle = org.c; ctx.lineWidth = 2; ctx.strokeRect(org.x, 80, 160, 260);
+
+        ctx.fillStyle = org.c; ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(org.t, org.x + 80, 115);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+        const lines = org.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, org.x + 80, 165 + i * 26));
+
+        ctx.fillStyle = '#334155'; ctx.fillRect(org.x + 10, 280, 140, 36);
+        ctx.fillStyle = org.c; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('生物催化分解', org.x + 80, 303);
+    });
+}
+
+function drawBakingSodaVinegar() {
+    const cx = 360;
+    // Glass Beaker
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(cx - 70, 180, 140, 180);
+
+    // Liquid inside
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.fillRect(cx - 68, 250, 136, 108);
+
+    // Sodium Bicarbonate solid powder at bottom
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cx - 50, 345, 100, 12);
+
+    // Gas Bubbles (CO2 effervescence)
+    if (state.vinegarReacting) {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 35; i++) {
+            const bx = cx - 55 + (i * 19) % 110;
+            const by = 260 + (i * 23 + (Date.now() * 0.08) % 80) % 90;
+            ctx.beginPath();
+            ctx.arc(bx, by, 3 + (i % 3) * 2, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // CO2 gas overflowing rim
+        ctx.fillStyle = 'rgba(203, 213, 225, 0.3)';
+        ctx.beginPath();
+        ctx.arc(cx, 175, 45, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Match flame test
+    if (state.matchExtinguished) {
+        // Smoke & extinguished match
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(cx, 160); ctx.lineTo(cx, 130); ctx.stroke();
+        ctx.fillStyle = '#475569';
+        ctx.beginPath(); ctx.arc(cx, 160, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#f43f5e';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText('火柴伸入瞬间熄灭! (二氧化碳不支持燃烧且比空气重)', cx + 15, 140);
+    }
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('小苏打与白醋反应实验: 产生大量二氧化碳气体 (生成新物质的化学变化)', cx, 40);
+}
+
+function drawCopperSulfate() {
+    const cx = 360;
+    // Beaker with Copper Sulfate solution
+    // Blue solution initially, turns light green (FeSO4) after displacement
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(cx - 70, 180, 140, 180);
+
+    ctx.fillStyle = state.ironNailCopperPlated ? 'rgba(52, 211, 153, 0.45)' : 'rgba(2, 132, 199, 0.55)';
+    ctx.fillRect(cx - 68, 220, 136, 138);
+
+    // Iron Nail immersed
+    const nailX = cx;
+    const nailY = 240;
+
+    // Nail shaft
+    ctx.fillStyle = state.ironNailCopperPlated ? '#dc2626' : '#94a3b8'; // Red copper plated!
+    ctx.fillRect(nailX - 5, nailY, 10, 90);
+    // Nail head
+    ctx.fillRect(nailX - 12, nailY, 24, 6);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    if (state.ironNailCopperPlated) {
+        ctx.fillText('美丽的化学变化: 铁钉表面附着红色单质铜，溶液由天蓝色变为浅绿色!', cx, 40);
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 15px monospace';
+        ctx.fillText('化学反应方程式: Fe + CuSO₄ ➔ FeSO₄ + Cu (置换反应)', cx, 80);
+    } else {
+        ctx.fillText('硫酸铜溶液与铁钉置换实验 (准备就绪，请点击浸入铁钉)', cx, 40);
+    }
+}
+
+function drawChemicalOverview() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('化学变化的核心特征: 生成了新物质，并常伴随发光发热、变色、沉淀与产气', cx, 40);
+
+    const cards = [
+        {title: '🧊 物理变化', desc: '水结冰、铁丝弯折、白糖溶解 (无新物质)', color: '#38bdf8'},
+        {title: '🔥 化学变化', desc: '小苏打反应、蜡烛燃烧、铁钉生锈 (有新物质)', color: '#f43f5e'}
+    ];
+
+    cards.forEach((c, idx) => {
+        const x = 120 + idx * 260;
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(x, 150, 220, 160);
+        ctx.strokeStyle = c.color;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, 150, 220, 160);
+
+        ctx.fillStyle = c.color;
+        ctx.font = 'bold 18px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(c.title, x + 110, 200);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '13px sans-serif';
+        ctx.fillText(c.desc, x + 110, 250);
+    });
+}
+
+        
+function updateTelemetry() {
+    let txt = `[化学物质反应数据就绪] 模式: ${activeMode} | `;
+    if (activeMode === 'baking_soda_vinegar') {
+        txt += `反应状态: ${state.vinegarReacting?'剧烈生成CO2':'未反应'} | 火焰: ${state.matchExtinguished?'已熄灭':'正常'}`;
+    } else if (activeMode === 'copper_sulfate_iron') {
+        txt += `置换反应: ${state.ironNailCopperPlated?'完成 (析出红色单质铜)':'未开始'}`;
+    } else {
+        txt += `物质变化分类: 生成新物质判定标准`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

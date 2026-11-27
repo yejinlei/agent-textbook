@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学深度微仿真：水和胶水斜面流动比赛（一年级下册·身边的物体）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #38bdf8;
+      --accent: #f59e0b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 440px;
+      background: radial-gradient(circle at center, #111a2d 0%, #050811 100%);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #1a273f;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .controls { display: flex; flex-direction: column; gap: 14px; }
+    .control-group {
+      background: #101624;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #233147;
+    }
+    .control-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: #334155;
+      border-radius: 3px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    button {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    button:hover { background: #334155; }
+    button.start-race {
+      background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+      color: #0b0f19;
+      font-size: 15px;
+      font-weight: bold;
+      width: 100%;
+    }
+
+    .race-results {
+      margin-top: 12px;
+      background: #101624;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+    }
+    .rank-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 6px 0;
+    }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>🏁 水和胶水斜面流动比赛（一年级下册·身边的物体）</h1>
+    <span class="badge">流体黏度 · 重力分力与流变学</span>
+  </header>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="canvas-box" id="container">
+        <canvas id="raceCanvas"></canvas>
+      </div>
+      <div class="race-results">
+        <div style="font-weight: bold; color: var(--primary); margin-bottom: 6px;">🏆 到达终点线比赛用时：</div>
+        <div class="rank-row">
+          <span>💧 水滴 (低黏度)：</span>
+          <span id="timeWater" style="color: #38bdf8; font-family: monospace; font-weight: bold;">-- s</span>
+        </div>
+        <div class="rank-row">
+          <span>🌻 食用油 (中黏度)：</span>
+          <span id="timeOil" style="color: #facc15; font-family: monospace; font-weight: bold;">-- s</span>
+        </div>
+        <div class="rank-row">
+          <span>🧴 洗洁精/胶水 (高黏度)：</span>
+          <span id="timeGlue" style="color: #a78bfa; font-family: monospace; font-weight: bold;">-- s</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ 斜面赛道设置</h2>
+      
+      <div class="controls">
+        <button id="btnStartRace" class="start-race">🏁 同时释放三种液体：比赛开始！</button>
+        <button id="btnReset" style="width: 100%; background: #334155;">↺ 清洗赛道复位原点</button>
+
+        <!-- 坡度调节 -->
+        <div class="control-group">
+          <div class="control-header">
+            <span>斜面倾斜坡度 (角度)</span>
+            <span id="valSlope" style="color: var(--accent); font-family: monospace; font-weight: bold;">25 °</span>
+          </div>
+          <input type="range" id="sliderSlope" min="10" max="50" value="25" step="1">
+          <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">坡度越大 = 沿斜面的重力分力越大 = 流动越快</div>
+        </div>
+
+        <div style="font-size: 12px; color: var(--muted); line-height: 1.6; background: #101624; padding: 10px; border-radius: 6px; border-left: 3px solid var(--primary); margin-top: 10px;">
+          📖 <strong>流体物理学大概念拓展</strong>：
+          - <strong>流体黏度（Viscosity）</strong>：液体流动时分子间产生的内摩擦阻力。水分子很小，容易彼此滑动，黏度极低；胶水含有高分子聚合物长链，相互纠缠阻碍流动，黏度高出水几十倍！
+          - <strong>工业应用</strong>：汽车发动机在夏天使用高黏度机油以保证高温润滑，在冬天使用低黏度机油以便低温启动。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('raceCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    let slopeDeg = 25;
+    let isRacing = false;
+    let raceTime = 0;
+
+    // 纯代码 Web Audio 合成器
+    const Sound = {
+      ctx: null,
+      init() {
+        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+      },
+      cheer() {
+        if (!this.ctx) return;
+        [523, 659, 784, 1046].forEach((f, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.frequency.setValueAtTime(f, this.ctx.currentTime + i * 0.08);
+          gain.gain.setValueAtTime(0.1, this.ctx.currentTime + i * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.08 + 0.3);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + i * 0.08);
+          osc.stop(this.ctx.currentTime + i * 0.08 + 0.3);
+        });
+      }
+    };
+    window.addEventListener('click', () => Sound.init(), { once: true });
+
+    // 三种液滴实体
+    const liquids = [
+      { name: "水滴", color: "#38bdf8", viscosity: 1.0, progress: 0, finishTime: null, trail: [] },
+      { name: "食用油", color: "#facc15", viscosity: 4.5, progress: 0, finishTime: null, trail: [] },
+      { name: "胶水", color: "#a78bfa", viscosity: 15.0, progress: 0, finishTime: null, trail: [] }
+    ];
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    const sliderSlope = document.getElementById('sliderSlope');
+    const valSlope = document.getElementById('valSlope');
+    const btnStartRace = document.getElementById('btnStartRace');
+    const btnReset = document.getElementById('btnReset');
+    const timeWater = document.getElementById('timeWater');
+    const timeOil = document.getElementById('timeOil');
+    const timeGlue = document.getElementById('timeGlue');
+
+    sliderSlope.addEventListener('input', (e) => {
+      slopeDeg = parseFloat(e.target.value);
+      valSlope.textContent = slopeDeg + ' °';
+      reset();
+    });
+
+    btnStartRace.addEventListener('click', () => {
+      Sound.init();
+      reset();
+      isRacing = true;
+      btnStartRace.textContent = '⚡ 比赛进行中...';
+      btnStartRace.style.opacity = '0.7';
+    });
+
+    btnReset.addEventListener('click', reset);
+
+    function reset() {
+      isRacing = false;
+      raceTime = 0;
+      btnStartRace.textContent = '🏁 同时释放三种液体：比赛开始！';
+      btnStartRace.style.opacity = '1';
+      timeWater.textContent = '-- s';
+      timeOil.textContent = '-- s';
+      timeGlue.textContent = '-- s';
+      liquids.forEach(l => {
+        l.progress = 0;
+        l.finishTime = null;
+        l.trail = [];
+      });
+      draw();
+    }
+
+    let lastTime = null;
+
+    function update(dt) {
+      if (!isRacing) return;
+
+      raceTime += dt;
+      const sinSlope = Math.sin(slopeDeg * Math.PI / 180);
+
+      let allFinished = true;
+
+      liquids.forEach(l => {
+        if (l.progress < 1) {
+          allFinished = false;
+          // 流速方程 v = (g * sin(slope)) / viscosity
+          const speed = (sinSlope * 1.8) / l.viscosity;
+          l.progress += speed * dt;
+
+          if (l.progress >= 1) {
+            l.progress = 1;
+            l.finishTime = raceTime.toFixed(2);
+            if (l.name === '水滴') timeWater.textContent = l.finishTime + ' s (冠军 🥇)';
+            if (l.name === '食用油') timeOil.textContent = l.finishTime + ' s (亚军 🥈)';
+            if (l.name === '胶水') timeGlue.textContent = l.finishTime + ' s (季军 🥉)';
+            Sound.cheer();
+          }
+        }
+      });
+
+      if (allFinished) {
+        isRacing = false;
+        btnStartRace.textContent = '🏁 比赛结束！点击复位再次探究';
+        btnStartRace.style.opacity = '1';
+      }
+    }
+
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 绘制倾斜赛道板
+      const startX = 60;
+      const startY = 80;
+      const trackLength = w - 120;
+      // 坡度高度
+      const dropHeight = trackLength * Math.sin(slopeDeg * Math.PI / 180) * 0.45;
+      const endX = startX + trackLength;
+      const endY = startY + dropHeight;
+
+      // 木质赛道板底色
+      ctx.strokeStyle = '#b45309';
+      ctx.lineWidth = 10;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(startX, startY + 10);
+      ctx.lineTo(endX, endY + 10);
+      ctx.stroke();
+
+      // 3 条平行液滴赛道 (水、油、胶水)
+      const laneOffsets = [-24, 0, 24];
+
+      // 起跑线
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(startX, startY - 40);
+      ctx.lineTo(startX, startY + 60);
+      ctx.stroke();
+
+      // 终点线
+      ctx.strokeStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.moveTo(endX, endY - 40);
+      ctx.lineTo(endX, endY + 60);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#ef4444';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText('🏁 终点红外感应线', endX - 45, endY - 45);
+
+      // 绘制三条赛道上流淌的液滴
+      liquids.forEach((l, idx) => {
+        const offset = laneOffsets[idx];
+        // 沿赛道的实际坐标
+        const currentX = startX + (endX - startX) * l.progress;
+        const currentY = startY + (endY - startY) * l.progress + offset;
+
+        // 流淌痕迹线
+        ctx.strokeStyle = l.color;
+        ctx.lineWidth = l.viscosity > 5 ? 7 : (l.viscosity > 2 ? 5 : 3);
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(startX, startY + offset);
+        ctx.lineTo(currentX, currentY);
+        ctx.stroke();
+
+        // 前端液滴圆球
+        ctx.beginPath();
+        ctx.arc(currentX, currentY, l.viscosity > 5 ? 9 : 7, 0, Math.PI * 2);
+        ctx.fillStyle = l.color;
+        ctx.shadowColor = l.color;
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // 标签名称
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText(l.name, startX - 45, startY + offset + 4);
+      });
+    }
+
+    function loop(timestamp) {
+      if (lastTime === null) lastTime = timestamp;
+      const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+      lastTime = timestamp;
+
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    resize();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

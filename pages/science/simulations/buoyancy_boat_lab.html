@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学探究微仿真：浮力与橡皮泥造船实验（五年级下册·船的研究）</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: #151e2e;
+      --border: #233147;
+      --primary: #38bdf8;
+      --water: #0284c7;
+      --accent: #f59e0b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 420px;
+      background: radial-gradient(circle at center, #111a2d 0%, #050811 100%);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #1a273f;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .controls { display: flex; flex-direction: column; gap: 14px; }
+    .control-group {
+      background: #101624;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #233147;
+    }
+    .control-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    button:hover { background: #334155; }
+    button.active {
+      background: var(--primary);
+      color: #0b0f19;
+      border-color: var(--primary);
+    }
+    .btn-row { display: flex; gap: 8px; }
+
+    .state-banner {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #101624;
+      border: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>🚢 浮力与排水量：橡皮泥造船比赛（五年级下册·船的研究）</h1>
+    <span class="badge">浮沉条件与载重工程设计 · 纯静态</span>
+  </header>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="canvas-box" id="container">
+        <canvas id="boatCanvas"></canvas>
+      </div>
+      <div class="state-banner" id="stateBanner">
+        <span id="stateText">⛵ 状态：宽体船舱漂浮在水面 (浮力 = 自身重力 + 垫圈重力)</span>
+        <span id="loadText" style="color: var(--accent); font-weight: bold;">载重：0 个垫圈</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ 形状塑造与载重测试</h2>
+      
+      <div class="controls">
+        <!-- 形状切换 -->
+        <div class="control-group">
+          <div class="control-header"><span>橡皮泥形状改变（质量相同 50g）</span></div>
+          <div class="btn-grid">
+            <button id="shapeBall">实心圆球 (下沉)</button>
+            <button id="shapeBoat" class="active">中空大船舱 (漂浮)</button>
+          </div>
+        </div>
+
+        <!-- 船舱底面积调节 -->
+        <div class="control-group" id="widthGroup">
+          <div class="control-header">
+            <span>船底宽度设计</span>
+            <span style="color: var(--primary); font-weight: bold;" id="valWidth">宽体船 (排开更多水)</span>
+          </div>
+          <div class="btn-grid">
+            <button id="widthNarrow">窄船舱</button>
+            <button id="widthWide" class="active">宽底大船舱</button>
+          </div>
+        </div>
+
+        <!-- 垫圈装载 -->
+        <div class="control-group">
+          <div class="control-header">
+            <span>装载垫圈 (增加载重量)</span>
+            <span style="color: var(--accent); font-weight: bold;" id="washerCount">0 / 8 个</span>
+          </div>
+          <div class="btn-row">
+            <button id="btnMinusWasher">- 取出垫圈</button>
+            <button id="btnAddWasher" style="background: #2563eb; color: #fff;">+ 放入垫圈测试</button>
+          </div>
+        </div>
+
+        <button id="btnReset" style="background: #334155; color: #fff;">↺ 重置实验水槽</button>
+
+        <div style="font-size: 12px; color: var(--muted); line-height: 1.6; background: #101624; padding: 10px; border-radius: 6px; border-left: 3px solid var(--primary);">
+          📖 <strong>科学核心原理</strong>：
+          - <strong>沉浮秘密</strong>：橡皮泥做成实心球时，排开的水量很小，受到的<strong>浮力小于重力</strong>，所以下沉；
+          - <strong>造船工程</strong>：捏成中空船形后，排开的水量<strong>大大增加</strong>，受到的<strong>浮力增大</strong>，因而能够浮在水面上并承载重物！
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    // === 原生 Web Audio 纯代码合成音效引擎 (零外部文件) ===
+    const Sound = {
+      ctx: null,
+      enabled: true,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      // 清脆滴答声 (钟表/过零点)
+      tick() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.04);
+      },
+      // 成功提示音 (双音铜铃)
+      success() {
+        if (!this.enabled || !this.ctx) return;
+        [523.25, 659.25, 783.99].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.08 + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + idx * 0.08);
+          osc.stop(this.ctx.currentTime + idx * 0.08 + 0.35);
+        });
+      },
+      // 金属碰撞/咔哒声 (开关/吸附/挂钩)
+      clack() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      },
+      // 水花落水声 (浮力/入水)
+      plop() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.12);
+      },
+      // 警报声 (短路/沉没)
+      alarm() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(440, this.ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.2);
+      }
+    };
+    window.addEventListener('click', () => Sound.init(), { once: true });
+
+
+    const canvas = document.getElementById('boatCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    let shape = 'boat'; // 'ball' or 'boat'
+    let boatWidth = 'wide'; // 'narrow' or 'wide'
+    let washers = 0; // 垫圈数量 (最大载重：宽船8个沉，窄船5个沉)
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    const shapeBall = document.getElementById('shapeBall');
+    const shapeBoat = document.getElementById('shapeBoat');
+    const widthNarrow = document.getElementById('widthNarrow');
+    const widthWide = document.getElementById('widthWide');
+    const widthGroup = document.getElementById('widthGroup');
+    const washerCount = document.getElementById('washerCount');
+    const stateText = document.getElementById('stateText');
+    const loadText = document.getElementById('loadText');
+
+    shapeBall.addEventListener('click', () => {
+      shape = 'ball';
+      shapeBall.className = 'active';
+      shapeBoat.className = '';
+      widthGroup.style.display = 'none';
+      washers = 0;
+      updateUI();
+      draw();
+    });
+
+    shapeBoat.addEventListener('click', () => {
+      shape = 'boat';
+      shapeBoat.className = 'active';
+      shapeBall.className = '';
+      widthGroup.style.display = 'block';
+      updateUI();
+      draw();
+    });
+
+    widthNarrow.addEventListener('click', () => {
+      boatWidth = 'narrow';
+      widthNarrow.className = 'active';
+      widthWide.className = '';
+      document.getElementById('valWidth').textContent = '窄船舱 (吃水较深)';
+      checkSink();
+      draw();
+    });
+
+    widthWide.addEventListener('click', () => {
+      boatWidth = 'wide';
+      widthWide.className = 'active';
+      widthNarrow.className = '';
+      document.getElementById('valWidth').textContent = '宽底大船舱 (排开更多水)';
+      checkSink();
+      draw();
+    });
+
+    document.getElementById('btnAddWasher').addEventListener('click', () => {
+      if (shape === 'boat' && washers < 12) {
+        washers++; Sound.plop();
+        checkSink();
+        draw();
+      }
+    });
+
+    document.getElementById('btnMinusWasher').addEventListener('click', () => {
+      if (washers > 0) {
+        washers--;
+        checkSink();
+        draw();
+      }
+    });
+
+    document.getElementById('btnReset').addEventListener('click', () => {
+      washers = 0;
+      shape = 'boat';
+      boatWidth = 'wide';
+      shapeBoat.className = 'active';
+      shapeBall.className = '';
+      widthGroup.style.display = 'block';
+      widthWide.className = 'active';
+      widthNarrow.className = '';
+      updateUI();
+      draw();
+    });
+
+    function checkSink() {
+      washerCount.textContent = `${washers} 个垫圈`;
+      loadText.textContent = `载重：${washers} 个垫圈`;
+
+      const maxCapacity = boatWidth === 'wide' ? 8 : 4;
+      if (washers > maxCapacity) {
+        Sound.alarm();
+        stateText.textContent = `⚠️ 超载进水！总重力超过最大浮力，船体沉没入水底！`;
+        stateText.style.color = '#f87171';
+      } else {
+        stateText.textContent = `⛵ 稳定漂浮中！(排开水量增大，浮力 = 船体重力 + 垫圈重力)`;
+        stateText.style.color = '#34d399';
+      }
+    }
+
+    function updateUI() {
+      if (shape === 'ball') {
+        stateText.textContent = `🔴 实心球：排开水量过小，受到浮力 < 重力，沉没于水底。`;
+        stateText.style.color = '#f87171';
+        loadText.textContent = `无法载重`;
+      } else {
+        checkSink();
+      }
+    }
+
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const waterY = h * 0.42;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 1. 绘制透明玻璃水槽与蓝色水体
+      // 水体渐变
+      const waterGrad = ctx.createLinearGradient(0, waterY, 0, h);
+      waterGrad.addColorStop(0, 'rgba(2, 132, 199, 0.5)');
+      waterGrad.addColorStop(1, 'rgba(3, 105, 161, 0.85)');
+
+      ctx.fillStyle = waterGrad;
+      ctx.fillRect(40, waterY, w - 80, h - waterY - 30);
+
+      // 水面动态波动波浪线
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(40, waterY);
+      ctx.lineTo(w - 40, waterY);
+      ctx.stroke();
+
+      // 水槽玻璃边框
+      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(40, waterY - 40, w - 80, h - waterY + 10);
+
+      // 2. 绘制橡皮泥物体
+      if (shape === 'ball') {
+        // 实心球：直接沉在水槽底部
+        const ballY = h - 55;
+        ctx.beginPath();
+        ctx.arc(cx, ballY, 24, 0, Math.PI * 2);
+        ctx.fillStyle = '#f59e0b';
+        ctx.fill();
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('实心球 50g', cx, ballY + 4);
+      } else {
+        // 船形
+        const maxCapacity = boatWidth === 'wide' ? 8 : 4;
+        const isSunk = washers > maxCapacity;
+        const boatW = boatWidth === 'wide' ? 170 : 100;
+        const boatH = 36;
+
+        // 吃水深度随垫圈增加而下潜
+        let floatY = waterY - 14 + (washers * 2.8);
+        if (isSunk) {
+          floatY = h - 65; // 沉底
+        }
+
+        ctx.save();
+        ctx.translate(cx, floatY);
+
+        // 船体梯形剖面
+        ctx.beginPath();
+        ctx.moveTo(-boatW / 2, 0);
+        ctx.lineTo(-boatW / 2 + 18, boatH);
+        ctx.lineTo(boatW / 2 - 18, boatH);
+        ctx.lineTo(boatW / 2, 0);
+        ctx.closePath();
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.fill();
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // 内部中空仓
+        ctx.fillStyle = isSunk ? 'rgba(2, 132, 199, 0.8)' : '#fde68a';
+        ctx.fillRect(-boatW / 2 + 10, 4, boatW - 20, 8);
+
+        // 绘制装载在船内的垫圈
+        for (let i = 0; i < washers; i++) {
+          const wx = -boatW / 2 + 25 + (i % 6) * 18;
+          const wy = Math.floor(i / 6) * -10 + 6;
+
+          ctx.fillStyle = '#94a3b8';
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(wx, wy, 7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+    }
+
+    resize();
+    updateUI();
+  </script>
+</body>
+</html>

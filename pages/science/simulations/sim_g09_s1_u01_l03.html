@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【3. 观察身边微小的物体】真实验微仿真 - 五年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .header h1 {
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+        }
+        .badge {
+            background: #0369a1;
+            color: #e0f2fe;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+        }
+        .unit-nav a {
+            color: var(--muted);
+            text-decoration: none;
+            padding: 6px 12px;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a:hover {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            color: var(--text);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+        .notes-card strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 <span>3. 观察身边微小的物体</span></h1>
+        <span class="badge">五年级上册·第一单元《微小世界》</span>
+        <a href="virtual_microscope.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 高保真光学显微镜实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g09_s1_u01_l01.html" class="">放大镜</a>
+<a href="sim_g09_s1_u01_l02.html" class="">怎样放得更大</a>
+<a href="sim_g09_s1_u01_l03.html" class="active">观察身边微小的物体</a>
+<a href="sim_g09_s1_u01_l04.html" class="">观察洋葱表皮细胞</a>
+<a href="sim_g09_s1_u01_l05.html" class="">观察更多的生物细胞</a>
+<a href="sim_g09_s1_u01_l06.html" class="">观察水中的微小生物</a>
+<a href="sim_g09_s1_u01_l07.html" class="">微小世界和我们</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 显微光学与微观观测控制台</div>
+            
+            <div id="controlsContainer">
+                <!-- Dynamically injected controls -->
+            </div>
+
+            <div class="card-title" style="margin-top: 6px;">📊 显微放大倍率与生物结构遥测</div>
+            <div class="telemetry" id="telem">
+                [遥测就绪] 等待交互触发...
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <strong>🎯 探究目标与原书要点：</strong><br>
+            利用凸透镜与光学显微镜，观察昆虫复眼触角、洋葱细胞与水中微小生物。
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+
+        const activeMode = "insect_structures";
+
+        // Web Audio Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, dur=0.15) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
+        }
+
+        
+const state = {
+    magnifierPower: 3, // 2x, 3x, 5x
+    lensDistance: 60, // mm
+    insectSample: 'eye', // eye, antenna, wing_scale
+    focusSharpness: 50, // 0~100 (50 is sharpest)
+    stained: true,
+    cellSample: 'blood', // blood (RBC), stoma
+    microbeCount: 8,
+    fermentHours: 2,
+    fermentTemp: 30 // degC
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'magnifier') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>凸透镜中央凸度 (放大倍率): <b id="mag-val">${state.magnifierPower}x</b></span></div>
+                <input type="range" min="2" max="8" value="${state.magnifierPower}" id="magSlider">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-primary" id="btnPaper">📰 观察报纸油墨网点</button>
+                <button class="btn btn-green" id="btnCrystal">🧂 观察食盐微晶体</button>
+            </div>
+        `;
+    } else if (activeMode === 'dual_lenses') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>调节两块凸透镜间距: <b id="lens-dist-val">${state.lensDistance} mm</b></span></div>
+                <input type="range" min="30" max="120" value="${state.lensDistance}" id="lensDistSlider">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-primary" id="btnCombine">🔭 组合简易显微筒</button>
+                <button class="btn btn-green" id="btnMaxMag">✨ 最佳聚焦清晰距离</button>
+            </div>
+        `;
+    } else if (activeMode === 'insect_structures') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>昆虫奇特微观构造标本</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.insectSample==='eye'?'btn-primary':''}" id="btnEye">👀 苍蝇六边形复眼</button>
+                    <button class="btn ${state.insectSample==='antenna'?'btn-primary':''}" id="btnAntenna">🪶 蚕蛾羽状触角</button>
+                    <button class="btn ${state.insectSample==='wing_scale'?'btn-primary':''}" id="btnWing">🦋 蝴蝶翅膀瓦状鳞片</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'onion_cell') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>准焦螺旋微调: <b id="focus-val">${state.focusSharpness}</b></span></div>
+                <input type="range" min="0" max="100" value="${state.focusSharpness}" id="focusSlider">
+            </div>
+            <div class="btn-grid">
+                <button class="btn ${state.stained?'btn-primary':''}" id="btnStain">🧪 滴加碘酒染色细胞核</button>
+                <button class="btn" id="btnAutoFocus">🎯 粗细准焦螺旋合焦</button>
+            </div>
+        `;
+    } else if (activeMode === 'bio_cells') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>生物典型细胞微观切片</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.cellSample==='blood'?'btn-primary':''}" id="btnBlood">🩸 人体红细胞 (双凹圆盘)</button>
+                    <button class="btn ${state.cellSample==='stoma'?'btn-primary':''}" id="btnStoma">🍃 蚕豆叶表皮气孔 (保卫细胞)</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'microbes_water') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>池塘水滴微生物巡游</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnAddMicrobe">➕ 滴入浓缩稻草浸液</button>
+                    <button class="btn btn-rose" id="btnTrapMicrobe">脱脂棉纤维限制游速</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'yeast_ferment') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>发酵环境温度: <b id="temp-val">${state.fermentTemp} ℃</b></span></div>
+                <input type="range" min="10" max="50" value="${state.fermentTemp}" id="tempSlider">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-primary" id="btnAddSugar">🍬 加入温水与葡萄糖</button>
+                <button class="btn btn-green" id="btnFermentBoost">🫧 观察CO₂气泡与出芽</button>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU1Events();
+}
+
+function bindU1Events() {
+    const magSlider = document.getElementById('magSlider');
+    if (magSlider) magSlider.oninput = (e) => {
+        state.magnifierPower = parseInt(e.target.value);
+        document.getElementById('mag-val').innerText = state.magnifierPower + 'x';
+        playTone(300 + state.magnifierPower * 40, 0.05);
+        updateTelemetry();
+    };
+
+    const lensDistSlider = document.getElementById('lensDistSlider');
+    if (lensDistSlider) lensDistSlider.oninput = (e) => {
+        state.lensDistance = parseInt(e.target.value);
+        document.getElementById('lens-dist-val').innerText = state.lensDistance + ' mm';
+        playTone(200 + state.lensDistance * 4, 0.04);
+        updateTelemetry();
+    };
+
+    const btnEye = document.getElementById('btnEye');
+    if (btnEye) btnEye.onclick = () => { state.insectSample = 'eye'; setupControls(); playTone(500, 0.1); };
+    const btnAntenna = document.getElementById('btnAntenna');
+    if (btnAntenna) btnAntenna.onclick = () => { state.insectSample = 'antenna'; setupControls(); playTone(600, 0.1); };
+    const btnWing = document.getElementById('btnWing');
+    if (btnWing) btnWing.onclick = () => { state.insectSample = 'wing_scale'; setupControls(); playTone(700, 0.1); };
+
+    const focusSlider = document.getElementById('focusSlider');
+    if (focusSlider) focusSlider.oninput = (e) => {
+        state.focusSharpness = parseInt(e.target.value);
+        document.getElementById('focus-val').innerText = state.focusSharpness;
+        playTone(400 + Math.abs(50 - state.focusSharpness)*8, 0.03);
+        updateTelemetry();
+    };
+    const btnStain = document.getElementById('btnStain');
+    if (btnStain) btnStain.onclick = () => { state.stained = !state.stained; setupControls(); playTone(660, 0.15); };
+    const btnAutoFocus = document.getElementById('btnAutoFocus');
+    if (btnAutoFocus) btnAutoFocus.onclick = () => { state.focusSharpness = 50; setupControls(); playTone(880, 0.2); };
+
+    const btnBlood = document.getElementById('btnBlood');
+    if (btnBlood) btnBlood.onclick = () => { state.cellSample = 'blood'; setupControls(); playTone(520, 0.1); };
+    const btnStoma = document.getElementById('btnStoma');
+    if (btnStoma) btnStoma.onclick = () => { state.cellSample = 'stoma'; setupControls(); playTone(580, 0.1); };
+
+    const btnAddMicrobe = document.getElementById('btnAddMicrobe');
+    if (btnAddMicrobe) btnAddMicrobe.onclick = () => { state.microbeCount = Math.min(20, state.microbeCount + 4); playTone(750, 0.15); updateTelemetry(); };
+
+    const tempSlider = document.getElementById('tempSlider');
+    if (tempSlider) tempSlider.oninput = (e) => {
+        state.fermentTemp = parseInt(e.target.value);
+        document.getElementById('temp-val').innerText = state.fermentTemp + ' ℃';
+        playTone(350 + state.fermentTemp * 6, 0.04);
+        updateTelemetry();
+    };
+    const btnAddSugar = document.getElementById('btnAddSugar');
+    if (btnAddSugar) btnAddSugar.onclick = () => { playTone(650, 0.15); updateTelemetry(); };
+    const btnFermentBoost = document.getElementById('btnFermentBoost');
+    if (btnFermentBoost) btnFermentBoost.onclick = () => { state.fermentHours += 2; playTone(800, 0.2); updateTelemetry(); };
+}
+
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'magnifier') {
+        drawMagnifier();
+    } else if (activeMode === 'dual_lenses') {
+        drawDualLenses();
+    } else if (activeMode === 'insect_structures') {
+        drawInsectStructures();
+    } else if (activeMode === 'onion_cell') {
+        drawOnionCell();
+    } else if (activeMode === 'bio_cells') {
+        drawBioCells();
+    } else if (activeMode === 'microbes_water') {
+        drawMicrobesWater();
+    } else if (activeMode === 'yeast_ferment') {
+        drawYeastFerment();
+    } else {
+        drawOnionCell();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+function drawMagnifier() {
+    const cx = 360, cy = 225;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(`凸透镜成像与放大规律: 中央厚度越大，放大倍率越高 [当前倍率: ${state.magnifierPower}x]`, cx, 40);
+
+    // Printed text underneath
+    ctx.fillStyle = '#475569'; ctx.font = '14px serif';
+    for (let y = cy - 100; y <= cy + 100; y += 22) {
+        ctx.fillText('科学探索求真务实 · 观察微小世界 · 发现自然真理 · 认识物质结构', cx, y);
+    }
+
+    // Magnifying Glass circular lens
+    const lensR = 120;
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, lensR, 0, Math.PI*2); ctx.clip();
+
+    // Magnified view inside
+    ctx.fillStyle = '#0f172a'; ctx.fillRect(cx - lensR, cy - lensR, lensR*2, lensR*2);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = `bold ${14 * state.magnifierPower}px serif`;
+    ctx.fillText('科学求真', cx, cy + 10 * state.magnifierPower);
+    ctx.restore();
+
+    // Glass rim and handle
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.arc(cx, cy, lensR, 0, Math.PI*2); ctx.stroke();
+    // Handle
+    ctx.strokeStyle = '#b45309'; ctx.lineWidth = 14;
+    ctx.beginPath(); ctx.moveTo(cx + lensR * 0.7, cy + lensR * 0.7); ctx.lineTo(cx + lensR + 90, cy + lensR + 90); ctx.stroke();
+}
+
+function drawDualLenses() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(`双凸透镜组合显微镜光路原理 (物镜放大倒立实像 + 目镜二次放大虚像)`, cx, 40);
+
+    // Optical Axis
+    ctx.setLineDash([6, 6]); ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(120, cy); ctx.lineTo(600, cy); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Eyepiece lens (目镜) on left
+    const eyeX = cx - 110;
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.4)'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(eyeX, cy, 14, 80, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f8fafc'; ctx.font = '12px sans-serif'; ctx.fillText('目镜 (Eyepiece)', eyeX, cy - 95);
+
+    // Objective lens (物镜) on right, position depends on distance
+    const objX = eyeX + state.lensDistance * 2.2;
+    ctx.beginPath(); ctx.ellipse(objX, cy, 10, 55, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillText('物镜 (Objective)', objX, cy - 70);
+
+    // Specimen arrow on right
+    const specX = objX + 45;
+    ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(specX, cy); ctx.lineTo(specX, cy - 30); ctx.stroke();
+    ctx.fillText('标本', specX, cy - 38);
+
+    // Total magnification
+    const isOptimal = state.lensDistance >= 55 && state.lensDistance <= 70;
+    ctx.fillStyle = isOptimal ? '#10b981' : '#f59e0b'; ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(isOptimal ? '🌟 间距适中！成功实现复合显微放大（总倍率 M = M₁ × M₂ 达到 100x）' : '⚠️ 间距过近或过远，像无法汇聚到目镜焦平面', cx, cy + 120);
+}
+
+function drawInsectStructures() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+
+    // Circular viewfield
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, 140, 0, Math.PI*2); ctx.clip();
+    ctx.fillStyle = '#0f172a'; ctx.fillRect(cx - 140, cy - 140, 280, 280);
+
+    if (state.insectSample === 'eye') {
+        // Fly compound eye hexagonal honeycomb structure
+        ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+        for (let x = cx - 120; x <= cx + 120; x += 18) {
+            for (let y = cy - 120; y <= cy + 120; y += 16) {
+                ctx.beginPath();
+                for (let a = 0; a < 6; a++) {
+                    const hx = x + Math.cos(a * Math.PI / 3) * 9;
+                    const hy = y + Math.sin(a * Math.PI / 3) * 9;
+                    if (a === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
+                }
+                ctx.closePath(); ctx.fill(); ctx.stroke();
+            }
+        }
+    } else if (state.insectSample === 'antenna') {
+        // Feather-like antenna (羽状触角)
+        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(cx - 80, cy + 90); ctx.lineTo(cx + 80, cy - 90); ctx.stroke();
+        ctx.lineWidth = 1.5;
+        for (let i = -70; i <= 70; i += 10) {
+            const px = cx + i; const py = cy - i * 0.9;
+            ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px - 35, py - 15); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + 35, py + 15); ctx.stroke();
+        }
+    } else {
+        // Butterfly wing roof tiles scales (瓦状鳞片)
+        ctx.fillStyle = '#ec4899';
+        for (let row = -5; row <= 5; row++) {
+            for (let col = -6; col <= 6; col++) {
+                const sx = cx + col * 20 + (row % 2) * 10;
+                const sy = cy + row * 18;
+                ctx.beginPath(); ctx.ellipse(sx, sy, 12, 8, 0.2, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#fbcfe8'; ctx.lineWidth = 1; ctx.stroke();
+            }
+        }
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.arc(cx, cy, 140, 0, Math.PI*2); ctx.stroke();
+
+    const names = { eye: '苍蝇六边形复眼 (成千上万只独立小眼拼合)', antenna: '蚕蛾羽状触角 (极大表面积嗅探空气中的微量性信息素)', wing_scale: '蝴蝶翅膀瓦状覆合彩色鳞片 (屋檐瓦片排列形成物理结构色)' };
+    ctx.fillText(`昆虫奇特微观构造: 【${names[state.insectSample]}】`, cx, 40);
+}
+
+function drawOnionCell() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('光学显微镜视野: 洋葱内表皮细胞 (细胞壁、细胞质与碘液染色细胞核)', cx, 40);
+
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, 140, 0, Math.PI*2); ctx.clip();
+
+    const blur = Math.abs(50 - state.focusSharpness) * 0.15;
+    ctx.fillStyle = state.stained ? '#fef08a' : '#f1f5f9';
+    ctx.fillRect(cx - 140, cy - 140, 280, 280);
+
+    // Elongated brick-like plant cell walls
+    ctx.strokeStyle = `rgba(16, 185, 129, ${Math.max(0.2, 1 - blur*0.3)})`;
+    ctx.lineWidth = 3;
+    for (let row = -3; row <= 3; row++) {
+        const ry = cy + row * 40;
+        ctx.beginPath(); ctx.moveTo(cx - 140, ry); ctx.lineTo(cx + 140, ry); ctx.stroke();
+        for (let col = -3; col <= 3; col++) {
+            const rx = cx + col * 70 + (row % 2) * 35;
+            ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx, ry + 40); ctx.stroke();
+
+            // Cell nucleus (purple if stained)
+            if (state.stained) {
+                ctx.fillStyle = '#8b5cf6';
+                ctx.beginPath();
+                ctx.arc(rx + 35, ry + 20, 6 + blur, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.arc(cx, cy, 140, 0, Math.PI*2); ctx.stroke();
+
+    const sharpTxt = Math.abs(50 - state.focusSharpness) <= 5 ? '清晰合焦 🌟' : '失焦模糊 (请调节准焦螺旋)';
+    ctx.fillStyle = '#38bdf8'; ctx.font = '13px sans-serif';
+    ctx.fillText(`清晰度: ${sharpTxt} | 碘酒染色: ${state.stained?'深紫褐色细胞核显现':'未染色较难辨认'}`, cx, cy + 165);
+}
+
+function drawBioCells() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, 140, 0, Math.PI*2); ctx.clip();
+    ctx.fillStyle = '#0f172a'; ctx.fillRect(cx - 140, cy - 140, 280, 280);
+
+    if (state.cellSample === 'blood') {
+        // Red Blood Cells (biconcave disc)
+        ctx.fillStyle = '#ef4444';
+        for (let i = 0; i < 30; i++) {
+            const bx = cx - 110 + (i * 47) % 220;
+            const by = cy - 110 + (i * 39) % 220;
+            ctx.beginPath(); ctx.arc(bx, by, 11, 0, Math.PI*2); ctx.fill();
+            // Dimple center
+            ctx.fillStyle = '#b91c1c';
+            ctx.beginPath(); ctx.arc(bx, by, 5, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ef4444';
+        }
+    } else {
+        // Stoma with kidney guard cells
+        ctx.fillStyle = '#15803d';
+        ctx.fillRect(cx - 140, cy - 140, 280, 280);
+        // Guard cells pair
+        for (let i = -1; i <= 1; i += 2) {
+            const gx = cx + i * 50; const gy = cy;
+            // Left guard cell
+            ctx.fillStyle = '#86efac'; ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.ellipse(gx - 10, gy, 12, 28, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            // Right guard cell
+            ctx.beginPath(); ctx.ellipse(gx + 10, gy, 12, 28, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            // Pore aperture
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath(); ctx.ellipse(gx, gy, 4, 18, 0, 0, Math.PI*2); ctx.fill();
+        }
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.arc(cx, cy, 140, 0, Math.PI*2); ctx.stroke();
+
+    ctx.fillText(state.cellSample==='blood'?'人血涂片: 双凹圆盘状红细胞 (无细胞核，专职运输氧气)':'植物叶表皮气孔: 成对双肾形保卫细胞 (吸水膨胀气孔张开散发水汽)', cx, 40);
+}
+
+function drawMicrobesWater() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('池塘水滴中的活体微生物巡游 (草履虫、变形虫与绿藻)', cx, 40);
+
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, 140, 0, Math.PI*2); ctx.clip();
+    ctx.fillStyle = 'rgba(14, 165, 233, 0.2)'; ctx.fillRect(cx - 140, cy - 140, 280, 280);
+
+    const t = performance.now() * 0.003;
+    for (let i = 0; i < state.microbeCount; i++) {
+        const mx = cx + Math.sin(t * 0.5 + i * 1.5) * (40 + (i%3)*30);
+        const my = cy + Math.cos(t * 0.7 + i * 1.2) * (30 + (i%4)*25);
+
+        // Paramecium slipper shape
+        ctx.fillStyle = '#a7f3d0'; ctx.strokeStyle = '#059669'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.ellipse(mx, my, 18, 8, Math.sin(t+i), 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        // Cilia hairs
+        ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1;
+        for (let a = 0; a < Math.PI*2; a += Math.PI/4) {
+            ctx.beginPath(); ctx.moveTo(mx + Math.cos(a)*18, my + Math.sin(a)*8);
+            ctx.lineTo(mx + Math.cos(a)*23, my + Math.sin(a)*12); ctx.stroke();
+        }
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.arc(cx, cy, 140, 0, Math.PI*2); ctx.stroke();
+}
+
+function drawYeastFerment() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(`微生物工程与人类生活: 酵母菌发酵产气与出芽繁殖 [温度: ${state.fermentTemp}℃]`, cx, 40);
+
+    // Fermentation Flask
+    ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 3;
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.25)';
+    ctx.beginPath();
+    ctx.moveTo(cx - 30, cy - 90); ctx.lineTo(cx - 30, cy - 40);
+    ctx.lineTo(cx - 100, cy + 90); ctx.lineTo(cx + 100, cy + 90);
+    ctx.lineTo(cx + 30, cy - 40); ctx.lineTo(cx + 30, cy - 90);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+
+    // CO2 Gas Bubbles rising
+    const bubbleRate = (state.fermentTemp >= 25 && state.fermentTemp <= 38) ? 1.0 : (state.fermentTemp < 20 ? 0.2 : 0.4);
+    const t = performance.now() * 0.005 * bubbleRate;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    for (let i = 0; i < 15; i++) {
+        const bx = cx - 60 + (i * 27) % 120;
+        const by = cy + 80 - ((i * 22 + t * 40) % 140);
+        ctx.beginPath(); ctx.arc(bx, by, 3 + (i%3), 0, Math.PI*2); ctx.fill();
+    }
+
+    // Balloon expanding on top of flask
+    const balloonR = 20 + state.fermentHours * 6 * bubbleRate;
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath(); ctx.arc(cx, cy - 105 - balloonR*0.5, balloonR, 0, Math.PI*2); ctx.fill();
+
+    ctx.fillStyle = '#38bdf8'; ctx.font = '13px sans-serif';
+    ctx.fillText(bubbleRate===1.0 ? '🌟 28~35℃ 适宜温度！酵母菌剧烈无氧呼吸分解糖分生成CO₂和酒精' : '⚠️ 温度过低活性休眠，过高破坏酶活性', cx, cy + 130);
+}
+
+
+        
+function updateTelemetry() {
+    let txt = `[微小世界数据] 模式: ${activeMode} | `;
+    if (activeMode === 'magnifier') {
+        txt += `透镜类型: 凸透镜 | 放大倍率: ${state.magnifierPower}x | 光学原理: 凸度越大焦距越短，折射角越大放大倍数越高`;
+    } else if (activeMode === 'dual_lenses') {
+        txt += `物镜目镜间距: ${state.lensDistance}mm | 成像: 倒立放大实像 + 二次正立虚像`;
+    } else if (activeMode === 'insect_structures') {
+        txt += `标本: ${state.insectSample} | 显微特点: 昆虫各部器官具有巧夺天工的微纳结构`;
+    } else if (activeMode === 'onion_cell') {
+        txt += `细胞结构: 细胞壁(支撑保护) + 细胞核(遗传控制中心) | 状态: ${state.stained?'碘染色清晰':'未染色'}`;
+    } else if (activeMode === 'bio_cells') {
+        txt += `细胞类型: ${state.cellSample==='blood'?'红细胞':'植物气孔保卫细胞'} | 发现者: 罗伯特·胡克(1665年)`;
+    } else if (activeMode === 'microbes_water') {
+        txt += `微生物种类: 草履虫、钟形虫、变形虫 | 运动方式: 纤毛高频摆动推进`;
+    } else if (activeMode === 'yeast_ferment') {
+        txt += `发酵温度: ${state.fermentTemp}℃ | 发酵时长: ${state.fermentHours}小时 | 产物: 二氧化碳(气球膨胀) + 酒精`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        updateTelemetry();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学大师级实验室：数字气象站与大气压强流体对流全景实验室（三年级天气·四年级空气核心）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #38bdf8;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1240px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border-color: #38bdf8;
+      color: #ffffff;
+      font-weight: 700;
+    }
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .mode-tab {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--muted);
+      border: none;
+      background: transparent;
+      transition: all 0.2s;
+    }
+    .mode-tab.active {
+      background: var(--primary);
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .main-container {
+      max-width: 1240px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 960px) {
+      .main-container { grid-template-columns: 1fr; }
+    }
+
+    .canvas-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .canvas-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.4);
+    }
+    .canvas-wrapper {
+      position: relative;
+      flex: 1;
+      min-height: 520px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 50%, #132742 0%, #090d16 100%);
+    }
+    canvas { display: block; }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .form-group { margin-bottom: 12px; }
+    .form-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    input[type=range] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #1e293b;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+    }
+    .telemetry-card {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.75rem;
+      color: #38bdf8;
+      line-height: 1.5;
+      min-height: 95px;
+    }
+    .science-tip {
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      background: rgba(30, 41, 59, 0.5);
+      border-left: 3px solid #38bdf8;
+      padding: 8px 10px;
+      border-radius: 0 8px 8px 0;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>🏆 综合气象站与大气压流体力学全景实验室</h1>
+      <span class="badge">三上天气·四上空气跨学段核心</span>
+    </div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabMagde" onclick="switchMode('magdeburg')">🎈 马德堡半球与大气压强</button>
+      <button class="mode-tab" id="tabWind" onclick="switchMode('windbox')">💨 风的成因热对流箱</button>
+      <button class="mode-tab" id="tabStation" onclick="switchMode('station')">🌦️ 全功能综合气象站</button>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html" class="btn">← 返回大厅</a>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="canvas-panel">
+      <div class="canvas-header">
+        <span id="canvasTitle">🎈 马德堡半球抽真空拉力对比与托里拆利气压计</span>
+        <span style="color: var(--muted); font-size: 0.75rem;">流体物理与气压仿真 · 真实粒子追踪</span>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="simCanvas" width="840" height="520"></canvas>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="card" id="ctrlCard">
+        <!-- Dynamic controls -->
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 气象物理与流体力学遥测读数</div>
+        <div class="telemetry-card" id="telem">
+          初始化中...
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📖 科学家视角与学科大概念</div>
+        <div class="science-tip" id="scienceTip">
+          空气虽然看不见摸不着，但它有质量、能占据空间并产生巨大的大气压强（1标准大气压约为 101.3 kPa，相当于每平方厘米承受约 1 公斤压力）。冷热不均导致气体密度差异，引发空气对流形成风。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    const telem = document.getElementById('telem');
+    const ctrlCard = document.getElementById('ctrlCard');
+    const canvasTitle = document.getElementById('canvasTitle');
+
+    let currentMode = 'magdeburg'; // magdeburg, windbox, station
+
+    // State: Magdeburg
+    let vacuumPct = 0; // 0 to 100%
+    let pullTension = 0; // 0 to 3000 N
+    let isSeparated = false;
+
+    // State: Windbox
+    let candleLit = true;
+    let smokeParticles = [];
+    for (let i = 0; i < 90; i++) {
+      smokeParticles.push({
+        x: 200 + Math.random() * 20,
+        y: 350 + Math.random() * 20,
+        vx: 0, vy: -1.2,
+        life: Math.random()
+      });
+    }
+
+    // State: Station
+    let stationTemp = 24;
+    let stationWindSpeed = 3;
+    let stationWindDir = 45; // NE
+    let stationRain = 25;
+    let anemometerAngle = 0;
+
+    function switchMode(m) {
+      currentMode = m;
+      document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+      if (m === 'magdeburg') document.getElementById('tabMagde').classList.add('active');
+      if (m === 'windbox') document.getElementById('tabWind').classList.add('active');
+      if (m === 'station') document.getElementById('tabStation').classList.add('active');
+      renderSidebar();
+    }
+
+    function renderSidebar() {
+      if (currentMode === 'magdeburg') {
+        canvasTitle.textContent = '🎈 马德堡半球抽真空拉力对比与托里拆利气压计';
+        ctrlCard.innerHTML = `
+          <div class="card-title">💨 抽真空与外力拉扯控制</div>
+          <div class="form-group">
+            <div class="form-label">
+              <span>🌀 半球内部抽真空率</span>
+              <span style="color:#38bdf8; font-weight:bold;">${vacuumPct}%</span>
+            </div>
+            <input type="range" min="0" max="98" step="2" value="${vacuumPct}" oninput="vacuumPct=parseInt(this.value); renderSidebar();">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>🐎 两侧施加拉力 (拉力磅秤)</span>
+              <span style="color:#f59e0b; font-weight:bold;">${pullTension} N</span>
+            </div>
+            <input type="range" min="0" max="3200" step="100" value="${pullTension}" oninput="pullTension=parseInt(this.value); renderSidebar();">
+          </div>
+
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary" style="flex:1;" onclick="vacuumPct=95; pullTension=2400; renderSidebar();">⚡ 模拟16匹马对拉</button>
+            <button class="btn" onclick="vacuumPct=0; pullTension=0; renderSidebar();">🔄 放气复原</button>
+          </div>
+        `;
+      } else if (currentMode === 'windbox') {
+        canvasTitle.textContent = '💨 风的成因透明对流冷热环流箱';
+        ctrlCard.innerHTML = `
+          <div class="card-title">🕯️ 热源与对流控制</div>
+          <p style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">点燃右侧蜡烛加热空气，观察左侧蚊香烟雾流线如何被抽吸形成风！</p>
+          <div style="display:flex; gap:8px;">
+            <button class="btn ${candleLit ? 'btn-primary' : ''}" style="flex:1;" onclick="candleLit=!candleLit; renderSidebar();">
+              ${candleLit ? '💨 熄灭蜡烛 (停止加热)' : '🔥 点燃蜡烛 (启动对流)'}
+            </button>
+          </div>
+        `;
+      } else if (currentMode === 'station') {
+        canvasTitle.textContent = '🌦️ 校园全功能综合气象站数字化观测台';
+        ctrlCard.innerHTML = `
+          <div class="card-title">⚙️ 气象要素动态调节</div>
+          <div class="form-group">
+            <div class="form-label"><span>🌡️ 气温</span><span style="color:#f59e0b; font-weight:bold;">${stationTemp} °C</span></div>
+            <input type="range" min="-10" max="40" step="1" value="${stationTemp}" oninput="stationTemp=parseInt(this.value); renderSidebar();">
+          </div>
+          <div class="form-group">
+            <div class="form-label"><span>🌀 风速</span><span style="color:#38bdf8; font-weight:bold;">${stationWindSpeed} 级</span></div>
+            <input type="range" min="0" max="8" step="1" value="${stationWindSpeed}" oninput="stationWindSpeed=parseInt(this.value); renderSidebar();">
+          </div>
+          <div class="form-group">
+            <div class="form-label"><span>🧭 风向角</span><span style="color:#10b981; font-weight:bold;">${stationWindDir}°</span></div>
+            <input type="range" min="0" max="360" step="15" value="${stationWindDir}" oninput="stationWindDir=parseInt(this.value); renderSidebar();">
+          </div>
+        `;
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (currentMode === 'magdeburg') {
+        drawMagdeburg();
+      } else if (currentMode === 'windbox') {
+        drawWindbox();
+      } else if (currentMode === 'station') {
+        drawStation();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    // --- Mode 1: Magdeburg ---
+    function drawMagdeburg() {
+      const cx = 380, cy = 250;
+      const R = 75;
+
+      // Atmospheric pressure holds them together: F_hold = 101325 * pi * r^2 * (vacuum/100)
+      // Area = pi * 0.1^2 approx 0.0314 m^2 -> F_hold approx 2500 N at 90%
+      const holdForce = Math.round(2600 * (vacuumPct / 100));
+      isSeparated = (pullTension > holdForce + 20);
+
+      const sepDist = isSeparated ? Math.min(80, (pullTension - holdForce) * 0.15) : 0;
+
+      // Left Hemisphere
+      ctx.fillStyle = '#b45309';
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(cx - sepDist, cy, R, Math.PI * 0.5, Math.PI * 1.5);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      // Right Hemisphere
+      ctx.beginPath();
+      ctx.arc(cx + sepDist, cy, R, -Math.PI * 0.5, Math.PI * 0.5);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      // Pull Ropes & Arrows
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(cx - sepDist - R, cy); ctx.lineTo(cx - sepDist - R - 140, cy);
+      ctx.moveTo(cx + sepDist + R, cy); ctx.lineTo(cx + sepDist + R + 140, cy);
+      ctx.stroke();
+
+      // Tension Readout
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 15px sans-serif';
+      ctx.fillText(`⬅️ 拉力 ${pullTension} N`, cx - sepDist - R - 130, cy - 15);
+      ctx.fillText(`拉力 ${pullTension} N ➡️`, cx + sepDist + R + 20, cy - 15);
+
+      // Atmospheric Pressure Arrows pushing outside
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2;
+      for (let angle = 0; angle < Math.PI * 2; angle += 0.5) {
+        if (!isSeparated || Math.cos(angle) < 0) {
+          const px = (cx - sepDist) + Math.cos(angle) * (R + 40);
+          const py = cy + Math.sin(angle) * (R + 40);
+          const tx = (cx - sepDist) + Math.cos(angle) * (R + 8);
+          const ty = cy + Math.sin(angle) * (R + 8);
+          drawSmallArrow(px, py, tx, ty);
+        }
+      }
+
+      // Torricelli Mercury Column on right
+      const baroX = 720;
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(baroX - 40, 380, 80, 50); // mercury trough
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(baroX - 35, 390, 70, 35);
+
+      // Glass tube
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2;
+      ctx.strokeRect(baroX - 10, 80, 20, 310);
+      // Mercury column height (760mm approx 240px)
+      const hgH = 240 * (1 - (100 - vacuumPct)/100 * 0.05);
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(baroX - 8, 390 - hgH, 16, hgH);
+
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('760 mm 水银柱', baroX - 40, 70);
+      ctx.fillText('(1 标准大气压)', baroX - 38, 370);
+
+      // Status
+      ctx.fillStyle = isSeparated ? '#ef4444' : '#10b981';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(isSeparated ? '💥 半球被外力拉开！(拉力克服了大气总压力)' : '🔒 紧紧吸合！大气压产生巨大握紧力', cx, 110);
+      ctx.textAlign = 'left';
+
+      telem.innerHTML = `
+[马德堡半球物理遥测]
+• 抽真空率: ${vacuumPct}% | 内部气压: ${(101.3 * (1 - vacuumPct/100)).toFixed(1)} kPa
+• 大气合力 (锁死力): ${holdForce} N (相当于约 ${(holdForce/9.8).toFixed(0)} kg 巨力)
+• 两侧施加拉力: ${pullTension} N | 状态: ${isSeparated ? '已强行拉开' : '牢牢吸合不可分开'}
+• 历史启示: 1654 年马德堡市长格里克用 16 匹高头大马才拉开抽空的铜半球，震撼证实大气压的存在！
+      `.trim();
+    }
+
+    // --- Mode 2: Windbox ---
+    function drawWindbox() {
+      const cx = 420, cy = 250;
+      const bw = 500, bh = 280;
+
+      // Transparent Box Body
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+      ctx.fillRect(cx - bw/2, cy - bh/2, bw, bh);
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+      ctx.strokeRect(cx - bw/2, cy - bh/2, bw, bh);
+
+      // Left Inflow Hole
+      ctx.clearRect(cx - bw/2 - 2, cy + 40, 6, 60);
+      ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('冷空气流入孔 ➡️', cx - bw/2 - 110, cy + 75);
+
+      // Top Right Outflow Chimney
+      ctx.clearRect(cx + bw/2 - 100, cy - bh/2 - 2, 60, 6);
+      ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2;
+      ctx.strokeRect(cx + bw/2 - 100, cy - bh/2 - 40, 60, 40);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillText('⬆️ 热空气上升烟囱', cx + bw/2 - 120, cy - bh/2 - 50);
+
+      // Left: Incense (Smoke Source)
+      ctx.strokeStyle = '#78350f'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(cx - bw/2 + 60, cy + 110); ctx.lineTo(cx - bw/2 + 60, cy + 50);
+      ctx.stroke();
+      ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(cx - bw/2 + 60, cy + 50, 4, 0, Math.PI*2); ctx.fill();
+
+      // Right: Candle (Heat Source)
+      const candleX = cx + bw/2 - 70;
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(candleX - 12, cy + 60, 24, 50);
+      if (candleLit) {
+        // Flame
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.ellipse(candleX, cy + 45, 8, 16, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.ellipse(candleX, cy + 48, 4, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Update & Draw Smoke Particles
+      smokeParticles.forEach(p => {
+        if (candleLit) {
+          // Convection flow path: left -> bottom right -> up out of chimney
+          if (p.x < candleX - 20) {
+            p.vx += 0.08; // pulled horizontally to heat source
+            p.vy *= 0.95;
+          } else {
+            p.vx *= 0.92;
+            p.vy -= 0.12; // hot air buoyancy upwards
+          }
+        } else {
+          // No convection: smoke drifts randomly upwards
+          p.vx *= 0.95;
+          p.vy = -0.8;
+        }
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Reset
+        if (p.y < cy - bh/2 - 40 || p.x > cx + bw/2 || p.y > cy + bh/2) {
+          p.x = cx - bw/2 + 60 + (Math.random() - 0.5) * 8;
+          p.y = cy + 50;
+          p.vx = 0.5;
+          p.vy = -0.3;
+        }
+
+        ctx.fillStyle = 'rgba(203, 213, 225, 0.6)';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Flow description banner
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(candleLit ? '🌀 空气受热膨胀上升形成低压，冷空气横向流入补充形成【风】！' : '🕯️ 蜡烛熄灭，盒内温差消失，空气停止定向流动。', cx, cy - bh/2 - 75);
+      ctx.textAlign = 'left';
+
+      telem.innerHTML = `
+[热对流风动遥测]
+• 热源状态: ${candleLit ? '🔥 蜡烛燃烧加热 (热空气上升)' : '⚪ 蜡烛熄灭 (无温差)'}
+• 烟雾流动路线: 蚊香口 ➡️ 水平流入箱内 ➡️ 蜡烛上方 ⬆️ 从烟囱流出
+• 科学原理解密: 冷热不均产生气压差，气体从高压区流向低压区，这就是自然界中风的成因！
+      `.trim();
+    }
+
+    // --- Mode 3: Station ---
+    function drawStation() {
+      const cx = 420, cy = 250;
+      anemometerAngle += 0.04 * stationWindSpeed;
+
+      // Thermometer Shelter Box (百叶箱)
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(cx - 260, cy - 80, 140, 180);
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+      ctx.strokeRect(cx - 260, cy - 80, 140, 180);
+      // Slats
+      for (let y = cy - 65; y < cy + 90; y += 14) {
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.beginPath(); ctx.moveTo(cx - 250, y); ctx.lineTo(cx - 130, y); ctx.stroke();
+      }
+      ctx.fillStyle = '#0f172a'; ctx.font = 'bold 13px sans-serif';
+      ctx.fillText('百叶箱', cx - 215, cy + 85);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillText(`${stationTemp} °C`, cx - 215, cy + 30);
+
+      // Anemometer & Wind Vane Mast (风速风向仪)
+      const mastX = cx + 80;
+      ctx.strokeStyle = '#64748b'; ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.moveTo(mastX, cy + 180); ctx.lineTo(mastX, cy - 100); ctx.stroke();
+
+      // Rotating Cups (Anemometer)
+      ctx.save();
+      ctx.translate(mastX, cy - 100);
+      ctx.rotate(anemometerAngle);
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+      for (let a = 0; a < 3; a++) {
+        const rad = a * (Math.PI * 2 / 3);
+        const cupX = Math.cos(rad) * 45;
+        const cupY = Math.sin(rad) * 45;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(cupX, cupY); ctx.stroke();
+        ctx.fillStyle = '#0284c7'; ctx.beginPath(); ctx.arc(cupX, cupY, 12, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+
+      // Wind Vane (Arrow on top)
+      ctx.save();
+      ctx.translate(mastX, cy - 160);
+      ctx.rotate((stationWindDir - 90) * Math.PI / 180);
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.moveTo(-35, -8); ctx.lineTo(35, 0); ctx.lineTo(-35, 8);
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+
+      // Rain Gauge (雨量器)
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+      ctx.strokeRect(cx + 220, cy + 20, 60, 140);
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+      ctx.fillRect(cx + 222, cy + 160 - stationRain * 2, 56, stationRain * 2);
+      ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 12px sans-serif';
+      ctx.fillText(`${stationRain} mm`, cx + 228, cy + 15);
+      ctx.fillText('雨量器', cx + 230, cy + 180);
+
+      telem.innerHTML = `
+[数字气象站实时读数]
+• 百叶箱温度: ${stationTemp} °C (防阳光直射与降雨干扰的真实阴凉气温)
+• 测风杯风速: ${stationWindSpeed} 级 (${(stationWindSpeed * 3.2).toFixed(1)} m/s)
+• 风向标八方位: ${stationWindDir}° (${stationWindDir >= 315 || stationWindDir < 45 ? '北风' : (stationWindDir < 135 ? '东风' : (stationWindDir < 225 ? '南风' : '西风'))})
+• 雨量器降雨深度: ${stationRain} mm (中雨级别)
+      `.trim();
+    }
+
+    function drawSmallArrow(x1, y1, x2, y2) {
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }
+
+    renderSidebar();
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>

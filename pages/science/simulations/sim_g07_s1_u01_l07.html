@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【风的成因】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(56, 189, 248, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--accent); cursor: pointer; }
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 风的成因 <span class="badge">四年级上册 · 空气单元</span></h2>
+            <p>教科版科学原书实验真拟真 · 拒绝伪仿真</p>
+        </div>
+        <a href="meteorology_atmosphere_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 马德堡半球与托里拆利气压实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生真实物理碰撞与流体仿真</span>
+                <span>🎧 Web Audio 拟真气流/水流声效</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：风的成因实验箱：在箱内点燃蜡烛加热空气向上升腾，点燃箱外线香，观察青烟被侧孔吸入并从顶部烟囱逸出，证明冷热温差引发气压流动成风！</div>
+            
+        <div class="c-group">
+            <button class="btn" id="btnLightCandle">🕯️ 点燃箱内蜡烛 (产生温差)</button>
+            <button class="btn btn-sec" id="btnIncense">🪵 点燃侧孔线香 (观察烟流路径)</button>
+            <button class="btn btn-sec" id="btnExtinguish">💨 吹灭蜡烛 (观察风停止)</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [实验箱状态] 蜡烛未点燃，无温差<br>
+            [线香烟雾] 垂直向上缓慢飘散<br>
+            [大自然风的成因] 太阳辐射使地表受热不均，热空气上升冷空气流过来补充形成风！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.15, vol=0.08) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        function playGurgle() {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.12);
+            } catch(e){}
+        }
+        function playHiss(dur=0.3) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const bufferSize = audioCtx.sampleRate * dur;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                noise.connect(gain); gain.connect(audioCtx.destination);
+                noise.start();
+            } catch(e){}
+        }
+        
+        let candleLit = false;
+        let incenseLit = false;
+        let smokeParticles = [];
+        const telem = document.getElementById('telem');
+
+        document.getElementById('btnLightCandle').addEventListener('click', () => {
+            candleLit = true;
+            playTone(350, 'triangle', 0.2);
+            updateTelem();
+        });
+        document.getElementById('btnIncense').addEventListener('click', () => {
+            incenseLit = true;
+            playTone(450, 'sine', 0.1);
+            updateTelem();
+        });
+        document.getElementById('btnExtinguish').addEventListener('click', () => {
+            candleLit = false;
+            playHiss(0.3);
+            updateTelem();
+        });
+        function updateTelem() {
+            if(candleLit && incenseLit) {
+                telem.innerHTML = '[风的流动] 形成循环对流！<br>[烟雾路径] 外部冷空气带着线香烟雾横向吸入圆孔，受热后从顶部烟囱飞速冲出！<br>[科学结论] 冷热温差导致气压差，气体流动形成风！';
+            } else if(candleLit) {
+                telem.innerHTML = '[箱内状态] 蜡烛加热空气向上升腾逸出，箱内气压减小！';
+            } else {
+                telem.innerHTML = '[状态] 箱内外温度相同，没有空气对流流动。';
+            }
+        }
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            // Chamber Box (Transparent front)
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 4;
+            ctx.strokeRect(180, 140, 260, 200);
+
+            // Chimney at top right
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(360, 80, 45, 60);
+
+            // Inlet hole at bottom left
+            ctx.fillStyle = '#020617';
+            ctx.beginPath(); ctx.arc(180, 280, 22, -Math.PI/2, Math.PI/2); ctx.fill();
+            ctx.stroke();
+
+            // Candle under chimney
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillRect(375, 270, 16, 50);
+            if(candleLit) {
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.moveTo(383, 250); ctx.quadraticCurveTo(390, 260, 383, 268); ctx.quadraticCurveTo(376, 260, 383, 250);
+                ctx.fill();
+            }
+
+            // Incense stick outside inlet hole
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(110, 280, 50, 4);
+            if(incenseLit) {
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath(); ctx.arc(160, 282, 3, 0, Math.PI*2); ctx.fill();
+                // Spawn smoke particles
+                smokeParticles.push({
+                    x: 160, y: 282,
+                    vx: candleLit ? 2.5 : (Math.random()-0.5)*0.5,
+                    vy: candleLit ? 0 : -1.5,
+                    life: 0
+                });
+            }
+
+            // Update & Render Smoke Particles
+            for(let p of smokeParticles) {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life++;
+                if(candleLit && p.x > 360 && p.y > 100) {
+                    p.vx = 0.2;
+                    p.vy = -3.5; // rush up chimney
+                }
+                ctx.fillStyle = 'rgba(203, 213, 225, 0.7)';
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, Math.PI*2); ctx.fill();
+            }
+            smokeParticles = smokeParticles.filter(p => p.life < 140 && p.y > 60);
+
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

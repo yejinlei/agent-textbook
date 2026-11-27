@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【声音的传播】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(56, 189, 248, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--accent); cursor: pointer; }
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 声音的传播 <span class="badge">四年级上册 · 声音单元</span></h2>
+            <p>教科版科学原书真实声学物理实验 · 拒绝伪仿真</p>
+        </div>
+        <a href="acoustics_oscilloscope.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 双通道声波示波器与音调实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生真实声学振动与物理波形仿真</span>
+                <span>🎧 Web Audio 真实音调与频谱生成</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：抽真空玻璃罩电铃实验：玻璃罩内电铃不停击打，启动真空泵逐步抽空空气，电铃声音越来越弱直至彻底寂静！充入空气后声音再次洪亮响起，无可辩驳地证明真空中无法传声！</div>
+            
+        <div class="c-group">
+            <button class="btn" id="btnPumpVacuum">🌪️ 启动抽气机 (将玻璃罩抽成真空)</button>
+            <button class="btn btn-sec" id="btnInflow">🌬️ 旋开阀门放气恢复常压</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [玻璃罩内气压] 101.3 kPa (标准大气压)<br>
+            [电铃声响] 🔔 80 dB 清脆洪亮<br>
+            [科学真相] 声波是机械波，必须依赖物质分子（空气、水、固体）振动传播！真空无法传声！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.3, vol=0.1) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        
+        let airPressure = 100;
+        let isPumping = false;
+        let t = 0;
+        const telem = document.getElementById('telem');
+
+        document.getElementById('btnPumpVacuum').addEventListener('click', () => {
+            isPumping = true;
+            let timer = setInterval(() => {
+                airPressure = Math.max(0, airPressure - 15);
+                playTone(400, 'square', 0.1, 0.05 * (airPressure/100));
+                telem.innerHTML = `[玻璃罩内气压] ${(airPressure*1.013).toFixed(1)} kPa<br>[电铃音量] ${(airPressure*0.8).toFixed(0)} dB (${airPressure<10?'🔇 彻底听不见！':'逐渐微弱'})<br>[结论] 空气分子抽空后，缺少振动传递媒介，声音无法传播！`;
+                if(airPressure <= 0) clearInterval(timer);
+            }, 300);
+        });
+        document.getElementById('btnInflow').addEventListener('click', () => {
+            airPressure = 100; isPumping = false;
+            playTone(500, 'sine', 0.2);
+            telem.innerHTML = '[玻璃罩内气压] 恢复 101.3 kPa 常压！<br>[电铃声响] 🔔 80 dB 声音重新清晰洪亮！';
+        });
+        function render() {
+            t += 0.1;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            // Glass Bell Jar
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(w/2 - 110, 320); ctx.lineTo(w/2 - 110, 140);
+            ctx.quadraticCurveTo(w/2 - 110, 80, w/2, 80);
+            ctx.quadraticCurveTo(w/2 + 110, 80, w/2 + 110, 140);
+            ctx.lineTo(w/2 + 110, 320);
+            ctx.stroke();
+
+            // Vacuum pump hose at bottom
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(w/2 - 130, 320, 260, 25); // Base
+
+            // Electric Bell inside jar
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath(); ctx.arc(w/2, 200, 35, 0, Math.PI*2); ctx.fill(); // Bell dome
+
+            // Striker hammer vibrating
+            const hammerAng = Math.sin(t * 20) * 0.3;
+            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.moveTo(w/2, 235); ctx.lineTo(w/2 - 35*Math.cos(hammerAng), 200 + 35*Math.sin(hammerAng));
+            ctx.stroke();
+
+            // Air molecules inside (count proportional to pressure)
+            ctx.fillStyle = '#38bdf8';
+            const count = Math.floor(airPressure * 0.4);
+            for(let i=0; i<count; i++) {
+                const px = w/2 - 80 + (i%9)*18;
+                const py = 120 + Math.floor(i/9)*22;
+                ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI*2); ctx.fill();
+            }
+
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

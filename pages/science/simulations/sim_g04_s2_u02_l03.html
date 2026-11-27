@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【3. 让小车动起来】真实验微仿真 - 二年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+        .notes-card strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 <span>3. 让小车动起来</span></h1>
+        <span class="badge">二年级科学·玩磁铁</span>
+        <a href="magnet_field_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 磁场磁力与动力小车实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g04_s2_u02_l01.html" class="">磁铁能吸引什么</a>
+<a href="sim_g04_s2_u02_l02.html" class="">比较力量的大小</a>
+<a href="sim_g04_s2_u02_l03.html" class="active">让小车动起来</a>
+<a href="sim_g04_s2_u02_l04.html" class="">隔物吸铁</a>
+<a href="sim_g04_s2_u02_l05.html" class="">设计钓鱼玩具</a>
+<a href="sim_g04_s2_u02_l06.html" class="">我们来钓鱼</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="cv" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 磁场物理与交互应用控制台</div>
+            
+            <div class="ctrl-group">
+                <label class="ctrl-label">切换磁铁探究主题</label>
+                <div class="btn-grid">
+                    <button class="btn " onclick="switchMode('attract_materials')">🧲 吸铁属性</button>
+                    <button class="btn " onclick="switchMode('pole_strength')">⚡ 磁极力量</button>
+                    <button class="btn btn-primary" onclick="switchMode('mag_car')">🚗 磁力小车</button>
+                    <button class="btn " onclick="switchMode('penetration')">🛡️ 隔物吸铁</button>
+                    <button class="btn " onclick="switchMode('fishing_toy')">🎣 磁力钓鱼</button>
+                    <button class="btn " onclick="switchMode('compass_align')">🧭 水浮指南针</button>
+                </div>
+            </div>
+
+            <div id="dynamic-controls">
+                <!-- Dynamically injected controls -->
+            </div>
+
+            <div class="card-title" style="margin-top: 6px;">📊 磁场矢量与动力学遥测</div>
+            <div class="telemetry" id="telem">
+                [遥测就绪] 等待交互触发...
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <strong>🎯 探究目标与科学家视角：</strong><br>
+            磁铁具有吸引铁、镍、钴等铁磁性物质的性质；磁铁有两极（南极S和北极N），磁极处磁力最强，中间磁力最弱；同名磁极相互排斥、异名磁极相互吸引；磁力是非接触力，能够穿透纸张、木板、塑料、水等介质吸铁；磁铁在地球磁场中具有指示南北的特性。
+        </div>
+    </div>
+
+    <script>
+        const cv = document.getElementById('cv');
+        const ctx = cv.getContext('2d');
+        const telem = document.getElementById('telem');
+        const dynControls = document.getElementById('dynamic-controls');
+
+        // Web Audio Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type='sine', dur=0.15) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
+        }
+
+        let activeMode = "mag_car";
+        let state = {
+            targetMaterial: 'iron_nail',
+            carPolarity: 'repel',
+            carPosX: 280,
+            barrierType: 'paper',
+            barrierDist: 40,
+            rodX: 360,
+            rodDepth: 180,
+            fishCaughtCount: 0,
+            fishes: [
+                { id: 1, x: 200, y: 350, vx: 1.2, color: '#f97316', caught: false, name: '小金鱼' },
+                { id: 2, x: 340, y: 380, vx: -0.9, color: '#ef4444', caught: false, name: '红鲤鱼' },
+                { id: 3, x: 480, y: 330, vx: 1.5, color: '#06b6d4', caught: false, name: '蓝孔雀' },
+                { id: 4, x: 580, y: 370, vx: -1.1, color: '#a855f7', caught: false, name: '紫霞鱼' }
+            ],
+            compassAngle: 45
+        };
+
+        function switchMode(m) {
+            activeMode = m;
+            playTone(440, 'triangle', 0.1);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setupControls() {
+            let h = '';
+            if (activeMode === 'attract_materials') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">靠近测试材质</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.targetMaterial==='iron_nail'?'btn-primary':''}" onclick="setMat('iron_nail')">🔩 铁钉 (被吸附)</button>
+                        <button class="btn ${state.targetMaterial==='nickel'?'btn-primary':''}" onclick="setMat('nickel')">🪙 镍币 (被吸附)</button>
+                        <button class="btn ${state.targetMaterial==='copper'?'btn-primary':''}" onclick="setMat('copper')">🪩 铜片 (不吸)</button>
+                        <button class="btn ${state.targetMaterial==='wood'?'btn-primary':''}" onclick="setMat('wood')">🪵 木条 (不吸)</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'pole_strength') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">条形磁铁铁屑吸附实验</label>
+                    <div class="btn-grid">
+                        <button class="btn btn-primary" onclick="scatterIronFilings()">🧲 撒铁屑观察两极分布</button>
+                        <button class="btn btn-green" onclick="hangPaperclips()">📎 磁极悬挂回形针链</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'mag_car') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">手持磁极朝向: <b>${state.carPolarity==='repel'?'N对N (同极推斥)':'S对N (异极吸引)'}</b></label>
+                    <div class="btn-grid">
+                        <button class="btn btn-rose" onclick="setCarPolarity('repel')">🚫 同极排斥 (推车前进)</button>
+                        <button class="btn btn-green" onclick="setCarPolarity('attract')">🧲 异极相吸 (拉车跟随)</button>
+                    </div>
+                </div>
+                <div class="ctrl-group">
+                    <button class="btn" onclick="state.carPosX=280; playTone(300); updateTelemetry();">🔄 重置小车位置</button>
+                </div>
+                `;
+            } else if (activeMode === 'penetration') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">选择隔开介质</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.barrierType==='paper'?'btn-primary':''}" onclick="setBarrier('paper')">📄 薄纸片</button>
+                        <button class="btn ${state.barrierType==='wood'?'btn-primary':''}" onclick="setBarrier('wood')">🪵 薄木板</button>
+                        <button class="btn ${state.barrierType==='plastic'?'btn-primary':''}" onclick="setBarrier('plastic')">📏 塑料板</button>
+                        <button class="btn ${state.barrierType==='water'?'btn-primary':''}" onclick="setBarrier('water')">🥛 水杯水层</button>
+                        <button class="btn ${state.barrierType==='iron'?'btn-primary':''}" onclick="setBarrier('iron')">🛡️ 铁板(磁屏蔽)</button>
+                    </div>
+                </div>
+                <div class="ctrl-group">
+                    <label class="ctrl-label">调节磁铁与回形针间距: <span class="val" id="dist-val">${state.barrierDist} mm</span></label>
+                    <input type="range" min="15" max="80" value="${state.barrierDist}" oninput="state.barrierDist=parseInt(this.value); updateTelemetry();">
+                </div>
+                `;
+            } else if (activeMode === 'fishing_toy') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">🎣 移动钓鱼竿位置: <span class="val" id="rod-x-val">${state.rodX} px</span></label>
+                    <input type="range" min="150" max="600" value="${state.rodX}" oninput="state.rodX=parseInt(this.value); updateTelemetry();">
+                </div>
+                <div class="ctrl-group">
+                    <label class="ctrl-label">垂下鱼线深度: <span class="val" id="rod-d-val">${state.rodDepth} px</span></label>
+                    <input type="range" min="100" max="280" value="${state.rodDepth}" oninput="state.rodDepth=parseInt(this.value); updateTelemetry();">
+                </div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" onclick="dropHook()">🎣 垂下磁钩钓鱼</button>
+                    <button class="btn btn-green" onclick="liftHook()">⬆️ 提竿收鱼</button>
+                    <button class="btn btn-rose" onclick="resetFishes()">🌊 放生所有小鱼</button>
+                </div>
+                `;
+            } else if (activeMode === 'compass_align') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">地磁定向阻尼振荡</label>
+                    <div class="btn-grid">
+                        <button class="btn btn-primary" onclick="disturbCompass()">🌪️ 拨动磁针 (观察回正)</button>
+                        <button class="btn btn-green" onclick="state.compassAngle=0; playTone(880); updateTelemetry();">🧭 指向地磁北极</button>
+                    </div>
+                </div>
+                `;
+            }
+            dynControls.innerHTML = h;
+        }
+
+        function setMat(m) {
+            state.targetMaterial = m;
+            const magnetic = (m === 'iron_nail' || m === 'nickel');
+            playTone(magnetic ? 660 : 250);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function scatterIronFilings() {
+            playTone(520, 'triangle', 0.2);
+            updateTelemetry();
+        }
+
+        function hangPaperclips() {
+            playTone(587.33, 'sine', 0.2);
+            updateTelemetry();
+        }
+
+        function setCarPolarity(p) {
+            state.carPolarity = p;
+            playTone(p === 'repel' ? 700 : 450);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setBarrier(b) {
+            state.barrierType = b;
+            playTone(500);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function dropHook() {
+            state.rodDepth = 250;
+            const el = document.getElementById('rod-d-val');
+            if (el) el.innerText = '250 px';
+            playTone(520, 'triangle', 0.2);
+            updateTelemetry();
+        }
+
+        function liftHook() {
+            state.rodDepth = 120;
+            const el = document.getElementById('rod-d-val');
+            if (el) el.innerText = '120 px';
+            playTone(780, 'sine', 0.25);
+            updateTelemetry();
+        }
+
+        function resetFishes() {
+            state.fishCaughtCount = 0;
+            state.fishes.forEach((f, idx) => {
+                f.caught = false;
+                f.x = 180 + idx * 120;
+                f.y = 330 + (idx % 2) * 40;
+            });
+            playTone(350);
+            updateTelemetry();
+        }
+
+        function disturbCompass() {
+            state.compassAngle = 90 + Math.random() * 120;
+            playTone(600, 'sawtooth', 0.15);
+            updateTelemetry();
+        }
+
+        function updateTelemetry() {
+            let txt = `[磁铁物理实验室] 模式: ${activeMode} | `;
+            if (activeMode === 'attract_materials') {
+                const isMag = (state.targetMaterial === 'iron_nail' || state.targetMaterial === 'nickel');
+                txt += `测试物: ${state.targetMaterial} | 相互作用: ${isMag?'🧲 发生强烈磁吸！(铁磁性)':'❌ 无吸引力 (非铁磁性)'}`;
+            } else if (activeMode === 'pole_strength') {
+                txt += `磁场分布: N极与S极磁感线最密集，吸附铁屑最多；中间部位磁力最弱几近为零`;
+            } else if (activeMode === 'mag_car') {
+                txt += `小车动力: ${state.carPolarity==='repel'?'同极相斥推力 F > 0':'异极相吸引力 F < 0'} | 动力学: 无需接触即可施加远距磁力`;
+            } else if (activeMode === 'penetration') {
+                const canPen = state.barrierType !== 'iron';
+                const distOk = state.barrierDist <= 55;
+                if (!canPen) {
+                    txt += `隔断介质: 🛡️ 铁板 | 现象: 铁板形成闭合磁屏蔽分流磁感线，回形针下垂失去吸引力！`;
+                } else if (distOk) {
+                    txt += `隔断介质: ${state.barrierType} (间距 ${state.barrierDist}mm) | 现象: 🟢 磁力线轻松穿透介质，回形针被牢牢隔空吸起悬浮！`;
+                } else {
+                    txt += `隔断介质: ${state.barrierType} (间距 ${state.barrierDist}mm) | 现象: ⚠️ 距离过远，磁力随距离平方衰减，回形针摇摇欲坠`;
+                }
+            } else if (activeMode === 'fishing_toy') {
+                txt += `🎣 钓鱼状态: 钓竿位置 X=${state.rodX}px, 深度=${state.rodDepth}px | 已钓起小鱼: ${state.fishCaughtCount} / 4 条 | 物理规律: 鱼嘴回形针靠近磁铁发生磁化与非接触吸引！`;
+            } else if (activeMode === 'compass_align') {
+                txt += `指南针偏角: ${state.compassAngle.toFixed(1)}° | 物理机制: 磁铁受地球大磁场洛伦兹力矩作用，最终恒定指向地磁南北极`;
+            }
+            telem.innerText = txt;
+        }
+
+        function drawAttract(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`磁铁吸引测试 [当前靠近: ${state.targetMaterial}]`, cx, 40);
+
+            const mx = cx - 120;
+            const my = cy;
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(mx - 70, my - 25, 70, 50);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillText('N', mx - 40, my + 8);
+
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(mx, my - 25, 70, 50);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('S', mx + 30, my + 8);
+
+            const isMag = (state.targetMaterial === 'iron_nail' || state.targetMaterial === 'nickel');
+            const ox = isMag ? mx + 90 : mx + 160;
+
+            if (state.targetMaterial === 'iron_nail') {
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(ox, my - 6, 60, 12);
+                ctx.beginPath(); ctx.moveTo(ox + 60, my - 12); ctx.lineTo(ox + 60, my + 12); ctx.stroke();
+            } else if (state.targetMaterial === 'nickel') {
+                ctx.fillStyle = '#cbd5e1';
+                ctx.beginPath(); ctx.arc(ox + 20, my, 22, 0, Math.PI*2); ctx.fill();
+            } else if (state.targetMaterial === 'copper') {
+                ctx.fillStyle = '#ea580c';
+                ctx.fillRect(ox, my - 15, 45, 30);
+            } else if (state.targetMaterial === 'wood') {
+                ctx.fillStyle = '#b45309';
+                ctx.fillRect(ox, my - 12, 60, 24);
+            }
+
+            if (isMag) {
+                ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(mx + 70, my); ctx.lineTo(ox, my); ctx.stroke();
+                ctx.fillStyle = '#10b981'; ctx.font = 'bold 13px sans-serif';
+                ctx.fillText('⚡ 紧紧吸附！', ox + 30, my - 30);
+            } else {
+                ctx.fillStyle = '#94a3b8'; ctx.font = '13px sans-serif';
+                ctx.fillText('无任何吸附', ox + 30, my - 30);
+            }
+        }
+
+        function drawPoleStrength(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('磁极力量测量: 两端磁力最强，中间最弱', cx, 40);
+
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(cx - 150, cy - 25, 150, 50);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillText('N (磁北极)', cx - 80, cy + 8);
+
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(cx, cy - 25, 150, 50);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('S (磁南极)', cx + 70, cy + 8);
+
+            ctx.fillStyle = '#cbd5e1';
+            for(let i=0; i<80; i++) {
+                const rx = cx - 150 + (Math.random() - 0.5) * 40;
+                const ry = cy + (Math.random() - 0.5) * 80;
+                ctx.fillRect(rx, ry, 2, 2);
+            }
+            for(let i=0; i<80; i++) {
+                const rx = cx + 150 + (Math.random() - 0.5) * 40;
+                const ry = cy + (Math.random() - 0.5) * 80;
+                ctx.fillRect(rx, ry, 2, 2);
+            }
+            for(let i=0; i<5; i++) {
+                const rx = cx + (Math.random() - 0.5) * 60;
+                const ry = cy + (Math.random() - 0.5) * 30;
+                ctx.fillRect(rx, ry, 2, 2);
+            }
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '13px sans-serif';
+            ctx.fillText('两端吸附大量铁屑 (磁力极大)', cx - 140, cy + 80);
+            ctx.fillText('中间几无铁屑 (中性区)', cx, cy + 80);
+            ctx.fillText('两端吸附大量铁屑 (磁力极大)', cx + 140, cy + 80);
+        }
+
+        function drawMagCar(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('磁力动力小车: 同极相斥推车前进 vs 异极相吸拉车跟随', cx, 40);
+
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(80, cy + 90, 560, 10);
+
+            if (state.carPolarity === 'repel') {
+                state.carPosX = Math.min(480, state.carPosX + 1.2);
+            } else {
+                state.carPosX = Math.max(220, state.carPosX - 0.8);
+            }
+
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(120, cy - 15, 45, 30);
+            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 14px sans-serif';
+            ctx.fillText('N', 135, cy + 5);
+
+            const carX = state.carPosX;
+            ctx.fillStyle = '#0284c7';
+            ctx.fillRect(carX, cy - 20, 100, 45);
+
+            const carFacingCol = state.carPolarity === 'repel' ? '#dc2626' : '#2563eb';
+            const carFacingText = state.carPolarity === 'repel' ? 'N' : 'S';
+            ctx.fillStyle = carFacingCol;
+            ctx.fillRect(carX + 5, cy - 38, 40, 18);
+            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 12px sans-serif';
+            ctx.fillText(carFacingText, carX + 18, cy - 24);
+
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath(); ctx.arc(carX + 25, cy + 28, 14, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(carX + 75, cy + 28, 14, 0, Math.PI*2); ctx.fill();
+
+            ctx.strokeStyle = state.carPolarity==='repel'?'#ef4444':'#10b981';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(175, cy);
+            ctx.lineTo(carX - 5, cy);
+            ctx.stroke();
+
+            ctx.fillStyle = state.carPolarity==='repel'?'#ef4444':'#10b981';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.fillText(state.carPolarity==='repel'?'<<< 同极相斥推斥力 >>>':'>>> 异极相吸吸引力 <<<', (175 + carX)/2, cy - 10);
+        }
+
+        function drawPenetration(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`隔物吸铁实验: 磁场穿透介质与磁屏蔽现象 [当前介质: ${state.barrierType}]`, cx, 40);
+
+            // Table surface
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(80, cy + 100, 560, 15);
+
+            // Left Hand Magnet
+            const magX = cx - 180 + (80 - state.barrierDist) * 1.5;
+            const magY = cy;
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(magX - 60, magY - 20, 60, 40);
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(magX - 120, magY - 20, 60, 40);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText('S', magX - 90, magY + 6);
+            ctx.fillText('N', magX - 30, magY + 6);
+
+            // Middle Barrier
+            const bx = cx;
+            const by = cy - 80;
+            const bw = 16;
+            const bh = 180;
+
+            if (state.barrierType === 'paper') {
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(bx - 3, by, 6, bh);
+                ctx.fillStyle = '#94a3b8'; ctx.font = '12px sans-serif';
+                ctx.fillText('薄纸片 (非磁性)', bx, by - 12);
+            } else if (state.barrierType === 'wood') {
+                ctx.fillStyle = '#b45309';
+                ctx.fillRect(bx - 8, by, 16, bh);
+                ctx.fillStyle = '#94a3b8'; ctx.font = '12px sans-serif';
+                ctx.fillText('薄木板 (非磁性)', bx, by - 12);
+            } else if (state.barrierType === 'plastic') {
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(bx - 6, by, 12, bh);
+                ctx.fillStyle = '#94a3b8'; ctx.font = '12px sans-serif';
+                ctx.fillText('塑料板 (非磁性)', bx, by - 12);
+            } else if (state.barrierType === 'water') {
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+                ctx.fillRect(bx - 18, by, 36, bh);
+                ctx.strokeStyle = '#0284c7'; ctx.strokeRect(bx - 18, by, 36, bh);
+                ctx.fillStyle = '#38bdf8'; ctx.font = '12px sans-serif';
+                ctx.fillText('水层水杯 (液体)', bx, by - 12);
+            } else if (state.barrierType === 'iron') {
+                ctx.fillStyle = '#64748b';
+                ctx.fillRect(bx - 10, by, 20, bh);
+                ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2; ctx.strokeRect(bx - 10, by, 20, bh);
+                ctx.fillStyle = '#ef4444'; ctx.font = 'bold 12px sans-serif';
+                ctx.fillText('铁板 (磁屏蔽！)', bx, by - 12);
+            }
+
+            // Right Hanging Paperclip
+            const clipStandX = cx + 160;
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(clipStandX - 4, cy - 90, 8, 190);
+            ctx.fillRect(clipStandX - 40, cy - 90, 80, 8);
+
+            const canPenetrate = state.barrierType !== 'iron' && state.barrierDist <= 55;
+            const clipAngle = canPenetrate ? (-0.55 * (1 - (state.barrierDist / 80))) : 0;
+
+            ctx.save();
+            ctx.translate(clipStandX - 30, cy - 82);
+            ctx.rotate(clipAngle);
+
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, 100);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(-6, 100, 12, 28);
+            ctx.restore();
+
+            if (canPenetrate) {
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(magX, magY);
+                ctx.lineTo(bx + 40, magY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#10b981';
+                ctx.font = 'bold 13px sans-serif';
+                ctx.fillText('⚡ 磁力轻松穿透！隔空吸引回形针', cx, cy + 130);
+            } else {
+                ctx.fillStyle = '#ef4444';
+                ctx.font = 'bold 13px sans-serif';
+                ctx.fillText(state.barrierType === 'iron' ? '🛡️ 铁板产生磁屏蔽，磁力线无法穿透！' : '距离较远，磁力衰减无法吸引', cx, cy + 130);
+            }
+        }
+
+        function drawFishing(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🎣 磁力钓鱼玩具综合实验室 (纸鱼、回形针嘴与磁铁鱼钩)', cx, 36);
+
+            const pondY = cy + 50;
+            ctx.fillStyle = 'rgba(14, 165, 233, 0.25)';
+            ctx.fillRect(100, pondY, 520, 150);
+            ctx.strokeStyle = '#0284c7';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(100, pondY, 520, 150);
+
+            const t = performance.now() * 0.003;
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+            ctx.lineWidth = 1.5;
+            for(let i=0; i<4; i++) {
+                const rx = 140 + i * 110 + Math.sin(t + i)*20;
+                ctx.beginPath();
+                ctx.arc(rx, pondY + 15, 20 + Math.sin(t*2+i)*8, 0, Math.PI);
+                ctx.stroke();
+            }
+
+            const rodBaseX = state.rodX - 100;
+            const rodBaseY = 80;
+            const rodTipX = state.rodX;
+            const rodTipY = 110;
+
+            ctx.strokeStyle = '#b45309';
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(rodBaseX, rodBaseY);
+            ctx.lineTo(rodTipX, rodTipY);
+            ctx.stroke();
+
+            const hookX = rodTipX;
+            const hookY = rodTipY + state.rodDepth;
+
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(rodTipX, rodTipY);
+            ctx.lineTo(hookX, hookY);
+            ctx.stroke();
+
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(hookX - 10, hookY, 10, 18);
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(hookX, hookY, 10, 18);
+            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px sans-serif';
+            ctx.fillText('N', hookX - 6, hookY + 12);
+            ctx.fillText('S', hookX + 3, hookY + 12);
+
+            state.fishes.forEach(f => {
+                if (!f.caught) {
+                    f.x += f.vx;
+                    if (f.x < 140 || f.x > 580) f.vx *= -1;
+                    const dist = Math.hypot(hookX - f.x, hookY - f.y);
+                    if (dist < 32) {
+                        f.caught = true;
+                        state.fishCaughtCount++;
+                        playTone(880, 'sine', 0.3);
+                        updateTelemetry();
+                    }
+                } else {
+                    f.x = hookX;
+                    f.y = hookY + 22;
+                }
+
+                ctx.save();
+                ctx.translate(f.x, f.y);
+                if (f.vx < 0 && !f.caught) ctx.scale(-1, 1);
+
+                ctx.fillStyle = f.color;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 24, 12, 0, 0, Math.PI*2);
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(-20, 0);
+                ctx.lineTo(-32, -10);
+                ctx.lineTo(-28, 0);
+                ctx.lineTo(-32, 10);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath(); ctx.arc(14, -3, 3.5, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath(); ctx.arc(15, -3, 1.8, 0, Math.PI*2); ctx.fill();
+
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 2.5;
+                ctx.strokeRect(22, -4, 8, 8);
+
+                ctx.restore();
+            });
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '13px sans-serif';
+            ctx.fillText(`池塘水深 1.2m | 鱼嘴夹有铁制回形针 | 已钓获: ${state.fishCaughtCount} 条 | 调节上方滑块或点击 [垂下磁钩] 开始钓鱼！`, cx, cy + 180);
+        }
+
+        function drawCompass(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('水浮指南针: 地磁场定向自由振荡回正', cx, 40);
+
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
+            ctx.beginPath(); ctx.arc(cx, cy, 110, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#0284c7'; ctx.lineWidth = 4; ctx.stroke();
+
+            ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 14px sans-serif';
+            ctx.fillText('北 (N)', cx, cy - 120);
+            ctx.fillText('南 (S)', cx, cy + 135);
+            ctx.fillText('东 (E)', cx + 130, cy + 5);
+            ctx.fillText('西 (W)', cx - 145, cy + 5);
+
+            state.compassAngle += (0 - state.compassAngle) * 0.05;
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(state.compassAngle * Math.PI / 180);
+
+            ctx.fillStyle = '#78350f';
+            ctx.beginPath(); ctx.ellipse(0, 0, 75, 20, 0, 0, Math.PI*2); ctx.fill();
+
+            ctx.fillStyle = '#dc2626';
+            ctx.beginPath();
+            ctx.moveTo(0, 0); ctx.lineTo(-10, -10); ctx.lineTo(0, -65); ctx.lineTo(10, -10);
+            ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#2563eb';
+            ctx.beginPath();
+            ctx.moveTo(0, 0); ctx.lineTo(-10, 10); ctx.lineTo(0, 65); ctx.lineTo(10, 10);
+            ctx.closePath(); ctx.fill();
+
+            ctx.restore();
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            const cx = cv.width / 2;
+            const cy = cv.height / 2;
+
+            if (activeMode === 'attract_materials') drawAttract(cx, cy);
+            else if (activeMode === 'pole_strength') drawPoleStrength(cx, cy);
+            else if (activeMode === 'mag_car') drawMagCar(cx, cy);
+            else if (activeMode === 'penetration') drawPenetration(cx, cy);
+            else if (activeMode === 'fishing_toy') drawFishing(cx, cy);
+            else if (activeMode === 'compass_align') drawCompass(cx, cy);
+
+            requestAnimationFrame(render);
+        }
+
+        setupControls();
+        updateTelemetry();
+        render();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

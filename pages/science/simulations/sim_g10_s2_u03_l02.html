@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【2. 我们面临的环境问题】真实验微仿真 - 五年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌱 2. 我们面临的环境问题</h1>
+        <span class="badge">五年级下册·五年级下册·第三单元《环境与我们》</span>
+        <a href="chemistry_reaction_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 环境工程与资源再生实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g10_s2_u03_l01.html" class="">地球——宇宙的奇迹</a>
+<a href="sim_g10_s2_u03_l02.html" class="active">我们面临的环境问题</a>
+<a href="sim_g10_s2_u03_l03.html" class="">珍惜水资源</a>
+<a href="sim_g10_s2_u03_l04.html" class="">解决垃圾问题</a>
+<a href="sim_g10_s2_u03_l05.html" class="">合理利用能源</a>
+<a href="sim_g10_s2_u03_l06.html" class="">让资源再生</a>
+<a href="sim_g10_s2_u03_l07.html" class="">分析一个实际的环境问题</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时科学数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：认识地球是宇宙的生命奇迹，探索水资源珍惜、垃圾分类、清洁能源与生态修复科学实践。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "environmental_issues";
+
+        
+const state = {
+    wasteCategory: 'recyclable',
+    energySource: 'solar',
+    dripFlowRate: 15,
+    recycledStage: 1,
+    habitableFactor: 'all',
+    carbonEmission: 420,
+    wetlandRestored: false,
+    windTurbineSpeed: 1.5
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'earth_habitable') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>地球生命生存奇迹要素探究</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.habitableFactor==='all'?'btn-primary':''}" id="btnHabAll">🌍 完美宜居地球</button>
+                    <button class="btn ${state.habitableFactor==='atmosphere'?'btn-primary':''}" id="btnHabAtmo">🛡️ 大气层与磁层</button>
+                    <button class="btn ${state.habitableFactor==='water'?'btn-primary':''}" id="btnHabWater">💧 液态水与海洋</button>
+                    <button class="btn ${state.habitableFactor==='compare'?'btn-primary':''}" id="btnHabComp">🪐 四大类地行星对比</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'environmental_issues') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>大气CO₂浓度与全球温室效应: <b id="co2-val">${state.carbonEmission} ppm</b></span></div>
+                <input type="range" min="280" max="600" value="${state.carbonEmission}" id="co2Range" style="width:100%;">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-rose" id="btnEmit">🏭 工业化石燃料排放</button>
+                <button class="btn btn-green" id="btnCapture">🌳 植树造林与碳捕集</button>
+            </div>
+        `;
+    } else if (activeMode === 'waste_sorting') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>生活垃圾精准分类投放</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.wasteCategory==='recyclable'?'btn-primary':''}" id="btnRecycle">🔵 可回收物 (塑料/纸张)</button>
+                    <button class="btn ${state.wasteCategory==='kitchen'?'btn-primary':''}" id="btnKitchen">🟢 厨余垃圾 (果皮剩菜)</button>
+                    <button class="btn ${state.wasteCategory==='hazardous'?'btn-primary':''}" id="btnHazard">🔴 有害垃圾 (电池药品)</button>
+                    <button class="btn ${state.wasteCategory==='other'?'btn-primary':''}" id="btnOther">⚫ 其他垃圾 (受污纸巾)</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'save_water_drip') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>农业灌溉方式对比</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnDripIrrigate">💧 现代节水滴灌 (节水85%)</button>
+                    <button class="btn btn-rose" id="btnFloodIrrigate">🌊 传统大水漫灌 (蒸发浪费严重)</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'clean_energy') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>清洁可再生能源微电网</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.energySource==='solar'?'btn-primary':''}" id="btnSolar">☀️ 光伏太阳能阵列</button>
+                    <button class="btn ${state.energySource==='wind'?'btn-primary':''}" id="btnWind">💨 智能风力发电机组</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'recycled_paper') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>再生纸制作工艺流程: 当前第 ${state.recycledStage}/4 步</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.recycledStage===1?'btn-primary':''}" id="btnStep1">1. 废纸撕碎泡水</button>
+                    <button class="btn ${state.recycledStage===2?'btn-primary':''}" id="btnStep2">2. 搅拌捣碎成浆</button>
+                    <button class="btn ${state.recycledStage===3?'btn-primary':''}" id="btnStep3">3. 抄纸网铺平</button>
+                    <button class="btn ${state.recycledStage===4?'btn-primary':''}" id="btnStep4">4. 压榨吸水干燥</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'wetland_restoration') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>城市富营养化水体与湿地生态修复</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${!state.wetlandRestored?'btn-rose':'btn-green'}" id="btnRestore">${state.wetlandRestored?'🟢 生态浮岛与净水系统已部署':'⚠️ 水体富营养化蓝藻暴发'}</button>
+                    <button class="btn btn-primary" id="btnAeration">💨 水下曝气增氧净化</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU3Controls();
+}
+
+function bindU3Controls() {
+    const btnHabAll = document.getElementById('btnHabAll');
+    if (btnHabAll) btnHabAll.onclick = () => { state.habitableFactor = 'all'; setupControls(); playTone(520, 0.15); };
+    const btnHabAtmo = document.getElementById('btnHabAtmo');
+    if (btnHabAtmo) btnHabAtmo.onclick = () => { state.habitableFactor = 'atmosphere'; setupControls(); playTone(600, 0.15); };
+    const btnHabWater = document.getElementById('btnHabWater');
+    if (btnHabWater) btnHabWater.onclick = () => { state.habitableFactor = 'water'; setupControls(); playTone(450, 0.15); };
+    const btnHabComp = document.getElementById('btnHabComp');
+    if (btnHabComp) btnHabComp.onclick = () => { state.habitableFactor = 'compare'; setupControls(); playTone(700, 0.15); };
+
+    const co2Range = document.getElementById('co2Range');
+    if (co2Range) co2Range.oninput = (e) => {
+        state.carbonEmission = parseInt(e.target.value);
+        document.getElementById('co2-val').innerText = `${state.carbonEmission} ppm`;
+        updateTelemetry();
+    };
+    const btnEmit = document.getElementById('btnEmit');
+    if (btnEmit) btnEmit.onclick = () => { state.carbonEmission = Math.min(600, state.carbonEmission + 30); setupControls(); playTone(250, 0.2); };
+    const btnCapture = document.getElementById('btnCapture');
+    if (btnCapture) btnCapture.onclick = () => { state.carbonEmission = Math.max(280, state.carbonEmission - 30); setupControls(); playTone(650, 0.2); };
+
+    const btnRecycle = document.getElementById('btnRecycle');
+    if (btnRecycle) btnRecycle.onclick = () => { state.wasteCategory = 'recyclable'; setupControls(); playTone(520, 0.1); };
+    const btnKitchen = document.getElementById('btnKitchen');
+    if (btnKitchen) btnKitchen.onclick = () => { state.wasteCategory = 'kitchen'; setupControls(); playTone(420, 0.1); };
+    const btnHazard = document.getElementById('btnHazard');
+    if (btnHazard) btnHazard.onclick = () => { state.wasteCategory = 'hazardous'; setupControls(); playTone(300, 0.15); };
+    const btnOther = document.getElementById('btnOther');
+    if (btnOther) btnOther.onclick = () => { state.wasteCategory = 'other'; setupControls(); playTone(350, 0.1); };
+
+    const btnDripIrrigate = document.getElementById('btnDripIrrigate');
+    if (btnDripIrrigate) btnDripIrrigate.onclick = () => { state.dripFlowRate = 15; playTone(880, 0.2); updateTelemetry(); };
+    const btnFloodIrrigate = document.getElementById('btnFloodIrrigate');
+    if (btnFloodIrrigate) btnFloodIrrigate.onclick = () => { state.dripFlowRate = 90; playTone(300, 0.2); updateTelemetry(); };
+
+    const btnSolar = document.getElementById('btnSolar');
+    if (btnSolar) btnSolar.onclick = () => { state.energySource = 'solar'; setupControls(); playTone(800, 0.15); };
+    const btnWind = document.getElementById('btnWind');
+    if (btnWind) btnWind.onclick = () => { state.energySource = 'wind'; setupControls(); playTone(650, 0.15); };
+
+    const btnStep1 = document.getElementById('btnStep1');
+    if (btnStep1) btnStep1.onclick = () => { state.recycledStage = 1; setupControls(); playTone(500, 0.1); };
+    const btnStep2 = document.getElementById('btnStep2');
+    if (btnStep2) btnStep2.onclick = () => { state.recycledStage = 2; setupControls(); playTone(600, 0.1); };
+    const btnStep3 = document.getElementById('btnStep3');
+    if (btnStep3) btnStep3.onclick = () => { state.recycledStage = 3; setupControls(); playTone(700, 0.1); };
+    const btnStep4 = document.getElementById('btnStep4');
+    if (btnStep4) btnStep4.onclick = () => { state.recycledStage = 4; setupControls(); playTone(900, 0.2); };
+
+    const btnRestore = document.getElementById('btnRestore');
+    if (btnRestore) btnRestore.onclick = () => { state.wetlandRestored = !state.wetlandRestored; setupControls(); playTone(state.wetlandRestored?780:320, 0.2); };
+    const btnAeration = document.getElementById('btnAeration');
+    if (btnAeration) btnAeration.onclick = () => { state.wetlandRestored = true; setupControls(); playTone(650, 0.2); };
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'earth_habitable') {
+        drawEarthHabitable();
+    } else if (activeMode === 'environmental_issues') {
+        drawEnvironmentalIssues();
+    } else if (activeMode === 'save_water_drip') {
+        drawDripIrrigation();
+    } else if (activeMode === 'waste_sorting') {
+        drawWasteSorting();
+    } else if (activeMode === 'clean_energy') {
+        drawCleanEnergy();
+    } else if (activeMode === 'recycled_paper') {
+        drawRecycledPaper();
+    } else if (activeMode === 'wetland_restoration') {
+        drawWetlandRestoration();
+    } else {
+        drawEarthHabitable();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+function drawEarthHabitable() {
+    const cx = 360, cy = 225;
+
+    // Stars background
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < 40; i++) {
+        const sx = (i * 73) % 720;
+        const sy = (i * 59) % 450;
+        ctx.fillRect(sx, sy, 1.5, 1.5);
+    }
+
+    if (state.habitableFactor === 'compare') {
+        // Terrestrial Planets Comparison
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('太阳系类地行星生命生存条件对比', cx, 40);
+
+        const planets = [
+            { name: '水星 (Mercury)', temp: '-180~430℃', atmo: '几乎无大气', col: '#94a3b8', r: 20, x: 140 },
+            { name: '金星 (Venus)', temp: '约465℃ (失控温室)', atmo: '浓厚CO₂ (90气压)', col: '#f59e0b', r: 35, x: 280 },
+            { name: '地球 (Earth)', temp: '平均15℃ (液态水)', atmo: '21%O₂+78%N₂', col: '#0284c7', r: 38, x: 440 },
+            { name: '火星 (Mars)', temp: '-140~20℃ (寒冷)', atmo: '稀薄CO₂ (0.01气压)', col: '#ef4444', r: 26, x: 590 }
+        ];
+
+        planets.forEach(p => {
+            ctx.fillStyle = p.col;
+            ctx.beginPath(); ctx.arc(p.x, cy - 20, p.r, 0, Math.PI*2); ctx.fill();
+            if (p.name.includes('Earth')) {
+                // Atmosphere halo
+                ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.arc(p.x, cy - 20, p.r + 5, 0, Math.PI*2); ctx.stroke();
+            }
+            ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 13px sans-serif';
+            ctx.fillText(p.name, p.x, cy + 45);
+            ctx.fillStyle = '#94a3b8'; ctx.font = '11px sans-serif';
+            ctx.fillText(p.temp, p.x, cy + 65);
+            ctx.fillText(p.atmo, p.x, cy + 85);
+        });
+
+        ctx.fillStyle = '#38bdf8'; ctx.font = '13px sans-serif';
+        ctx.fillText('仅地球拥有适中温度、稳定液态水海洋、富氧大气层与磁场屏蔽，是宇宙生命的奇迹！', cx, cy + 150);
+        return;
+    }
+
+    // Glowing Earth Globe
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('地球——宇宙的奇迹: 孕育与庇护生命的四大防护系统', cx, 40);
+
+    // Magnetic field lines (van Allen belt shielding solar wind)
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+    ctx.lineWidth = 2;
+    for (let r = 130; r <= 190; r += 30) {
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, r, r * 0.6, 0, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+
+    // Atmosphere Glow
+    const atmoGrad = ctx.createRadialGradient(cx, cy, 75, cx, cy, 95);
+    atmoGrad.addColorStop(0, 'rgba(56, 189, 248, 0.8)');
+    atmoGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+    ctx.fillStyle = atmoGrad;
+    ctx.beginPath(); ctx.arc(cx, cy, 95, 0, Math.PI * 2); ctx.fill();
+
+    // Ocean Surface
+    ctx.fillStyle = '#0284c7';
+    ctx.beginPath(); ctx.arc(cx, cy, 80, 0, Math.PI * 2); ctx.fill();
+
+    // Continents
+    ctx.fillStyle = '#16a34a';
+    ctx.beginPath();
+    ctx.ellipse(cx - 25, cy - 20, 32, 22, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + 30, cy + 25, 26, 35, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Swirling Cloud Cover
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 35, 60, 10, 0.1, 0, Math.PI * 2);
+    ctx.ellipse(cx + 15, cy + 15, 50, 12, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Solar Wind deflected on left
+    const t = performance.now() * 0.005;
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.6)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 6; i++) {
+        const wy = cy - 80 + i * 32;
+        const offset = Math.sin(t + i) * 10;
+        ctx.beginPath();
+        ctx.moveTo(60, wy);
+        ctx.quadraticCurveTo(cx - 150 + offset, wy, cx - 180, wy + (wy < cy ? -40 : 40));
+        ctx.stroke();
+    }
+    ctx.fillStyle = '#fbbf24'; ctx.font = '11px sans-serif';
+    ctx.fillText('高能宇宙辐射与太阳风', 120, cy - 90);
+
+    ctx.fillStyle = '#38bdf8'; ctx.font = '13px sans-serif';
+    ctx.fillText('大气层提供呼吸氧气并锁温 | 臭氧层滤除紫外线 | 地磁层偏转高能太阳风 | 71%海洋调节全球气候', cx, cy + 150);
+}
+
+function drawEnvironmentalIssues() {
+    const cx = 360, cy = 225;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`全球气候与温室效应模拟 [当前大气CO₂: ${state.carbonEmission} ppm]`, cx, 40);
+
+    // Glacier Ice Melting comparison
+    const co2Norm = (state.carbonEmission - 280) / 320; // 0 to 1
+    const iceH = Math.max(10, 120 * (1 - co2Norm * 0.7));
+
+    // Sea water
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(80, cy + 60, 560, 80);
+
+    // Iceberg
+    ctx.fillStyle = '#e0f2fe';
+    ctx.beginPath();
+    ctx.moveTo(cx - 120, cy + 60);
+    ctx.lineTo(cx, cy + 60 - iceH);
+    ctx.lineTo(cx + 120, cy + 60);
+    ctx.closePath();
+    ctx.fill();
+
+    // Factory chimney with smoke
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(120, cy - 40, 45, 100);
+    ctx.fillStyle = `rgba(100, 116, 139, ${0.3 + co2Norm * 0.6})`;
+    for (let i = 0; i < 8; i++) {
+        const sx = 142 + Math.sin(i + performance.now()*0.003) * 20;
+        const sy = cy - 50 - i * 16;
+        ctx.beginPath(); ctx.arc(sx, sy, 12 + i*2, 0, Math.PI*2); ctx.fill();
+    }
+
+    ctx.fillStyle = '#f8fafc'; ctx.font = '13px sans-serif';
+    const tempRise = (co2Norm * 3.2).toFixed(1);
+    ctx.fillText(`全球平均气温升温预测: +${tempRise} ℃ | 极地海冰消融比例: ${(co2Norm*70).toFixed(0)}%`, cx, cy + 160);
+}
+
+function drawDripIrrigation() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(state.dripFlowRate===15 ? '现代精准滴灌系统: 水肥直达根系 (节水85%)' : '传统大水漫灌: 地表严重积水蒸发与流失', cx, 40);
+
+    // Soil
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(100, cy + 40, 520, 120);
+
+    // Crop plants
+    for (let i = 0; i < 4; i++) {
+        const px = 160 + i * 130;
+        // Stem
+        ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(px, cy + 40); ctx.lineTo(px, cy - 30); ctx.stroke();
+        // Leaves
+        ctx.fillStyle = '#22c55e';
+        ctx.beginPath(); ctx.ellipse(px - 14, cy - 10, 16, 7, -0.4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(px + 14, cy - 10, 16, 7, 0.4, 0, Math.PI*2); ctx.fill();
+
+        // Roots
+        ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(px, cy + 40); ctx.lineTo(px - 15, cy + 80); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(px, cy + 40); ctx.lineTo(px + 15, cy + 85); ctx.stroke();
+
+        // Water droplets
+        if (state.dripFlowRate === 15) {
+            ctx.fillStyle = '#38bdf8';
+            const dropY = cy + 30 + ((performance.now()*0.08 + i*20) % 25);
+            ctx.beginPath(); ctx.arc(px, dropY, 3, 0, Math.PI*2); ctx.fill();
+        }
+    }
+
+    // Drip Pipe
+    ctx.strokeStyle = '#334155'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(100, cy + 30); ctx.lineTo(620, cy + 30); ctx.stroke();
+}
+
+function drawWasteSorting() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('生活垃圾四分类与资源循环再生模型', cx, 40);
+
+    const bins = [
+        {name: '可回收物', color: '#0284c7', icon: '♻️', key: 'recyclable'},
+        {name: '厨余垃圾', color: '#16a34a', icon: '🥬', key: 'kitchen'},
+        {name: '有害垃圾', color: '#dc2626', icon: '🔋', key: 'hazardous'},
+        {name: '其他垃圾', color: '#475569', icon: '🗑️', key: 'other'}
+    ];
+
+    bins.forEach((b, idx) => {
+        const bx = 100 + idx * 140;
+        const by = 160;
+
+        ctx.fillStyle = b.color;
+        ctx.beginPath(); ctx.roundRect(bx, by, 100, 160, 8); ctx.fill();
+
+        ctx.fillStyle = '#ffffff'; ctx.font = '24px sans-serif';
+        ctx.fillText(b.icon, bx + 50, by + 50);
+
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillText(b.name, bx + 50, by + 85);
+    });
+
+    ctx.fillStyle = '#38bdf8'; ctx.font = '13px sans-serif';
+    ctx.fillText('减量化 (Reduce) · 资源化 (Reuse) · 无害化 (Recycle)', cx, 360);
+}
+
+function drawCleanEnergy() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(state.energySource==='solar' ? '光伏太阳能电站: 半导体光生伏特效应 (光能 -> 电能，零碳排放)' : '高耸风力发电塔台: 气流动能转化为清洁电能', cx, 40);
+
+    if (state.energySource === 'solar') {
+        // High-res Solar Panel Array
+        ctx.fillStyle = '#1e3a8a';
+        ctx.beginPath();
+        ctx.moveTo(140, cy + 80); ctx.lineTo(260, cy - 40); ctx.lineTo(540, cy - 40); ctx.lineTo(420, cy + 80);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3; ctx.stroke();
+
+        // Grid lines
+        ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 1.5;
+        for (let x = 180; x <= 460; x += 40) {
+            ctx.beginPath(); ctx.moveTo(x, cy + 80); ctx.lineTo(x + 120, cy - 40); ctx.stroke();
+        }
+        for (let y = cy - 20; y <= cy + 60; y += 25) {
+            ctx.beginPath(); ctx.moveTo(140 + (y - (cy-40))*1.0, y); ctx.lineTo(420 + (y - (cy-40))*1.0, y); ctx.stroke();
+        }
+
+        // Sun
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath(); ctx.arc(580, 100, 30, 0, Math.PI*2); ctx.fill();
+        // Rays
+        ctx.strokeStyle = 'rgba(250, 204, 21, 0.4)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(560, 120); ctx.lineTo(400, cy); ctx.stroke();
+    } else {
+        // Wind turbine rotating
+        const t = performance.now() * 0.004;
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(cx - 8, cy - 50, 16, 170); // tower
+
+        ctx.save();
+        ctx.translate(cx, cy - 50);
+        ctx.rotate(t);
+        ctx.fillStyle = '#f8fafc';
+        for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.ellipse(0, -65, 8, 65, 0, 0, Math.PI*2);
+            ctx.fill();
+            ctx.rotate(Math.PI * 2 / 3);
+        }
+        ctx.restore();
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath(); ctx.arc(cx, cy - 50, 12, 0, Math.PI*2); ctx.fill();
+    }
+}
+
+function drawRecycledPaper() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('古法与现代造纸工艺: 废纸回收再造全流程', cx, 40);
+
+    const steps = [
+        { title: '1. 浸泡撕碎', desc: '纤维软化', icon: '📄' },
+        { title: '2. 捣碎成浆', desc: '纸浆均匀', icon: '🥣' },
+        { title: '3. 抄纸成型', desc: '网框脱水', icon: '🖼️' },
+        { title: '4. 压榨干燥', desc: '韧性平整', icon: '☀️' }
+    ];
+
+    steps.forEach((s, idx) => {
+        const sx = 120 + idx * 135;
+        const isCurrent = state.recycledStage === (idx + 1);
+
+        ctx.fillStyle = isCurrent ? '#0369a1' : '#1e293b';
+        ctx.strokeStyle = isCurrent ? '#38bdf8' : '#334155';
+        ctx.lineWidth = 2;
+        ctx.fillRect(sx, cy - 60, 110, 120);
+        ctx.strokeRect(sx, cy - 60, 110, 120);
+
+        ctx.font = '26px sans-serif';
+        ctx.fillText(s.icon, sx + 55, cy - 15);
+        ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(s.title, sx + 55, cy + 20);
+        ctx.fillStyle = '#94a3b8'; ctx.font = '11px sans-serif';
+        ctx.fillText(s.desc, sx + 55, cy + 40);
+    });
+}
+
+function drawWetlandRestoration() {
+    const cx = 360, cy = 220;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(state.wetlandRestored ? '城市湿地生态修复: 生态浮岛与曝气增氧 (水质清澈透明度>120cm)' : '严重富营养化水体: 蓝藻暴发水体缺氧恶臭 (透明度<20cm)', cx, 40);
+
+    // Water lake
+    ctx.fillStyle = state.wetlandRestored ? '#0284c7' : '#15803d';
+    ctx.fillRect(100, cy - 40, 520, 180);
+
+    if (state.wetlandRestored) {
+        // Ecological floating islands
+        ctx.fillStyle = '#22c55e';
+        ctx.beginPath(); ctx.ellipse(cx - 100, cy + 20, 50, 15, 0, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(cx + 80, cy + 40, 60, 18, 0, 0, Math.PI*2); ctx.fill();
+        // Reed plants on islands
+        ctx.strokeStyle = '#15803d'; ctx.lineWidth = 3;
+        for (let i = 0; i < 5; i++) {
+            ctx.beginPath(); ctx.moveTo(cx - 120 + i*10, cy + 20); ctx.lineTo(cx - 120 + i*10, cy - 15); ctx.stroke();
+        }
+        ctx.fillStyle = '#f8fafc'; ctx.font = '13px sans-serif';
+        ctx.fillText('植物根系吸收氮、磷污染物，恢复水体自净能力与生物多样性', cx, cy + 120);
+    } else {
+        ctx.fillStyle = '#14532d';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText('⚠️ 水体总氮总磷超标，鱼类缺氧死亡，急需生态修复！', cx, cy + 120);
+    }
+}
+
+        
+function updateTelemetry() {
+    let txt = `[环境工程数据] 模式: ${activeMode} | `;
+    if (activeMode === 'earth_habitable') {
+        txt += `视角: ${state.habitableFactor} | 日地距离: 1.0 AU (1.5亿km) | 地表均温: 15℃ | 大气氧气: 21% | 奇迹结论: 太阳系唯一已知生命摇篮`;
+    } else if (activeMode === 'environmental_issues') {
+        txt += `大气CO₂: ${state.carbonEmission} ppm | 温室效应: ${state.carbonEmission>450?'严重加剧':'受控'} | 海平面风险: 极地海冰加速消融`;
+    } else if (activeMode === 'waste_sorting') {
+        txt += `当前分类: ${state.wasteCategory} | 资源化率: 82% | 减碳贡献: 垃圾分类可减少填埋占地65%`;
+    } else if (activeMode === 'save_water_drip') {
+        txt += `灌溉流速: ${state.dripFlowRate} mL/min | 节水率: ${state.dripFlowRate===15?'85% (高效精准)':'0% (传统漫灌大量渗漏蒸发)'}`;
+    } else if (activeMode === 'clean_energy') {
+        txt += `能源类型: ${state.energySource==='solar'?'光伏发电':'风力发电'} | 发电功率: 250 kW | 碳排放: 0 g/kWh`;
+    } else if (activeMode === 'recycled_paper') {
+        txt += `工序阶段: 第 ${state.recycledStage} 步 | 意义: 每回收1吨废纸可挽救17棵大树，节水50%`;
+    } else if (activeMode === 'wetland_restoration') {
+        txt += `水质状况: ${state.wetlandRestored?'地表水Ⅱ类 (清澈见底)':'劣Ⅴ类 (黑臭富营养化)'} | 修复手段: 人工浮岛、生物促生、曝气增氧`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

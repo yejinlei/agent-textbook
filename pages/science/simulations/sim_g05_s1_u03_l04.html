@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【4. 相同距离比快慢】运动力学与轨道综合实验室 - 三年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎢 4. 相同距离比快慢</h1>
+        <span class="badge">三年级上册·第三单元《物体的运动》</span>
+    </div>
+
+    <!-- 关联课本综合导航栏 -->
+    <div class="unit-nav">
+        <a href="sim_g05_s1_u03_l01.html" class="">运动和位置</a>
+<a href="sim_g05_s1_u03_l02.html" class="">各种各样的运动</a>
+<a href="sim_g05_s1_u03_l03.html" class="">直线运动和曲线运动</a>
+<a href="sim_g05_s1_u03_l04.html" class="active">相同距离比快慢</a>
+<a href="sim_g05_s1_u03_l05.html" class="">相同时间比快慢</a>
+<a href="sim_g05_s1_u03_l06.html" class="">运动和能量</a>
+<a href="sim_g05_s1_u03_l07.html" class="">设计和制作“过山车”</a>
+<a href="sim_g05_s1_u03_l08.html" class="">测试“过山车”</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+
+            <!-- 控制项区 -->
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时动力学遥测 (Telemetry)</div>
+            <div class="telemetry" id="telem">力学实验台就绪...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：固定赛道距离测秒表时间比拼速度大小</p>
+            <p><strong>实验原理</strong>：物体的运动包括位置变化、运动方式（平动、转动、摆动、振动）和运动轨迹（直线与曲线）；比较物体快慢有“相同距离比时间”和“相同时间比距离”两种科学方法；运动的物体具有能量，速度越大能量越强；过山车的设计依靠起点重力势能转化为动能，回环轨道需要足够速度产生离心力保持贴轨。</p>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio Synthesizer
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+
+        const activeMode = "fixed_distance";
+
+        // Simulation State
+        const state = {
+            carX: 50,
+            carV: 0,
+            isRunning: false,
+            timeElapsed: 0,
+            targetDist: 10, // m
+            rampHeight: 15, // cm
+            blockMoved: 0,
+            ballMass: 50,   // g
+            coasterProgress: 0,
+            coasterSpeed: 0,
+            coasterHeight: 280, // initial drop height
+            loopRadius: 60,
+            derailed: false,
+            selectedMotion: 'translation', // translation, rotation, pendulum, vibration
+            angle: 0
+        };
+
+        function setupControls() {
+            let html = '';
+            if (activeMode === 'position') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>参照物与坐标</span><span class="val">操场中心旗杆</span></div>
+                        <div class="btn-grid">
+                            <button class="btn btn-primary" id="btnPosN">向北移动 20m</button>
+                            <button class="btn btn-primary" id="btnPosE">向东移动 30m</button>
+                            <button class="btn btn-primary" id="btnPosS">向南移动 15m</button>
+                            <button class="btn btn-primary" id="btnPosW">向西移动 25m</button>
+                        </div>
+                    </div>
+                `;
+            } else if (activeMode === 'motion_types') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>选择典型机械运动模式</span></div>
+                        <div class="btn-grid">
+                            <button class="btn ${state.selectedMotion==='translation'?'btn-primary':''}" id="btnTrans">➡️ 直线滑块 (平动)</button>
+                            <button class="btn ${state.selectedMotion==='rotation'?'btn-primary':''}" id="btnRot">🔄 风车转子 (转动)</button>
+                            <button class="btn ${state.selectedMotion==='pendulum'?'btn-primary':''}" id="btnPen">⚖️ 单摆小球 (摆动)</button>
+                            <button class="btn ${state.selectedMotion==='vibration'?'btn-primary':''}" id="btnVib">〰️ 钢尺端点 (振动)</button>
+                        </div>
+                    </div>
+                `;
+            } else if (activeMode === 'fixed_distance' || activeMode === 'fixed_time' || activeMode === 'trajectories') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>小车赛道速度对比测试</span></div>
+                        <div class="btn-grid">
+                            <button class="btn btn-green" id="btnStartRace">🏁 启动比赛计时</button>
+                            <button class="btn btn-rose" id="btnResetRace">🔄 重置复位</button>
+                        </div>
+                    </div>
+                `;
+            } else if (activeMode === 'kinetic_energy') {
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>斜面释放高度</span><span class="val" id="hVal">${state.rampHeight} cm</span></div>
+                        <input type="range" id="rampSlider" min="5" max="35" value="${state.rampHeight}">
+                    </div>
+                    <div class="btn-grid">
+                        <button class="btn btn-green" id="btnReleaseBall">⚽ 释放小球冲撞木块</button>
+                        <button class="btn btn-rose" id="btnResetEnergy">🔄 重置木块</button>
+                    </div>
+                `;
+            } else {
+                // design or test roller coaster
+                html += `
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>过山车起始坡度落差</span><span class="val" id="dropVal">${state.coasterHeight} px</span></div>
+                        <input type="range" id="dropSlider" min="150" max="320" value="${state.coasterHeight}">
+                    </div>
+                    <div class="ctrl-group">
+                        <div class="ctrl-label"><span>竖直回环半径</span><span class="val" id="loopVal">${state.loopRadius} px</span></div>
+                        <input type="range" id="loopSlider" min="40" max="90" value="${state.loopRadius}">
+                    </div>
+                    <div class="btn-grid">
+                        <button class="btn btn-green" id="btnLaunchCoaster">🎢 发射过山车小球</button>
+                        <button class="btn btn-rose" id="btnResetCoaster">🔄 重新就位</button>
+                    </div>
+                `;
+            }
+
+            controlsContainer.innerHTML = html;
+            bindEvents();
+        }
+
+        function bindEvents() {
+            const btnPosN = document.getElementById('btnPosN');
+            if (btnPosN) btnPosN.onclick = () => { state.carV = 1; playTone(600, 0.1); };
+            const btnPosE = document.getElementById('btnPosE');
+            if (btnPosE) btnPosE.onclick = () => { state.carV = 2; playTone(650, 0.1); };
+            const btnPosS = document.getElementById('btnPosS');
+            if (btnPosS) btnPosS.onclick = () => { state.carV = 3; playTone(500, 0.1); };
+            const btnPosW = document.getElementById('btnPosW');
+            if (btnPosW) btnPosW.onclick = () => { state.carV = 4; playTone(550, 0.1); };
+
+            const btnTrans = document.getElementById('btnTrans');
+            if (btnTrans) btnTrans.onclick = () => { state.selectedMotion = 'translation'; setupControls(); };
+            const btnRot = document.getElementById('btnRot');
+            if (btnRot) btnRot.onclick = () => { state.selectedMotion = 'rotation'; setupControls(); };
+            const btnPen = document.getElementById('btnPen');
+            if (btnPen) btnPen.onclick = () => { state.selectedMotion = 'pendulum'; setupControls(); };
+            const btnVib = document.getElementById('btnVib');
+            if (btnVib) btnVib.onclick = () => { state.selectedMotion = 'vibration'; setupControls(); };
+
+            const btnStartRace = document.getElementById('btnStartRace');
+            if (btnStartRace) btnStartRace.onclick = () => {
+                state.isRunning = true;
+                state.carX = 50;
+                state.timeElapsed = 0;
+                playTone(800, 0.2);
+            };
+            const btnResetRace = document.getElementById('btnResetRace');
+            if (btnResetRace) btnResetRace.onclick = () => {
+                state.isRunning = false;
+                state.carX = 50;
+                state.timeElapsed = 0;
+                playTone(300, 0.1);
+            };
+
+            const rampSlider = document.getElementById('rampSlider');
+            if (rampSlider) {
+                rampSlider.addEventListener('input', (e) => {
+                    state.rampHeight = parseInt(e.target.value);
+                    document.getElementById('hVal').innerText = state.rampHeight + ' cm';
+                });
+            }
+            const btnReleaseBall = document.getElementById('btnReleaseBall');
+            if (btnReleaseBall) btnReleaseBall.onclick = () => {
+                // Distance moved is proportional to height (potential energy -> kinetic energy)
+                state.blockMoved = (state.rampHeight * 1.8).toFixed(1);
+                playTone(400, 0.1);
+                setTimeout(() => playTone(200, 0.2), 300);
+            };
+            const btnResetEnergy = document.getElementById('btnResetEnergy');
+            if (btnResetEnergy) btnResetEnergy.onclick = () => {
+                state.blockMoved = 0;
+                playTone(300, 0.1);
+            };
+
+            const dropSlider = document.getElementById('dropSlider');
+            if (dropSlider) {
+                dropSlider.addEventListener('input', (e) => {
+                    state.coasterHeight = parseInt(e.target.value);
+                    document.getElementById('dropVal').innerText = state.coasterHeight + ' px';
+                });
+            }
+            const loopSlider = document.getElementById('loopSlider');
+            if (loopSlider) {
+                loopSlider.addEventListener('input', (e) => {
+                    state.loopRadius = parseInt(e.target.value);
+                    document.getElementById('loopVal').innerText = state.loopRadius + ' px';
+                });
+            }
+            const btnLaunchCoaster = document.getElementById('btnLaunchCoaster');
+            if (btnLaunchCoaster) btnLaunchCoaster.onclick = () => {
+                state.coasterProgress = 0;
+                state.derailed = false;
+                // Mechanical check: to pass vertical loop of radius R, initial drop must be >= 2.5 * R
+                const minReq = 2.4 * state.loopRadius;
+                if (state.coasterHeight < minReq) {
+                    state.derailed = true;
+                }
+                playTone(500, 0.15);
+            };
+            const btnResetCoaster = document.getElementById('btnResetCoaster');
+            if (btnResetCoaster) btnResetCoaster.onclick = () => {
+                state.coasterProgress = 0;
+                state.derailed = false;
+                playTone(300, 0.1);
+            };
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, 720, 450);
+
+            // Ground & Table
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, 720, 450);
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(0, 360, 720, 90);
+
+            if (activeMode === 'position') {
+                drawPosition();
+            } else if (activeMode === 'motion_types') {
+                drawMotionTypes();
+            } else if (activeMode === 'fixed_distance' || activeMode === 'fixed_time' || activeMode === 'trajectories') {
+                drawRaceTracks();
+            } else if (activeMode === 'kinetic_energy') {
+                drawKineticEnergy();
+            } else {
+                drawRollerCoaster();
+            }
+
+            updateTelemetry();
+            requestAnimationFrame(draw);
+        }
+
+        function drawPosition() {
+            const cx = 360;
+            const cy = 200;
+            // Compass Grid
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1;
+            for (let r = 40; r <= 160; r += 40) {
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.beginPath();
+            ctx.moveTo(cx, 30); ctx.lineTo(cx, 370);
+            ctx.moveTo(cx - 170, cy); ctx.lineTo(cx + 170, cy);
+            ctx.stroke();
+
+            // Center Flagpole (参照物)
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('🚩 旗杆(参照物原点)', cx + 12, cy - 8);
+
+            // Student marker
+            let px = cx + 80;
+            let py = cy - 60;
+            ctx.fillStyle = '#38bdf8';
+            ctx.beginPath();
+            ctx.arc(px, py, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('🏃 运动同学 (北偏东 53°, 距离 100m)', px + 14, py + 4);
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('以参照物为中心，用方向和距离确定物体的空间位置', cx, 40);
+        }
+
+        function drawMotionTypes() {
+            const cx = 360;
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`常见运动形态观察: ${state.selectedMotion}`, cx, 40);
+
+            state.angle += 0.04;
+
+            if (state.selectedMotion === 'translation') {
+                // Sliding block
+                const bx = 200 + Math.sin(state.angle) * 140;
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(bx, 280, 70, 40);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 13px sans-serif';
+                ctx.fillText('平动滑块', bx + 35, 305);
+            } else if (state.selectedMotion === 'rotation') {
+                // Windmill rotating
+                ctx.save();
+                ctx.translate(cx, 220);
+                ctx.rotate(state.angle * 2);
+                for (let i = 0; i < 4; i++) {
+                    ctx.rotate(Math.PI / 2);
+                    ctx.fillStyle = i % 2 === 0 ? '#f43f5e' : '#f59e0b';
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(25, -70);
+                    ctx.lineTo(-25, -70);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                ctx.restore();
+                ctx.fillStyle = '#64748b';
+                ctx.fillRect(cx - 5, 220, 10, 140);
+            } else if (state.selectedMotion === 'pendulum') {
+                // Pendulum swing
+                const pAngle = Math.sin(state.angle * 1.5) * 0.6;
+                const bobX = cx + Math.sin(pAngle) * 150;
+                const bobY = 120 + Math.cos(pAngle) * 150;
+
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(cx, 120);
+                ctx.lineTo(bobX, bobY);
+                ctx.stroke();
+
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath();
+                ctx.arc(bobX, bobY, 16, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                // Steel ruler vibration
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(160, 240, 140, 20); // fixed on table
+                const tipY = 250 + Math.sin(state.angle * 8) * 25;
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(300, 250);
+                ctx.lineTo(460, tipY);
+                ctx.stroke();
+            }
+        }
+
+        function drawRaceTracks() {
+            const cx = 360;
+            // Straight track
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(40, 160, 640, 60);
+            ctx.fillRect(40, 260, 640, 60);
+
+            // Finish line
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(600, 150); ctx.lineTo(600, 330);
+            ctx.stroke();
+            ctx.fillStyle = '#f43f5e';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('终点线 (10m)', 605, 145);
+
+            if (state.isRunning) {
+                state.timeElapsed += 0.016;
+                state.carX += 3.2; // Car A
+                if (state.carX >= 560) {
+                    state.isRunning = false;
+                    playTone(880, 0.3);
+                }
+            }
+
+            // Car A (Fast)
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(state.carX, 175, 40, 30);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('🚗 A', state.carX + 12, 195);
+
+            // Car B (Slow)
+            const carBX = 50 + (state.carX - 50) * 0.75;
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(carBX, 275, 40, 30);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('🚙 B', carBX + 12, 295);
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`比赛计时: ${state.timeElapsed.toFixed(2)} 秒 | 结论: 相同距离内，用时少的小车运动快`, cx, 80);
+        }
+
+        function drawKineticEnergy() {
+            const cx = 360;
+            // Ramp
+            ctx.fillStyle = '#475569';
+            ctx.beginPath();
+            ctx.moveTo(80, 360);
+            ctx.lineTo(80, 360 - state.rampHeight * 6);
+            ctx.lineTo(340, 360);
+            ctx.closePath();
+            ctx.fill();
+
+            // Ball on ramp
+            ctx.fillStyle = '#38bdf8';
+            ctx.beginPath();
+            ctx.arc(100, 360 - state.rampHeight * 6 + 12, 14, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Wooden block at bottom
+            const blockX = 350 + state.blockMoved * 8;
+            ctx.fillStyle = '#d97706';
+            ctx.fillRect(blockX, 320, 45, 40);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '11px sans-serif';
+            ctx.fillText('木块', blockX + 12, 345);
+
+            // Arrow showing distance
+            if (state.blockMoved > 0) {
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(350, 385);
+                ctx.lineTo(blockX, 385);
+                ctx.stroke();
+                ctx.fillStyle = '#10b981';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText(`撞击滑行距离: ${state.blockMoved} cm`, cx, 410);
+            }
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('斜面越高 -> 具有重力势能越大 -> 撞击木块滑行越远 (动能越大)', cx, 70);
+        }
+
+        function drawRollerCoaster() {
+            const cx = 360;
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('过山车轨道设计与重力滑行测试 (势能转化为动能 & 离心力)', cx, 40);
+
+            // Roller coaster rail
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            // Start drop
+            ctx.moveTo(60, 360 - state.coasterHeight);
+            ctx.quadraticCurveTo(180, 360, 260, 360);
+            // Vertical Loop
+            ctx.arc(320, 360 - state.loopRadius, state.loopRadius, Math.PI / 2, -Math.PI * 1.5, true);
+            // Exit ramp
+            ctx.quadraticCurveTo(460, 360, 660, 360);
+            ctx.stroke();
+
+            // Draw coaster ball
+            if (state.coasterProgress < 1) {
+                state.coasterProgress += 0.015;
+            }
+
+            // Ball Position along track
+            let bx = 60 + state.coasterProgress * 560;
+            let by = 360;
+            if (state.coasterProgress < 0.35) {
+                by = 360 - (1 - state.coasterProgress / 0.35) * state.coasterHeight;
+            } else if (state.coasterProgress < 0.65) {
+                // In loop
+                const lap = (state.coasterProgress - 0.35) / 0.3 * Math.PI * 2;
+                bx = 320 - Math.sin(lap) * state.loopRadius;
+                by = (360 - state.loopRadius) + Math.cos(lap) * state.loopRadius;
+            }
+
+            ctx.fillStyle = state.derailed ? '#f43f5e' : '#10b981';
+            ctx.beginPath();
+            ctx.arc(bx, by - 10, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (state.derailed) {
+                ctx.fillStyle = '#f43f5e';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText('⚠️ 势能不足! 顶部离心力小于重力导致脱轨坠落，请增大起始落差!', cx, 80);
+            } else {
+                ctx.fillStyle = '#10b981';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText('✅ 能量充足: 顺利完成竖直回环并滑达终点!', cx, 80);
+            }
+        }
+
+        function updateTelemetry() {
+            let txt = `[运动力学数据就绪] 模式: ${activeMode} | `;
+            if (activeMode === 'fixed_distance' || activeMode === 'fixed_time') {
+                txt += `耗时: ${state.timeElapsed.toFixed(2)}s | A车位置: ${state.carX.toFixed(1)}m | 速度: ${state.isRunning?'3.2m/s':'已到达'}`;
+            } else if (activeMode === 'kinetic_energy') {
+                txt += `下落高度: ${state.rampHeight}cm | 木块位移: ${state.blockMoved}cm`;
+            } else if (activeMode === 'test_roller_coaster' || activeMode === 'design_roller_coaster') {
+                txt += `落差高度: ${state.coasterHeight}px | 回环半径: ${state.loopRadius}px | 状态: ${state.derailed?'脱轨':'安全贴轨'}`;
+            } else {
+                txt += `运动类型: ${state.selectedMotion} | 角速度: 0.04 rad/frame`;
+            }
+            telem.innerText = txt;
+        }
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

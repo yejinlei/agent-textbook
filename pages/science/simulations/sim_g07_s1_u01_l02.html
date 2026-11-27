@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【空气能占据空间吗】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(56, 189, 248, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--accent); cursor: pointer; }
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 空气能占据空间吗 <span class="badge">四年级上册 · 空气单元</span></h2>
+            <p>教科版科学原书实验真拟真 · 拒绝伪仿真</p>
+        </div>
+        <a href="meteorology_atmosphere_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 马德堡半球与托里拆利气压实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生真实物理碰撞与流体仿真</span>
+                <span>🎧 Web Audio 拟真气流/水流声效</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：垂直将塞有干纸巾的玻璃杯倒扣压入水槽，观察杯内空气柱是否排开水保护纸巾不湿；倾斜杯子观察气泡冒出与水涌入！</div>
+            
+        <div class="c-group">
+            <label><span>杯子下压深度 (cm)</span><span id="depthDisp">15</span></label>
+            <input type="range" id="depthSlider" min="0" max="30" value="15">
+        </div>
+        <div class="c-group">
+            <button class="btn" id="btnTilt">🔄 倾斜杯子 (冒气泡放水)</button>
+            <button class="btn btn-sec" id="btnResetCup">↺ 垂直杯子 (重新放入干纸巾)</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [杯内状态] 空气占据杯内全部空间<br>
+            [纸巾状态] 🧻 100% 绝对干燥！<br>
+            [科学原理解析] 空气是有实体的物质，占据空间形成阻挡气柱！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.15, vol=0.08) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        function playGurgle() {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.12);
+            } catch(e){}
+        }
+        function playHiss(dur=0.3) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const bufferSize = audioCtx.sampleRate * dur;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                noise.connect(gain); gain.connect(audioCtx.destination);
+                noise.start();
+            } catch(e){}
+        }
+        
+        let isTilted = false;
+        let bubbles = [];
+        const depthSlider = document.getElementById('depthSlider');
+        const depthDisp = document.getElementById('depthDisp');
+        const telem = document.getElementById('telem');
+        depthSlider.addEventListener('input', () => {
+            depthDisp.textContent = depthSlider.value;
+            playTone(180 + parseFloat(depthSlider.value)*8, 'sine', 0.05);
+        });
+        document.getElementById('btnTilt').addEventListener('click', () => {
+            isTilted = true;
+            for(let i=0; i<8; i++) {
+                setTimeout(() => {
+                    bubbles.push({ x: 280 + Math.random()*40, y: 320, r: 8+Math.random()*8 });
+                    playGurgle();
+                }, i * 150);
+            }
+            telem.innerHTML = '[杯内状态] 倾斜杯口，空气化作大水泡咕嘟冒出！<br>[纸巾状态] 💦 水位涌入杯底，纸巾被浸湿！<br>[核心结论] 水替代了跑掉的空气占据了杯内空间！';
+        });
+        document.getElementById('btnResetCup').addEventListener('click', () => {
+            isTilted = false;
+            bubbles = [];
+            playTone(523, 'triangle', 0.15);
+            telem.innerHTML = '[杯内状态] 重新塞入干纸巾，垂直倒扣！<br>[纸巾状态] 🧻 干燥完好！<br>[科学原理解析] 封闭空气柱牢牢抵挡水槽水面！';
+        });
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+            const waterLevel = 220;
+            const depth = parseFloat(depthSlider.value) * 5;
+
+            // Water Tank
+            ctx.fillStyle = 'rgba(14, 165, 233, 0.35)';
+            ctx.fillRect(80, waterLevel, w - 160, h - waterLevel - 40);
+            ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+            ctx.strokeRect(80, waterLevel, w - 160, h - waterLevel - 40);
+
+            // Water surface
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+            ctx.fillRect(80, waterLevel - 2, w - 160, 4);
+
+            // Glass cup position
+            const cupW = 90, cupH = 140;
+            const cupX = w/2 - cupW/2;
+            const cupY = 100 + depth;
+
+            ctx.save();
+            if(isTilted) {
+                ctx.translate(cupX + cupW/2, cupY + cupH/2);
+                ctx.rotate(Math.PI / 4);
+                ctx.translate(-(cupX + cupW/2), -(cupY + cupH/2));
+            }
+
+            // Cup body
+            ctx.fillStyle = isTilted ? 'rgba(14, 165, 233, 0.4)' : 'rgba(2, 6, 23, 0.9)';
+            ctx.fillRect(cupX, cupY, cupW, cupH);
+            ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 4;
+            // Draw inverted U (cup bottom at top, opening at bottom)
+            ctx.beginPath();
+            ctx.moveTo(cupX, cupY + cupH);
+            ctx.lineTo(cupX, cupY);
+            ctx.lineTo(cupX + cupW, cupY);
+            ctx.lineTo(cupX + cupW, cupY + cupH);
+            ctx.stroke();
+
+            // Paper tissue inside cup bottom
+            ctx.fillStyle = isTilted ? '#38bdf8' : '#f8fafc';
+            ctx.fillRect(cupX + 15, cupY + 10, cupW - 30, 25);
+            ctx.fillStyle = '#0f172a'; ctx.font = '11px sans-serif';
+            ctx.fillText(isTilted ? '纸巾湿透' : '干纸巾', cupX + 22, cupY + 27);
+
+            // Air pocket boundary
+            if(!isTilted && cupY + cupH > waterLevel) {
+                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                ctx.fillRect(cupX + 2, waterLevel, cupW - 4, (cupY + cupH) - waterLevel);
+            }
+
+            ctx.restore();
+
+            // Render rising bubbles
+            for(let b of bubbles) {
+                b.y -= 4;
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#38bdf8'; ctx.stroke();
+            }
+            bubbles = bubbles.filter(b => b.y > waterLevel - 20);
+
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

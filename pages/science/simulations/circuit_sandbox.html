@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学探究微仿真：虚拟电路沙盒（四年级下册·电路）</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --primary: #38bdf8;
+      --accent: #f59e0b;
+      --danger: #ef4444;
+      --success: #10b981;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-container {
+      position: relative;
+      flex: 1;
+      min-height: 440px;
+      background: radial-gradient(circle at center, #1e293b 0%, #0b0f19 100%);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #283548;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+    
+    .status-banner {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      background: #151e2e;
+      border: 1px solid var(--border);
+    }
+    .status-banner.normal { color: var(--muted); }
+    .status-banner.lit { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3); }
+    .status-banner.short { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: #ef4444; }
+
+    .controls { display: flex; flex-direction: column; gap: 14px; }
+    .control-group {
+      background: #151e2e;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #233147;
+    }
+    .control-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    button:hover { background: #1d4ed8; }
+    button.active {
+      background: var(--primary);
+      color: #0b0f19;
+    }
+    button.danger { background: #dc2626; }
+    button.danger:hover { background: #b91c1c; }
+    button.toggle-switch {
+      background: #10b981;
+      padding: 12px;
+      font-size: 15px;
+      grid-column: span 2;
+    }
+    button.toggle-switch.off {
+      background: #475569;
+    }
+    
+    .test-materials {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .mat-btn {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 12px;
+      padding: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .mat-btn.selected {
+      border-color: var(--primary);
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+    }
+    .guide-box {
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--muted);
+      background: #151e2e;
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 3px solid var(--primary);
+      margin-top: 8px;
+    }
+    .guide-box strong { color: var(--text); }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>💡 闭合回路与串并联虚拟电路沙盒（四年级下册·电路）</h1>
+    <span class="badge">虚拟实验沙盒 · 纯静态</span>
+  </header>
+
+  <div class="main-grid">
+    <!-- 画布区 -->
+    <div class="panel">
+      <div class="canvas-container" id="container">
+        <canvas id="circuitCanvas"></canvas>
+      </div>
+      <div class="status-banner normal" id="statusBanner">
+        <span id="statusIcon">⚪</span>
+        <span id="statusText">开关处于断开状态，电路为开路（断路）。</span>
+      </div>
+    </div>
+
+    <!-- 控制面板 -->
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ 电路元器件装配</h2>
+      
+      <div class="controls">
+        <!-- 开关控制 -->
+        <button id="btnSwitch" class="toggle-switch off">🔴 刀闸开关：【已断开】点击闭合</button>
+
+        <!-- 电路模式 -->
+        <div class="control-group">
+          <div class="control-header">
+            <span>🔌 电路连接模式</span>
+          </div>
+          <div class="btn-grid">
+            <button id="modeSimple" class="active">基础单回路</button>
+            <button id="modeSeries">串联 2 节电池</button>
+            <button id="modeTwoBulbs">串联 2 个灯泡</button>
+            <button id="modeShort" class="danger">模拟短路连接</button>
+          </div>
+        </div>
+
+        <!-- 导体与绝缘体测试 -->
+        <div class="control-group">
+          <div class="control-header">
+            <span>🧪 接入电路检测器测试棒</span>
+            <span id="materialType" style="color: var(--success); font-weight: bold;">金属铜导线 (导体)</span>
+          </div>
+          <div class="test-materials">
+            <button class="mat-btn selected" data-mat="copper" data-cond="true">金属铜导线</button>
+            <button class="mat-btn" data-mat="iron" data-cond="true">铁钉 (金属)</button>
+            <button class="mat-btn" data-mat="pencil" data-cond="true">铅笔芯 (石墨)</button>
+            <button class="mat-btn" data-mat="plastic" data-cond="false">塑料尺 (塑料)</button>
+            <button class="mat-btn" data-mat="wood" data-cond="false">干燥木条</button>
+            <button class="mat-btn" data-mat="eraser" data-cond="false">橡皮擦 (橡胶)</button>
+          </div>
+        </div>
+
+        <div class="guide-box">
+          📖 <strong>科学概念与安全警示</strong>：
+          - <strong>闭合回路</strong>：电流从电池正极流出，通过导线、开关和小灯泡，回到负极；
+          - <strong>短路危险</strong>：导线不经过用电器直接连通正负极，会产生极高瞬时电流使导线发烫，造成火灾或烧毁电池！
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    // === 原生 Web Audio 纯代码合成音效引擎 (零外部文件) ===
+    const Sound = {
+      ctx: null,
+      enabled: true,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      // 清脆滴答声 (钟表/过零点)
+      tick() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.04);
+      },
+      // 成功提示音 (双音铜铃)
+      success() {
+        if (!this.enabled || !this.ctx) return;
+        [523.25, 659.25, 783.99].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.08 + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + idx * 0.08);
+          osc.stop(this.ctx.currentTime + idx * 0.08 + 0.35);
+        });
+      },
+      // 金属碰撞/咔哒声 (开关/吸附/挂钩)
+      clack() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      },
+      // 水花落水声 (浮力/入水)
+      plop() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.12);
+      },
+      // 警报声 (短路/沉没)
+      alarm() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(440, this.ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.2);
+      }
+    };
+    window.addEventListener('click', () => Sound.init(), { once: true });
+
+
+    const canvas = document.getElementById('circuitCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    // 状态定义
+    let switchClosed = false;
+    let circuitMode = 'simple'; // 'simple', 'series', 'twoBulbs', 'short'
+    let currentMaterial = { name: '金属铜导线', isConductor: true };
+    let electronOffset = 0;
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // DOM 控制
+    const btnSwitch = document.getElementById('btnSwitch');
+    const statusBanner = document.getElementById('statusBanner');
+    const statusIcon = document.getElementById('statusIcon');
+    const statusText = document.getElementById('statusText');
+    const materialType = document.getElementById('materialType');
+
+    btnSwitch.addEventListener('click', () => {
+      switchClosed = !switchClosed;
+      Sound.clack();
+      if(switchClosed && circuitMode !== 'short' && currentMaterial.isConductor) Sound.success();
+      if(switchClosed && circuitMode === 'short') Sound.alarm();
+      if (switchClosed) {
+        btnSwitch.textContent = '🟢 刀闸开关：【已闭合】点击断开';
+        btnSwitch.className = 'toggle-switch';
+      } else {
+        btnSwitch.textContent = '🔴 刀闸开关：【已断开】点击闭合';
+        btnSwitch.className = 'toggle-switch off';
+      }
+      updateStatus();
+    });
+
+    const modeBtns = {
+      simple: document.getElementById('modeSimple'),
+      series: document.getElementById('modeSeries'),
+      twoBulbs: document.getElementById('modeTwoBulbs'),
+      short: document.getElementById('modeShort')
+    };
+
+    Object.keys(modeBtns).forEach(mode => {
+      modeBtns[mode].addEventListener('click', () => {
+        circuitMode = mode;
+        if(mode === 'short' && switchClosed) Sound.alarm(); else Sound.clack();
+        Object.values(modeBtns).forEach(b => b.classList.remove('active'));
+        if (mode !== 'short') modeBtns[mode].classList.add('active');
+        updateStatus();
+      });
+    });
+
+    document.querySelectorAll('.mat-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.mat-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        const isCond = btn.dataset.cond === 'true';
+        currentMaterial = { name: btn.textContent, isConductor: isCond };
+        materialType.textContent = btn.textContent + (isCond ? ' (导体)' : ' (绝缘体)');
+        materialType.style.color = isCond ? 'var(--success)' : 'var(--danger)';
+        updateStatus();
+      });
+    });
+
+    function updateStatus() {
+      if (!switchClosed) {
+        statusBanner.className = 'status-banner normal';
+        statusIcon.textContent = '⚪';
+        statusText.textContent = '开关处于断开状态，电路为开路（断路）。';
+        return;
+      }
+
+      if (circuitMode === 'short') {
+        statusBanner.className = 'status-banner short';
+        statusIcon.textContent = '⚠️';
+        statusText.textContent = '【严重短路警报】导线直接连通电池正负极！电流极大、导线急剧发热烧毁！';
+        return;
+      }
+
+      if (!currentMaterial.isConductor) {
+        statusBanner.className = 'status-banner normal';
+        statusIcon.textContent = '🚫';
+        statusText.textContent = `接入了【${currentMaterial.name}】，它是绝缘体，电流无法通过，灯泡不亮。`;
+        return;
+      }
+
+      statusBanner.className = 'status-banner lit';
+      statusIcon.textContent = '✨';
+      if (circuitMode === 'series') {
+        statusText.textContent = '【串联 2 节电池】电压倍增 (3V)！小灯泡发出格外耀眼的光芒！';
+      } else if (circuitMode === 'twoBulbs') {
+        statusText.textContent = '【串联 2 个灯泡】电能被平分，两个小灯泡均能发光，但亮度变暗。';
+      } else {
+        statusText.textContent = '【回路完整闭合】电流顺畅流通，小灯泡正常发光！';
+      }
+    }
+
+    // 绘制主回路与元器件
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 坐标布局
+      const leftX = w * 0.15;
+      const rightX = w * 0.85;
+      const topY = h * 0.22;
+      const bottomY = h * 0.78;
+
+      const isCurrentFlowing = switchClosed && (circuitMode === 'short' || currentMaterial.isConductor);
+      const isShort = switchClosed && circuitMode === 'short';
+
+      // 1. 绘制导线走线 (矩形闭合框)
+      ctx.lineWidth = isShort ? 6 : 4;
+      ctx.strokeStyle = isShort ? '#ef4444' : (isCurrentFlowing ? '#38bdf8' : '#475569');
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.beginPath();
+      ctx.moveTo(leftX, topY);
+      ctx.lineTo(rightX, topY);
+      ctx.lineTo(rightX, bottomY);
+      ctx.lineTo(leftX, bottomY);
+      ctx.closePath();
+      ctx.stroke();
+
+      // 2. 绘制流动电子粒子动画
+      if (isCurrentFlowing) {
+        ctx.fillStyle = isShort ? '#fca5a5' : '#fef08a';
+        const speed = isShort ? 8 : (circuitMode === 'series' ? 4 : 2);
+        electronOffset = (electronOffset + speed) % 24;
+
+        ctx.setLineDash([6, 18]);
+        ctx.lineDashOffset = -electronOffset;
+        ctx.strokeStyle = isShort ? '#f87171' : '#fde047';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // 3. 绘制电池 (在上方居中)
+      const centerX = w * 0.5;
+      drawBattery(centerX, topY, circuitMode === 'series');
+
+      // 4. 绘制小灯泡 (在右侧垂直中点)
+      if (circuitMode !== 'short') {
+        if (circuitMode === 'twoBulbs') {
+          drawBulb(rightX, (topY + bottomY) * 0.4, isCurrentFlowing, 0.6);
+          drawBulb(rightX, (topY + bottomY) * 0.65, isCurrentFlowing, 0.6);
+        } else {
+          const brightness = circuitMode === 'series' ? 1.4 : 1.0;
+          drawBulb(rightX, (topY + bottomY) * 0.5, isCurrentFlowing, brightness);
+        }
+      } else {
+        // 短路模式下右侧只是一根烧红的短接线
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('⚡ 危险短路直连', rightX - 40, (topY + bottomY) * 0.5);
+      }
+
+      // 5. 绘制开关 (在下方居中偏左)
+      drawSwitch(centerX - 80, bottomY, switchClosed);
+
+      // 6. 绘制材料接入插槽 (在下方居中偏右)
+      drawMaterialSlot(centerX + 80, bottomY, currentMaterial);
+
+      requestAnimationFrame(draw);
+    }
+
+    // 绘制电池
+    function drawBattery(cx, cy, isSeries) {
+      const bw = isSeries ? 120 : 70;
+      const bh = 32;
+      const bx = cx - bw / 2;
+      const by = cy - bh / 2;
+
+      // 擦除底层导线
+      ctx.clearRect(bx - 10, by - 6, bw + 20, bh + 12);
+
+      // 电池主体
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 2;
+      ctx.fillRect(bx, by, bw, bh);
+      ctx.strokeRect(bx, by, bw, bh);
+
+      // 正极凸起
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(bx + bw, by + 8, 8, bh - 16);
+
+      // 电池标签
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(bx + 4, by + 4, bw * 0.6, bh - 8);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(isSeries ? '干电池 3.0V' : '干电池 1.5V', bx + bw / 2, cy);
+
+      // 极性标注
+      ctx.fillStyle = '#f87171';
+      ctx.fillText('+', bx + bw - 10, cy);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('-', bx + 10, cy);
+    }
+
+    // 绘制灯泡
+    function drawBulb(cx, cy, isLit, intensity) {
+      ctx.clearRect(cx - 50, cy - 50, 100, 100);
+
+      // 1. Multi-tier Atmospheric Glow Bloom
+      if (isLit) {
+        const glowRadius = Math.max(25, 55 * intensity);
+        const glow = ctx.createRadialGradient(cx, cy - 4, 4, cx, cy - 4, glowRadius);
+        glow.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+        glow.addColorStop(0.2, 'rgba(254, 240, 138, 0.8)');
+        glow.addColorStop(0.5, 'rgba(250, 204, 21, 0.35)');
+        glow.addColorStop(0.85, 'rgba(245, 158, 11, 0.1)');
+        glow.addColorStop(1, 'rgba(245, 158, 11, 0)');
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy - 4, glowRadius, 0, Math.PI * 2);
+        ctx.fillStyle = glow;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 2. Threaded Brass Metal Socket (黄铜螺纹金属底座)
+      const baseTop = cy + 14;
+      const baseGrad = ctx.createLinearGradient(cx - 9, baseTop, cx + 9, baseTop);
+      baseGrad.addColorStop(0, '#78350f');
+      baseGrad.addColorStop(0.25, '#ca8a04');
+      baseGrad.addColorStop(0.5, '#fef08a');
+      baseGrad.addColorStop(0.8, '#a16207');
+      baseGrad.addColorStop(1, '#451a03');
+
+      // Base cylinder
+      ctx.fillStyle = baseGrad;
+      ctx.fillRect(cx - 9, baseTop, 18, 14);
+
+      // Thread ribs (3道立体金属螺纹)
+      ctx.strokeStyle = '#fef08a'; ctx.lineWidth = 1.2;
+      for (let r = 0; r < 3; r++) {
+        const ry = baseTop + 3 + r * 4;
+        ctx.beginPath();
+        ctx.ellipse(cx, ry, 9.2, 1.8, 0, 0, Math.PI);
+        ctx.stroke();
+      }
+
+      // Black Glass Insulation Ring (底部黑色绝缘圈)
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(cx - 7, baseTop + 14, 14, 3);
+
+      // Solder Contact Point (底部银色锡点)
+      const solderGrad = ctx.createRadialGradient(cx, baseTop + 18, 1, cx, baseTop + 18, 5);
+      solderGrad.addColorStop(0, '#f8fafc');
+      solderGrad.addColorStop(0.6, '#94a3b8');
+      solderGrad.addColorStop(1, '#475569');
+      ctx.fillStyle = solderGrad;
+      ctx.beginPath();
+      ctx.ellipse(cx, baseTop + 17, 5, 2.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 3. Clear Glass Bulb Body (通透梨形玻璃罩)
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx - 8, baseTop);
+      ctx.bezierCurveTo(cx - 9, cy + 6, cx - 22, cy + 4, cx - 22, cy - 8);
+      ctx.bezierCurveTo(cx - 22, cy - 26, cx + 22, cy - 26, cx + 22, cy - 8);
+      ctx.bezierCurveTo(cx + 22, cy + 4, cx + 9, cy + 6, cx + 8, baseTop);
+      ctx.closePath();
+
+      if (isLit) {
+        ctx.fillStyle = 'rgba(254, 240, 138, 0.7)';
+        ctx.strokeStyle = '#facc15';
+      } else {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
+      }
+      ctx.lineWidth = 1.5;
+      ctx.fill();
+      ctx.stroke();
+
+      // Glass Specular Highlight Arc (玻璃表面镜面弧光反射)
+      ctx.beginPath();
+      ctx.arc(cx - 4, cy - 10, 14, -Math.PI * 0.75, -Math.PI * 0.35);
+      ctx.strokeStyle = isLit ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // 4. Filaments and Support Wires (双支架与中央螺旋钨丝)
+      // Left and right support wires
+      ctx.strokeStyle = isLit ? '#fde047' : '#64748b';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 4, baseTop); ctx.lineTo(cx - 4, cy); ctx.lineTo(cx - 3, cy - 8);
+      ctx.moveTo(cx + 4, baseTop); ctx.lineTo(cx + 4, cy); ctx.lineTo(cx + 3, cy - 8);
+      ctx.stroke();
+
+      // Coiled Tungsten Filament (中心红热/亮黄螺旋钨丝)
+      ctx.beginPath();
+      ctx.moveTo(cx - 3, cy - 8);
+      ctx.quadraticCurveTo(cx - 1, cy - 12, cx, cy - 8);
+      ctx.quadraticCurveTo(cx + 1, cy - 12, cx + 3, cy - 8);
+      ctx.strokeStyle = isLit ? '#ffffff' : '#cbd5e1';
+      ctx.lineWidth = isLit ? 2.5 : 1.2;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawSwitch(cx, cy, isClosed) {
+      ctx.clearRect(cx - 30, cy - 20, 60, 40);
+
+      // 两个固定端点螺母
+      ctx.fillStyle = '#e2e8f0';
+      ctx.beginPath();
+      ctx.arc(cx - 18, cy, 5, 0, Math.PI * 2);
+      ctx.arc(cx + 18, cy, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 刀闸动片
+      ctx.beginPath();
+      ctx.moveTo(cx - 18, cy);
+      if (isClosed) {
+        ctx.lineTo(cx + 18, cy);
+        ctx.strokeStyle = '#10b981';
+      } else {
+        ctx.lineTo(cx + 10, cy - 24); // 翘起角度
+        ctx.strokeStyle = '#ef4444';
+      }
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+
+    // 绘制检测材料棒
+    function drawMaterialSlot(cx, cy, mat) {
+      ctx.clearRect(cx - 35, cy - 16, 70, 32);
+
+      // 插槽接头
+      ctx.fillStyle = '#e2e8f0';
+      ctx.beginPath();
+      ctx.arc(cx - 24, cy, 4, 0, Math.PI * 2);
+      ctx.arc(cx + 24, cy, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 材料条
+      ctx.beginPath();
+      ctx.roundRect(cx - 24, cy - 5, 48, 10, 3);
+      if (mat.isConductor) {
+        ctx.fillStyle = '#f59e0b'; // 铜/金属色
+        ctx.strokeStyle = '#fbbf24';
+      } else {
+        ctx.fillStyle = '#64748b'; // 塑料绝缘色
+        ctx.strokeStyle = '#94a3b8';
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(mat.name.slice(0, 3), cx, cy - 8);
+    }
+
+    draw();
+  </script>
+</body>
+</html>

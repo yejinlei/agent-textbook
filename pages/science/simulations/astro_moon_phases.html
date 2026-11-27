@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学探究微仿真：月相成因与地月空间联动（六年级下册·宇宙）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #38bdf8;
+      --accent: #f59e0b;
+      --moon-bright: #f8fafc;
+      --moon-dark: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    
+    .dual-views {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .dual-views { grid-template-columns: 1fr; }
+    }
+    .view-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .view-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 380px;
+      background: radial-gradient(circle at center, #111a2d 0%, #050811 100%);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #1a273f;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .bottom-controls {
+      max-width: 1200px;
+      margin: 16px auto 0 auto;
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    input[type="range"] {
+      flex: 1;
+      height: 6px;
+      background: #334155;
+      border-radius: 3px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .phase-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 8px;
+    }
+    button {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    button:hover { background: #334155; }
+    button.active {
+      background: var(--accent);
+      color: #0b0f19;
+      border-color: var(--accent);
+    }
+    
+    .moon-info {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      background: rgba(19, 28, 46, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>🌔 月相成因与地月日空间联动透视（六年级下册·宇宙）</h1>
+    <span class="badge">太空俯视 vs 地面仰望 双视角联动</span>
+  </header>
+
+  <div class="dual-views">
+    <!-- 视角 1：太空俯视角 -->
+    <div class="view-card">
+      <div class="view-title">
+        <span>🚀 视角一：太空俯视视角（太阳光自右向左平行射来）</span>
+        <span style="font-size: 12px; color: var(--muted);">公转方向：逆时针 ↺</span>
+      </div>
+      <div class="canvas-box" id="orbitContainer">
+        <canvas id="orbitCanvas"></canvas>
+      </div>
+    </div>
+
+    <!-- 视角 2：地球视角仰望月相 -->
+    <div class="view-card">
+      <div class="view-title">
+        <span>👀 视角二：地球观察者仰望星空所见月相</span>
+        <span id="currentPhaseName" style="color: var(--accent); font-weight: bold;">满月 (望)</span>
+      </div>
+      <div class="canvas-box" id="viewContainer">
+        <canvas id="viewCanvas"></canvas>
+        <div class="moon-info">
+          <div><strong>农历日期</strong>：<span id="lunarDate" style="color: var(--accent);">农历十五 / 十六</span></div>
+          <div><strong>月出月落</strong>：<span id="moonTime" style="color: var(--primary);">清晨月落，黄昏升起，整夜可见</span></div>
+          <div style="font-size: 12px; color: var(--muted); margin-top: 4px;" id="phaseDesc">此时月球位于地球背面，朝向地球的半球完全被阳光照亮。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 下方快捷控制器 -->
+  <div class="bottom-controls">
+    <div class="slider-row">
+      <span style="font-size: 13px; font-weight: bold; width: 100px;">月球公转角度:</span>
+      <input type="range" id="angleSlider" min="0" max="360" value="180" step="1">
+      <span id="angleText" style="font-family: monospace; width: 50px; color: var(--accent); font-weight: bold;">180°</span>
+    </div>
+
+    <div class="phase-buttons">
+      <button data-angle="0">🌑 新月 (初一)</button>
+      <button data-angle="45">🌒 蛾眉月 (初三四)</button>
+      <button data-angle="90">🌓 上弦月 (初七八)</button>
+      <button data-angle="135">🌔 凸月 (十一二)</button>
+      <button data-angle="180" class="active">🌕 满月 (十五六)</button>
+      <button data-angle="225">🌖 凸月 (十八九)</button>
+      <button data-angle="270">🌗 下弦月 (廿二三)</button>
+      <button data-angle="315">🌘 残月 (廿七八)</button>
+    </div>
+  </div>
+
+  <script>
+    const orbitCanvas = document.getElementById('orbitCanvas');
+    const orbitCtx = orbitCanvas.getContext('2d');
+    const orbitContainer = document.getElementById('orbitContainer');
+
+    const viewCanvas = document.getElementById('viewCanvas');
+    const viewCtx = viewCanvas.getContext('2d');
+    const viewContainer = document.getElementById('viewContainer');
+
+    const angleSlider = document.getElementById('angleSlider');
+    const angleText = document.getElementById('angleText');
+    const currentPhaseName = document.getElementById('currentPhaseName');
+    const lunarDate = document.getElementById('lunarDate');
+    const moonTime = document.getElementById('moonTime');
+    const phaseDesc = document.getElementById('phaseDesc');
+
+    let currentAngle = 180; // 0: 新月, 90: 上弦月, 180: 满月, 270: 下弦月
+
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      const r1 = orbitContainer.getBoundingClientRect();
+      orbitCanvas.width = r1.width * dpr;
+      orbitCanvas.height = r1.height * dpr;
+      orbitCtx.scale(dpr, dpr);
+
+      const r2 = viewContainer.getBoundingClientRect();
+      viewCanvas.width = r2.width * dpr;
+      viewCanvas.height = r2.height * dpr;
+      viewCtx.scale(dpr, dpr);
+
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    // 月相详细数据字典
+    const PHASES = [
+      { name: "新月 (朔)", angle: 0, date: "农历初一", time: "与太阳同升同落，整夜不可见", desc: "月球位于太阳和地球之间，暗面朝向地球，天空看不到月亮。" },
+      { name: "蛾眉月", angle: 45, date: "农历初三 ~ 初四", time: "黄昏出现在西方低空，几小时后落下", desc: "月球朝向地球的一小部分被照亮，呈向右凸的月牙状。" },
+      { name: "上弦月", angle: 90, date: "农历初七 ~ 初八", time: "正午升起，半夜在西方落下", desc: "半个亮面朝向地球，亮面朝西（西半边亮，半圆上半截）。" },
+      { name: "凸月", angle: 135, date: "农历十一 ~ 十二", time: "午后升起，黎明前在西方落下", desc: "大半个亮面朝向地球，仅剩一小部分处于阴影中。" },
+      { name: "满月 (望)", angle: 180, date: "农历十五 ~ 十六", time: "黄昏升起，清晨落下，通宵可见", desc: "地球位于太阳和月球之间，朝向地球的半球面完全被阳光照亮！" },
+      { name: "凸月", angle: 225, date: "农历十八 ~ 十九", time: "晚间升起，清晨在西南天边", desc: "满月过后，东半边仍然大面积照亮，西边开始变亏。" },
+      { name: "下弦月", angle: 270, date: "农历廿二 ~ 廿三", time: "半夜升起，正午在西方落下", desc: "亮面朝东（东半边亮），半夜才从东方升起。" },
+      { name: "残月", angle: 315, date: "农历廿七 ~ 廿八", time: "黎明前升起在东方晨曦中", desc: "月相如细细的月牙，向左弯曲，亮面朝向东方。" }
+    ];
+
+    function updatePhaseInfo(deg) {
+      // 寻找最近的相位描述
+      let closest = PHASES[0];
+      let minDiff = 999;
+      PHASES.forEach(p => {
+        let diff = Math.abs(p.angle - deg);
+        if (diff > 180) diff = 360 - diff;
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = p;
+        }
+      });
+
+      currentPhaseName.textContent = closest.name;
+      lunarDate.textContent = closest.date;
+      moonTime.textContent = closest.time;
+      phaseDesc.textContent = closest.desc;
+    }
+
+    angleSlider.addEventListener('input', (e) => {
+      currentAngle = parseFloat(e.target.value);
+      angleText.textContent = currentAngle + '°';
+      updateButtons(currentAngle);
+      updatePhaseInfo(currentAngle);
+      draw();
+    });
+
+    document.querySelectorAll('.phase-buttons button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ang = parseFloat(btn.dataset.angle);
+        currentAngle = ang;
+        angleSlider.value = ang;
+        angleText.textContent = ang + '°';
+        updateButtons(ang);
+        updatePhaseInfo(ang);
+        draw();
+      });
+    });
+
+    function updateButtons(deg) {
+      document.querySelectorAll('.phase-buttons button').forEach(btn => {
+        const ang = parseFloat(btn.dataset.angle);
+        btn.classList.toggle('active', Math.abs(ang - deg) < 15);
+      });
+    }
+
+    // 绘制太空俯视图
+    function drawOrbitView() {
+      const rect = orbitContainer.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2 - 20;
+      const cy = h / 2;
+      const orbitRadius = Math.min(w, h) * 0.35;
+
+      orbitCtx.clearRect(0, 0, w, h);
+
+      // 1. 太阳平行光线 (右侧向左照来)
+      orbitCtx.strokeStyle = 'rgba(251, 191, 36, 0.25)';
+      orbitCtx.lineWidth = 1.5;
+      for (let y = 30; y < h; y += 30) {
+        orbitCtx.beginPath();
+        orbitCtx.moveTo(w - 10, y);
+        orbitCtx.lineTo(cx + orbitRadius + 30, y);
+        orbitCtx.stroke();
+      }
+      // 太阳文字提示
+      orbitCtx.fillStyle = '#f59e0b';
+      orbitCtx.font = 'bold 12px sans-serif';
+      orbitCtx.fillText('☀️ 太阳平行光线 (右侧射来) ➔', w - 180, 24);
+
+      // 2. 绘制公转圆形轨道虚线
+      orbitCtx.beginPath();
+      orbitCtx.arc(cx, cy, orbitRadius, 0, Math.PI * 2);
+      orbitCtx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+      orbitCtx.lineWidth = 1.5;
+      orbitCtx.setLineDash([4, 4]);
+      orbitCtx.stroke();
+      orbitCtx.setLineDash([]);
+
+      // 3. 绘制中心地球
+      const earthRadius = 26;
+      // 地球背阳暗半球 (左侧)
+      orbitCtx.beginPath();
+      orbitCtx.arc(cx, cy, earthRadius, Math.PI * 0.5, Math.PI * 1.5);
+      orbitCtx.fillStyle = '#0f172a';
+      orbitCtx.fill();
+      // 地球向阳亮半球 (右侧)
+      orbitCtx.beginPath();
+      orbitCtx.arc(cx, cy, earthRadius, Math.PI * 1.5, Math.PI * 0.5);
+      orbitCtx.fillStyle = '#38bdf8';
+      orbitCtx.fill();
+      orbitCtx.strokeStyle = '#60a5fa';
+      orbitCtx.lineWidth = 2;
+      orbitCtx.beginPath();
+      orbitCtx.arc(cx, cy, earthRadius, 0, Math.PI * 2);
+      orbitCtx.stroke();
+
+      orbitCtx.fillStyle = '#ffffff';
+      orbitCtx.font = 'bold 11px sans-serif';
+      orbitCtx.textAlign = 'center';
+      orbitCtx.fillText('地球', cx, cy + 4);
+
+      // 4. 计算当前月球位置 (逆时针旋转：0°在右侧日地之间)
+      const rad = (currentAngle * Math.PI) / 180;
+      // 0度在右边（正对太阳），逆时针旋转：x = cx + R*cos(rad), y = cy - R*sin(rad)
+      const moonX = cx + orbitRadius * Math.cos(rad);
+      const moonY = cy - orbitRadius * Math.sin(rad);
+
+      // 地球到月球的视线
+      orbitCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      orbitCtx.lineWidth = 1;
+      orbitCtx.beginPath();
+      orbitCtx.moveTo(cx, cy);
+      orbitCtx.lineTo(moonX, moonY);
+      orbitCtx.stroke();
+
+      // 绘制月球 (太空视角下：右半边永远亮，左半边永远暗！)
+      const moonRadius = 14;
+      // 月球向阳右侧亮面
+      orbitCtx.beginPath();
+      orbitCtx.arc(moonX, moonY, moonRadius, Math.PI * 1.5, Math.PI * 0.5);
+      orbitCtx.fillStyle = '#f8fafc';
+      orbitCtx.fill();
+      // 月球背阳左侧暗面
+      orbitCtx.beginPath();
+      orbitCtx.arc(moonX, moonY, moonRadius, Math.PI * 0.5, Math.PI * 1.5);
+      orbitCtx.fillStyle = '#334155';
+      orbitCtx.fill();
+      orbitCtx.strokeStyle = '#94a3b8';
+      orbitCtx.lineWidth = 1;
+      orbitCtx.beginPath();
+      orbitCtx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+      orbitCtx.stroke();
+
+      // 标注文字
+      orbitCtx.fillStyle = '#fde047';
+      orbitCtx.font = '11px sans-serif';
+      orbitCtx.fillText('月球', moonX, moonY - 18);
+    }
+
+    // 绘制地球视角所见月相
+    function drawEarthView() {
+      const rect = viewContainer.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h / 2 - 30;
+      const r = 70; // 月球视觉大半径
+
+      viewCtx.clearRect(0, 0, w, h);
+
+      // 绘制暗夜背景球
+      viewCtx.beginPath();
+      viewCtx.arc(cx, cy, r, 0, Math.PI * 2);
+      viewCtx.fillStyle = '#1e293b';
+      viewCtx.fill();
+      viewCtx.strokeStyle = '#334155';
+      viewCtx.lineWidth = 2;
+      viewCtx.stroke();
+
+      // 根据角度计算照亮相貌 (亮面占比与半圆投影)
+      // currentAngle: 0 = 全黑新月, 180 = 全亮满月, 90 = 上半月亮右边, 270 = 下半月亮左边
+      const phase = (currentAngle % 360) / 360;
+
+      viewCtx.save();
+      viewCtx.beginPath();
+      viewCtx.arc(cx, cy, r, 0, Math.PI * 2);
+      viewCtx.clip();
+
+      viewCtx.fillStyle = '#fef08a'; // 月球明亮黄白色
+
+      if (currentAngle <= 180) {
+        // 0 ~ 180度：亮右侧 (上弦月方向)
+        viewCtx.beginPath();
+        viewCtx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false);
+        const k = Math.cos((currentAngle * Math.PI) / 180);
+        // 内椭圆边界
+        viewCtx.ellipse(cx, cy, Math.abs(k) * r, r, 0, Math.PI / 2, -Math.PI / 2, k > 0);
+        viewCtx.fill();
+      } else {
+        // 180 ~ 360度：亮左侧 (下弦月方向)
+        viewCtx.beginPath();
+        viewCtx.arc(cx, cy, r, Math.PI / 2, -Math.PI / 2, false);
+        const k = Math.cos((currentAngle * Math.PI) / 180);
+        viewCtx.ellipse(cx, cy, Math.abs(k) * r, r, 0, -Math.PI / 2, Math.PI / 2, k < 0);
+        viewCtx.fill();
+      }
+
+      viewCtx.restore();
+
+      // 绘制月海纹理细节 (增加拟真质感)
+      viewCtx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+      viewCtx.beginPath();
+      viewCtx.arc(cx - 15, cy - 20, 18, 0, Math.PI * 2);
+      viewCtx.arc(cx + 25, cy + 10, 14, 0, Math.PI * 2);
+      viewCtx.arc(cx - 8, cy + 25, 22, 0, Math.PI * 2);
+      viewCtx.fill();
+    }
+
+    function draw() {
+      drawOrbitView();
+      drawEarthView();
+    }
+
+    resize();
+    updatePhaseInfo(currentAngle);
+  </script>
+</body>
+</html>

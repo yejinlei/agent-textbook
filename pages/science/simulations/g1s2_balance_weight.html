@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学深度微仿真：简易天平与谁轻谁重（一年级下册·身边的物体）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #38bdf8;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 420px;
+      background: radial-gradient(circle at center, #111a2d 0%, #050811 100%);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #1a273f;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .items-shelf {
+      margin-top: 12px;
+      background: #101624;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .shelf-title {
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .shelf-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .item-chip {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      padding: 8px 4px;
+      border-radius: 6px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.15s;
+    }
+    .item-chip:hover {
+      border-color: var(--primary);
+      background: rgba(56, 189, 248, 0.15);
+    }
+    .controls { display: flex; flex-direction: column; gap: 14px; }
+    .control-group {
+      background: #101624;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #233147;
+    }
+    button {
+      width: 100%;
+      background: #334155;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: #475569; }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>⚖️ 简易天平与谁轻谁重（一年级下册·身边的物体）</h1>
+    <span class="badge">等量替换 · 测量单位起源</span>
+  </header>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="canvas-box" id="container">
+        <canvas id="balanceCanvas"></canvas>
+      </div>
+      
+      <!-- 实验器材货架 -->
+      <div class="items-shelf">
+        <div class="shelf-title">📦 点击放入托盘的物体 (每种有不同标准质量)：</div>
+        <div class="shelf-grid">
+          <div class="item-chip" data-name="回形针" data-mass="1" data-color="#cbd5e1">📎 回形针<br><strong style="color:var(--accent);">1g</strong></div>
+          <div class="item-chip" data-name="乒乓球" data-mass="3" data-color="#f59e0b">🏓 乒乓球<br><strong style="color:var(--accent);">3g</strong></div>
+          <div class="item-chip" data-name="小木块" data-mass="15" data-color="#b45309">🪵 小木块<br><strong style="color:var(--accent);">15g</strong></div>
+          <div class="item-chip" data-name="橡皮擦" data-mass="25" data-color="#ec4899">🧼 橡皮擦<br><strong style="color:var(--accent);">25g</strong></div>
+          <div class="item-chip" data-name="小铁块" data-mass="50" data-color="#64748b">🔩 小铁块<br><strong style="color:var(--accent);">50g</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ 托盘质量与平衡状态</h2>
+      
+      <div class="controls">
+        <div class="control-group">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span>🔴 左托盘总质量:</span>
+            <span id="leftMass" style="color: #f87171; font-weight: bold; font-family: monospace; font-size: 1.1rem;">0 g</span>
+          </div>
+          <div style="font-size: 12px; color: var(--muted);" id="leftItems">托盘为空</div>
+          <button id="btnClearLeft" style="margin-top: 8px; padding: 6px; font-size: 11px;">清空左盘</button>
+        </div>
+
+        <div class="control-group">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span>🔵 右托盘总质量:</span>
+            <span id="rightMass" style="color: #60a5fa; font-weight: bold; font-family: monospace; font-size: 1.1rem;">0 g</span>
+          </div>
+          <div style="font-size: 12px; color: var(--muted);" id="rightItems">托盘为空</div>
+          <button id="btnClearRight" style="margin-top: 8px; padding: 6px; font-size: 11px;">清空右盘</button>
+        </div>
+
+        <button id="btnClearAll" style="background: #2563eb;">↺ 全部重置清空</button>
+
+        <div style="font-size: 12px; color: var(--muted); line-height: 1.6; background: #101624; padding: 10px; border-radius: 6px; border-left: 3px solid var(--primary); margin-top: 10px;">
+          📖 <strong>科学测量大概念拓展</strong>：
+          - <strong>感官猜想不可靠</strong>：光用手掂一掂（感官）常常有误差；天平利用<strong>杠杆平衡</strong>提供了客观的标准实证；
+          - <strong>等量替换思想</strong>：当 1 个橡皮擦刚好与 25 个回形针平衡时，我们就可以用“回形针”作为<strong>统一的标准质量单位</strong>来度量世界上所有的物体！
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('balanceCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    let leftList = [];
+    let rightList = [];
+    let targetTarget = 'left'; // 当前点击目标盘：默认先往左盘放，再往右盘放
+
+    // 纯代码 Web Audio 合成器
+    const Sound = {
+      ctx: null,
+      init() {
+        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+      },
+      ding() {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.35);
+      },
+      clack() {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      }
+    };
+    window.addEventListener('click', () => Sound.init(), { once: true });
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    const leftMassEl = document.getElementById('leftMass');
+    const rightMassEl = document.getElementById('rightMass');
+    const leftItemsEl = document.getElementById('leftItems');
+    const rightItemsEl = document.getElementById('rightItems');
+
+    // 点击货架物品放入托盘
+    document.querySelectorAll('.item-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        Sound.init();
+        Sound.clack();
+        const name = chip.dataset.name;
+        const mass = parseInt(chip.dataset.mass);
+        const color = chip.dataset.color;
+
+        // 如果左盘为空或数量少，先放左盘；否则放右盘测试平衡
+        if (leftList.length === 0 || (leftList.length > 0 && rightList.length === 0)) {
+          if (leftList.length === 0) leftList.push({ name, mass, color });
+          else rightList.push({ name, mass, color });
+        } else {
+          // 交替放入
+          rightList.push({ name, mass, color });
+        }
+        updateUI();
+        draw();
+      });
+    });
+
+    document.getElementById('btnClearLeft').addEventListener('click', () => { leftList = []; updateUI(); draw(); });
+    document.getElementById('btnClearRight').addEventListener('click', () => { rightList = []; updateUI(); draw(); });
+    document.getElementById('btnClearAll').addEventListener('click', () => { leftList = []; rightList = []; updateUI(); draw(); });
+
+    function getSum(list) {
+      return list.reduce((acc, cur) => acc + cur.mass, 0);
+    }
+
+    let lastBalanced = false;
+
+    function updateUI() {
+      const lSum = getSum(leftList);
+      const rSum = getSum(rightList);
+
+      leftMassEl.textContent = lSum + ' g';
+      rightMassEl.textContent = rSum + ' g';
+
+      leftItemsEl.textContent = leftList.length > 0 ? leftList.map(i => i.name).join(' + ') : '托盘为空';
+      rightItemsEl.textContent = rightList.length > 0 ? rightList.map(i => i.name).join(' + ') : '托盘为空';
+
+      if (lSum > 0 && lSum === rSum && !lastBalanced) {
+        Sound.ding();
+        lastBalanced = true;
+      } else if (lSum !== rSum) {
+        lastBalanced = false;
+      }
+    }
+
+    let curTilt = 0;
+
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h * 0.45;
+
+      const lSum = getSum(leftList);
+      const rSum = getSum(rightList);
+
+      // 倾角物理计算 (最大 ±15 度)
+      const diff = rSum - lSum;
+      const maxTilt = 15 * Math.PI / 180;
+      let targetTilt = 0;
+      if (diff > 0) targetTilt = Math.min(maxTilt, (diff / 25) * maxTilt);
+      else if (diff < 0) targetTilt = Math.max(-maxTilt, (diff / 25) * maxTilt);
+
+      curTilt += (targetTilt - curTilt) * 0.1;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 1. 底座与立柱
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(cx - 10, cy - 20, 20, 160);
+      ctx.fillRect(cx - 70, cy + 140, 140, 14);
+
+      // 2. 指针与分度盘 (居中竖直)
+      ctx.strokeStyle = '#94a3b8';
+      ctx.beginPath();
+      ctx.arc(cx, cy - 20, 35, Math.PI * 0.75, Math.PI * 0.25, true);
+      ctx.stroke();
+
+      // 指针随横梁倾斜
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(curTilt);
+
+      // 指针向下指
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, 60);
+      ctx.stroke();
+
+      // 3. 杠杆横梁
+      const beamLen = Math.min(w * 0.75, 420);
+      const halfB = beamLen / 2;
+
+      ctx.fillStyle = '#fde68a';
+      ctx.strokeStyle = '#b45309';
+      ctx.lineWidth = 2;
+      ctx.fillRect(-halfB, -6, beamLen, 12);
+      ctx.strokeRect(-halfB, -6, beamLen, 12);
+
+      // 支点中心圆盘
+      ctx.beginPath();
+      ctx.arc(0, 0, 7, 0, Math.PI * 2);
+      ctx.fillStyle = '#0f172a';
+      ctx.fill();
+
+      // 左右吊线与托盘 (保持水平自然垂直)
+      ctx.restore();
+
+      // 计算托盘吊点实际坐标
+      const leftHookX = cx - halfB * Math.cos(curTilt);
+      const leftHookY = cy - halfB * Math.sin(curTilt);
+      const rightHookX = cx + halfB * Math.cos(curTilt);
+      const rightHookY = cy + halfB * Math.sin(curTilt);
+
+      // 左托盘
+      drawPan(leftHookX, leftHookY, leftList, '#f87171');
+      // 右托盘
+      drawPan(rightHookX, rightHookY, rightList, '#60a5fa');
+
+      requestAnimationFrame(draw);
+    }
+
+    function drawPan(hx, hy, items, color) {
+      const panW = 70;
+      const panY = hy + 70;
+
+      // 吊绳
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(hx, hy);
+      ctx.lineTo(hx - panW/2, panY);
+      ctx.moveTo(hx, hy);
+      ctx.lineTo(hx + panW/2, panY);
+      ctx.stroke();
+
+      // 托盘圆弧底
+      ctx.fillStyle = '#334155';
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(hx, panY, panW/2, 0, Math.PI);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // 盘内堆叠的物品方块
+      items.forEach((item, idx) => {
+        const itemY = panY - 8 - idx * 10;
+        ctx.fillStyle = item.color;
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.fillRect(hx - 14, itemY, 28, 8);
+        ctx.strokeRect(hx - 14, itemY, 28, 8);
+      });
+    }
+
+    resize();
+    updateUI();
+  </script>
+</body>
+</html>

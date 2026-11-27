@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【4. 多种多样的动物】真实验微仿真 - 六年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 4. 多种多样的动物</h1>
+        <span class="badge">六年级上册·第二单元《生物的多样性》</span>
+        <a href="biodiversity_genetics_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 生物多样性二歧分类与相貌遗传沙盒 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g12_s2_u02_l01.html" class="">校园生物大搜索</a>
+<a href="sim_g12_s2_u02_l02.html" class="">制作校园生物分布图</a>
+<a href="sim_g12_s2_u02_l03.html" class="">形形色色的植物</a>
+<a href="sim_g12_s2_u02_l04.html" class="active">多种多样的动物</a>
+<a href="sim_g12_s2_u02_l05.html" class="">相貌各异的我们</a>
+<a href="sim_g12_s2_u02_l06.html" class="">古代生物的多样性</a>
+<a href="sim_g12_s2_u02_l07.html" class="">保护生物多样性</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时科学数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：系统探索校园生物样方调查、动植物分类体系、相貌外貌性状组合与古生物化石演化树。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "animal_classification";
+
+        
+const state = {
+    hasEarlobe: true, // 有耳垂 / 无耳垂
+    doubleEyelid: true, // 双眼皮 / 单眼皮
+    hairType: 'straight', // straight / curly
+    dimple: true, // 有酒窝 / 无酒窝
+    fossilEra: 'mesozoic' // paleozoic(古生代三叶虫), mesozoic(中生代恐龙), cenozoic(新生代猛犸象)
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'human_traits_combination') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>人类外貌遗传性状组合编码</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.hasEarlobe?'btn-primary':'btn-green'}" id="btnEarlobe">${state.hasEarlobe?'👂 有游离耳垂':'👂 无耳垂紧贴'}</button>
+                    <button class="btn ${state.doubleEyelid?'btn-primary':'btn-green'}" id="btnEyelid">${state.doubleEyelid?'👀 双眼皮':'👀 单眼皮'}</button>
+                    <button class="btn ${state.hairType==='straight'?'btn-primary':'btn-green'}" id="btnHair">${state.hairType==='straight'?'💇 直发':'🧑‍卷发'}</button>
+                    <button class="btn ${state.dimple?'btn-primary':'btn-green'}" id="btnDimple">${state.dimple?'😊 有酒窝':'😐 无酒窝'}</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'fossil_evolution_tree') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>地质地层与古生物化石断代</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.fossilEra==='paleozoic'?'btn-primary':''}" id="btnPaleo">古生代 (三叶虫/泥盆纪鱼类)</button>
+                    <button class="btn ${state.fossilEra==='mesozoic'?'btn-green':''}" id="btnMeso">中生代 (侏罗纪恐龙/始祖鸟)</button>
+                    <button class="btn ${state.fossilEra==='cenozoic'?'btn-rose':''}" id="btnCeno">新生代 (猛犸象/灵长类古猿)</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>生物分类与多样性图谱</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnVert">脊椎动物 (鱼/鸟/哺乳)</button>
+                    <button class="btn btn-green" id="btnInvert">无脊椎动物 (昆虫/软体)</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU2Events();
+}
+
+function bindU2Events() {
+    const btnEarlobe = document.getElementById('btnEarlobe');
+    if (btnEarlobe) btnEarlobe.onclick = () => { state.hasEarlobe = !state.hasEarlobe; setupControls(); playTone(600, 0.1); };
+    const btnEyelid = document.getElementById('btnEyelid');
+    if (btnEyelid) btnEyelid.onclick = () => { state.doubleEyelid = !state.doubleEyelid; setupControls(); playTone(650, 0.1); };
+    const btnHair = document.getElementById('btnHair');
+    if (btnHair) btnHair.onclick = () => { state.hairType = state.hairType === 'straight' ? 'curly' : 'straight'; setupControls(); playTone(700, 0.1); };
+    const btnDimple = document.getElementById('btnDimple');
+    if (btnDimple) btnDimple.onclick = () => { state.dimple = !state.dimple; setupControls(); playTone(750, 0.1); };
+
+    const btnPaleo = document.getElementById('btnPaleo');
+    if (btnPaleo) btnPaleo.onclick = () => { state.fossilEra = 'paleozoic'; setupControls(); playTone(400, 0.1); };
+    const btnMeso = document.getElementById('btnMeso');
+    if (btnMeso) btnMeso.onclick = () => { state.fossilEra = 'mesozoic'; setupControls(); playTone(600, 0.1); };
+    const btnCeno = document.getElementById('btnCeno');
+    if (btnCeno) btnCeno.onclick = () => { state.fossilEra = 'cenozoic'; setupControls(); playTone(800, 0.1); };
+
+    const btnVert = document.getElementById('btnVert');
+    if (btnVert) btnVert.onclick = () => { playTone(600, 0.1); };
+    const btnInvert = document.getElementById('btnInvert');
+    if (btnInvert) btnInvert.onclick = () => { playTone(700, 0.1); };
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'human_traits_combination') {
+        drawHumanTraits();
+    } else if (activeMode === 'fossil_evolution_tree') {
+        drawFossilTimeline();
+    } else if (activeMode === 'biodiversity_census') {
+        drawBiodiversityCensus();
+    } else if (activeMode === 'species_mapping') {
+        drawBiodiversityMapping();
+    } else if (activeMode === 'plant_classification') {
+        drawPlantClassification();
+    } else if (activeMode === 'animal_classification') {
+        drawAnimalClassification();
+    } else if (activeMode === 'conservation_redline') {
+        drawConservationRedline();
+    } else {
+        drawBiodiversityMapping();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+
+function drawBiodiversityCensus() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🔍 校园生物大搜索: 1平方米样方调查法与物种丰富度统计', cx, 40);
+
+    // 1m2 Quadrant box
+    ctx.fillStyle = '#15803d'; ctx.fillRect(160, 90, 400, 240);
+    ctx.strokeStyle = '#facc15'; ctx.lineWidth = 4; ctx.strokeRect(160, 90, 400, 240);
+
+    // Species found inside quadrant
+    const found = [
+        { n: '🌿 车前草 (12株)', x: 220, y: 140 },
+        { n: '🐜 黑蚂蚁 (35只)', x: 420, y: 150 },
+        { n: '🪱 蚯蚓 (2条)', x: 260, y: 250 },
+        { n: '🍄 苔藓小地皮', x: 440, y: 260 }
+    ];
+
+    found.forEach(item => {
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath(); ctx.roundRect(item.x - 50, item.y - 18, 120, 36, 6); ctx.fill();
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(item.n, item.x + 10, item.y + 5);
+    });
+
+    ctx.fillStyle = '#f8fafc'; ctx.font = '13px sans-serif';
+    ctx.fillText('调查规范: 样方内不可随意拔除生物，仔细清点动植物种类与数量并详细记录', cx, 385);
+}
+
+function drawPlantClassification() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌿 形形色色的植物: 二歧分类法检索表 (木本vs草本 / 开花被子vs不开花裸子)', cx, 40);
+
+    const categories = [
+        { t: '1. 木本开花植物', d: '樟树、桃树、银杏\n有坚硬木质茎·种子繁殖', c: '#10b981', x: 80 },
+        { t: '2. 草本开花植物', d: '凤仙花、蒲公英、水稻\n茎部柔软富含水分', c: '#38bdf8', x: 280 },
+        { t: '3. 不开花孢子植物', d: '蕨类(肾蕨)、苔藓、海带\n依靠产生微小孢子繁殖', c: '#a855f7', x: 480 }
+    ];
+
+    categories.forEach(cat => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(cat.x, 80, 160, 260);
+        ctx.strokeStyle = cat.c; ctx.lineWidth = 2; ctx.strokeRect(cat.x, 80, 160, 260);
+
+        ctx.fillStyle = cat.c; ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(cat.t, cat.x + 80, 115);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+        const lines = cat.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, cat.x + 80, 165 + i * 26));
+
+        ctx.fillStyle = '#334155'; ctx.fillRect(cat.x + 10, 280, 140, 36);
+        ctx.fillStyle = cat.c; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('植物分类检索', cat.x + 80, 303);
+    });
+}
+
+function drawAnimalClassification() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🐾 多种多样的动物: 脊椎动物五大纲特征 (鸟类/哺乳/鱼类/两栖/爬行)', cx, 40);
+
+    const animals = [
+        { t: '鸟类 (体被羽毛)', d: '卵生·恒温·前肢变成翼', c: '#38bdf8', x: 60 },
+        { t: '哺乳类 (胎生哺乳)', d: '恒温·体表长毛·大脑发达', c: '#f59e0b', x: 195 },
+        { t: '鱼类 (终生水生)', d: '鳃呼吸·鳍游泳·卵生变温', c: '#10b981', x: 330 },
+        { t: '两栖类 (幼体变态)', d: '幼体鳃呼吸·成体肺及皮肤', c: '#a855f7', x: 465 },
+        { t: '爬行类 (体被鳞甲)', d: '卵生陆生·变温·肺呼吸', c: '#f43f5e', x: 600 }
+    ];
+
+    animals.forEach(a => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(a.x - 55, 80, 110, 260);
+        ctx.strokeStyle = a.c; ctx.lineWidth = 2; ctx.strokeRect(a.x - 55, 80, 110, 260);
+
+        ctx.fillStyle = a.c; ctx.font = 'bold 13px sans-serif';
+        ctx.fillText(a.t, a.x, 115);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '11px sans-serif';
+        const lines = a.d.split('·');
+        lines.forEach((l, i) => ctx.fillText(l, a.x, 165 + i * 26));
+    });
+}
+
+function drawConservationRedline() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🛡️ 保护生物多样性: 国家生态红线与濒危物种建立自然保护区', cx, 40);
+
+    const pillars = [
+        { t: '1. 就地保护 (建立保护区)', d: '设立三江源、大熊猫国家公园\n保护完整的天然栖息地与生态链', c: '#10b981', x: 80 },
+        { t: '2. 迁地保护与野化放归', d: '植物园珍稀种质资源库\n朱鹮人工繁育与野外种群重建', c: '#38bdf8', x: 280 },
+        { t: '3. 法律法规与生态红线', d: '《野生动物保护法》严格禁猎\n划定生态红线阻绝非法开发', c: '#f43f5e', x: 480 }
+    ];
+
+    pillars.forEach(p => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(p.x, 80, 160, 260);
+        ctx.strokeStyle = p.c; ctx.lineWidth = 2; ctx.strokeRect(p.x, 80, 160, 260);
+
+        ctx.fillStyle = p.c; ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(p.t, p.x + 80, 115);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+        const lines = p.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, p.x + 80, 165 + i * 26));
+
+        ctx.fillStyle = '#334155'; ctx.fillRect(p.x + 10, 280, 140, 36);
+        ctx.fillStyle = p.c; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('守护生命方舟', p.x + 80, 303);
+    });
+}
+
+function drawHumanTraits() {
+    const cx = 360;
+    const cy = 220;
+
+    // Face Profile
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 100, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eyes (Double vs Single eyelid)
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(cx - 35, cy - 20, 8, 0, Math.PI * 2);
+    ctx.arc(cx + 35, cy - 20, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (state.doubleEyelid) {
+        ctx.strokeStyle = '#92400e';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx - 35, cy - 28, 12, 0.2, Math.PI - 0.2, true);
+        ctx.arc(cx + 35, cy - 28, 12, 0.2, Math.PI - 0.2, true);
+        ctx.stroke();
+    }
+
+    // Earlobes
+    ctx.fillStyle = '#fde047';
+    if (state.hasEarlobe) {
+        ctx.beginPath(); ctx.arc(cx - 105, cy + 15, 14, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + 105, cy + 15, 14, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Smile & Dimples
+    ctx.strokeStyle = '#b45309';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cx, cy + 30, 35, 0.2, Math.PI - 0.2, false);
+    ctx.stroke();
+
+    if (state.dimple) {
+        ctx.fillStyle = '#b45309';
+        ctx.beginPath();
+        ctx.arc(cx - 45, cy + 35, 4, 0, Math.PI * 2);
+        ctx.arc(cx + 45, cy + 35, 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('相貌各异的我们: 4种性状即可组合出 2⁴ = 16 种独一无二的面貌!', cx, 40);
+    ctx.fillStyle = '#10b981';
+    ctx.font = '14px sans-serif';
+    ctx.fillText(`人类数十种性状组合可产生数以亿计的不同相貌，形成生物多样性基础!`, cx, 75);
+}
+
+function drawFossilTimeline() {
+    const cx = 360;
+    // Geological Stratum Layers (地层剖面)
+    const layers = [
+        {name: '新生代地层 (猛犸象/被子植物繁盛)', color: '#ca8a04', y: 140, key: 'cenozoic'},
+        {name: '中生代地层 (恐龙化石/始祖鸟/裸子植物)', color: '#b45309', y: 220, key: 'mesozoic'},
+        {name: '古生代地层 (三叶虫/海百合/泥盆纪鱼类)', color: '#451a03', y: 300, key: 'paleozoic'}
+    ];
+
+    layers.forEach(l => {
+        ctx.fillStyle = l.color;
+        ctx.fillRect(80, l.y, 560, 75);
+        ctx.strokeStyle = l.key === state.fossilEra ? '#fef08a' : '#1e293b';
+        ctx.lineWidth = l.key === state.fossilEra ? 4 : 1;
+        ctx.strokeRect(80, l.y, 560, 75);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(l.name, 100, l.y + 45);
+    });
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('古生物化石地层断代与演化史: 越古老的地层中化石生物结构越简单低等', cx, 40);
+}
+
+function drawBiodiversityMapping() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('校园样方生物调查与生物分类检索树 (脊椎 vs 无脊椎)', cx, 40);
+
+    // Quad tree box
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cx - 200, 120, 400, 220);
+
+    ctx.fillStyle = '#10b981';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('🐦 鸟类 (麻雀、喜鹊)', cx - 120, 180);
+    ctx.fillText('🐜 节肢动物 (蚂蚁、瓢虫)', cx + 80, 180);
+    ctx.fillText('🌿 被子植物 (樟树、桂花)', cx - 120, 260);
+    ctx.fillText('🌱 苔藓蕨类 (地钱、肾蕨)', cx + 80, 260);
+}
+
+        
+function updateTelemetry() {
+    let txt = `[生命多样性数据就绪] 模式: ${activeMode} | `;
+    if (activeMode === 'human_traits_combination') {
+        txt += `耳垂: ${state.hasEarlobe?'有':'无'} | 眼皮: ${state.doubleEyelid?'双':'单'} | 酒窝: ${state.dimple?'有':'无'}`;
+    } else {
+        txt += `化石地质年代: ${state.fossilEra} | 亲缘演化图谱: 正常`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

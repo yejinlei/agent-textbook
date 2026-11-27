@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【种子的传播】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(16, 185, 129, 0.15); color: var(--green); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(16, 185, 129, 0.08);
+            border-left: 3px solid var(--green);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--green); cursor: pointer; }
+        .btn {
+            background: var(--green);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--green);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 种子的传播 <span class="badge">四年级下册 · 植物的生长变化</span></h2>
+            <p>教科版科学原书植物生长实验真拟真 · 拒绝伪仿真</p>
+        </div>
+        <a href="virtual_microscope.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 植物器官解剖与维管束实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生植物解剖与生长物理引擎</span>
+                <span>🎧 Web Audio 拟真音效</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：四大种子传播方式大闯关：点击轻触成熟凤仙花果荚观察瞬间弹裂爆飞（弹射传播）；体验蒲公英风力滑翔、苍耳倒钩粘动物皮毛与椰子漂水！</div>
+            
+        <div class="c-group">
+            <button class="btn" id="btnBurst">💥 1. 轻触成熟凤仙花果荚 (弹力弹射)</button>
+            <button class="btn btn-sec" id="btnDandelion">🌬️ 2. 蒲公英冠毛 (风力传播)</button>
+            <button class="btn btn-sec" id="btnBurdock">🐕 3. 苍耳倒钩 (动物皮毛携带)</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [传播模式] 请选择一种传播机制进行实证交互！<br>
+            [生物适应] 果实种子的结构特点完全适应其专属传播媒介！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.2, vol=0.1) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        
+        let mode = 'balsam';
+        let seedsFlying = [];
+        const telem = document.getElementById('telem');
+
+        document.getElementById('btnBurst').addEventListener('click', () => {
+            mode = 'balsam';
+            playTone(200, 'square', 0.1, 0.2);
+            seedsFlying = [];
+            for(let i=0; i<25; i++) {
+                seedsFlying.push({
+                    x: canvas.width/2, y: 200,
+                    vx: (Math.random()-0.5)*14, vy: -Math.random()*12,
+                    col: '#1c1917', r: 5
+                });
+            }
+            telem.innerHTML = '💥 [弹力传播] 成熟凤仙花果荚受外力轻碰，果皮瞬间卷曲弹裂，将种子高速弹射至数米之外！';
+        });
+        document.getElementById('btnDandelion').addEventListener('click', () => {
+            mode = 'dandelion';
+            playTone(550, 'sine', 0.2);
+            seedsFlying = [];
+            for(let i=0; i<20; i++) {
+                seedsFlying.push({
+                    x: 100, y: 220 + Math.random()*40,
+                    vx: 3 + Math.random()*3, vy: (Math.random()-0.5)*1.5,
+                    col: '#f8fafc', r: 3
+                });
+            }
+            telem.innerHTML = '🌬️ [风力传播] 蒲公英种子带绒毛降落伞冠毛，随微风远距离滑翔飘荡！';
+        });
+        document.getElementById('btnBurdock').addEventListener('click', () => {
+            mode = 'burdock';
+            playTone(330, 'triangle', 0.2);
+            seedsFlying = [];
+            telem.innerHTML = '🐕 [动物传播] 苍耳果实表面密布坚硬倒钩，牢牢钩挂在小狗皮毛或人裤腿上被带向远方！';
+        });
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            if(mode === 'balsam' && seedsFlying.length === 0) {
+                // Balsam pod waiting to burst
+                ctx.fillStyle = '#a16207';
+                ctx.beginPath(); ctx.ellipse(w/2, 200, 45, 18, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.font = '12px sans-serif';
+                ctx.fillText('成熟饱满果荚 (点击按钮轻碰)', w/2 - 70, 250);
+            }
+
+            for(let s of seedsFlying) {
+                s.x += s.vx; s.y += s.vy;
+                if(mode === 'balsam') s.vy += 0.35; // gravity
+                ctx.fillStyle = s.col;
+                ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+            }
+
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

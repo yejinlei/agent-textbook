@@ -1,0 +1,4027 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学全景互动微仿真中心 (260课全量互动实验大厅)</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #151e2e;
+      --card-hover: #1c283d;
+      --border: #233147;
+      --primary: #38bdf8;
+      --primary-hover: #0ea5e9;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --phy: #38bdf8;
+      --bio: #10b981;
+      --earth: #f59e0b;
+      --eng: #a855f7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px 16px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1300px; margin: 0 auto; }
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 { font-size: 2.1rem; color: var(--primary); margin-bottom: 10px; font-weight: 800; letter-spacing: -0.5px; }
+    .subtitle { color: var(--muted); font-size: 1rem; max-width: 800px; margin: 0 auto 16px auto; }
+    .meta-tags { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .meta-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 4px 12px; border-radius: 9999px; font-size: 0.82rem; color: var(--primary);
+    }
+    
+    /* Search & Filter Bar */
+    .filter-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .search-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .search-input {
+      flex: 1;
+      background: #090d16;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .search-input:focus { border-color: var(--primary); }
+    .tab-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: #090d16;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: var(--text); border-color: var(--muted); }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #0b0f19;
+      border-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 28px 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+    }
+    .section-title .count {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: normal;
+    }
+
+    /* Grid Layout */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      background: var(--card-hover);
+      border-color: #3b82f6;
+      box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.4);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .star-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #f59e0b;
+      background: rgba(245, 158, 11, 0.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .grade-tag {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .card h3 {
+      font-size: 1rem;
+      margin-bottom: 6px;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .card p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      line-height: 1.5;
+      flex: 1;
+    }
+    .card p.unit-sub {
+      font-size: 0.78rem;
+      color: #64748b;
+      margin-bottom: 12px;
+    }
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 10px;
+      margin-top: auto;
+    }
+    .file-tag {
+      font-size: 0.72rem;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      color: #64748b;
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn {
+      background: var(--primary);
+      color: #0b0f19;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn:hover {
+      background: var(--primary-hover);
+    }
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      background: #0284c7;
+      color: #f8fafc;
+    }
+    .btn-sm:hover {
+      background: #38bdf8;
+      color: #0b0f19;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>小学科学全景互动微仿真中心</h1>
+      <p class="subtitle">覆盖 1~6 年级 12 册 36 单元全部 260 课 · 纯静态单文件 · 原生 Web Audio 拟真音效 · 零外部网络依赖</p>
+      <div class="meta-tags">
+        <span class="meta-badge">⚡ 260 个专属微仿真</span>
+        <span class="meta-badge">🌟 16 款大师级高精实验室</span>
+        <span class="meta-badge">🎧 100% Web Audio 合成音效</span>
+        <span class="meta-badge">📱 响应式 Canvas 绘图</span>
+        <span class="meta-badge">📦 零依赖脱机运行</span>
+      </div>
+    </header>
+
+    <div class="filter-section">
+      <div class="search-row">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 键入课题名称、单元或科学大概念进行实时过滤搜索（例如：单摆、电路、植物、日食、浮力）...">
+      </div>
+      <div class="tab-row" id="gradeTabs">
+        <button class="tab-btn active" data-filter="all">全部年级 (260+24)</button>
+        <button class="tab-btn" data-filter="master">★ 大师级核心 (24)</button>
+        <button class="tab-btn" data-filter="g1">一年级 (26)</button>
+        <button class="tab-btn" data-filter="g2">二年级 (26)</button>
+        <button class="tab-btn" data-filter="g3">三年级 (48)</button>
+        <button class="tab-btn" data-filter="g4">四年级 (48)</button>
+        <button class="tab-btn" data-filter="g5">五年级 (56)</button>
+        <button class="tab-btn" data-filter="g6">六年级 (56)</button>
+      </div>
+    </div>
+
+    <div id="masterSection">
+      <div class="section-title">
+        <span>🌟 大师级核心高精度物理实验展厅</span>
+        <span class="count">24 款深度物理工程天体生物拟真沙盒</span>
+      </div>
+      <div class="grid" id="masterGrid">
+        
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">力学与计量</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>单摆周期与等时性受控实验</h3>
+      <p>高精度单摆受控实验，探索摆长、摆角与质量对振动周期的影响，带机械钟表滴答声效与实时数据拟合。</p>
+      <div class="card-footer">
+        <span class="file-tag">pendulum_lab.html</span>
+        <a href="pendulum_lab.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁物理</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>闭合回路与电路沙盒</h3>
+      <p>交互式电子回路沙盒，真实模拟电源、开关、灯泡与导线连接，实时计算欧姆定律并可视化自由电子漂移。</p>
+      <div class="card-footer">
+        <span class="file-tag">circuit_sandbox.html</span>
+        <a href="circuit_sandbox.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">波动声学</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>声波与频率示波器</h3>
+      <p>基于原生 Web Audio API 的实时音频信号发生器与正弦波/方波示波器，直观呈现音调、响度与波长关系。</p>
+      <div class="card-footer">
+        <span class="file-tag">acoustics_oscilloscope.html</span>
+        <a href="acoustics_oscilloscope.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">微观化学</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>分子碰撞与化学反应平衡</h3>
+      <p>小苏打与白醋反应微观模拟，动态展示碳酸氢钠与乙酸分子碰撞解离、生成二氧化碳气泡与天平质量守恒。</p>
+      <div class="card-footer">
+        <span class="file-tag">chemistry_reaction_lab.html</span>
+        <a href="chemistry_reaction_lab.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天体引力</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>牛顿大炮与卫星轨道引力场</h3>
+      <p>牛顿高山大炮发射模拟，探索从平抛落体到第一宇宙速度（7.9 km/s）环绕地球及逃逸轨道的连续引力过渡。</p>
+      <div class="card-footer">
+        <span class="file-tag">solar_system_gravity.html</span>
+        <a href="solar_system_gravity.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">空间天文</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>月球公转与月相观测联动</h3>
+      <p>太空俯视公转轨道 vs 地表仰望视差双重视角联动，实时呈现新月、上弦月、满月与下弦月的光影成因。</p>
+      <div class="card-footer">
+        <span class="file-tag">astro_moon_phases.html</span>
+        <a href="astro_moon_phases.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球天文</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>地轴倾角与四季昼夜长短</h3>
+      <p>地轴倾角 23.5° 与太阳直射点南北移动仿真，实时计算南北半球昼夜长短比例与正午太阳高度角投影。</p>
+      <div class="card-footer">
+        <span class="file-tag">earth_sun_seasons.html</span>
+        <a href="earth_sun_seasons.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: #f9731622; color: #f97316; border: 1px solid #f9731644;">热力学</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>金属热传导与温度梯度场</h3>
+      <p>金属棒一端受热沿轴向传导的热量扩散方程仿真，彩色热力云图直观显示温度梯形衰减与火柴融蜡掉落。</p>
+      <div class="card-footer">
+        <span class="file-tag">physics_heat_conduction.html</span>
+        <a href="physics_heat_conduction.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">机械力学</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>杠杆平衡与力矩力臂探究</h3>
+      <p>支点、动力臂与阻力臂力矩平衡（F1·L1 = F2·L2）仿真，自由挂载砝码钩码并实时显示动态平衡偏转角。</p>
+      <div class="card-footer">
+        <span class="file-tag">mechanics_lever.html</span>
+        <a href="mechanics_lever.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁物理</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>磁极相互作用与磁感线铁屑</h3>
+      <p>条形磁铁磁场力线交互仿真，呈现铁屑受力定向排列形成的闭合磁力线，支持异名极相吸与同名极相斥。</p>
+      <div class="card-footer">
+        <span class="file-tag">magnet_field_lab.html</span>
+        <a href="magnet_field_lab.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: #a855f722; color: #a855f7; border: 1px solid #a855f744;">光学物理</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>光的反射定律与潜望镜光路</h3>
+      <p>光线追踪激光物理实验，精准测定入射角与反射角相等（∠i = ∠r），可切换潜望镜双平面镜光路折射。</p>
+      <div class="card-footer">
+        <span class="file-tag">optics_light_lab.html</span>
+        <a href="optics_light_lab.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命微观</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>高倍虚拟光学显微镜</h3>
+      <p>洋葱表皮细胞与水滴微生物虚拟显微切片，支持粗准焦螺旋与细准焦螺旋高斯模糊调焦及物镜倍率切换。</p>
+      <div class="card-footer">
+        <span class="file-tag">virtual_microscope.html</span>
+        <a href="virtual_microscope.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: var(--eng)22; color: var(--eng); border: 1px solid var(--eng)44;">流体力学</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>浮力与橡皮泥造船工程</h3>
+      <p>阿基米德浮力定律应用，实心橡皮泥团沉底 vs 捏成中空船形排开更大体积水产生向上浮力支撑垫片载重。</p>
+      <div class="card-footer">
+        <span class="file-tag">buoyancy_boat_lab.html</span>
+        <a href="buoyancy_boat_lab.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">人体生理</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>抓尺子神经反应时测量</h3>
+      <p>基于自由落体公式 h = 1/2 gt² 的神经反应时测量，随机触发跌落，防抢跑判定与毫秒级生理反应测定。</p>
+      <div class="card-footer">
+        <span class="file-tag">g1s1_reaction_time.html</span>
+        <a href="g1s1_reaction_time.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: #06b6d422; color: #06b6d4; border: 1px solid #06b6d444;">流体物性</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>液体流动黏度与阻力比赛</h3>
+      <p>水、食用油、洗洁精在可调斜面上的重力与内摩擦黏滞力流动速度竞技，动态绘制位移-时间图谱。</p>
+      <div class="card-footer">
+        <span class="file-tag">g1s2_liquid_viscosity.html</span>
+        <a href="g1s2_liquid_viscosity.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">质量度量</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>简易天平与谁轻谁重等量代换</h3>
+      <p>双盘天平轻重比较仿真，支持任意摆放积木、小球、橡皮并借助标准玻璃珠砝码实现等量代换质量测定。</p>
+      <div class="card-footer">
+        <span class="file-tag">g1s2_balance_weight.html</span>
+        <a href="g1s2_balance_weight.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+    
+      </div>
+    </div>
+
+    <div id="currSection">
+      <div class="section-title">
+        <span>🚀 260 节标准课程配套微仿真矩阵</span>
+        <span class="count" id="currCount">展示 260 个微仿真实验</span>
+      </div>
+      <div class="grid" id="currGrid">
+        
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="我们知道的植物 01_一年级上册 P02_第一单元_周围的植物.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第1单元</span>
+      </div>
+      <h3>第1课 · 我们知道的植物</h3>
+      <p class="unit-sub">P02_第一单元_周围的植物</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g01_s1_u01_l01.html</span>
+        <a href="sim_g01_s1_u01_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="观察植物 01_一年级上册 P02_第一单元_周围的植物.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第1单元</span>
+      </div>
+      <h3>第2课 · 观察植物</h3>
+      <p class="unit-sub">P02_第一单元_周围的植物</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g01_s1_u01_l02.html</span>
+        <a href="sim_g01_s1_u01_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="植物长在哪里 01_一年级上册 P02_第一单元_周围的植物.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第1单元</span>
+      </div>
+      <h3>第3课 · 植物长在哪里</h3>
+      <p class="unit-sub">P02_第一单元_周围的植物</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g01_s1_u01_l03.html</span>
+        <a href="sim_g01_s1_u01_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="给植物画张“像” 01_一年级上册 P02_第一单元_周围的植物.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第1单元</span>
+      </div>
+      <h3>第4课 · 给植物画张“像”</h3>
+      <p class="unit-sub">P02_第一单元_周围的植物</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g01_s1_u01_l04.html</span>
+        <a href="sim_g01_s1_u01_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="植物的变化 01_一年级上册 P02_第一单元_周围的植物.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第1单元</span>
+      </div>
+      <h3>第5课 · 植物的变化</h3>
+      <p class="unit-sub">P02_第一单元_周围的植物</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g01_s1_u01_l05.html</span>
+        <a href="sim_g01_s1_u01_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="校园里的植物 01_一年级上册 P02_第一单元_周围的植物.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第1单元</span>
+      </div>
+      <h3>第6课 · 校园里的植物</h3>
+      <p class="unit-sub">P02_第一单元_周围的植物</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g01_s1_u01_l06.html</span>
+        <a href="sim_g01_s1_u01_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="我们的身体 01_一年级上册 P26_第二单元_我们自己.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第2单元</span>
+      </div>
+      <h3>第1课 · 我们的身体</h3>
+      <p class="unit-sub">P26_第二单元_我们自己</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g01_s1_u02_l01.html</span>
+        <a href="sim_g01_s1_u02_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="发现生长 01_一年级上册 P26_第二单元_我们自己.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第2单元</span>
+      </div>
+      <h3>第2课 · 发现生长</h3>
+      <p class="unit-sub">P26_第二单元_我们自己</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g01_s1_u02_l02.html</span>
+        <a href="sim_g01_s1_u02_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g1" data-keywords="游戏中的观察 01_一年级上册 P26_第二单元_我们自己.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">一年级 · 第2单元</span>
+      </div>
+      <h3>第3课 · 游戏中的观察</h3>
+      <p class="unit-sub">P26_第二单元_我们自己</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g01_s1_u02_l03.html</span>
+        <a href="sim_g01_s1_u02_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g1" data-keywords="气味告诉我们 01_一年级上册 P26_第二单元_我们自己.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">一年级 · 第2单元</span>
+      </div>
+      <h3>第4课 · 气味告诉我们</h3>
+      <p class="unit-sub">P26_第二单元_我们自己</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g01_s1_u02_l04.html</span>
+        <a href="sim_g01_s1_u02_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="通过感官来发现 01_一年级上册 P26_第二单元_我们自己.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第2单元</span>
+      </div>
+      <h3>第5课 · 通过感官来发现</h3>
+      <p class="unit-sub">P26_第二单元_我们自己</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g01_s1_u02_l05.html</span>
+        <a href="sim_g01_s1_u02_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g1" data-keywords="观察与比较 01_一年级上册 P26_第二单元_我们自己.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">一年级 · 第2单元</span>
+      </div>
+      <h3>第6课 · 观察与比较</h3>
+      <p class="unit-sub">P26_第二单元_我们自己</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g01_s1_u02_l06.html</span>
+        <a href="sim_g01_s1_u02_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g1" data-keywords="做个“时间胶囊” 01_一年级上册 P26_第二单元_我们自己.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">一年级 · 第2单元</span>
+      </div>
+      <h3>第7课 · 做个“时间胶囊”</h3>
+      <p class="unit-sub">P26_第二单元_我们自己</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g01_s1_u02_l07.html</span>
+        <a href="sim_g01_s1_u02_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g1" data-keywords="观察物体的特征 02_一年级下册 P02_第一单元_身边的物体.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">一年级 · 第1单元</span>
+      </div>
+      <h3>第1课 · 观察物体的特征</h3>
+      <p class="unit-sub">P02_第一单元_身边的物体</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g02_s2_u01_l01.html</span>
+        <a href="sim_g02_s2_u01_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g1" data-keywords="给物体分类 02_一年级下册 P02_第一单元_身边的物体.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">一年级 · 第1单元</span>
+      </div>
+      <h3>第2课 · 给物体分类</h3>
+      <p class="unit-sub">P02_第一单元_身边的物体</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g02_s2_u01_l02.html</span>
+        <a href="sim_g02_s2_u01_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g1" data-keywords="比较物体的轻重 02_一年级下册 P02_第一单元_身边的物体.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">一年级 · 第1单元</span>
+      </div>
+      <h3>第3课 · 比较物体的轻重</h3>
+      <p class="unit-sub">P02_第一单元_身边的物体</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g02_s2_u01_l03.html</span>
+        <a href="sim_g02_s2_u01_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g1" data-keywords="认识物体的形状 02_一年级下册 P02_第一单元_身边的物体.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">一年级 · 第1单元</span>
+      </div>
+      <h3>第4课 · 认识物体的形状</h3>
+      <p class="unit-sub">P02_第一单元_身边的物体</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g02_s2_u01_l04.html</span>
+        <a href="sim_g02_s2_u01_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g1" data-keywords="观察一杯水 02_一年级下册 P02_第一单元_身边的物体.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">一年级 · 第1单元</span>
+      </div>
+      <h3>第5课 · 观察一杯水</h3>
+      <p class="unit-sub">P02_第一单元_身边的物体</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g02_s2_u01_l05.html</span>
+        <a href="sim_g02_s2_u01_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g1" data-keywords="哪个流动得快 02_一年级下册 P02_第一单元_身边的物体.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">一年级 · 第1单元</span>
+      </div>
+      <h3>第6课 · 哪个流动得快</h3>
+      <p class="unit-sub">P02_第一单元_身边的物体</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g02_s2_u01_l06.html</span>
+        <a href="sim_g02_s2_u01_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g1" data-keywords="它们去哪里了 02_一年级下册 P02_第一单元_身边的物体.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">一年级 · 第1单元</span>
+      </div>
+      <h3>第7课 · 它们去哪里了</h3>
+      <p class="unit-sub">P02_第一单元_身边的物体</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g02_s2_u01_l07.html</span>
+        <a href="sim_g02_s2_u01_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="我们周围的动物 02_一年级下册 P28_第二单元_常见的动物.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第2单元</span>
+      </div>
+      <h3>第1课 · 我们周围的动物</h3>
+      <p class="unit-sub">P28_第二单元_常见的动物</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g02_s2_u02_l01.html</span>
+        <a href="sim_g02_s2_u02_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="观察一种动物 02_一年级下册 P28_第二单元_常见的动物.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第2单元</span>
+      </div>
+      <h3>第2课 · 观察一种动物</h3>
+      <p class="unit-sub">P28_第二单元_常见的动物</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g02_s2_u02_l02.html</span>
+        <a href="sim_g02_s2_u02_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="给蜗牛建个“家” 02_一年级下册 P28_第二单元_常见的动物.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第2单元</span>
+      </div>
+      <h3>第3课 · 给蜗牛建个“家”</h3>
+      <p class="unit-sub">P28_第二单元_常见的动物</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g02_s2_u02_l03.html</span>
+        <a href="sim_g02_s2_u02_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="水中的动物 02_一年级下册 P28_第二单元_常见的动物.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第2单元</span>
+      </div>
+      <h3>第4课 · 水中的动物</h3>
+      <p class="unit-sub">P28_第二单元_常见的动物</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g02_s2_u02_l04.html</span>
+        <a href="sim_g02_s2_u02_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="它们吃什么 02_一年级下册 P28_第二单元_常见的动物.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第2单元</span>
+      </div>
+      <h3>第5课 · 它们吃什么</h3>
+      <p class="unit-sub">P28_第二单元_常见的动物</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g02_s2_u02_l05.html</span>
+        <a href="sim_g02_s2_u02_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g1" data-keywords="动物联欢会 02_一年级下册 P28_第二单元_常见的动物.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">一年级 · 第2单元</span>
+      </div>
+      <h3>第6课 · 动物联欢会</h3>
+      <p class="unit-sub">P28_第二单元_常见的动物</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g02_s2_u02_l06.html</span>
+        <a href="sim_g02_s2_u02_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g2" data-keywords="动物的“家” 03_二年级上册 P02_第一单元_造房子.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">二年级 · 第1单元</span>
+      </div>
+      <h3>第1课 · 动物的“家”</h3>
+      <p class="unit-sub">P02_第一单元_造房子</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g03_s1_u01_l01.html</span>
+        <a href="sim_g03_s1_u01_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g2" data-keywords="我们的家 03_二年级上册 P02_第一单元_造房子.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">二年级 · 第1单元</span>
+      </div>
+      <h3>第2课 · 我们的家</h3>
+      <p class="unit-sub">P02_第一单元_造房子</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g03_s1_u01_l02.html</span>
+        <a href="sim_g03_s1_u01_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g2" data-keywords="家里的物品 03_二年级上册 P02_第一单元_造房子.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">二年级 · 第1单元</span>
+      </div>
+      <h3>第3课 · 家里的物品</h3>
+      <p class="unit-sub">P02_第一单元_造房子</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g03_s1_u01_l03.html</span>
+        <a href="sim_g03_s1_u01_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g2" data-keywords="设计小房子 03_二年级上册 P02_第一单元_造房子.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">二年级 · 第1单元</span>
+      </div>
+      <h3>第4课 · 设计小房子</h3>
+      <p class="unit-sub">P02_第一单元_造房子</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g03_s1_u01_l04.html</span>
+        <a href="sim_g03_s1_u01_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g2" data-keywords="建造小房子 03_二年级上册 P02_第一单元_造房子.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">二年级 · 第1单元</span>
+      </div>
+      <h3>第5课 · 建造小房子</h3>
+      <p class="unit-sub">P02_第一单元_造房子</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g03_s1_u01_l05.html</span>
+        <a href="sim_g03_s1_u01_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g2" data-keywords="“小房子”展示会 03_二年级上册 P02_第一单元_造房子.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">二年级 · 第1单元</span>
+      </div>
+      <h3>第6课 · “小房子”展示会</h3>
+      <p class="unit-sub">P02_第一单元_造房子</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g03_s1_u01_l06.html</span>
+        <a href="sim_g03_s1_u01_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g2" data-keywords="地球家园有什么 03_二年级上册 P26_第二单元_地球家园.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">二年级 · 第2单元</span>
+      </div>
+      <h3>第1课 · 地球家园有什么</h3>
+      <p class="unit-sub">P26_第二单元_地球家园</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g03_s1_u02_l01.html</span>
+        <a href="sim_g03_s1_u02_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g2" data-keywords="我们的校园 03_二年级上册 P26_第二单元_地球家园.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">二年级 · 第2单元</span>
+      </div>
+      <h3>第2课 · 我们的校园</h3>
+      <p class="unit-sub">P26_第二单元_地球家园</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g03_s1_u02_l02.html</span>
+        <a href="sim_g03_s1_u02_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g2" data-keywords="我们周围的空气 03_二年级上册 P26_第二单元_地球家园.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">二年级 · 第2单元</span>
+      </div>
+      <h3>第3课 · 我们周围的空气</h3>
+      <p class="unit-sub">P26_第二单元_地球家园</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g03_s1_u02_l03.html</span>
+        <a href="sim_g03_s1_u02_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g2" data-keywords="不同的天气 03_二年级上册 P26_第二单元_地球家园.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">二年级 · 第2单元</span>
+      </div>
+      <h3>第4课 · 不同的天气</h3>
+      <p class="unit-sub">P26_第二单元_地球家园</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g03_s1_u02_l04.html</span>
+        <a href="sim_g03_s1_u02_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g2" data-keywords="不同的季节 03_二年级上册 P26_第二单元_地球家园.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">二年级 · 第2单元</span>
+      </div>
+      <h3>第5课 · 不同的季节</h3>
+      <p class="unit-sub">P26_第二单元_地球家园</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g03_s1_u02_l05.html</span>
+        <a href="sim_g03_s1_u02_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g2" data-keywords="太阳与白天 03_二年级上册 P26_第二单元_地球家园.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">二年级 · 第2单元</span>
+      </div>
+      <h3>第6课 · 太阳与白天</h3>
+      <p class="unit-sub">P26_第二单元_地球家园</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g03_s1_u02_l06.html</span>
+        <a href="sim_g03_s1_u02_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g2" data-keywords="夜晚的月亮 03_二年级上册 P26_第二单元_地球家园.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">二年级 · 第2单元</span>
+      </div>
+      <h3>第7课 · 夜晚的月亮</h3>
+      <p class="unit-sub">P26_第二单元_地球家园</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g03_s1_u02_l07.html</span>
+        <a href="sim_g03_s1_u02_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g2" data-keywords="恐龙的故事 04_二年级下册 P02_第一单元_探秘恐龙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">二年级 · 第1单元</span>
+      </div>
+      <h3>第1课 · 恐龙的故事</h3>
+      <p class="unit-sub">P02_第一单元_探秘恐龙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g04_s2_u01_l01.html</span>
+        <a href="sim_g04_s2_u01_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g2" data-keywords="挖掘恐龙“化石” 04_二年级下册 P02_第一单元_探秘恐龙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">二年级 · 第1单元</span>
+      </div>
+      <h3>第2课 · 挖掘恐龙“化石”</h3>
+      <p class="unit-sub">P02_第一单元_探秘恐龙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g04_s2_u01_l02.html</span>
+        <a href="sim_g04_s2_u01_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g2" data-keywords="测量恐龙“化石” 04_二年级下册 P02_第一单元_探秘恐龙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">二年级 · 第1单元</span>
+      </div>
+      <h3>第3课 · 测量恐龙“化石”</h3>
+      <p class="unit-sub">P02_第一单元_探秘恐龙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g04_s2_u01_l03.html</span>
+        <a href="sim_g04_s2_u01_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g2" data-keywords="拼接恐龙“化石” 04_二年级下册 P02_第一单元_探秘恐龙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">二年级 · 第1单元</span>
+      </div>
+      <h3>第4课 · 拼接恐龙“化石”</h3>
+      <p class="unit-sub">P02_第一单元_探秘恐龙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g04_s2_u01_l04.html</span>
+        <a href="sim_g04_s2_u01_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g2" data-keywords="复原恐龙 04_二年级下册 P02_第一单元_探秘恐龙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">二年级 · 第1单元</span>
+      </div>
+      <h3>第5课 · 复原恐龙</h3>
+      <p class="unit-sub">P02_第一单元_探秘恐龙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g04_s2_u01_l05.html</span>
+        <a href="sim_g04_s2_u01_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g2" data-keywords="制作恐龙模型 04_二年级下册 P02_第一单元_探秘恐龙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">二年级 · 第1单元</span>
+      </div>
+      <h3>第6课 · 制作恐龙模型</h3>
+      <p class="unit-sub">P02_第一单元_探秘恐龙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g04_s2_u01_l06.html</span>
+        <a href="sim_g04_s2_u01_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g2" data-keywords="我们的恐龙公园 04_二年级下册 P02_第一单元_探秘恐龙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">二年级 · 第1单元</span>
+      </div>
+      <h3>第7课 · 我们的恐龙公园</h3>
+      <p class="unit-sub">P02_第一单元_探秘恐龙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g04_s2_u01_l07.html</span>
+        <a href="sim_g04_s2_u01_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g2" data-keywords="磁铁能吸引什么 04_二年级下册 P28_第二单元_玩磁铁.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">二年级 · 第2单元</span>
+      </div>
+      <h3>第1课 · 磁铁能吸引什么</h3>
+      <p class="unit-sub">P28_第二单元_玩磁铁</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g04_s2_u02_l01.html</span>
+        <a href="sim_g04_s2_u02_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g2" data-keywords="比较力量的大小 04_二年级下册 P28_第二单元_玩磁铁.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">二年级 · 第2单元</span>
+      </div>
+      <h3>第2课 · 比较力量的大小</h3>
+      <p class="unit-sub">P28_第二单元_玩磁铁</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g04_s2_u02_l02.html</span>
+        <a href="sim_g04_s2_u02_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g2" data-keywords="让小车动起来 04_二年级下册 P28_第二单元_玩磁铁.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">二年级 · 第2单元</span>
+      </div>
+      <h3>第3课 · 让小车动起来</h3>
+      <p class="unit-sub">P28_第二单元_玩磁铁</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g04_s2_u02_l03.html</span>
+        <a href="sim_g04_s2_u02_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g2" data-keywords="隔物吸铁 04_二年级下册 P28_第二单元_玩磁铁.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">二年级 · 第2单元</span>
+      </div>
+      <h3>第4课 · 隔物吸铁</h3>
+      <p class="unit-sub">P28_第二单元_玩磁铁</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g04_s2_u02_l04.html</span>
+        <a href="sim_g04_s2_u02_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g2" data-keywords="设计钓鱼玩具 04_二年级下册 P28_第二单元_玩磁铁.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">二年级 · 第2单元</span>
+      </div>
+      <h3>第5课 · 设计钓鱼玩具</h3>
+      <p class="unit-sub">P28_第二单元_玩磁铁</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g04_s2_u02_l05.html</span>
+        <a href="sim_g04_s2_u02_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g2" data-keywords="我们来钓鱼 04_二年级下册 P28_第二单元_玩磁铁.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">二年级 · 第2单元</span>
+      </div>
+      <h3>第6课 · 我们来钓鱼</h3>
+      <p class="unit-sub">P28_第二单元_玩磁铁</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g04_s2_u02_l06.html</span>
+        <a href="sim_g04_s2_u02_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g3" data-keywords="我们关心天气 05_三年级上册 P02_第一单元_天气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第1课 · 我们关心天气</h3>
+      <p class="unit-sub">P02_第一单元_天气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u01_l01.html</span>
+        <a href="sim_g05_s1_u01_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g3" data-keywords="认识气温计 05_三年级上册 P02_第一单元_天气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第2课 · 认识气温计</h3>
+      <p class="unit-sub">P02_第一单元_天气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u01_l02.html</span>
+        <a href="sim_g05_s1_u01_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g3" data-keywords="测量气温 05_三年级上册 P02_第一单元_天气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第3课 · 测量气温</h3>
+      <p class="unit-sub">P02_第一单元_天气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u01_l03.html</span>
+        <a href="sim_g05_s1_u01_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g3" data-keywords="测量降水量 05_三年级上册 P02_第一单元_天气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第4课 · 测量降水量</h3>
+      <p class="unit-sub">P02_第一单元_天气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u01_l04.html</span>
+        <a href="sim_g05_s1_u01_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g3" data-keywords="观测风 05_三年级上册 P02_第一单元_天气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第5课 · 观测风</h3>
+      <p class="unit-sub">P02_第一单元_天气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u01_l05.html</span>
+        <a href="sim_g05_s1_u01_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g3" data-keywords="观察云 05_三年级上册 P02_第一单元_天气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第6课 · 观察云</h3>
+      <p class="unit-sub">P02_第一单元_天气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u01_l06.html</span>
+        <a href="sim_g05_s1_u01_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g3" data-keywords="天气预报 05_三年级上册 P02_第一单元_天气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第7课 · 天气预报</h3>
+      <p class="unit-sub">P02_第一单元_天气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u01_l07.html</span>
+        <a href="sim_g05_s1_u01_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g3" data-keywords="天气的影响 05_三年级上册 P02_第一单元_天气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第8课 · 天气的影响</h3>
+      <p class="unit-sub">P02_第一单元_天气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u01_l08.html</span>
+        <a href="sim_g05_s1_u01_l08.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g3" data-keywords="水到哪里去了 05_三年级上册 P30_第二单元_水.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第1课 · 水到哪里去了</h3>
+      <p class="unit-sub">P30_第二单元_水</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u02_l01.html</span>
+        <a href="sim_g05_s1_u02_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g3" data-keywords="水珠从哪里来 05_三年级上册 P30_第二单元_水.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第2课 · 水珠从哪里来</h3>
+      <p class="unit-sub">P30_第二单元_水</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u02_l02.html</span>
+        <a href="sim_g05_s1_u02_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g3" data-keywords="水沸腾了 05_三年级上册 P30_第二单元_水.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第3课 · 水沸腾了</h3>
+      <p class="unit-sub">P30_第二单元_水</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u02_l03.html</span>
+        <a href="sim_g05_s1_u02_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g3" data-keywords="水结冰了 05_三年级上册 P30_第二单元_水.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第4课 · 水结冰了</h3>
+      <p class="unit-sub">P30_第二单元_水</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u02_l04.html</span>
+        <a href="sim_g05_s1_u02_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g3" data-keywords="冰熔化了 05_三年级上册 P30_第二单元_水.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第5课 · 冰熔化了</h3>
+      <p class="unit-sub">P30_第二单元_水</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u02_l05.html</span>
+        <a href="sim_g05_s1_u02_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g3" data-keywords="水能溶解多少物质 05_三年级上册 P30_第二单元_水.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第6课 · 水能溶解多少物质</h3>
+      <p class="unit-sub">P30_第二单元_水</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u02_l06.html</span>
+        <a href="sim_g05_s1_u02_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g3" data-keywords="加快溶解 05_三年级上册 P30_第二单元_水.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第7课 · 加快溶解</h3>
+      <p class="unit-sub">P30_第二单元_水</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u02_l07.html</span>
+        <a href="sim_g05_s1_u02_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g3" data-keywords="用水分离 05_三年级上册 P30_第二单元_水.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第8课 · 用水分离</h3>
+      <p class="unit-sub">P30_第二单元_水</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u02_l08.html</span>
+        <a href="sim_g05_s1_u02_l08.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g3" data-keywords="运动和位置 05_三年级上册 P58_第三单元_物体的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第1课 · 运动和位置</h3>
+      <p class="unit-sub">P58_第三单元_物体的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u03_l01.html</span>
+        <a href="sim_g05_s1_u03_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g3" data-keywords="各种各样的运动 05_三年级上册 P58_第三单元_物体的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第2课 · 各种各样的运动</h3>
+      <p class="unit-sub">P58_第三单元_物体的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u03_l02.html</span>
+        <a href="sim_g05_s1_u03_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g3" data-keywords="直线运动和曲线运动 05_三年级上册 P58_第三单元_物体的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第3课 · 直线运动和曲线运动</h3>
+      <p class="unit-sub">P58_第三单元_物体的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u03_l03.html</span>
+        <a href="sim_g05_s1_u03_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g3" data-keywords="相同距离比快慢 05_三年级上册 P58_第三单元_物体的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第4课 · 相同距离比快慢</h3>
+      <p class="unit-sub">P58_第三单元_物体的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u03_l04.html</span>
+        <a href="sim_g05_s1_u03_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g3" data-keywords="相同时间比快慢 05_三年级上册 P58_第三单元_物体的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第5课 · 相同时间比快慢</h3>
+      <p class="unit-sub">P58_第三单元_物体的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u03_l05.html</span>
+        <a href="sim_g05_s1_u03_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g3" data-keywords="运动和能量 05_三年级上册 P58_第三单元_物体的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第6课 · 运动和能量</h3>
+      <p class="unit-sub">P58_第三单元_物体的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u03_l06.html</span>
+        <a href="sim_g05_s1_u03_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g3" data-keywords="设计和制作“过山车” 05_三年级上册 P58_第三单元_物体的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第7课 · 设计和制作“过山车”</h3>
+      <p class="unit-sub">P58_第三单元_物体的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u03_l07.html</span>
+        <a href="sim_g05_s1_u03_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g3" data-keywords="测试“过山车” 05_三年级上册 P58_第三单元_物体的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第8课 · 测试“过山车”</h3>
+      <p class="unit-sub">P58_第三单元_物体的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g05_s1_u03_l08.html</span>
+        <a href="sim_g05_s1_u03_l08.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g3" data-keywords="根据太阳辨别方向 06_三年级下册 P02_第一单元_辨别方向.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第1课 · 根据太阳辨别方向</h3>
+      <p class="unit-sub">P02_第一单元_辨别方向</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u01_l01.html</span>
+        <a href="sim_g06_s2_u01_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g3" data-keywords="利用自然物辨别方向 06_三年级下册 P02_第一单元_辨别方向.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第2课 · 利用自然物辨别方向</h3>
+      <p class="unit-sub">P02_第一单元_辨别方向</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u01_l02.html</span>
+        <a href="sim_g06_s2_u01_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g3" data-keywords="利用磁铁辨别方向 06_三年级下册 P02_第一单元_辨别方向.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第3课 · 利用磁铁辨别方向</h3>
+      <p class="unit-sub">P02_第一单元_辨别方向</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u01_l03.html</span>
+        <a href="sim_g06_s2_u01_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g3" data-keywords="磁极与方向 06_三年级下册 P02_第一单元_辨别方向.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第4课 · 磁极与方向</h3>
+      <p class="unit-sub">P02_第一单元_辨别方向</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u01_l04.html</span>
+        <a href="sim_g06_s2_u01_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g3" data-keywords="制作小磁针 06_三年级下册 P02_第一单元_辨别方向.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第5课 · 制作小磁针</h3>
+      <p class="unit-sub">P02_第一单元_辨别方向</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u01_l05.html</span>
+        <a href="sim_g06_s2_u01_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g3" data-keywords="设计指南针 06_三年级下册 P02_第一单元_辨别方向.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第6课 · 设计指南针</h3>
+      <p class="unit-sub">P02_第一单元_辨别方向</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u01_l06.html</span>
+        <a href="sim_g06_s2_u01_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g3" data-keywords="制作指南针 06_三年级下册 P02_第一单元_辨别方向.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第7课 · 制作指南针</h3>
+      <p class="unit-sub">P02_第一单元_辨别方向</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u01_l07.html</span>
+        <a href="sim_g06_s2_u01_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g3" data-keywords="用指南针“寻宝” 06_三年级下册 P02_第一单元_辨别方向.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">三年级 · 第1单元</span>
+      </div>
+      <h3>第8课 · 用指南针“寻宝”</h3>
+      <p class="unit-sub">P02_第一单元_辨别方向</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u01_l08.html</span>
+        <a href="sim_g06_s2_u01_l08.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g3" data-keywords="不同种类的动物 06_三年级下册 P30_第二单元_动物的一生.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第1课 · 不同种类的动物</h3>
+      <p class="unit-sub">P30_第二单元_动物的一生</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u02_l01.html</span>
+        <a href="sim_g06_s2_u02_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g3" data-keywords="动物的繁殖 06_三年级下册 P30_第二单元_动物的一生.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第2课 · 动物的繁殖</h3>
+      <p class="unit-sub">P30_第二单元_动物的一生</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u02_l02.html</span>
+        <a href="sim_g06_s2_u02_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g3" data-keywords="迎接蚕宝宝的到来 06_三年级下册 P30_第二单元_动物的一生.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第3课 · 迎接蚕宝宝的到来</h3>
+      <p class="unit-sub">P30_第二单元_动物的一生</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u02_l03.html</span>
+        <a href="sim_g06_s2_u02_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g3" data-keywords="幼蚕在生长 06_三年级下册 P30_第二单元_动物的一生.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第4课 · 幼蚕在生长</h3>
+      <p class="unit-sub">P30_第二单元_动物的一生</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u02_l04.html</span>
+        <a href="sim_g06_s2_u02_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g3" data-keywords="蚕变了新模样 06_三年级下册 P30_第二单元_动物的一生.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第5课 · 蚕变了新模样</h3>
+      <p class="unit-sub">P30_第二单元_动物的一生</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u02_l05.html</span>
+        <a href="sim_g06_s2_u02_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g3" data-keywords="茧中钻出了蚕蛾 06_三年级下册 P30_第二单元_动物的一生.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第6课 · 茧中钻出了蚕蛾</h3>
+      <p class="unit-sub">P30_第二单元_动物的一生</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u02_l06.html</span>
+        <a href="sim_g06_s2_u02_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g3" data-keywords="昆虫的一生 06_三年级下册 P30_第二单元_动物的一生.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第7课 · 昆虫的一生</h3>
+      <p class="unit-sub">P30_第二单元_动物的一生</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u02_l07.html</span>
+        <a href="sim_g06_s2_u02_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g3" data-keywords="动物的生命周期 06_三年级下册 P30_第二单元_动物的一生.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">三年级 · 第2单元</span>
+      </div>
+      <h3>第8课 · 动物的生命周期</h3>
+      <p class="unit-sub">P30_第二单元_动物的一生</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u02_l08.html</span>
+        <a href="sim_g06_s2_u02_l08.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g3" data-keywords="地球是我们的家园 06_三年级下册 P58_第三单元_只有一个地球.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第1课 · 地球是我们的家园</h3>
+      <p class="unit-sub">P58_第三单元_只有一个地球</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u03_l01.html</span>
+        <a href="sim_g06_s2_u03_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g3" data-keywords="水的星球 06_三年级下册 P58_第三单元_只有一个地球.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第2课 · 水的星球</h3>
+      <p class="unit-sub">P58_第三单元_只有一个地球</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u03_l02.html</span>
+        <a href="sim_g06_s2_u03_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g3" data-keywords="地球的卫星 06_三年级下册 P58_第三单元_只有一个地球.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第3课 · 地球的卫星</h3>
+      <p class="unit-sub">P58_第三单元_只有一个地球</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u03_l03.html</span>
+        <a href="sim_g06_s2_u03_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g3" data-keywords="我们来造“环形山” 06_三年级下册 P58_第三单元_只有一个地球.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第4课 · 我们来造“环形山”</h3>
+      <p class="unit-sub">P58_第三单元_只有一个地球</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u03_l04.html</span>
+        <a href="sim_g06_s2_u03_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g3" data-keywords="发光发热的太阳 06_三年级下册 P58_第三单元_只有一个地球.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第5课 · 发光发热的太阳</h3>
+      <p class="unit-sub">P58_第三单元_只有一个地球</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u03_l05.html</span>
+        <a href="sim_g06_s2_u03_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g3" data-keywords="一天中影子的变化 06_三年级下册 P58_第三单元_只有一个地球.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第6课 · 一天中影子的变化</h3>
+      <p class="unit-sub">P58_第三单元_只有一个地球</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u03_l06.html</span>
+        <a href="sim_g06_s2_u03_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g3" data-keywords="地球的“兄弟姐妹” 06_三年级下册 P58_第三单元_只有一个地球.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第7课 · 地球的“兄弟姐妹”</h3>
+      <p class="unit-sub">P58_第三单元_只有一个地球</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u03_l07.html</span>
+        <a href="sim_g06_s2_u03_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g3" data-keywords="制作地球科普海报 06_三年级下册 P58_第三单元_只有一个地球.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">三年级 · 第3单元</span>
+      </div>
+      <h3>第8课 · 制作地球科普海报</h3>
+      <p class="unit-sub">P58_第三单元_只有一个地球</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g06_s2_u03_l08.html</span>
+        <a href="sim_g06_s2_u03_l08.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="感受空气 07_四年级上册 P02_第一单元_空气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第1课 · 感受空气</h3>
+      <p class="unit-sub">P02_第一单元_空气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u01_l01.html</span>
+        <a href="sim_g07_s1_u01_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="空气能占据空间吗 07_四年级上册 P02_第一单元_空气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第2课 · 空气能占据空间吗</h3>
+      <p class="unit-sub">P02_第一单元_空气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u01_l02.html</span>
+        <a href="sim_g07_s1_u01_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="空气占据的空间会改变吗 07_四年级上册 P02_第一单元_空气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第3课 · 空气占据的空间会改变吗</h3>
+      <p class="unit-sub">P02_第一单元_空气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u01_l03.html</span>
+        <a href="sim_g07_s1_u01_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="空气有质量吗 07_四年级上册 P02_第一单元_空气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第4课 · 空气有质量吗</h3>
+      <p class="unit-sub">P02_第一单元_空气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u01_l04.html</span>
+        <a href="sim_g07_s1_u01_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="空气流动有力量 07_四年级上册 P02_第一单元_空气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第5课 · 空气流动有力量</h3>
+      <p class="unit-sub">P02_第一单元_空气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u01_l05.html</span>
+        <a href="sim_g07_s1_u01_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="我们来做“热气球” 07_四年级上册 P02_第一单元_空气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第6课 · 我们来做“热气球”</h3>
+      <p class="unit-sub">P02_第一单元_空气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u01_l06.html</span>
+        <a href="sim_g07_s1_u01_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="风的成因 07_四年级上册 P02_第一单元_空气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第7课 · 风的成因</h3>
+      <p class="unit-sub">P02_第一单元_空气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u01_l07.html</span>
+        <a href="sim_g07_s1_u01_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="自制打气筒 07_四年级上册 P02_第一单元_空气.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第8课 · 自制打气筒</h3>
+      <p class="unit-sub">P02_第一单元_空气</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u01_l08.html</span>
+        <a href="sim_g07_s1_u01_l08.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="我们的呼吸与消化 07_四年级上册 P30_第二单元_呼吸与消化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第1课 · 我们的呼吸与消化</h3>
+      <p class="unit-sub">P30_第二单元_呼吸与消化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u02_l01.html</span>
+        <a href="sim_g07_s1_u02_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="认识呼吸器官 07_四年级上册 P30_第二单元_呼吸与消化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第2课 · 认识呼吸器官</h3>
+      <p class="unit-sub">P30_第二单元_呼吸与消化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u02_l02.html</span>
+        <a href="sim_g07_s1_u02_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="呼吸的变化 07_四年级上册 P30_第二单元_呼吸与消化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第3课 · 呼吸的变化</h3>
+      <p class="unit-sub">P30_第二单元_呼吸与消化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u02_l03.html</span>
+        <a href="sim_g07_s1_u02_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="测量肺活量 07_四年级上册 P30_第二单元_呼吸与消化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第4课 · 测量肺活量</h3>
+      <p class="unit-sub">P30_第二单元_呼吸与消化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u02_l04.html</span>
+        <a href="sim_g07_s1_u02_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="口腔里的消化 07_四年级上册 P30_第二单元_呼吸与消化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第5课 · 口腔里的消化</h3>
+      <p class="unit-sub">P30_第二单元_呼吸与消化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u02_l05.html</span>
+        <a href="sim_g07_s1_u02_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="胃和小肠里的消化 07_四年级上册 P30_第二单元_呼吸与消化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第6课 · 胃和小肠里的消化</h3>
+      <p class="unit-sub">P30_第二单元_呼吸与消化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u02_l06.html</span>
+        <a href="sim_g07_s1_u02_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="食物在身体里的旅行 07_四年级上册 P30_第二单元_呼吸与消化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第7课 · 食物在身体里的旅行</h3>
+      <p class="unit-sub">P30_第二单元_呼吸与消化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u02_l07.html</span>
+        <a href="sim_g07_s1_u02_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="呵护我们的器官 07_四年级上册 P30_第二单元_呼吸与消化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第8课 · 呵护我们的器官</h3>
+      <p class="unit-sub">P30_第二单元_呼吸与消化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u02_l08.html</span>
+        <a href="sim_g07_s1_u02_l08.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_sound" data-grade="g4" data-keywords="声音是怎样产生的 07_四年级上册 P58_第三单元_声音.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">声学与振动</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第1课 · 声音是怎样产生的</h3>
+      <p class="unit-sub">P58_第三单元_声音</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u03_l01.html</span>
+        <a href="sim_g07_s1_u03_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_sound" data-grade="g4" data-keywords="声音的强弱 07_四年级上册 P58_第三单元_声音.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">声学与振动</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第2课 · 声音的强弱</h3>
+      <p class="unit-sub">P58_第三单元_声音</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u03_l02.html</span>
+        <a href="sim_g07_s1_u03_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_sound" data-grade="g4" data-keywords="声音的高低 07_四年级上册 P58_第三单元_声音.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">声学与振动</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第3课 · 声音的高低</h3>
+      <p class="unit-sub">P58_第三单元_声音</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u03_l03.html</span>
+        <a href="sim_g07_s1_u03_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_sound" data-grade="g4" data-keywords="乐器的声音变化 07_四年级上册 P58_第三单元_声音.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">声学与振动</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第4课 · 乐器的声音变化</h3>
+      <p class="unit-sub">P58_第三单元_声音</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u03_l04.html</span>
+        <a href="sim_g07_s1_u03_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_sound" data-grade="g4" data-keywords="设计我们的乐器 07_四年级上册 P58_第三单元_声音.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">声学与振动</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第5课 · 设计我们的乐器</h3>
+      <p class="unit-sub">P58_第三单元_声音</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u03_l05.html</span>
+        <a href="sim_g07_s1_u03_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_sound" data-grade="g4" data-keywords="改进我们的乐器 07_四年级上册 P58_第三单元_声音.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">声学与振动</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第6课 · 改进我们的乐器</h3>
+      <p class="unit-sub">P58_第三单元_声音</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u03_l06.html</span>
+        <a href="sim_g07_s1_u03_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_sound" data-grade="g4" data-keywords="声音的传播 07_四年级上册 P58_第三单元_声音.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">声学与振动</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第7课 · 声音的传播</h3>
+      <p class="unit-sub">P58_第三单元_声音</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u03_l07.html</span>
+        <a href="sim_g07_s1_u03_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_sound" data-grade="g4" data-keywords="保护听力 07_四年级上册 P58_第三单元_声音.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">声学与振动</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第8课 · 保护听力</h3>
+      <p class="unit-sub">P58_第三单元_声音</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g07_s1_u03_l08.html</span>
+        <a href="sim_g07_s1_u03_l08.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="种子里孕育着新生命 08_四年级下册 P02_第一单元_植物的生长变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第1课 · 种子里孕育着新生命</h3>
+      <p class="unit-sub">P02_第一单元_植物的生长变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u01_l01.html</span>
+        <a href="sim_g08_s2_u01_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="种植凤仙花 08_四年级下册 P02_第一单元_植物的生长变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第2课 · 种植凤仙花</h3>
+      <p class="unit-sub">P02_第一单元_植物的生长变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u01_l02.html</span>
+        <a href="sim_g08_s2_u01_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="种子长出了根 08_四年级下册 P02_第一单元_植物的生长变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第3课 · 种子长出了根</h3>
+      <p class="unit-sub">P02_第一单元_植物的生长变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u01_l03.html</span>
+        <a href="sim_g08_s2_u01_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="茎和叶 08_四年级下册 P02_第一单元_植物的生长变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第4课 · 茎和叶</h3>
+      <p class="unit-sub">P02_第一单元_植物的生长变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u01_l04.html</span>
+        <a href="sim_g08_s2_u01_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="凤仙花开花了 08_四年级下册 P02_第一单元_植物的生长变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第5课 · 凤仙花开花了</h3>
+      <p class="unit-sub">P02_第一单元_植物的生长变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u01_l05.html</span>
+        <a href="sim_g08_s2_u01_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="果实和种子 08_四年级下册 P02_第一单元_植物的生长变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第6课 · 果实和种子</h3>
+      <p class="unit-sub">P02_第一单元_植物的生长变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u01_l06.html</span>
+        <a href="sim_g08_s2_u01_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="种子的传播 08_四年级下册 P02_第一单元_植物的生长变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第7课 · 种子的传播</h3>
+      <p class="unit-sub">P02_第一单元_植物的生长变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u01_l07.html</span>
+        <a href="sim_g08_s2_u01_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g4" data-keywords="凤仙花的一生 08_四年级下册 P02_第一单元_植物的生长变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">四年级 · 第1单元</span>
+      </div>
+      <h3>第8课 · 凤仙花的一生</h3>
+      <p class="unit-sub">P02_第一单元_植物的生长变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u01_l08.html</span>
+        <a href="sim_g08_s2_u01_l08.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g4" data-keywords="电和我们的生活 08_四年级下册 P22_第二单元_电路.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第1课 · 电和我们的生活</h3>
+      <p class="unit-sub">P22_第二单元_电路</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u02_l01.html</span>
+        <a href="sim_g08_s2_u02_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g4" data-keywords="点亮小灯泡 08_四年级下册 P22_第二单元_电路.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第2课 · 点亮小灯泡</h3>
+      <p class="unit-sub">P22_第二单元_电路</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u02_l02.html</span>
+        <a href="sim_g08_s2_u02_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g4" data-keywords="简易电路 08_四年级下册 P22_第二单元_电路.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第3课 · 简易电路</h3>
+      <p class="unit-sub">P22_第二单元_电路</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u02_l03.html</span>
+        <a href="sim_g08_s2_u02_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g4" data-keywords="电路出故障了 08_四年级下册 P22_第二单元_电路.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第4课 · 电路出故障了</h3>
+      <p class="unit-sub">P22_第二单元_电路</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u02_l04.html</span>
+        <a href="sim_g08_s2_u02_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g4" data-keywords="里面是怎样连接的 08_四年级下册 P22_第二单元_电路.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第5课 · 里面是怎样连接的</h3>
+      <p class="unit-sub">P22_第二单元_电路</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u02_l05.html</span>
+        <a href="sim_g08_s2_u02_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g4" data-keywords="导体和绝缘体 08_四年级下册 P22_第二单元_电路.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第6课 · 导体和绝缘体</h3>
+      <p class="unit-sub">P22_第二单元_电路</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u02_l06.html</span>
+        <a href="sim_g08_s2_u02_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g4" data-keywords="电路中的开关 08_四年级下册 P22_第二单元_电路.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第7课 · 电路中的开关</h3>
+      <p class="unit-sub">P22_第二单元_电路</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u02_l07.html</span>
+        <a href="sim_g08_s2_u02_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_em" data-grade="g4" data-keywords="模拟安装照明电路 08_四年级下册 P22_第二单元_电路.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">电磁学与电路</span>
+        <span class="grade-tag">四年级 · 第2单元</span>
+      </div>
+      <h3>第8课 · 模拟安装照明电路</h3>
+      <p class="unit-sub">P22_第二单元_电路</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u02_l08.html</span>
+        <a href="sim_g08_s2_u02_l08.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="岩石与土壤的故事 08_四年级下册 P42_第三单元_岩石与土壤.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第1课 · 岩石与土壤的故事</h3>
+      <p class="unit-sub">P42_第三单元_岩石与土壤</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u03_l01.html</span>
+        <a href="sim_g08_s2_u03_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="认识几种常见的岩石 08_四年级下册 P42_第三单元_岩石与土壤.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第2课 · 认识几种常见的岩石</h3>
+      <p class="unit-sub">P42_第三单元_岩石与土壤</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u03_l02.html</span>
+        <a href="sim_g08_s2_u03_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="岩石的组成 08_四年级下册 P42_第三单元_岩石与土壤.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第3课 · 岩石的组成</h3>
+      <p class="unit-sub">P42_第三单元_岩石与土壤</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u03_l03.html</span>
+        <a href="sim_g08_s2_u03_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="制作岩石和矿物标本 08_四年级下册 P42_第三单元_岩石与土壤.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第4课 · 制作岩石和矿物标本</h3>
+      <p class="unit-sub">P42_第三单元_岩石与土壤</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u03_l04.html</span>
+        <a href="sim_g08_s2_u03_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="岩石、沙和黏土 08_四年级下册 P42_第三单元_岩石与土壤.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第5课 · 岩石、沙和黏土</h3>
+      <p class="unit-sub">P42_第三单元_岩石与土壤</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u03_l05.html</span>
+        <a href="sim_g08_s2_u03_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="观察土壤 08_四年级下册 P42_第三单元_岩石与土壤.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第6课 · 观察土壤</h3>
+      <p class="unit-sub">P42_第三单元_岩石与土壤</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u03_l06.html</span>
+        <a href="sim_g08_s2_u03_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="比较不同的土壤 08_四年级下册 P42_第三单元_岩石与土壤.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第7课 · 比较不同的土壤</h3>
+      <p class="unit-sub">P42_第三单元_岩石与土壤</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u03_l07.html</span>
+        <a href="sim_g08_s2_u03_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g4" data-keywords="岩石、土壤和我们 08_四年级下册 P42_第三单元_岩石与土壤.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">四年级 · 第3单元</span>
+      </div>
+      <h3>第8课 · 岩石、土壤和我们</h3>
+      <p class="unit-sub">P42_第三单元_岩石与土壤</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g08_s2_u03_l08.html</span>
+        <a href="sim_g08_s2_u03_l08.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_optics" data-grade="g5" data-keywords="研究放大镜 09_五年级上册 P02_第一单元_微小世界.md">
+      <div class="card-header">
+        <span class="badge" style="background: #a855f722; color: #a855f7; border: 1px solid #a855f744;">光学与波动</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第1课 · 研究放大镜</h3>
+      <p class="unit-sub">P02_第一单元_微小世界</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u01_l01.html</span>
+        <a href="sim_g09_s1_u01_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g5" data-keywords="怎样放得更大 09_五年级上册 P02_第一单元_微小世界.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第2课 · 怎样放得更大</h3>
+      <p class="unit-sub">P02_第一单元_微小世界</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u01_l02.html</span>
+        <a href="sim_g09_s1_u01_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_optics" data-grade="g5" data-keywords="用简易显微镜观察 09_五年级上册 P02_第一单元_微小世界.md">
+      <div class="card-header">
+        <span class="badge" style="background: #a855f722; color: #a855f7; border: 1px solid #a855f744;">光学与波动</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第3课 · 用简易显微镜观察</h3>
+      <p class="unit-sub">P02_第一单元_微小世界</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u01_l03.html</span>
+        <a href="sim_g09_s1_u01_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_optics" data-grade="g5" data-keywords="用光学显微镜观察 09_五年级上册 P02_第一单元_微小世界.md">
+      <div class="card-header">
+        <span class="badge" style="background: #a855f722; color: #a855f7; border: 1px solid #a855f744;">光学与波动</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第4课 · 用光学显微镜观察</h3>
+      <p class="unit-sub">P02_第一单元_微小世界</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u01_l04.html</span>
+        <a href="sim_g09_s1_u01_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g5" data-keywords="观察细胞 09_五年级上册 P02_第一单元_微小世界.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第5课 · 观察细胞</h3>
+      <p class="unit-sub">P02_第一单元_微小世界</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u01_l05.html</span>
+        <a href="sim_g09_s1_u01_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g5" data-keywords="观察水中的微小生物 09_五年级上册 P02_第一单元_微小世界.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第6课 · 观察水中的微小生物</h3>
+      <p class="unit-sub">P02_第一单元_微小世界</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u01_l06.html</span>
+        <a href="sim_g09_s1_u01_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g5" data-keywords="微生物与人类 09_五年级上册 P02_第一单元_微小世界.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第7课 · 微生物与人类</h3>
+      <p class="unit-sub">P02_第一单元_微小世界</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u01_l07.html</span>
+        <a href="sim_g09_s1_u01_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g5" data-keywords="各种各样的工具 09_五年级上册 P34_第二单元_工具与技术.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第1课 · 各种各样的工具</h3>
+      <p class="unit-sub">P34_第二单元_工具与技术</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u02_l01.html</span>
+        <a href="sim_g09_s1_u02_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="独轮车省力的秘密 09_五年级上册 P34_第二单元_工具与技术.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第2课 · 独轮车省力的秘密</h3>
+      <p class="unit-sub">P34_第二单元_工具与技术</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u02_l02.html</span>
+        <a href="sim_g09_s1_u02_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="制作独轮车 09_五年级上册 P34_第二单元_工具与技术.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第3课 · 制作独轮车</h3>
+      <p class="unit-sub">P34_第二单元_工具与技术</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u02_l03.html</span>
+        <a href="sim_g09_s1_u02_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="巧用斜面 09_五年级上册 P34_第二单元_工具与技术.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第4课 · 巧用斜面</h3>
+      <p class="unit-sub">P34_第二单元_工具与技术</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u02_l04.html</span>
+        <a href="sim_g09_s1_u02_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="妙用滑轮 09_五年级上册 P34_第二单元_工具与技术.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第5课 · 妙用滑轮</h3>
+      <p class="unit-sub">P34_第二单元_工具与技术</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u02_l05.html</span>
+        <a href="sim_g09_s1_u02_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="给小车安装方向盘 09_五年级上册 P34_第二单元_工具与技术.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第6课 · 给小车安装方向盘</h3>
+      <p class="unit-sub">P34_第二单元_工具与技术</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u02_l06.html</span>
+        <a href="sim_g09_s1_u02_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g5" data-keywords="社会发展与工具和技术 09_五年级上册 P34_第二单元_工具与技术.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第7课 · 社会发展与工具和技术</h3>
+      <p class="unit-sub">P34_第二单元_工具与技术</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u02_l07.html</span>
+        <a href="sim_g09_s1_u02_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="拆解我的小车模型 09_五年级上册 P66_第三单元_运动和力.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第1课 · 拆解我的小车模型</h3>
+      <p class="unit-sub">P66_第三单元_运动和力</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u03_l01.html</span>
+        <a href="sim_g09_s1_u03_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="用重物驱动小车 09_五年级上册 P66_第三单元_运动和力.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第2课 · 用重物驱动小车</h3>
+      <p class="unit-sub">P66_第三单元_运动和力</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u03_l02.html</span>
+        <a href="sim_g09_s1_u03_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="用弹力驱动小车 09_五年级上册 P66_第三单元_运动和力.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第3课 · 用弹力驱动小车</h3>
+      <p class="unit-sub">P66_第三单元_运动和力</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u03_l03.html</span>
+        <a href="sim_g09_s1_u03_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="测量力的大小 09_五年级上册 P66_第三单元_运动和力.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第4课 · 测量力的大小</h3>
+      <p class="unit-sub">P66_第三单元_运动和力</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u03_l04.html</span>
+        <a href="sim_g09_s1_u03_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="摩擦力的比较 09_五年级上册 P66_第三单元_运动和力.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第5课 · 摩擦力的比较</h3>
+      <p class="unit-sub">P66_第三单元_运动和力</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u03_l05.html</span>
+        <a href="sim_g09_s1_u03_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g5" data-keywords="制作“月球小车” 09_五年级上册 P66_第三单元_运动和力.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第6课 · 制作“月球小车”</h3>
+      <p class="unit-sub">P66_第三单元_运动和力</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u03_l06.html</span>
+        <a href="sim_g09_s1_u03_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g5" data-keywords="评价“月球小车” 09_五年级上册 P66_第三单元_运动和力.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第7课 · 评价“月球小车”</h3>
+      <p class="unit-sub">P66_第三单元_运动和力</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u03_l07.html</span>
+        <a href="sim_g09_s1_u03_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g5" data-keywords="地球的表面 09_五年级上册 P98_第四单元_地球表面的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第1课 · 地球的表面</h3>
+      <p class="unit-sub">P98_第四单元_地球表面的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u04_l01.html</span>
+        <a href="sim_g09_s1_u04_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g5" data-keywords="火山喷发对地表的作用 09_五年级上册 P98_第四单元_地球表面的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第2课 · 火山喷发对地表的作用</h3>
+      <p class="unit-sub">P98_第四单元_地球表面的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u04_l02.html</span>
+        <a href="sim_g09_s1_u04_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g5" data-keywords="地震对地表的作用 09_五年级上册 P98_第四单元_地球表面的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第3课 · 地震对地表的作用</h3>
+      <p class="unit-sub">P98_第四单元_地球表面的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u04_l03.html</span>
+        <a href="sim_g09_s1_u04_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g5" data-keywords="地球表面的岩石 09_五年级上册 P98_第四单元_地球表面的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第4课 · 地球表面的岩石</h3>
+      <p class="unit-sub">P98_第四单元_地球表面的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u04_l04.html</span>
+        <a href="sim_g09_s1_u04_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g5" data-keywords="岩石的类别与变化 09_五年级上册 P98_第四单元_地球表面的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第5课 · 岩石的类别与变化</h3>
+      <p class="unit-sub">P98_第四单元_地球表面的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u04_l05.html</span>
+        <a href="sim_g09_s1_u04_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g5" data-keywords="水对地表的作用 09_五年级上册 P98_第四单元_地球表面的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第6课 · 水对地表的作用</h3>
+      <p class="unit-sub">P98_第四单元_地球表面的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u04_l06.html</span>
+        <a href="sim_g09_s1_u04_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g5" data-keywords="风对地表的作用 09_五年级上册 P98_第四单元_地球表面的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第7课 · 风对地表的作用</h3>
+      <p class="unit-sub">P98_第四单元_地球表面的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g09_s1_u04_l07.html</span>
+        <a href="sim_g09_s1_u04_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g5" data-keywords="种子发芽实验 10_五年级下册 P02_第一单元_生物与环境.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第1课 · 种子发芽实验</h3>
+      <p class="unit-sub">P02_第一单元_生物与环境</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u01_l01.html</span>
+        <a href="sim_g10_s2_u01_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g5" data-keywords="比较种子发芽实验 10_五年级下册 P02_第一单元_生物与环境.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第2课 · 比较种子发芽实验</h3>
+      <p class="unit-sub">P02_第一单元_生物与环境</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u01_l02.html</span>
+        <a href="sim_g10_s2_u01_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g5" data-keywords="绿豆苗的生长 10_五年级下册 P02_第一单元_生物与环境.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第3课 · 绿豆苗的生长</h3>
+      <p class="unit-sub">P02_第一单元_生物与环境</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u01_l03.html</span>
+        <a href="sim_g10_s2_u01_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g5" data-keywords="蚯蚓的选择 10_五年级下册 P02_第一单元_生物与环境.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第4课 · 蚯蚓的选择</h3>
+      <p class="unit-sub">P02_第一单元_生物与环境</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u01_l04.html</span>
+        <a href="sim_g10_s2_u01_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g5" data-keywords="当环境改变了 10_五年级下册 P02_第一单元_生物与环境.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第5课 · 当环境改变了</h3>
+      <p class="unit-sub">P02_第一单元_生物与环境</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u01_l05.html</span>
+        <a href="sim_g10_s2_u01_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g5" data-keywords="食物链和食物网 10_五年级下册 P02_第一单元_生物与环境.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第6课 · 食物链和食物网</h3>
+      <p class="unit-sub">P02_第一单元_生物与环境</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u01_l06.html</span>
+        <a href="sim_g10_s2_u01_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g5" data-keywords="设计和制作生态瓶 10_五年级下册 P02_第一单元_生物与环境.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">五年级 · 第1单元</span>
+      </div>
+      <h3>第7课 · 设计和制作生态瓶</h3>
+      <p class="unit-sub">P02_第一单元_生物与环境</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u01_l07.html</span>
+        <a href="sim_g10_s2_u01_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="船的历史 10_五年级下册 P21_第二单元_船的研究.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第1课 · 船的历史</h3>
+      <p class="unit-sub">P21_第二单元_船的研究</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u02_l01.html</span>
+        <a href="sim_g10_s2_u02_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="用浮的材料造船 10_五年级下册 P21_第二单元_船的研究.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第2课 · 用浮的材料造船</h3>
+      <p class="unit-sub">P21_第二单元_船的研究</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u02_l02.html</span>
+        <a href="sim_g10_s2_u02_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="用沉的材料造船 10_五年级下册 P21_第二单元_船的研究.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第3课 · 用沉的材料造船</h3>
+      <p class="unit-sub">P21_第二单元_船的研究</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u02_l03.html</span>
+        <a href="sim_g10_s2_u02_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="增加船的载重量 10_五年级下册 P21_第二单元_船的研究.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第4课 · 增加船的载重量</h3>
+      <p class="unit-sub">P21_第二单元_船的研究</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u02_l04.html</span>
+        <a href="sim_g10_s2_u02_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="给船装上动力 10_五年级下册 P21_第二单元_船的研究.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第5课 · 给船装上动力</h3>
+      <p class="unit-sub">P21_第二单元_船的研究</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u02_l05.html</span>
+        <a href="sim_g10_s2_u02_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="设计我们的小船 10_五年级下册 P21_第二单元_船的研究.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第6课 · 设计我们的小船</h3>
+      <p class="unit-sub">P21_第二单元_船的研究</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u02_l06.html</span>
+        <a href="sim_g10_s2_u02_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g5" data-keywords="制作与测试我们的小船 10_五年级下册 P21_第二单元_船的研究.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">五年级 · 第2单元</span>
+      </div>
+      <h3>第7课 · 制作与测试我们的小船</h3>
+      <p class="unit-sub">P21_第二单元_船的研究</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u02_l07.html</span>
+        <a href="sim_g10_s2_u02_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g5" data-keywords="地球——宇宙的奇迹 10_五年级下册 P39_第三单元_环境与我们.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第1课 · 地球——宇宙的奇迹</h3>
+      <p class="unit-sub">P39_第三单元_环境与我们</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u03_l01.html</span>
+        <a href="sim_g10_s2_u03_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g5" data-keywords="我们面临的环境问题 10_五年级下册 P39_第三单元_环境与我们.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第2课 · 我们面临的环境问题</h3>
+      <p class="unit-sub">P39_第三单元_环境与我们</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u03_l02.html</span>
+        <a href="sim_g10_s2_u03_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g5" data-keywords="珍惜水资源 10_五年级下册 P39_第三单元_环境与我们.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第3课 · 珍惜水资源</h3>
+      <p class="unit-sub">P39_第三单元_环境与我们</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u03_l03.html</span>
+        <a href="sim_g10_s2_u03_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g5" data-keywords="解决垃圾问题 10_五年级下册 P39_第三单元_环境与我们.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第4课 · 解决垃圾问题</h3>
+      <p class="unit-sub">P39_第三单元_环境与我们</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u03_l04.html</span>
+        <a href="sim_g10_s2_u03_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g5" data-keywords="合理利用能源 10_五年级下册 P39_第三单元_环境与我们.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第5课 · 合理利用能源</h3>
+      <p class="unit-sub">P39_第三单元_环境与我们</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u03_l05.html</span>
+        <a href="sim_g10_s2_u03_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g5" data-keywords="让资源再生 10_五年级下册 P39_第三单元_环境与我们.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第6课 · 让资源再生</h3>
+      <p class="unit-sub">P39_第三单元_环境与我们</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u03_l06.html</span>
+        <a href="sim_g10_s2_u03_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g5" data-keywords="分析一个实际的环境问题 10_五年级下册 P39_第三单元_环境与我们.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">五年级 · 第3单元</span>
+      </div>
+      <h3>第7课 · 分析一个实际的环境问题</h3>
+      <p class="unit-sub">P39_第三单元_环境与我们</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u03_l07.html</span>
+        <a href="sim_g10_s2_u03_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_thermal" data-grade="g5" data-keywords="温度与水的变化 10_五年级下册 P57_第四单元_热.md">
+      <div class="card-header">
+        <span class="badge" style="background: #f9731622; color: #f97316; border: 1px solid #f9731644;">热学与热力学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第1课 · 温度与水的变化</h3>
+      <p class="unit-sub">P57_第四单元_热</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u04_l01.html</span>
+        <a href="sim_g10_s2_u04_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_thermal" data-grade="g5" data-keywords="水的蒸发和凝结 10_五年级下册 P57_第四单元_热.md">
+      <div class="card-header">
+        <span class="badge" style="background: #f9731622; color: #f97316; border: 1px solid #f9731644;">热学与热力学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第2课 · 水的蒸发和凝结</h3>
+      <p class="unit-sub">P57_第四单元_热</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u04_l02.html</span>
+        <a href="sim_g10_s2_u04_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_thermal" data-grade="g5" data-keywords="温度不同的物体相互接触 10_五年级下册 P57_第四单元_热.md">
+      <div class="card-header">
+        <span class="badge" style="background: #f9731622; color: #f97316; border: 1px solid #f9731644;">热学与热力学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第3课 · 温度不同的物体相互接触</h3>
+      <p class="unit-sub">P57_第四单元_热</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u04_l03.html</span>
+        <a href="sim_g10_s2_u04_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_thermal" data-grade="g5" data-keywords="热在金属中的传递 10_五年级下册 P57_第四单元_热.md">
+      <div class="card-header">
+        <span class="badge" style="background: #f9731622; color: #f97316; border: 1px solid #f9731644;">热学与热力学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第4课 · 热在金属中的传递</h3>
+      <p class="unit-sub">P57_第四单元_热</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u04_l04.html</span>
+        <a href="sim_g10_s2_u04_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_thermal" data-grade="g5" data-keywords="热在水中的传递 10_五年级下册 P57_第四单元_热.md">
+      <div class="card-header">
+        <span class="badge" style="background: #f9731622; color: #f97316; border: 1px solid #f9731644;">热学与热力学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第5课 · 热在水中的传递</h3>
+      <p class="unit-sub">P57_第四单元_热</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u04_l05.html</span>
+        <a href="sim_g10_s2_u04_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_thermal" data-grade="g5" data-keywords="哪个传热快 10_五年级下册 P57_第四单元_热.md">
+      <div class="card-header">
+        <span class="badge" style="background: #f9731622; color: #f97316; border: 1px solid #f9731644;">热学与热力学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第6课 · 哪个传热快</h3>
+      <p class="unit-sub">P57_第四单元_热</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u04_l06.html</span>
+        <a href="sim_g10_s2_u04_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_thermal" data-grade="g5" data-keywords="做个保温杯 10_五年级下册 P57_第四单元_热.md">
+      <div class="card-header">
+        <span class="badge" style="background: #f9731622; color: #f97316; border: 1px solid #f9731644;">热学与热力学</span>
+        <span class="grade-tag">五年级 · 第4单元</span>
+      </div>
+      <h3>第7课 · 做个保温杯</h3>
+      <p class="unit-sub">P57_第四单元_热</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g10_s2_u04_l07.html</span>
+        <a href="sim_g10_s2_u04_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="生长发育的信息 11_六年级上册 P02_第一单元_健康生活.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第1课 · 生长发育的信息</h3>
+      <p class="unit-sub">P02_第一单元_健康生活</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u01_l01.html</span>
+        <a href="sim_g11_s1_u01_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="食物中的营养 11_六年级上册 P02_第一单元_健康生活.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第2课 · 食物中的营养</h3>
+      <p class="unit-sub">P02_第一单元_健康生活</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u01_l02.html</span>
+        <a href="sim_g11_s1_u01_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="营养要均衡 11_六年级上册 P02_第一单元_健康生活.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第3课 · 营养要均衡</h3>
+      <p class="unit-sub">P02_第一单元_健康生活</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u01_l03.html</span>
+        <a href="sim_g11_s1_u01_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="身体的“总指挥” 11_六年级上册 P02_第一单元_健康生活.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第4课 · 身体的“总指挥”</h3>
+      <p class="unit-sub">P02_第一单元_健康生活</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u01_l04.html</span>
+        <a href="sim_g11_s1_u01_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="睡眠要充足 11_六年级上册 P02_第一单元_健康生活.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第5课 · 睡眠要充足</h3>
+      <p class="unit-sub">P02_第一单元_健康生活</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u01_l05.html</span>
+        <a href="sim_g11_s1_u01_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="管理我们的情绪 11_六年级上册 P02_第一单元_健康生活.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第6课 · 管理我们的情绪</h3>
+      <p class="unit-sub">P02_第一单元_健康生活</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u01_l06.html</span>
+        <a href="sim_g11_s1_u01_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="制订健康生活计划 11_六年级上册 P02_第一单元_健康生活.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第7课 · 制订健康生活计划</h3>
+      <p class="unit-sub">P02_第一单元_健康生活</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u01_l07.html</span>
+        <a href="sim_g11_s1_u01_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_optics" data-grade="g6" data-keywords="怎样能看到物体 11_六年级上册 P34_第二单元_光.md">
+      <div class="card-header">
+        <span class="badge" style="background: #a855f722; color: #a855f7; border: 1px solid #a855f744;">光学与波动</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第1课 · 怎样能看到物体</h3>
+      <p class="unit-sub">P34_第二单元_光</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u02_l01.html</span>
+        <a href="sim_g11_s1_u02_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_optics" data-grade="g6" data-keywords="光是怎样传播的 11_六年级上册 P34_第二单元_光.md">
+      <div class="card-header">
+        <span class="badge" style="background: #a855f722; color: #a855f7; border: 1px solid #a855f744;">光学与波动</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第2课 · 光是怎样传播的</h3>
+      <p class="unit-sub">P34_第二单元_光</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u02_l02.html</span>
+        <a href="sim_g11_s1_u02_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_optics" data-grade="g6" data-keywords="光能穿透物体吗 11_六年级上册 P34_第二单元_光.md">
+      <div class="card-header">
+        <span class="badge" style="background: #a855f722; color: #a855f7; border: 1px solid #a855f744;">光学与波动</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第3课 · 光能穿透物体吗</h3>
+      <p class="unit-sub">P34_第二单元_光</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u02_l03.html</span>
+        <a href="sim_g11_s1_u02_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_optics" data-grade="g6" data-keywords="光的反射现象 11_六年级上册 P34_第二单元_光.md">
+      <div class="card-header">
+        <span class="badge" style="background: #a855f722; color: #a855f7; border: 1px solid #a855f744;">光学与波动</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第4课 · 光的反射现象</h3>
+      <p class="unit-sub">P34_第二单元_光</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u02_l04.html</span>
+        <a href="sim_g11_s1_u02_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_optics" data-grade="g6" data-keywords="设计潜望镜 11_六年级上册 P34_第二单元_光.md">
+      <div class="card-header">
+        <span class="badge" style="background: #a855f722; color: #a855f7; border: 1px solid #a855f744;">光学与波动</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第5课 · 设计潜望镜</h3>
+      <p class="unit-sub">P34_第二单元_光</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u02_l05.html</span>
+        <a href="sim_g11_s1_u02_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_optics" data-grade="g6" data-keywords="制作潜望镜 11_六年级上册 P34_第二单元_光.md">
+      <div class="card-header">
+        <span class="badge" style="background: #a855f722; color: #a855f7; border: 1px solid #a855f744;">光学与波动</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第6课 · 制作潜望镜</h3>
+      <p class="unit-sub">P34_第二单元_光</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u02_l06.html</span>
+        <a href="sim_g11_s1_u02_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_optics" data-grade="g6" data-keywords="制造彩虹 11_六年级上册 P34_第二单元_光.md">
+      <div class="card-header">
+        <span class="badge" style="background: #a855f722; color: #a855f7; border: 1px solid #a855f744;">光学与波动</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第7课 · 制造彩虹</h3>
+      <p class="unit-sub">P34_第二单元_光</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u02_l07.html</span>
+        <a href="sim_g11_s1_u02_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g6" data-keywords="利用地球模型来研究 11_六年级上册 P66_第三单元_地球的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第1课 · 利用地球模型来研究</h3>
+      <p class="unit-sub">P66_第三单元_地球的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u03_l01.html</span>
+        <a href="sim_g11_s1_u03_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g6" data-keywords="昼夜交替的解释 11_六年级上册 P66_第三单元_地球的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第2课 · 昼夜交替的解释</h3>
+      <p class="unit-sub">P66_第三单元_地球的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u03_l02.html</span>
+        <a href="sim_g11_s1_u03_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g6" data-keywords="地球如何自转 11_六年级上册 P66_第三单元_地球的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第3课 · 地球如何自转</h3>
+      <p class="unit-sub">P66_第三单元_地球的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u03_l03.html</span>
+        <a href="sim_g11_s1_u03_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g6" data-keywords="哪里先迎来黎明 11_六年级上册 P66_第三单元_地球的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第4课 · 哪里先迎来黎明</h3>
+      <p class="unit-sub">P66_第三单元_地球的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u03_l04.html</span>
+        <a href="sim_g11_s1_u03_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g6" data-keywords="影长的四季变化 11_六年级上册 P66_第三单元_地球的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第5课 · 影长的四季变化</h3>
+      <p class="unit-sub">P66_第三单元_地球的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u03_l05.html</span>
+        <a href="sim_g11_s1_u03_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g6" data-keywords="地球的公转 11_六年级上册 P66_第三单元_地球的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第6课 · 地球的公转</h3>
+      <p class="unit-sub">P66_第三单元_地球的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u03_l06.html</span>
+        <a href="sim_g11_s1_u03_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g6" data-keywords="四季变化 11_六年级上册 P66_第三单元_地球的运动.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第7课 · 四季变化</h3>
+      <p class="unit-sub">P66_第三单元_地球的运动</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u03_l07.html</span>
+        <a href="sim_g11_s1_u03_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g6" data-keywords="时间在流逝 11_六年级上册 P98_第四单元_计量时间.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第1课 · 时间在流逝</h3>
+      <p class="unit-sub">P98_第四单元_计量时间</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u04_l01.html</span>
+        <a href="sim_g11_s1_u04_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g6" data-keywords="用水计量时间 11_六年级上册 P98_第四单元_计量时间.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第2课 · 用水计量时间</h3>
+      <p class="unit-sub">P98_第四单元_计量时间</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u04_l02.html</span>
+        <a href="sim_g11_s1_u04_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g6" data-keywords="做个水钟 11_六年级上册 P98_第四单元_计量时间.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第3课 · 做个水钟</h3>
+      <p class="unit-sub">P98_第四单元_计量时间</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u04_l03.html</span>
+        <a href="sim_g11_s1_u04_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g6" data-keywords="改进水钟 11_六年级上册 P98_第四单元_计量时间.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第4课 · 改进水钟</h3>
+      <p class="unit-sub">P98_第四单元_计量时间</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u04_l04.html</span>
+        <a href="sim_g11_s1_u04_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g6" data-keywords="机械摆钟 11_六年级上册 P98_第四单元_计量时间.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第5课 · 机械摆钟</h3>
+      <p class="unit-sub">P98_第四单元_计量时间</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u04_l05.html</span>
+        <a href="sim_g11_s1_u04_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="physics_mechanics" data-grade="g6" data-keywords="制作钟摆 11_六年级上册 P98_第四单元_计量时间.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--phy)22; color: var(--phy); border: 1px solid var(--phy)44;">经典力学与动力学</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第6课 · 制作钟摆</h3>
+      <p class="unit-sub">P98_第四单元_计量时间</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u04_l06.html</span>
+        <a href="sim_g11_s1_u04_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="general_science" data-grade="g6" data-keywords="时间与变化 11_六年级上册 P98_第四单元_计量时间.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--primary)22; color: var(--primary); border: 1px solid var(--primary)44;">综合科学探究</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第7课 · 时间与变化</h3>
+      <p class="unit-sub">P98_第四单元_计量时间</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g11_s1_u04_l07.html</span>
+        <a href="sim_g11_s1_u04_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="engineering" data-grade="g6" data-keywords="了解我们的住房 12_六年级下册 P02_小小工程师.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--eng)22; color: var(--eng); border: 1px solid var(--eng)44;">工程技术与设计</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第1课 · 了解我们的住房</h3>
+      <p class="unit-sub">P02_小小工程师</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u01_l01.html</span>
+        <a href="sim_g12_s2_u01_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="engineering" data-grade="g6" data-keywords="认识工程 12_六年级下册 P02_小小工程师.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--eng)22; color: var(--eng); border: 1px solid var(--eng)44;">工程技术与设计</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第2课 · 认识工程</h3>
+      <p class="unit-sub">P02_小小工程师</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u01_l02.html</span>
+        <a href="sim_g12_s2_u01_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="engineering" data-grade="g6" data-keywords="建造塔台 12_六年级下册 P02_小小工程师.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--eng)22; color: var(--eng); border: 1px solid var(--eng)44;">工程技术与设计</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第3课 · 建造塔台</h3>
+      <p class="unit-sub">P02_小小工程师</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u01_l03.html</span>
+        <a href="sim_g12_s2_u01_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="engineering" data-grade="g6" data-keywords="设计塔台模型 12_六年级下册 P02_小小工程师.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--eng)22; color: var(--eng); border: 1px solid var(--eng)44;">工程技术与设计</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第4课 · 设计塔台模型</h3>
+      <p class="unit-sub">P02_小小工程师</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u01_l04.html</span>
+        <a href="sim_g12_s2_u01_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="engineering" data-grade="g6" data-keywords="制作塔台模型 12_六年级下册 P02_小小工程师.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--eng)22; color: var(--eng); border: 1px solid var(--eng)44;">工程技术与设计</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第5课 · 制作塔台模型</h3>
+      <p class="unit-sub">P02_小小工程师</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u01_l05.html</span>
+        <a href="sim_g12_s2_u01_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="engineering" data-grade="g6" data-keywords="测试塔台模型 12_六年级下册 P02_小小工程师.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--eng)22; color: var(--eng); border: 1px solid var(--eng)44;">工程技术与设计</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第6课 · 测试塔台模型</h3>
+      <p class="unit-sub">P02_小小工程师</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u01_l06.html</span>
+        <a href="sim_g12_s2_u01_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="engineering" data-grade="g6" data-keywords="评估改进塔台模型 12_六年级下册 P02_小小工程师.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--eng)22; color: var(--eng); border: 1px solid var(--eng)44;">工程技术与设计</span>
+        <span class="grade-tag">六年级 · 第1单元</span>
+      </div>
+      <h3>第7课 · 评估改进塔台模型</h3>
+      <p class="unit-sub">P02_小小工程师</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u01_l07.html</span>
+        <a href="sim_g12_s2_u01_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="校园生物大搜索 12_六年级下册 P20_生物的多样性.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第1课 · 校园生物大搜索</h3>
+      <p class="unit-sub">P20_生物的多样性</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u02_l01.html</span>
+        <a href="sim_g12_s2_u02_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="制作校园生物分布图 12_六年级下册 P20_生物的多样性.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第2课 · 制作校园生物分布图</h3>
+      <p class="unit-sub">P20_生物的多样性</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u02_l02.html</span>
+        <a href="sim_g12_s2_u02_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="形形色色的植物 12_六年级下册 P20_生物的多样性.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第3课 · 形形色色的植物</h3>
+      <p class="unit-sub">P20_生物的多样性</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u02_l03.html</span>
+        <a href="sim_g12_s2_u02_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="多种多样的动物 12_六年级下册 P20_生物的多样性.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第4课 · 多种多样的动物</h3>
+      <p class="unit-sub">P20_生物的多样性</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u02_l04.html</span>
+        <a href="sim_g12_s2_u02_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="相貌各异的我们 12_六年级下册 P20_生物的多样性.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第5课 · 相貌各异的我们</h3>
+      <p class="unit-sub">P20_生物的多样性</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u02_l05.html</span>
+        <a href="sim_g12_s2_u02_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="古代生物的多样性 12_六年级下册 P20_生物的多样性.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第6课 · 古代生物的多样性</h3>
+      <p class="unit-sub">P20_生物的多样性</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u02_l06.html</span>
+        <a href="sim_g12_s2_u02_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="保护生物多样性 12_六年级下册 P20_生物的多样性.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第2单元</span>
+      </div>
+      <h3>第7课 · 保护生物多样性</h3>
+      <p class="unit-sub">P20_生物的多样性</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u02_l07.html</span>
+        <a href="sim_g12_s2_u02_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g6" data-keywords="太阳系大家庭 12_六年级下册 P40_宇宙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第1课 · 太阳系大家庭</h3>
+      <p class="unit-sub">P40_宇宙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u03_l01.html</span>
+        <a href="sim_g12_s2_u03_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g6" data-keywords="八颗行星 12_六年级下册 P40_宇宙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第2课 · 八颗行星</h3>
+      <p class="unit-sub">P40_宇宙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u03_l02.html</span>
+        <a href="sim_g12_s2_u03_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g6" data-keywords="日食 12_六年级下册 P40_宇宙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第3课 · 日食</h3>
+      <p class="unit-sub">P40_宇宙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u03_l03.html</span>
+        <a href="sim_g12_s2_u03_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g6" data-keywords="认识星座 12_六年级下册 P40_宇宙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第4课 · 认识星座</h3>
+      <p class="unit-sub">P40_宇宙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u03_l04.html</span>
+        <a href="sim_g12_s2_u03_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g6" data-keywords="夏季星空 12_六年级下册 P40_宇宙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第5课 · 夏季星空</h3>
+      <p class="unit-sub">P40_宇宙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u03_l05.html</span>
+        <a href="sim_g12_s2_u03_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g6" data-keywords="浩瀚的宇宙 12_六年级下册 P40_宇宙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第6课 · 浩瀚的宇宙</h3>
+      <p class="unit-sub">P40_宇宙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u03_l06.html</span>
+        <a href="sim_g12_s2_u03_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="astronomy" data-grade="g6" data-keywords="探索宇宙 12_六年级下册 P40_宇宙.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">天文与宇宙科学</span>
+        <span class="grade-tag">六年级 · 第3单元</span>
+      </div>
+      <h3>第7课 · 探索宇宙</h3>
+      <p class="unit-sub">P40_宇宙</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u03_l07.html</span>
+        <a href="sim_g12_s2_u03_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g6" data-keywords="厨房里的物质与变化 12_六年级下册 P58_物质的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第1课 · 厨房里的物质与变化</h3>
+      <p class="unit-sub">P58_物质的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u04_l01.html</span>
+        <a href="sim_g12_s2_u04_l01.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g6" data-keywords="产生气体的变化 12_六年级下册 P58_物质的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第2课 · 产生气体的变化</h3>
+      <p class="unit-sub">P58_物质的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u04_l02.html</span>
+        <a href="sim_g12_s2_u04_l02.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g6" data-keywords="发现变化中的新物质 12_六年级下册 P58_物质的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第3课 · 发现变化中的新物质</h3>
+      <p class="unit-sub">P58_物质的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u04_l03.html</span>
+        <a href="sim_g12_s2_u04_l03.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g6" data-keywords="变化中伴随的现象 12_六年级下册 P58_物质的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第4课 · 变化中伴随的现象</h3>
+      <p class="unit-sub">P58_物质的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u04_l04.html</span>
+        <a href="sim_g12_s2_u04_l04.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="earth" data-grade="g6" data-keywords="地球家园的化学变化 12_六年级下册 P58_物质的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地球与气象科学</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第5课 · 地球家园的化学变化</h3>
+      <p class="unit-sub">P58_物质的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u04_l05.html</span>
+        <a href="sim_g12_s2_u04_l05.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="biology" data-grade="g6" data-keywords="生命体中的化学变化 12_六年级下册 P58_物质的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: var(--bio)22; color: var(--bio); border: 1px solid var(--bio)44;">生命科学与生态</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第6课 · 生命体中的化学变化</h3>
+      <p class="unit-sub">P58_物质的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u04_l06.html</span>
+        <a href="sim_g12_s2_u04_l06.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+    <div class="card curr-card" data-domain="chemistry" data-grade="g6" data-keywords="美丽的化学变化 12_六年级下册 P58_物质的变化.md">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学与材料科学</span>
+        <span class="grade-tag">六年级 · 第4单元</span>
+      </div>
+      <h3>第7课 · 美丽的化学变化</h3>
+      <p class="unit-sub">P58_物质的变化</p>
+      <div class="card-footer">
+        <span class="file-tag">sim_g12_s2_u04_l07.html</span>
+        <a href="sim_g12_s2_u04_l07.html" class="btn btn-sm">启动探究 →</a>
+      </div>
+    </div>
+    
+      </div>
+    
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: var(--earth)22; color: var(--earth); border: 1px solid var(--earth)44;">地质与土壤</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>矿物晶体与土壤成分全景实验室</h3>
+      <p>矿物光泽、条痕比色与莫氏硬度划痕对比，土壤水中重力沉降粒径分层柱，以及沙质土/壤土/黏质土三联渗水保水实验台。</p>
+      <div class="card-footer">
+        <span class="file-tag">mineral_soil_lab.html</span>
+        <a href="mineral_soil_lab.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: #f59e0b22; color: #f59e0b; border: 1px solid #f59e0b44;">工程力学</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>塔台结构工程力学与抗风抗震物理沙盒</h3>
+      <p>高耸塔台框架三角抗扭受力分析，5级风洞侧向吹力测试，地震波震动台破坏试验与悬挂重物顶端承重力学极限探究。</p>
+      <div class="card-footer">
+        <span class="file-tag">tower_engineering_lab.html</span>
+        <a href="tower_engineering_lab.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: #3b82f622; color: #3b82f6; border: 1px solid #3b82f644;">电磁动力学</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>电磁铁与微型电动机多维动力学实验室</h3>
+      <p>线圈匝数与电流强度对电磁铁吸力关系，安培右手螺旋定则磁极反转，及直流电动机电刷与换向器磁场旋转动力学全真模拟。</p>
+      <div class="card-footer">
+        <span class="file-tag">electromagnet_motor_lab.html</span>
+        <a href="electromagnet_motor_lab.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: #06b6d422; color: #06b6d4; border: 1px solid #06b6d444;">大气与气象</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>大气压强托里拆利水银柱与风成因对流实验室</h3>
+      <p>马德堡半球抽真空对拉对抗，托里拆利水银柱高度与大气压强平衡，冷热空气对流风箱与数字气象站多合一探究。</p>
+      <div class="card-footer">
+        <span class="file-tag">meteorology_atmosphere_lab.html</span>
+        <a href="meteorology_atmosphere_lab.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: #8b5cf622; color: #8b5cf6; border: 1px solid #8b5cf644;">经典光学</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>牛顿三棱镜七彩色散与凸透镜成像规律光具座</h3>
+      <p>白光经三棱镜折射出色散彩虹，牛顿七色盘高速旋转视觉暂留复原白光，以及光具座凸透镜物距与像距倒立实像/虚像变化规律。</p>
+      <div class="card-footer">
+        <span class="file-tag">optics_prism_lab.html</span>
+        <a href="optics_prism_lab.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: #ec489922; color: #ec4899; border: 1px solid #ec489944;">化学新物质</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>气体生成与蜡烛阶梯燃烧隔绝灭火实验室</h3>
+      <p>小苏打与白醋剧烈反应释放二氧化碳，阶梯高低蜡烛由于二氧化碳密度与隔绝氧气先后熄灭，及澄清石灰水变浑浊沉淀验证。</p>
+      <div class="card-footer">
+        <span class="file-tag">gas_combustion_lab.html</span>
+        <a href="gas_combustion_lab.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: #6366f122; color: #6366f1; border: 1px solid #6366f144;">深空与宇宙</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>日食月食本影全景与北斗七星三维视差空间模型</h3>
+      <p>三维日地月空间本影与半影投射日全食/日环食/日偏食与红月亮月食，以及突破平面星座误区俯瞰北斗七星不同光年恒星三维深度。</p>
+      <div class="card-footer">
+        <span class="file-tag">space_eclipse_constellation_lab.html</span>
+        <a href="space_eclipse_constellation_lab.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+
+    <div class="card master-card" data-domain="master" data-grade="master">
+      <div class="card-header">
+        <span class="badge" style="background: #10b98122; color: #10b981; border: 1px solid #10b98144;">生命与遗传</span>
+        <span class="star-badge">★ 大师级</span>
+      </div>
+      <h3>生物多样性二歧分类与人类相貌性状遗传编码沙盒</h3>
+      <p>林奈动植物二歧分类交互树检索，人类5对相对性状组合32种独特相貌基因型表现图谱，以及样方法物种丰富度与辛普森多样性指数。</p>
+      <div class="card-footer">
+        <span class="file-tag">biodiversity_genetics_lab.html</span>
+        <a href="biodiversity_genetics_lab.html" class="btn">进入实验 →</a>
+      </div>
+    </div>
+
+</div>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const tabs = document.querySelectorAll('.tab-btn');
+    const masterSection = document.getElementById('masterSection');
+    const masterCards = document.querySelectorAll('.master-card');
+    const currCards = document.querySelectorAll('.curr-card');
+    const currCount = document.getElementById('currCount');
+
+    let currentFilter = 'all';
+
+    function filterCards() {
+      const query = searchInput.value.trim().toLowerCase();
+      let visibleCurr = 0;
+
+      // Filter Master Cards
+      if (currentFilter === 'all' || currentFilter === 'master') {
+        masterSection.style.display = 'block';
+        masterCards.forEach(card => {
+          const text = card.textContent.toLowerCase();
+          const match = !query || text.includes(query);
+          card.style.display = match ? 'flex' : 'none';
+        });
+      } else {
+        masterSection.style.display = 'none';
+      }
+
+      // Filter Curriculum Cards
+      if (currentFilter === 'master') {
+        document.getElementById('currSection').style.display = 'none';
+      } else {
+        document.getElementById('currSection').style.display = 'block';
+        currCards.forEach(card => {
+          const grade = card.dataset.grade;
+          const kws = (card.dataset.keywords || '').toLowerCase();
+          const text = card.textContent.toLowerCase();
+          
+          const gradeMatch = (currentFilter === 'all') || (currentFilter === grade);
+          const queryMatch = !query || text.includes(query) || kws.includes(query);
+
+          if (gradeMatch && queryMatch) {
+            card.style.display = 'flex';
+            visibleCurr++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+        currCount.textContent = `当前筛选显示 ${visibleCurr} 个微仿真实验`;
+      }
+    }
+
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabs.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        filterCards();
+      });
+    });
+
+    searchInput.addEventListener('input', filterCards);
+  </script>
+</body>
+</html>

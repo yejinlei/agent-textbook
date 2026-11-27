@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学大师级实验室：电磁铁特性、磁极反转与直流电动机全景沙盒（六年级上册·能量）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #f59e0b;
+      --accent: #38bdf8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1240px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-primary {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-color: #d97706;
+      color: #0f172a;
+      font-weight: 700;
+    }
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .mode-tab {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--muted);
+      border: none;
+      background: transparent;
+      transition: all 0.2s;
+    }
+    .mode-tab.active {
+      background: var(--primary);
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .main-container {
+      max-width: 1240px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 960px) {
+      .main-container { grid-template-columns: 1fr; }
+    }
+
+    .canvas-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .canvas-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.4);
+    }
+    .canvas-wrapper {
+      position: relative;
+      flex: 1;
+      min-height: 520px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 50%, #17243c 0%, #0b1120 100%);
+    }
+    canvas { display: block; }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fbbf24;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .form-group { margin-bottom: 12px; }
+    .form-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    input[type=range] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #1e293b;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+    }
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .option-btn {
+      padding: 8px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.5);
+      color: var(--text);
+      font-size: 0.78rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .option-btn:hover { border-color: var(--primary); }
+    .option-btn.active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--primary);
+      color: #fbbf24;
+      font-weight: 700;
+    }
+    .telemetry-card {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.75rem;
+      color: #38bdf8;
+      line-height: 1.5;
+      min-height: 95px;
+    }
+    .science-tip {
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      background: rgba(30, 41, 59, 0.5);
+      border-left: 3px solid #f59e0b;
+      padding: 8px 10px;
+      border-radius: 0 8px 8px 0;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>🏆 电磁铁特性、磁极反转与电动机全景沙盒</h1>
+      <span class="badge">六年级上册·能量核心</span>
+    </div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabMag" onclick="switchMode('magnet')">🧲 电磁铁磁力与吸附台</button>
+      <button class="mode-tab" id="tabPolar" onclick="switchMode('polarity')">🧭 安培定则与磁极反转</button>
+      <button class="mode-tab" id="tabMotor" onclick="switchMode('motor')">⚡ 直流电动机旋转解剖台</button>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html" class="btn">← 返回大厅</a>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="canvas-panel">
+      <div class="canvas-header">
+        <span id="canvasTitle">🧲 电磁铁磁力受控实验台（线圈匝数、电流大小与铁芯吸附大头针）</span>
+        <span style="color: var(--muted); font-size: 0.75rem;">实时电磁物理场拟真 · 闭合回路电流驱动</span>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="simCanvas" width="840" height="520"></canvas>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="card" id="ctrlCard">
+        <!-- Injected dynamically -->
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 电磁与动力学遥测读数</div>
+        <div class="telemetry-card" id="telem">
+          初始化中...
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📖 科学家视角与学科大概念</div>
+        <div class="science-tip" id="scienceTip">
+          奥斯特发现“电生磁”，通电导线产生磁场；通过线圈缠绕在铁芯上制成电磁铁。电磁铁的磁力强弱与线圈匝数、电流大小紧密相关；其磁极方向可通过改变电流方向或线圈缠绕方向反转。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    const telem = document.getElementById('telem');
+    const ctrlCard = document.getElementById('ctrlCard');
+    const canvasTitle = document.getElementById('canvasTitle');
+
+    // Audio
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playHum(freq=120) {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+      }catch(e){}
+    }
+
+    let currentMode = 'magnet'; // magnet, polarity, motor
+
+    // State: Magnet
+    let turns = 40;       // 20, 40, 60, 80
+    let batteries = 2;   // 1, 2, 3 (1.5V, 3V, 4.5V)
+    let hasIronCore = true;
+    let isCircuitClosed = true;
+
+    // State: Polarity
+    let reversedCurrent = false;
+    let reversedWind = false;
+
+    // State: Motor
+    let motorRunning = true;
+    let motorSpeed = 2; // 1, 2, 3
+    let motorAngle = 0;
+
+    // Pins on bench for magnet
+    const pins = [];
+    for (let i = 0; i < 45; i++) {
+      pins.push({
+        origX: 280 + Math.random() * 280,
+        origY: 420 + Math.random() * 40,
+        x: 0, y: 0,
+        attached: false,
+        angle: (Math.random() - 0.5) * 0.8
+      });
+    }
+
+    function switchMode(m) {
+      currentMode = m;
+      document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+      if (m === 'magnet') document.getElementById('tabMag').classList.add('active');
+      if (m === 'polarity') document.getElementById('tabPolar').classList.add('active');
+      if (m === 'motor') document.getElementById('tabMotor').classList.add('active');
+      renderSidebar();
+    }
+
+    function renderSidebar() {
+      if (currentMode === 'magnet') {
+        canvasTitle.textContent = '🧲 电磁铁磁力受控实验台（线圈匝数、电流大小与铁芯吸附大头针）';
+        ctrlCard.innerHTML = `
+          <div class="card-title">⚡ 电路控制与铁芯选择</div>
+          <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <button class="btn ${isCircuitClosed ? 'btn-primary' : ''}" style="flex:1;" onclick="toggleCircuit()">
+              ${isCircuitClosed ? '🔴 断开电源电路' : '🟢 闭合通电开关'}
+            </button>
+            <button class="btn ${hasIronCore ? 'btn-primary' : ''}" onclick="toggleCore()">
+              ${hasIronCore ? '🔩 移除软铁芯' : '🔩 插入软铁芯'}
+            </button>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>🌀 线圈缠绕匝数</span>
+              <span style="color:#fbbf24; font-weight:bold;">${turns} 匝</span>
+            </div>
+            <input type="range" min="20" max="80" step="20" value="${turns}" oninput="turns=parseInt(this.value); renderSidebar(); playHum(turns*3);">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>🔋 串联电池节数 (电流强度)</span>
+              <span style="color:#38bdf8; font-weight:bold;">${batteries} 节 (${batteries * 1.5} V)</span>
+            </div>
+            <input type="range" min="1" max="3" step="1" value="${batteries}" oninput="batteries=parseInt(this.value); renderSidebar(); playHum(batteries*80);">
+          </div>
+        `;
+      } else if (currentMode === 'polarity') {
+        canvasTitle.textContent = '🧭 安培定则与电磁铁磁极（N/S极）反转判定台';
+        ctrlCard.innerHTML = `
+          <div class="card-title">🔄 磁极方向反转控制</div>
+          <p style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">通过改变电池正负极接法或改变线圈缠绕方向，使电磁铁磁极彻底反转！</p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn btn-primary" onclick="reversedCurrent=!reversedCurrent; renderSidebar(); playHum(300);">
+              🔄 调换电池正负极接入方向 (${reversedCurrent ? '已反接' : '正向接入'})
+            </button>
+            <button class="btn" style="border-color:#38bdf8; color:#38bdf8;" onclick="reversedWind=!reversedWind; renderSidebar(); playHum(400);">
+              🌀 改变线圈缠绕方向 (${reversedWind ? '反向逆时针' : '正向顺时针'})
+            </button>
+          </div>
+        `;
+      } else if (currentMode === 'motor') {
+        canvasTitle.textContent = '⚡ 直流电动机内部解剖与电磁动力学旋转台';
+        ctrlCard.innerHTML = `
+          <div class="card-title">⚙️ 电动机运行调控</div>
+          <p style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">换向器在转过平衡位置时改变转子电流方向，使电磁推力持续同向旋转！</p>
+          <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <button class="btn ${motorRunning ? 'btn-primary' : ''}" style="flex:1;" onclick="motorRunning=!motorRunning; renderSidebar();">
+              ${motorRunning ? '⏸️ 暂停转子' : '▶️ 启动电动机'}
+            </button>
+          </div>
+          <div class="form-group">
+            <div class="form-label">
+              <span>⚡ 驱动电压与转速档位</span>
+              <span style="color:#fbbf24; font-weight:bold;">${motorSpeed} 档</span>
+            </div>
+            <input type="range" min="1" max="4" step="1" value="${motorSpeed}" oninput="motorSpeed=parseInt(this.value); renderSidebar();">
+          </div>
+        `;
+      }
+    }
+
+    function toggleCircuit() {
+      isCircuitClosed = !isCircuitClosed;
+      renderSidebar();
+      playHum(isCircuitClosed ? 240 : 100);
+    }
+    function toggleCore() {
+      hasIronCore = !hasIronCore;
+      renderSidebar();
+      playHum(hasIronCore ? 400 : 180);
+    }
+
+    // Main Draw Loop
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (currentMode === 'magnet') {
+        drawMagnetScene();
+      } else if (currentMode === 'polarity') {
+        drawPolarityScene();
+      } else if (currentMode === 'motor') {
+        drawMotorScene();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    // --- Scene 1: Magnet ---
+    function drawMagnetScene() {
+      const cx = 420, cy = 180;
+
+      // 1. Draw Batteries & Switch Circuit
+      ctx.strokeStyle = isCircuitClosed ? '#38bdf8' : '#64748b';
+      ctx.lineWidth = 3;
+
+      // Wires from battery to nail
+      ctx.beginPath();
+      ctx.moveTo(120, 200); ctx.lineTo(120, 80); ctx.lineTo(cx - 100, 80); ctx.lineTo(cx - 100, cy - 25);
+      ctx.moveTo(120, 280); ctx.lineTo(120, 360); ctx.lineTo(cx + 100, 360); ctx.lineTo(cx + 100, cy + 25);
+      ctx.stroke();
+
+      // Battery Bank
+      for (let b = 0; b < batteries; b++) {
+        const by = 200 + b * 32;
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(100, by, 40, 26);
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText('+ 1.5V -', 103, by + 17);
+      }
+
+      // Switch
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(120, 320);
+      ctx.lineTo(isCircuitClosed ? 120 : 105, 345);
+      ctx.stroke();
+
+      // 2. Draw Iron Core (Nail)
+      const nailX = cx - 140, nailY = cy - 16, nailW = 280, nailH = 32;
+      if (hasIronCore) {
+        const ironGrad = ctx.createLinearGradient(nailX, nailY, nailX, nailY + nailH);
+        ironGrad.addColorStop(0, '#94a3b8');
+        ironGrad.addColorStop(0.5, '#f8fafc');
+        ironGrad.addColorStop(1, '#475569');
+        ctx.fillStyle = ironGrad;
+        ctx.beginPath();
+        ctx.roundRect(nailX, nailY, nailW, nailH, 6);
+        ctx.fill();
+        ctx.strokeStyle = '#334155';
+        ctx.stroke();
+
+        // Nail Tip (Triangle on left)
+        ctx.beginPath();
+        ctx.moveTo(nailX, nailY); ctx.lineTo(nailX - 25, cy); ctx.lineTo(nailX, nailY + nailH);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+      } else {
+        // Hollow Paper Tube
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(nailX + 20, nailY + 4, nailW - 40, nailH - 8);
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.1)';
+        ctx.fillRect(nailX + 20, nailY + 4, nailW - 40, nailH - 8);
+      }
+
+      // 3. Draw Enamelled Wire Coils
+      const coilStartX = cx - 80, coilW = 160;
+      const step = coilW / (turns / 5);
+      ctx.strokeStyle = isCircuitClosed ? '#f59e0b' : '#b45309';
+      ctx.lineWidth = 5;
+      for (let x = coilStartX; x <= coilStartX + coilW; x += step) {
+        ctx.beginPath();
+        ctx.ellipse(x, cy, 6, 26, 0.2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // 4. Calculate Magnetic Field & Attracted Pins
+      // Strength formula: S = (hasCore ? 4.0 : 0.4) * (turns / 20) * batteries * (isClosed ? 1 : 0)
+      const strength = (isCircuitClosed ? 1 : 0) * (hasIronCore ? 3.5 : 0.35) * (turns / 20) * batteries;
+      const attractedCount = Math.min(42, Math.round(strength * 3.5));
+
+      // Draw Pins on table
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(200, 470, 440, 15); // table surface
+
+      pins.forEach((p, idx) => {
+        p.attached = (idx < attractedCount);
+        if (p.attached) {
+          // Clustered around nail tip or tail
+          const isLeft = idx % 2 === 0;
+          const targetX = isLeft ? (nailX - 20 - (idx%5)*4) : (nailX + nailW + 10 + (idx%5)*4);
+          const targetY = cy + (idx % 7 - 3) * 6;
+          p.x += (targetX - p.x) * 0.15;
+          p.y += (targetY - p.y) * 0.15;
+        } else {
+          p.x += (p.origX - p.x) * 0.15;
+          p.y += (p.origY - p.y) * 0.15;
+        }
+
+        // Draw pin
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.attached ? (idx%2===0 ? -0.4 : 0.4) : p.angle);
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-10, 0); ctx.lineTo(10, 0);
+        ctx.stroke();
+        ctx.fillStyle = '#ef4444'; // pin head
+        ctx.beginPath();
+        ctx.arc(-10, 0, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // 5. Magnetic Flux Lines
+      if (isCircuitClosed && strength > 1) {
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+        ctx.lineWidth = 1.5;
+        for (let r = 50; r <= 130; r += 28) {
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, 180 + r, 45 + r * 0.6, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      // Telemetry
+      telem.innerHTML = `
+[电磁铁状态遥测] 电路状态: ${isCircuitClosed ? '🟢 通电闭合' : '🔴 断路断电'}
+• 铁芯配置: ${hasIronCore ? '软铁铁芯 (磁通量放大上千倍)' : '无铁芯空心线圈 (磁力微弱)'}
+• 线圈匝数: ${turns} 匝 | 供电电压: ${batteries * 1.5} V
+• 磁感应强度 B: ${strength.toFixed(1)} 特斯拉当量
+• 吸附大头针数量: ${attractedCount} 枚
+• 结论: 电磁铁磁力随【线圈匝数增加】、【电流强度增大】、【插入铁芯】而显著成倍剧增！
+      `.trim();
+    }
+
+    // --- Scene 2: Polarity ---
+    function drawPolarityScene() {
+      const cx = 420, cy = 220;
+
+      // Determine Poles based on reverse rules
+      // Default: Left is North (N), Right is South (S)
+      // Reverse current flips; reverse wind flips; both cancel out
+      let flips = 0;
+      if (reversedCurrent) flips++;
+      if (reversedWind) flips++;
+      const isNorthLeft = (flips % 2 === 0);
+
+      // Draw Electromagnet Body
+      const nailX = cx - 120, nailY = cy - 20, nailW = 240, nailH = 40;
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(nailX, nailY, nailW, nailH);
+
+      // Coils
+      ctx.strokeStyle = reversedWind ? '#f59e0b' : '#38bdf8';
+      ctx.lineWidth = 5;
+      for (let x = nailX + 20; x <= nailX + nailW - 20; x += 15) {
+        ctx.beginPath();
+        ctx.ellipse(x, cy, 6, 30, reversedWind ? -0.2 : 0.2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Pole Badges on Ends
+      const leftPole = isNorthLeft ? 'N 极' : 'S 极';
+      const rightPole = isNorthLeft ? 'S 极' : 'N 极';
+
+      ctx.fillStyle = isNorthLeft ? '#ef4444' : '#38bdf8';
+      ctx.fillRect(nailX - 20, nailY - 5, 30, nailH + 10);
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 15px sans-serif';
+      ctx.fillText(leftPole, nailX - 18, cy + 5);
+
+      ctx.fillStyle = !isNorthLeft ? '#ef4444' : '#38bdf8';
+      ctx.fillRect(nailX + nailW - 10, nailY - 5, 30, nailH + 10);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(rightPole, nailX + nailW - 8, cy + 5);
+
+      // Draw 2 Magnetic Compasses on Left and Right
+      drawCompass(nailX - 120, cy, isNorthLeft ? 'S' : 'N');
+      drawCompass(nailX + nailW + 120, cy, !isNorthLeft ? 'S' : 'N');
+
+      // Amperian Right-Hand Rule Hand
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`安培右手螺旋定则：右手四指弯向电流方向，大拇指所指的一端就是【N 极】！`, cx, 75);
+      ctx.fillText(`当前判定: 左端为 [${leftPole}]，右端为 [${rightPole}]`, cx, 110);
+      ctx.textAlign = 'left';
+
+      telem.innerHTML = `
+[磁极反转遥测] 
+• 电流接法: ${reversedCurrent ? '反接 (- 到 +)' : '正接 (+ 到 -)'}
+• 线圈绕向: ${reversedWind ? '逆时针反向' : '顺时针正向'}
+• 磁极判定结果: 左端 = [${leftPole}] | 右端 = [${rightPole}]
+• 规律定理: 改变电流方向或改变线圈缠绕方向，都会导致电磁铁磁极彻底反转！
+      `.trim();
+    }
+
+    function drawCompass(x, y, pointingPole) {
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x, y, 45, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+
+      // Needle (pointing towards magnet)
+      const angle = (x < 420) ? 0 : Math.PI;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+
+      // North tip (Red)
+      ctx.fillStyle = pointingPole === 'N' ? '#ef4444' : '#38bdf8';
+      ctx.beginPath();
+      ctx.moveTo(0, -6); ctx.lineTo(35, 0); ctx.lineTo(0, 6);
+      ctx.closePath(); ctx.fill();
+
+      // South tip (Blue)
+      ctx.fillStyle = pointingPole === 'S' ? '#ef4444' : '#38bdf8';
+      ctx.beginPath();
+      ctx.moveTo(0, -6); ctx.lineTo(-35, 0); ctx.lineTo(0, 6);
+      ctx.closePath(); ctx.fill();
+
+      ctx.restore();
+    }
+
+    // --- Scene 3: Motor ---
+    function drawMotorScene() {
+      const cx = 420, cy = 240;
+
+      if (motorRunning) {
+        motorAngle += 0.05 * motorSpeed;
+      }
+
+      // Outer Permanent Magnets
+      // Left N Magnet (Red)
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(cx - 240, cy - 80, 80, 160);
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 24px sans-serif';
+      ctx.fillText('N', cx - 210, cy + 10);
+
+      // Right S Magnet (Blue)
+      ctx.fillStyle = '#0284c7';
+      ctx.fillRect(cx + 160, cy - 80, 80, 160);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('S', cx + 190, cy + 10);
+
+      // Magnetic Field Lines (Left to Right)
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+      ctx.lineWidth = 1.5;
+      for (let y = cy - 60; y <= cy + 60; y += 30) {
+        ctx.beginPath();
+        ctx.moveTo(cx - 160, y); ctx.lineTo(cx + 160, y);
+        ctx.stroke();
+      }
+
+      // Rotor (Armature) Rotating
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(motorAngle);
+
+      // Rotor Iron Core
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(-70, -18, 140, 36);
+
+      // Rotor Copper Windings
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(-60, -28, 40, 56);
+      ctx.fillRect(20, -28, 40, 56);
+
+      // Commutator Segments (Center Split Ring)
+      ctx.fillStyle = '#d97706';
+      ctx.beginPath();
+      ctx.arc(0, 0, 20, 0.2, Math.PI - 0.2);
+      ctx.lineWidth = 6; ctx.strokeStyle = '#b45309'; ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, 20, Math.PI + 0.2, Math.PI * 2 - 0.2);
+      ctx.stroke();
+
+      ctx.restore();
+
+      // Static Carbon Brushes
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 2;
+      ctx.fillRect(cx - 30, cy - 6, 10, 12);
+      ctx.fillRect(cx + 20, cy - 6, 10, 12);
+
+      // Spark Particles when commutator gap passes brush
+      const gapPassing = Math.abs(Math.sin(motorAngle)) < 0.15;
+      if (gapPassing && motorRunning) {
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.arc(cx - 22, cy, 3, 0, Math.PI * 2);
+        ctx.arc(cx + 22, cy, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚡ 直流电动机工作原理：换向器每转半圈自动改变电流方向，使磁场力方向持续推动转子！', cx, 65);
+      ctx.textAlign = 'left';
+
+      telem.innerHTML = `
+[电动机动力遥测] 运行状态: ${motorRunning ? '⚡ 高速旋转' : '⏸️ 停止'}
+• 设定档位: ${motorSpeed} 档 | 转速 RPM: ${motorRunning ? (motorSpeed * 450) : 0} 转/分
+• 动力原理: 通电导体在定子永久磁场中受安培力 F = BIL 驱动转动
+• 核心构件: 定子磁极、转子电枢、半圆换向器、电刷
+      `.trim();
+    }
+
+    renderSidebar();
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>

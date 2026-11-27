@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学探究微仿真：单摆等时性与周期实验室</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --border-color: #334155;
+      --primary: #38bdf8;
+      --primary-hover: #0ea5e9;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .canvas-container {
+      position: relative;
+      flex: 1;
+      min-height: 420px;
+      background: radial-gradient(circle at center, #1e293b 0%, #0b0f19 100%);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #283548;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+    
+    .hud-overlay {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .hud-val { color: var(--primary); font-weight: bold; }
+    
+    .controls { display: flex; flex-direction: column; gap: 16px; }
+    .control-group {
+      background: #151e2e;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #233147;
+    }
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .control-value {
+      font-family: monospace;
+      color: var(--accent);
+      font-weight: bold;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: #334155;
+      border-radius: 3px;
+      outline: none;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    button:hover { background: #1d4ed8; }
+    button.secondary { background: #334155; }
+    button.secondary:hover { background: #475569; }
+    button.auto-measure {
+      grid-column: span 2;
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    }
+    button.auto-measure:hover { opacity: 0.95; }
+    
+    .data-table-section {
+      margin-top: 16px;
+      max-width: 1200px;
+      width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    th, td {
+      padding: 8px 12px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+    }
+    th { background: #151e2e; color: var(--text-muted); font-weight: 600; }
+    tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+    
+    .cer-guide {
+      margin-top: 12px;
+      background: rgba(56, 189, 248, 0.08);
+      border-left: 4px solid var(--primary);
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .cer-guide strong { color: var(--primary); }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>🔬 单摆等时性与周期受控实验（六年级上册·计量时间）</h1>
+    <span class="badge">交互微仿真 · 纯静态 0 依赖</span>
+  </header>
+
+  <div class="main-grid">
+    <!-- 左侧仿真画布区 -->
+    <div class="panel">
+      <div class="canvas-container" id="container">
+        <canvas id="pendulumCanvas"></canvas>
+        <div class="hud-overlay">
+          <div>当前摆动次数: <span id="swingCount" class="hud-val">0</span> 次</div>
+          <div>累计运行时间: <span id="timerVal" class="hud-val">0.00</span> s</div>
+          <div>平均摆动周期: <span id="periodVal" class="hud-val">--</span> s</div>
+          <div>当前摆动状态: <span id="statusVal" style="color: #10b981;">等待释放</span></div>
+        </div>
+      </div>
+      
+      <div class="cer-guide">
+        💡 <strong>探究提示（CER科学探究引导）</strong>：
+        固定【摆长】，只改变【摆锤质量】或【摆角】，观察摆动10次所需时间是否改变；
+        随后改变【摆长】，观察周期如何剧烈变化。总结你的科学结论！
+      </div>
+    </div>
+
+    <!-- 右侧参数调控面板 -->
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">⚙️ 受控自变量调节</h2>
+      <div class="controls">
+        
+        <!-- 变量1：摆长 -->
+        <div class="control-group">
+          <div class="control-header">
+            <span>📏 摆长 (L)</span>
+            <span class="control-value" id="valLength">30 cm</span>
+          </div>
+          <input type="range" id="sliderLength" min="15" max="60" value="30" step="1">
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">调节悬线长度（15cm ~ 60cm）</div>
+        </div>
+
+        <!-- 变量2：摆锤质量 -->
+        <div class="control-group">
+          <div class="control-header">
+            <span>⚖️ 摆锤质量 (m)</span>
+            <span class="control-value" id="valMass">30 g</span>
+          </div>
+          <input type="range" id="sliderMass" min="10" max="100" value="30" step="5">
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">调节金属球质量（10g ~ 100g）</div>
+        </div>
+
+        <!-- 变量3：起始摆角 -->
+        <div class="control-group">
+          <div class="control-header">
+            <span>📐 起始摆角 (θ)</span>
+            <span class="control-value" id="valAngle">20 °</span>
+          </div>
+          <input type="range" id="sliderAngle" min="5" max="45" value="20" step="1">
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">拉起释放的角度（5° ~ 45°）</div>
+        </div>
+
+        <!-- 操作按钮组 -->
+        <div class="btn-row">
+          <button id="btnStart">▶ 释放摆动</button>
+          <button id="btnPause" class="secondary">⏸ 暂停</button>
+        </div>
+        <button id="btnAutoMeasure" class="auto-measure">⏱️ 自动测定 10 次摆动并记录</button>
+        <button id="btnReset" class="secondary" style="grid-column: span 2;">↺ 复位原点</button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 下方实验记录表 -->
+  <div class="panel data-table-section">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="font-size: 0.95rem;">📊 实验记录单（数据自动采集）</h3>
+      <button id="btnClearTable" class="secondary" style="padding: 4px 10px; font-size: 12px;">清空记录单</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>序号</th>
+          <th>摆长 (cm)</th>
+          <th>摆锤质量 (g)</th>
+          <th>起始摆角 (°)</th>
+          <th>摆动 10 次用时 (秒)</th>
+          <th>平均单次周期 (秒)</th>
+          <th>理论周期对比 T=2π√(L/g)</th>
+        </tr>
+      </thead>
+      <tbody id="recordTbody">
+        <tr>
+          <td colspan="7" style="color: var(--text-muted); padding: 16px;">点击【自动测定 10 次摆动并记录】即可在此自动采集科学实证数据</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+
+    // === 原生 Web Audio 纯代码合成音效引擎 (零外部文件) ===
+    const Sound = {
+      ctx: null,
+      enabled: true,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      // 清脆滴答声 (钟表/过零点)
+      tick() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.04);
+      },
+      // 成功提示音 (双音铜铃)
+      success() {
+        if (!this.enabled || !this.ctx) return;
+        [523.25, 659.25, 783.99].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.08 + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + idx * 0.08);
+          osc.stop(this.ctx.currentTime + idx * 0.08 + 0.35);
+        });
+      },
+      // 金属碰撞/咔哒声 (开关/吸附/挂钩)
+      clack() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      },
+      // 水花落水声 (浮力/入水)
+      plop() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.12);
+      },
+      // 警报声 (短路/沉没)
+      alarm() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(440, this.ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.2);
+      }
+    };
+    window.addEventListener('click', () => Sound.init(), { once: true });
+
+
+    const canvas = document.getElementById('pendulumCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    // 物理参数与状态
+    const g = 9.80665; // 重力加速度 m/s^2
+    let lengthCm = 30; // cm
+    let massG = 30; // g
+    let initialAngleDeg = 20; // deg
+
+    let theta = initialAngleDeg * Math.PI / 180;
+    let omega = 0; // 角速度
+    let alpha = 0; // 角加速度
+
+    let isRunning = false;
+    let autoMeasuring = false;
+    let swingCount = 0;
+    let lastDirection = 0; // 1: 正向, -1: 负向
+    let elapsedTime = 0;
+    let lastTime = null;
+    let records = [];
+
+    // 画布自适应高分屏
+    function resizeCanvas() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // UI 元素
+    const sliderLength = document.getElementById('sliderLength');
+    const sliderMass = document.getElementById('sliderMass');
+    const sliderAngle = document.getElementById('sliderAngle');
+    const valLength = document.getElementById('valLength');
+    const valMass = document.getElementById('valMass');
+    const valAngle = document.getElementById('valAngle');
+    const swingCountEl = document.getElementById('swingCount');
+    const timerValEl = document.getElementById('timerVal');
+    const periodValEl = document.getElementById('periodVal');
+    const statusValEl = document.getElementById('statusVal');
+    const recordTbody = document.getElementById('recordTbody');
+
+    sliderLength.addEventListener('input', (e) => {
+      lengthCm = parseFloat(e.target.value);
+      valLength.textContent = lengthCm + ' cm';
+      if (!isRunning) resetPendulum();
+    });
+
+    sliderMass.addEventListener('input', (e) => {
+      massG = parseFloat(e.target.value);
+      valMass.textContent = massG + ' g';
+      if (!isRunning) resetPendulum();
+    });
+
+    sliderAngle.addEventListener('input', (e) => {
+      initialAngleDeg = parseFloat(e.target.value);
+      valAngle.textContent = initialAngleDeg + ' °';
+      if (!isRunning) resetPendulum();
+    });
+
+    function resetPendulum() {
+      theta = initialAngleDeg * Math.PI / 180;
+      omega = 0;
+      alpha = 0;
+      swingCount = 0;
+      elapsedTime = 0;
+      lastDirection = 0;
+      autoMeasuring = false;
+      isRunning = false;
+      statusValEl.textContent = '等待释放';
+      statusValEl.style.color = '#10b981';
+      swingCountEl.textContent = '0';
+      timerValEl.textContent = '0.00';
+      periodValEl.textContent = '--';
+      draw();
+    }
+
+    document.getElementById('btnStart').addEventListener('click', () => {
+      isRunning = true;
+      lastTime = performance.now();
+      statusValEl.textContent = '正在摆动探究中...';
+      statusValEl.style.color = '#38bdf8';
+    });
+
+    document.getElementById('btnPause').addEventListener('click', () => {
+      isRunning = false;
+      statusValEl.textContent = '已暂停';
+      statusValEl.style.color = '#f59e0b';
+    });
+
+    document.getElementById('btnReset').addEventListener('click', resetPendulum);
+
+    document.getElementById('btnAutoMeasure').addEventListener('click', () => {
+      resetPendulum();
+      isRunning = true;
+      autoMeasuring = true;
+      lastTime = performance.now();
+      statusValEl.textContent = '正在自动测定 10 次摆动...';
+      statusValEl.style.color = '#10b981';
+    });
+
+    document.getElementById('btnClearTable').addEventListener('click', () => {
+      records = [];
+      recordTbody.innerHTML = '<tr><td colspan="7" style="color: var(--text-muted); padding: 16px;">记录单已清空</td></tr>';
+    });
+
+    function addRecord(time10) {
+      const period = (time10 / 10).toFixed(2);
+      const theoretical = (2 * Math.PI * Math.sqrt((lengthCm / 100) / g)).toFixed(2);
+      records.push({
+        idx: records.length + 1,
+        len: lengthCm,
+        mass: massG,
+        angle: initialAngleDeg,
+        t10: time10.toFixed(2),
+        period: period,
+        theory: theoretical
+      });
+
+      let html = '';
+      records.forEach(r => {
+        html += `<tr>
+          <td>#${r.idx}</td>
+          <td><strong style="color: var(--primary);">${r.len}</strong></td>
+          <td>${r.mass}</td>
+          <td>${r.angle}°</td>
+          <td><strong>${r.t10} s</strong></td>
+          <td><span style="color: var(--accent); font-weight: bold;">${r.period} s</span></td>
+          <td style="color: var(--text-muted);">${r.theory} s</td>
+        </tr>`;
+      });
+      recordTbody.innerHTML = html;
+    }
+
+    // 物理引擎主循环 (高精度非线性摆动运动方程 d2θ/dt2 = -(g/L)*sin(θ))
+    function updatePhysics(dt) {
+      if (!isRunning) return;
+
+      const L_meters = lengthCm / 100;
+      // 微小真实空气阻尼
+      const damping = 0.0003;
+      alpha = -(g / L_meters) * Math.sin(theta) - damping * omega;
+      omega += alpha * dt;
+      theta += omega * dt;
+
+      elapsedTime += dt;
+      timerValEl.textContent = elapsedTime.toFixed(2);
+
+      // 检测摆动次数（每次速度过零转向，即为一个半周期）
+      const currentDirection = omega >= 0 ? 1 : -1;
+      if (lastDirection !== 0 && currentDirection !== lastDirection) {
+        swingCount += 0.5;
+        Sound.tick();
+        const wholeSwings = Math.floor(swingCount);
+        swingCountEl.textContent = wholeSwings;
+        if (wholeSwings > 0) {
+          periodValEl.textContent = (elapsedTime / wholeSwings).toFixed(2);
+        }
+
+        // 自动测定完成 10 次
+        if (autoMeasuring && wholeSwings >= 10) {
+          isRunning = false;
+          autoMeasuring = false;
+          statusValEl.textContent = '10 次测定完成！数据已记录';
+          statusValEl.style.color = '#10b981';
+          addRecord(elapsedTime);
+          Sound.success();
+        }
+      }
+      lastDirection = currentDirection;
+    }
+
+    // 绘制摆动画面
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 悬挂支点
+      const originX = w / 2;
+      const originY = 60;
+
+      // 像素比例映射 (60cm 约占 280px)
+      const pixelLength = 100 + (lengthCm / 60) * 200;
+      const bobX = originX + pixelLength * Math.sin(theta);
+      const bobY = originY + pixelLength * Math.cos(theta);
+
+      // 1. 绘制虚线角度基准与量角盘
+      ctx.beginPath();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.moveTo(originX, originY);
+      ctx.lineTo(originX, originY + 340);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 弧形刻度盘
+      ctx.beginPath();
+      ctx.arc(originX, originY, 80, 0.25 * Math.PI, 0.75 * Math.PI);
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 20;
+      ctx.stroke();
+
+      // 2. 绘制铁架台横杆与支架
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(originX - 100, originY - 14, 200, 10);
+      ctx.fillRect(originX - 110, originY - 20, 16, 320); // 竖立铁架
+      // 固定支点螺母
+      ctx.beginPath();
+      ctx.arc(originX, originY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fill();
+
+      // 3. 绘制悬线 (带张力反光)
+      ctx.beginPath();
+      ctx.moveTo(originX, originY);
+      ctx.lineTo(bobX, bobY);
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 4. 绘制摆锤 (根据质量变化球体半径，带金属渐变)
+      const radius = 14 + (massG / 100) * 16;
+      const grad = ctx.createRadialGradient(bobX - radius*0.3, bobY - radius*0.3, radius*0.1, bobX, bobY, radius);
+      grad.addColorStop(0, '#fef08a');
+      grad.addColorStop(0.3, '#f59e0b');
+      grad.addColorStop(1, '#78350f');
+
+      ctx.beginPath();
+      ctx.arc(bobX, bobY, radius, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.shadowColor = 'rgba(245, 158, 11, 0.4)';
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // 在摆锤上标注质量
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(massG + 'g', bobX, bobY);
+    }
+
+    function loop(timestamp) {
+      if (lastTime === null) lastTime = timestamp;
+      const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+      lastTime = timestamp;
+
+      updatePhysics(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    draw();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

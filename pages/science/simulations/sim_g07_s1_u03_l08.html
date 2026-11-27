@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【保护听力】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(56, 189, 248, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--accent); cursor: pointer; }
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 保护听力 <span class="badge">四年级上册 · 声音单元</span></h2>
+            <p>教科版科学原书真实声学物理实验 · 拒绝伪仿真</p>
+        </div>
+        <a href="acoustics_oscilloscope.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 双通道声波示波器与音调实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生真实声学振动与物理波形仿真</span>
+                <span>🎧 Web Audio 真实音调与频谱生成</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：耳道鼓膜微观振动与分贝安全防护：测试 20dB 耳语、85dB 割草机、120dB 喷气机对耳膜造成的冲击，佩戴硅胶耳塞阻隔噪声伤害！</div>
+            
+        <div class="c-group">
+            <button class="btn" id="btnWhisper">🍃 20 dB 树叶沙沙声 (极舒适)</button>
+            <button class="btn btn-sec" id="btnLoud">🚜 85 dB 工地施工 (刺耳伤害阈值)</button>
+            <button class="btn btn-sec" id="btnJet">✈️ 120 dB 喷气客机 (极度危险)</button>
+            <button class="btn" id="btnEarplug" style="background:#10b981;">🎧 戴上专业降噪耳塞 (-30dB)</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [噪音等级] 20 dB<br>
+            [耳膜振幅] 极其微弱平稳<br>
+            [听力保护法则] 超过 85 分贝的环境长期暴露会导致不可逆感音神经性耳聋！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.3, vol=0.1) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        
+        let currentDB = 20;
+        let hasPlug = false;
+        let eardrumAmp = 2;
+        let t = 0;
+        const telem = document.getElementById('telem');
+
+        document.getElementById('btnWhisper').addEventListener('click', () => {
+            currentDB = 20;
+            eardrumAmp = 2;
+            playTone(300, 'sine', 0.2, 0.02);
+            updateTelem();
+        });
+        document.getElementById('btnLoud').addEventListener('click', () => {
+            currentDB = 85;
+            eardrumAmp = 18;
+            playTone(180, 'square', 0.5, 0.15);
+            updateTelem();
+        });
+        document.getElementById('btnJet').addEventListener('click', () => {
+            currentDB = 120;
+            eardrumAmp = 35;
+            playTone(120, 'sawtooth', 0.6, 0.3);
+            updateTelem();
+        });
+        document.getElementById('btnEarplug').addEventListener('click', () => {
+            hasPlug = !hasPlug;
+            playTone(500, 'sine', 0.1);
+            updateTelem();
+        });
+        function updateTelem() {
+            const effectiveDB = hasPlug ? Math.max(10, currentDB - 30) : currentDB;
+            telem.innerHTML = `[实测环境音量] ${currentDB} dB ${hasPlug?'(已戴耳塞 降噪-30dB)':''}<br>[人耳实际承受] ${effectiveDB} dB<br>[耳膜受力] ${effectiveDB>80?'⚠️ 剧烈撞击！需立即防护！':'✅ 安全健康舒适区间'}`;
+        }
+        function render() {
+            t += 0.1;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            // Ear Canal
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(80, 160, 240, 100);
+            ctx.strokeStyle = '#64748b'; ctx.lineWidth = 4;
+            ctx.strokeRect(80, 160, 240, 100);
+
+            // Tympanic Membrane (Eardrum)
+            const effAmp = hasPlug ? eardrumAmp * 0.3 : eardrumAmp;
+            const drumVibe = Math.sin(t * 15) * effAmp;
+            ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(320, 160);
+            ctx.quadraticCurveTo(320 + drumVibe, 210, 320, 260);
+            ctx.stroke();
+
+            // Earplug inserted
+            if(hasPlug) {
+                ctx.fillStyle = '#10b981';
+                ctx.fillRect(100, 165, 80, 90);
+                ctx.fillStyle = '#fff'; ctx.font = '12px sans-serif';
+                ctx.fillText('防音耳塞', 115, 215);
+            }
+
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

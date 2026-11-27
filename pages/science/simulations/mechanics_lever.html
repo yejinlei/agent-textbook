@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学探究微仿真：杠杆的平衡规律（五年级上册·工具与技术）</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --primary: #38bdf8;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(168, 85, 247, 0.15);
+      color: #c084fc;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-container {
+      position: relative;
+      flex: 1;
+      min-height: 400px;
+      background: radial-gradient(circle at center, #1e293b 0%, #0b0f19 100%);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #283548;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .state-banner {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #151e2e;
+      border: 1px solid var(--border);
+    }
+    .state-balanced {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    .state-tilted {
+      color: var(--accent);
+    }
+
+    .controls { display: flex; flex-direction: column; gap: 14px; }
+    .control-group {
+      background: #151e2e;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #233147;
+    }
+    .control-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .btn-row { display: flex; gap: 6px; }
+    button {
+      flex: 1;
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    button:hover { background: #1d4ed8; }
+    button.secondary { background: #334155; }
+    button.secondary:hover { background: #475569; }
+
+    select {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 8px;
+      border-radius: 6px;
+      outline: none;
+      font-size: 13px;
+    }
+    .data-table {
+      margin-top: 14px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .data-table th, .data-table td {
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      text-align: center;
+    }
+    .data-table th { background: #151e2e; color: var(--muted); }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>⚖️ 杠杆平衡原理与动力臂探究（五年级上册·工具与技术）</h1>
+    <span class="badge">力矩平衡受控探究 · 纯静态</span>
+  </header>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="canvas-container" id="container">
+        <canvas id="leverCanvas"></canvas>
+      </div>
+      <div class="state-banner" id="stateBanner">
+        <span id="stateText">⚖️ 杠杆状态：处于水平平衡！(动力×动力臂 = 阻力×阻力臂)</span>
+        <span id="leverTypeBadge" style="background: rgba(56,189,248,0.2); color: var(--primary); padding: 2px 8px; border-radius: 4px; font-size: 12px;">等臂杠杆</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ 钩码装配调控</h2>
+      
+      <div class="controls">
+        <!-- 左侧设置 -->
+        <div class="control-group">
+          <div class="control-header">
+            <span>🔴 左侧（阻力端）</span>
+            <span style="color: #f87171;" id="leftTorque">2格 × 2个 = 4</span>
+          </div>
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <select id="leftPos">
+              <option value="1">距离支点 1 格</option>
+              <option value="2" selected>距离支点 2 格</option>
+              <option value="3">距离支点 3 格</option>
+              <option value="4">距离支点 4 格</option>
+              <option value="5">距离支点 5 格</option>
+            </select>
+          </div>
+          <div class="btn-row">
+            <button id="btnLeftMinus" class="secondary">- 减钩码</button>
+            <span style="display: flex; align-items: center; justify-content: center; width: 60px; font-weight: bold;" id="leftCount">2 个</span>
+            <button id="btnLeftPlus">+ 加钩码</button>
+          </div>
+        </div>
+
+        <!-- 右侧设置 -->
+        <div class="control-group">
+          <div class="control-header">
+            <span>🔵 右侧（动力端）</span>
+            <span style="color: #60a5fa;" id="rightTorque">2格 × 2个 = 4</span>
+          </div>
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <select id="rightPos">
+              <option value="1">距离支点 1 格</option>
+              <option value="2" selected>距离支点 2 格</option>
+              <option value="3">距离支点 3 格</option>
+              <option value="4">距离支点 4 格</option>
+              <option value="5">距离支点 5 格</option>
+            </select>
+          </div>
+          <div class="btn-row">
+            <button id="btnRightMinus" class="secondary">- 减钩码</button>
+            <span style="display: flex; align-items: center; justify-content: center; width: 60px; font-weight: bold;" id="rightCount">2 个</span>
+            <button id="btnRightPlus">+ 加钩码</button>
+          </div>
+        </div>
+
+        <button id="btnRecord" style="background: #10b981;">📝 记录当前平衡数据到记录单</button>
+
+        <div style="font-size: 12px; color: var(--muted); line-height: 1.5; background: #151e2e; padding: 10px; border-radius: 6px; border-left: 3px solid var(--accent);">
+          📖 <strong>科学小知识</strong>：
+          - <strong>省力杠杆</strong>：动力臂 > 阻力臂（如开瓶器、羊角锤）；
+          - <strong>费力杠杆</strong>：动力臂 < 阻力臂（如镊子、钓鱼竿）；
+          - <strong>等臂杠杆</strong>：动力臂 = 阻力臂（如天平）。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    // === 原生 Web Audio 纯代码合成音效引擎 (零外部文件) ===
+    const Sound = {
+      ctx: null,
+      enabled: true,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      // 清脆滴答声 (钟表/过零点)
+      tick() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.04);
+      },
+      // 成功提示音 (双音铜铃)
+      success() {
+        if (!this.enabled || !this.ctx) return;
+        [523.25, 659.25, 783.99].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.08 + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + idx * 0.08);
+          osc.stop(this.ctx.currentTime + idx * 0.08 + 0.35);
+        });
+      },
+      // 金属碰撞/咔哒声 (开关/吸附/挂钩)
+      clack() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      },
+      // 水花落水声 (浮力/入水)
+      plop() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.12);
+      },
+      // 警报声 (短路/沉没)
+      alarm() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(440, this.ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.2);
+      }
+    };
+    window.addEventListener('click', () => Sound.init(), { once: true });
+
+
+    const canvas = document.getElementById('leverCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    let leftPos = 2; // 格数
+    let leftCount = 2; // 钩码数
+    let rightPos = 2;
+    let rightCount = 2;
+
+    let currentAngle = 0; // 杠杆当前倾斜角度 (弧度)
+    let targetAngle = 0;
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    const leftPosSelect = document.getElementById('leftPos');
+    const rightPosSelect = document.getElementById('rightPos');
+    const leftCountEl = document.getElementById('leftCount');
+    const rightCountEl = document.getElementById('rightCount');
+    const leftTorqueEl = document.getElementById('leftTorque');
+    const rightTorqueEl = document.getElementById('rightTorque');
+    const stateBanner = document.getElementById('stateBanner');
+    const stateText = document.getElementById('stateText');
+    const leverTypeBadge = document.getElementById('leverTypeBadge');
+
+    leftPosSelect.addEventListener('change', (e) => { leftPos = parseInt(e.target.value); update(); });
+    rightPosSelect.addEventListener('change', (e) => { rightPos = parseInt(e.target.value); update(); });
+
+    document.getElementById('btnLeftPlus').addEventListener('click', () => { if (leftCount < 6) { leftCount++; Sound.clack(); update(); } });
+    document.getElementById('btnLeftMinus').addEventListener('click', () => { if (leftCount > 0) { leftCount--; Sound.clack(); update(); } });
+    document.getElementById('btnRightPlus').addEventListener('click', () => { if (rightCount < 6) { rightCount++; Sound.clack(); update(); } });
+    document.getElementById('btnRightMinus').addEventListener('click', () => { if (rightCount > 0) { rightCount--; Sound.clack(); update(); } });
+
+    function update() {
+      leftCountEl.textContent = leftCount + ' 个';
+      rightCountEl.textContent = rightCount + ' 个';
+
+      const tL = leftPos * leftCount;
+      const tR = rightPos * rightCount;
+
+      leftTorqueEl.textContent = `${leftPos}格 × ${leftCount}个 = ${tL}`;
+      rightTorqueEl.textContent = `${rightPos}格 × ${rightCount}个 = ${tR}`;
+
+      // 计算目标倾斜角 (最大限位 ±18度)
+      const maxTilt = 18 * Math.PI / 180;
+      if (tL === tR) {
+        targetAngle = 0;
+        stateBanner.className = 'state-banner state-balanced';
+        Sound.success();
+        stateText.textContent = '⚖️ 杠杆状态：处于水平平衡！(两边乘积相等)';
+      } else if (tL > tR) {
+        targetAngle = -maxTilt; // 左边下沉
+        stateBanner.className = 'state-banner state-tilted';
+        stateText.textContent = '↘️ 杠杆状态：左侧下沉（左边力矩更大）';
+      } else {
+        targetAngle = maxTilt;  // 右边下沉
+        stateBanner.className = 'state-banner state-tilted';
+        stateText.textContent = '↙️ 杠杆状态：右侧下沉（右边力矩更大）';
+      }
+
+      // 判断杠杆类型 (以右侧为动力端)
+      if (rightPos > leftPos) {
+        leverTypeBadge.textContent = '省力杠杆 (动力臂>阻力臂)';
+        leverTypeBadge.style.color = '#34d399';
+      } else if (rightPos < leftPos) {
+        leverTypeBadge.textContent = '费力杠杆 (动力臂<阻力臂)';
+        leverTypeBadge.style.color = '#f87171';
+      } else {
+        leverTypeBadge.textContent = '等臂杠杆 (动力臂=阻力臂)';
+        leverTypeBadge.style.color = '#38bdf8';
+      }
+    }
+
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h / 2 - 20;
+
+      // 弹性缓动趋近目标倾斜角
+      currentAngle += (targetAngle - currentAngle) * 0.1;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 1. 绘制固定支架与底座
+      ctx.fillStyle = '#64748b';
+      // 三角形支点
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx - 24, cy + 90);
+      ctx.lineTo(cx + 24, cy + 90);
+      ctx.closePath();
+      ctx.fill();
+      // 底座
+      ctx.fillRect(cx - 60, cy + 90, 120, 12);
+
+      // 2. 旋转绘制杠杆尺
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(currentAngle);
+
+      const leverLen = Math.min(w * 0.8, 520);
+      const halfLen = leverLen / 2;
+      const slotDist = (halfLen - 20) / 5; // 每格距离
+
+      // 杠杆尺木条
+      ctx.fillStyle = '#fde68a';
+      ctx.strokeStyle = '#d97706';
+      ctx.lineWidth = 2;
+      ctx.fillRect(-halfLen, -10, leverLen, 20);
+      ctx.strokeRect(-halfLen, -10, leverLen, 20);
+
+      // 支点中心螺母
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 刻度线与挂钩 (左右各 5 格)
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+
+      for (let i = 1; i <= 5; i++) {
+        // 左边刻度
+        const lx = -i * slotDist;
+        ctx.strokeStyle = '#92400e';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(lx, -10);
+        ctx.lineTo(lx, 10);
+        ctx.stroke();
+
+        ctx.fillStyle = '#78350f';
+        ctx.fillText(i, lx, -14);
+
+        // 左挂钩
+        ctx.beginPath();
+        ctx.arc(lx, 14, 3, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 右边刻度
+        const rx = i * slotDist;
+        ctx.beginPath();
+        ctx.moveTo(rx, -10);
+        ctx.lineTo(rx, 10);
+        ctx.stroke();
+
+        ctx.fillText(i, rx, -14);
+
+        // 右挂钩
+        ctx.beginPath();
+        ctx.arc(rx, 14, 3, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // 3. 绘制挂在钩上的钩码串
+      // 左侧钩码
+      if (leftCount > 0) {
+        const lx = -leftPos * slotDist;
+        drawWeights(lx, 14, leftCount, '#f87171');
+      }
+
+      // 右侧钩码
+      if (rightCount > 0) {
+        const rx = rightPos * slotDist;
+        drawWeights(rx, 14, rightCount, '#60a5fa');
+      }
+
+      ctx.restore();
+
+      requestAnimationFrame(draw);
+    }
+
+    function drawWeights(x, startY, count, color) {
+      for (let i = 0; i < count; i++) {
+        const y = startY + 6 + i * 14;
+        // 挂钩线
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, y - 6);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        // 钩码金属块
+        ctx.fillStyle = color;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.fillRect(x - 12, y, 24, 11);
+        ctx.strokeRect(x - 12, y, 24, 11);
+      }
+    }
+
+    resize();
+    update();
+  </script>
+</body>
+</html>

@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学大师级实验室：牛顿三棱镜色散与凸透镜成像光学光具座沙盒（五年级上册·光）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #f59e0b;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1240px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-primary {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-color: #d97706;
+      color: #0f172a;
+      font-weight: 700;
+    }
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .mode-tab {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--muted);
+      border: none;
+      background: transparent;
+      transition: all 0.2s;
+    }
+    .mode-tab.active {
+      background: var(--primary);
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .main-container {
+      max-width: 1240px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 960px) {
+      .main-container { grid-template-columns: 1fr; }
+    }
+
+    .canvas-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .canvas-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.4);
+    }
+    .canvas-wrapper {
+      position: relative;
+      flex: 1;
+      min-height: 520px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 50%, #0d1527 0%, #050811 100%);
+    }
+    canvas { display: block; }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fbbf24;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .form-group { margin-bottom: 12px; }
+    .form-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    input[type=range] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #1e293b;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+    }
+    .telemetry-card {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.75rem;
+      color: #38bdf8;
+      line-height: 1.5;
+      min-height: 95px;
+    }
+    .science-tip {
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      background: rgba(30, 41, 59, 0.5);
+      border-left: 3px solid #f59e0b;
+      padding: 8px 10px;
+      border-radius: 0 8px 8px 0;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>🏆 三棱镜色散与凸透镜成像光学光具座沙盒</h1>
+      <span class="badge">五年级上册·光核心拓展</span>
+    </div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabPrism" onclick="switchMode('prism')">🌈 牛顿三棱镜七彩色散</button>
+      <button class="mode-tab" id="tabLens" onclick="switchMode('lens')">🔍 凸透镜成像受控光具座</button>
+      <button class="mode-tab" id="tabWheel" onclick="switchMode('wheel')">🎡 七色轮高速混色实验</button>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html" class="btn">← 返回大厅</a>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="canvas-panel">
+      <div class="canvas-header">
+        <span id="canvasTitle">🌈 牛顿三棱镜太阳光白光色散与七彩光谱投射台</span>
+        <span style="color: var(--muted); font-size: 0.75rem;">波动光学与几何光学折射拟真</span>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="simCanvas" width="840" height="520"></canvas>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="card" id="ctrlCard">
+        <!-- Injected -->
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 光学物理与几何成像遥测</div>
+        <div class="telemetry-card" id="telem">
+          初始化中...
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📖 科学家视角与学科大概念</div>
+        <div class="science-tip" id="scienceTip">
+          白光是复合光，由红、橙、黄、绿、蓝、靛、紫等单色光混合而成。不同波长的光穿过玻璃介质时折射率不同（红光偏折最小，紫光偏折最大），从而发生色散；凸透镜对光线具有会聚作用，物距不同可成缩小实像、放大实像或放大虚像。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    const telem = document.getElementById('telem');
+    const ctrlCard = document.getElementById('ctrlCard');
+    const canvasTitle = document.getElementById('canvasTitle');
+
+    let currentMode = 'prism'; // prism, lens, wheel
+
+    // State: Prism
+    let incidentAngle = 35; // degrees
+
+    // State: Lens
+    let focalLength = 80;   // f in mm
+    let objectDist = 180;   // u in mm (e.g. 50 ~ 300)
+    let candleHeight = 60;
+
+    // State: Wheel
+    let wheelRpm = 0; // 0 ~ 3000
+    let wheelAngle = 0;
+
+    function switchMode(m) {
+      currentMode = m;
+      document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+      if (m === 'prism') document.getElementById('tabPrism').classList.add('active');
+      if (m === 'lens') document.getElementById('tabLens').classList.add('active');
+      if (m === 'wheel') document.getElementById('tabWheel').classList.add('active');
+      renderSidebar();
+    }
+
+    function renderSidebar() {
+      if (currentMode === 'prism') {
+        canvasTitle.textContent = '🌈 牛顿三棱镜太阳光白光色散与七彩光谱投射台';
+        ctrlCard.innerHTML = `
+          <div class="card-title">🔦 入射光源与棱镜控制</div>
+          <div class="form-group">
+            <div class="form-label"><span>📐 白光入射角</span><span style="color:#fbbf24; font-weight:bold;">${incidentAngle}°</span></div>
+            <input type="range" min="20" max="55" step="1" value="${incidentAngle}" oninput="incidentAngle=parseInt(this.value); renderSidebar();">
+          </div>
+          <p style="font-size:0.78rem; color:var(--muted); line-height:1.5;">观察阳光穿过三棱镜后，在白色光屏上依次展开的红、橙、黄、绿、蓝、靛、紫连续光谱！</p>
+        `;
+      } else if (currentMode === 'lens') {
+        canvasTitle.textContent = '🔍 凸透镜成像受控光具座（照相机、投影仪与放大镜成像规律）';
+        ctrlCard.innerHTML = `
+          <div class="card-title">🕯️ 光具座物距与焦距连续调节</div>
+          <div class="form-group">
+            <div class="form-label"><span>🕯️ 物距 u (烛焰到透镜距离)</span><span style="color:#f59e0b; font-weight:bold;">${objectDist} mm</span></div>
+            <input type="range" min="40" max="260" step="5" value="${objectDist}" oninput="objectDist=parseInt(this.value); renderSidebar();">
+          </div>
+          <div class="form-group">
+            <div class="form-label"><span>🔍 透镜焦距 f</span><span style="color:#38bdf8; font-weight:bold;">${focalLength} mm (2f = ${focalLength*2} mm)</span></div>
+            <input type="range" min="60" max="100" step="5" value="${focalLength}" oninput="focalLength=parseInt(this.value); renderSidebar();">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <button class="btn btn-primary" onclick="objectDist=190; renderSidebar();">📷 照相机模式 (u > 2f: 倒立缩小实像)</button>
+            <button class="btn" onclick="objectDist=120; renderSidebar();">📽️ 投影仪模式 (2f > u > f: 倒立放大实像)</button>
+            <button class="btn" onclick="objectDist=55; renderSidebar();">🔍 放大镜模式 (u < f: 正立放大虚像)</button>
+          </div>
+        `;
+      } else if (currentMode === 'wheel') {
+        canvasTitle.textContent = '🎡 牛顿七色轮高速旋转混色实验（人眼视觉暂留）';
+        ctrlCard.innerHTML = `
+          <div class="card-title">⚡ 电动马达转速调控</div>
+          <div class="form-group">
+            <div class="form-label"><span>🌀 电机转速 RPM</span><span style="color:#fbbf24; font-weight:bold;">${wheelRpm} 转/分</span></div>
+            <input type="range" min="0" max="3000" step="100" value="${wheelRpm}" oninput="wheelRpm=parseInt(this.value); renderSidebar();">
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary" style="flex:1;" onclick="wheelRpm=2400; renderSidebar();">🚀 高速旋转混色 (呈现纯白)</button>
+            <button class="btn" onclick="wheelRpm=0; renderSidebar();">⏹️ 停止旋转</button>
+          </div>
+        `;
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (currentMode === 'prism') {
+        drawPrism();
+      } else if (currentMode === 'lens') {
+        drawLensBench();
+      } else if (currentMode === 'wheel') {
+        drawWheel();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    // --- Mode 1: Prism ---
+    function drawPrism() {
+      const cx = 380, cy = 260;
+      const size = 180;
+
+      // Draw Slit & Flashlight
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(60, cy - 30, 80, 60);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('白光光源', 75, cy + 5);
+
+      // Light beam to prism
+      const rad = (incidentAngle - 30) * Math.PI / 180;
+      const enterX = cx - size * 0.45;
+      const enterY = cy + Math.sin(rad) * 40;
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(140, cy);
+      ctx.lineTo(enterX, enterY);
+      ctx.stroke();
+
+      // Glass Prism 3D
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.2)';
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - size * 0.6);
+      ctx.lineTo(cx - size * 0.6, cy + size * 0.5);
+      ctx.lineTo(cx + size * 0.6, cy + size * 0.5);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      // Dispersed Spectrum Colors (Red to Violet)
+      const colors = [
+        { name: '红光 (波长最长，偏折角最小)', color: '#ef4444', dev: -28 },
+        { name: '橙光', color: '#f97316', dev: -20 },
+        { name: '黄光', color: '#eab308', dev: -12 },
+        { name: '绿光', color: '#22c55e', dev: -4 },
+        { name: '蓝光', color: '#38bdf8', dev: 6 },
+        { name: '靛光', color: '#6366f1', dev: 16 },
+        { name: '紫光 (波长最短，偏折角最大)', color: '#a855f7', dev: 28 }
+      ];
+
+      const exitX = cx + size * 0.25;
+      const exitY = cy + size * 0.1;
+      const screenX = 720;
+
+      colors.forEach(c => {
+        // Rays inside prism
+        ctx.strokeStyle = c.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(enterX, enterY);
+        ctx.lineTo(exitX, exitY + c.dev * 0.35);
+        ctx.stroke();
+
+        // Rays exiting to screen
+        const screenY = cy + c.dev * 4.5;
+        ctx.beginPath();
+        ctx.moveTo(exitX, exitY + c.dev * 0.35);
+        ctx.lineTo(screenX, screenY);
+        ctx.stroke();
+      });
+
+      // White Screen on Right
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(screenX, 80, 16, 360);
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+      ctx.strokeRect(screenX, 80, 16, 360);
+
+      // Spectrum on Screen
+      colors.forEach(c => {
+        const screenY = cy + c.dev * 4.5;
+        ctx.fillStyle = c.color;
+        ctx.fillRect(screenX - 2, screenY - 8, 20, 16);
+      });
+
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 13px sans-serif';
+      ctx.fillText('白光色散连续光谱 (红橙黄绿蓝靛紫)', 520, 60);
+
+      telem.innerHTML = `
+[三棱镜色散遥测] 入射角: ${incidentAngle}°
+• 物理本质: 太阳光/白光并非单色光，而是由红、橙、黄、绿、蓝、靛、紫等七彩复合而成！
+• 色散原理: 玻璃三棱镜对不同波长的光折射率不同；红光波长最长，折射偏折角最小；紫光波长最短，折射偏折角最大！
+      `.trim();
+    }
+
+    // --- Mode 2: Lens Optical Bench ---
+    function drawLensBench() {
+      const cx = 400, cy = 250;
+      const u = objectDist;
+      const f = focalLength;
+
+      // Optical Rail (Bench)
+      ctx.strokeStyle = '#64748b'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(60, cy + 100); ctx.lineTo(780, cy + 100); ctx.stroke();
+
+      // Optical Axis
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)'; ctx.lineWidth = 1; ctx.setLineDash([6, 6]);
+      ctx.beginPath(); ctx.moveTo(60, cy); ctx.lineTo(780, cy); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Lens at cx
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 14, 90, 0, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+
+      // Focal Points F and 2F
+      ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('F', cx - f - 4, cy + 20); ctx.fillText('2F', cx - 2*f - 8, cy + 20);
+      ctx.fillText('F', cx + f - 4, cy + 20); ctx.fillText('2F', cx + 2*f - 8, cy + 20);
+      [cx - f, cx - 2*f, cx + f, cx + 2*f].forEach(x => {
+        ctx.beginPath(); ctx.arc(x, cy, 3, 0, Math.PI*2); ctx.fill();
+      });
+
+      // Candle at (cx - u)
+      const candleX = cx - u;
+      ctx.fillStyle = '#e2e8f0'; ctx.fillRect(candleX - 8, cy - 20, 16, 120);
+      // Flame
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.ellipse(candleX, cy - candleHeight, 8, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fef08a';
+      ctx.beginPath();
+      ctx.ellipse(candleX, cy - candleHeight + 2, 4, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Calculate Image: 1/u + 1/v = 1/f => v = (f * u) / (u - f)
+      let v = 0, imgH = 0, isReal = true;
+      if (u > f) {
+        v = (f * u) / (u - f);
+        imgH = -candleHeight * (v / u); // inverted
+        isReal = true;
+      } else if (u < f) {
+        v = (f * u) / (f - u);
+        imgH = candleHeight * (v / u); // upright virtual
+        isReal = false;
+      }
+
+      // Draw Principal Rays
+      // 1. Parallel ray -> passes through F on other side
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.7)'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(candleX, cy - candleHeight);
+      ctx.lineTo(cx, cy - candleHeight);
+      if (isReal) {
+        ctx.lineTo(cx + v, cy - imgH);
+      } else {
+        ctx.lineTo(cx + 250, cy - candleHeight + (250 / f) * candleHeight);
+      }
+      ctx.stroke();
+
+      // 2. Center ray -> continues straight through optical center
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+      ctx.beginPath();
+      ctx.moveTo(candleX, cy - candleHeight);
+      if (isReal) {
+        ctx.lineTo(cx + v, cy - imgH);
+      } else {
+        ctx.lineTo(cx, cy);
+        ctx.lineTo(cx + 250, cy + (250/u)*candleHeight);
+      }
+      ctx.stroke();
+
+      // Draw Image Screen or Virtual Image
+      if (isReal && cx + v < 760) {
+        // Real Screen
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(cx + v - 6, cy - 90, 12, 180);
+        ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+        ctx.strokeRect(cx + v - 6, cy - 90, 12, 180);
+
+        // Inverted Image of Flame on Screen
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.ellipse(cx + v, cy - imgH, Math.abs(imgH * 0.15), Math.abs(imgH * 0.3), 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#10b981'; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(`清晰实像 (像距 v=${v.toFixed(0)} mm)`, cx + v - 40, cy - 105);
+      } else if (!isReal) {
+        // Virtual Image on Left (Upright & Magnified)
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
+        ctx.beginPath();
+        ctx.moveTo(cx - v, cy); ctx.lineTo(cx - v, cy - imgH);
+        ctx.stroke(); ctx.setLineDash([]);
+
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.5)';
+        ctx.beginPath();
+        ctx.ellipse(cx - v, cy - imgH, imgH * 0.15, imgH * 0.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(`正立放大虚像 (放大镜原理)`, cx - v - 45, cy - imgH - 15);
+      }
+
+      // Verdict
+      let verdict = '';
+      if (u > 2*f) verdict = '📷 物距 u > 2f: 成【倒立、缩小的实像】(应用：照相机)';
+      else if (Math.abs(u - 2*f) < 5) verdict = '🎯 物距 u = 2f: 成【倒立、等大的实像】(大小分界点)';
+      else if (u > f && u < 2*f) verdict = '📽️ 物距 2f > u > f: 成【倒立、放大的实像】(应用：投影仪/电影机)';
+      else if (Math.abs(u - f) < 5) verdict = '⚡ 物距 u = f: 折射光线平行，【不成像】(虚实分界点)';
+      else verdict = '🔍 物距 u < f: 成【正立、放大的虚像】(应用：放大镜)';
+
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(verdict, cx, 50);
+      ctx.textAlign = 'left';
+
+      telem.innerHTML = `
+[光具座几何光学遥测]
+• 焦距 f: ${f} mm (2f = ${2*f} mm) | 物距 u: ${u} mm
+• 像距 v: ${u > f ? v.toFixed(1) + ' mm (像屏位置)' : '虚像'}
+• 成像性质: ${verdict}
+• 透镜核心规律: 一倍焦距分虚实，二倍焦距分大小；物近像远像变大，物远像近像变小！
+      `.trim();
+    }
+
+    // --- Mode 3: Wheel ---
+    function drawWheel() {
+      const cx = 420, cy = 250, R = 150;
+      wheelAngle += (wheelRpm / 60) * 0.08;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(wheelAngle);
+
+      const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#38bdf8', '#6366f1', '#a855f7'];
+      const slice = (Math.PI * 2) / colors.length;
+
+      // When fast, human visual persistence blends to white!
+      const blendFactor = Math.min(1.0, wheelRpm / 1800);
+
+      colors.forEach((col, i) => {
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, R, i * slice, (i + 1) * slice);
+        ctx.closePath();
+        ctx.fill();
+      });
+
+      // Overlay blended white overlay
+      if (blendFactor > 0.05) {
+        ctx.fillStyle = `rgba(248, 250, 252, ${blendFactor * 0.85})`;
+        ctx.beginPath();
+        ctx.arc(0, 0, R, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Center Pin
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 3; ctx.stroke();
+
+      ctx.restore();
+
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(wheelRpm > 1200 ? '✨ 高速旋转中！七彩在视网膜上叠加，人眼视觉暂留混色为纯白！' : '七色扇区慢速旋转中（调节右侧转速观察混色）', cx, 50);
+      ctx.textAlign = 'left';
+
+      telem.innerHTML = `
+[牛顿色轮混色遥测]
+• 当前转速: ${wheelRpm} 转/分
+• 混色程度: ${(blendFactor * 100).toFixed(0)}% (白光还原度)
+• 生物视觉生理学: 人眼视网膜感光细胞存在约 0.1 秒视觉暂留效应；当各色光交替刺激超过暂留时间，大脑便将其融合成复合白光！
+      `.trim();
+    }
+
+    renderSidebar();
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>

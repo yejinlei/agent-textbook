@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【5. 茧中钻出了蚕蛾】真实验微仿真 - 三年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧭 5. 茧中钻出了蚕蛾</h1>
+        <span class="badge">三年级下册·第二单元《动物的一生》</span>
+        <a href="virtual_microscope.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 昆虫变态与生命周期实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g06_s2_u02_l01.html" class="">迎接蚕宝宝的诞生</a>
+<a href="sim_g06_s2_u02_l02.html" class="">认识其他动物的卵</a>
+<a href="sim_g06_s2_u02_l03.html" class="">蚕长大了</a>
+<a href="sim_g06_s2_u02_l04.html" class="">蚕变了新模样</a>
+<a href="sim_g06_s2_u02_l05.html" class="active">茧中钻出了蚕蛾</a>
+<a href="sim_g06_s2_u02_l06.html" class="">蚕的一生</a>
+<a href="sim_g06_s2_u02_l07.html" class="">动物的繁殖</a>
+<a href="sim_g06_s2_u02_l08.html" class="">动物的一生</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时实验数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：系统探索蚕的一生变态发育阶段、鸡卵内部结构与动物卵生/胎生繁殖方式。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "moth_emergence";
+
+        
+const state = {
+    eggColor: 'purple', // yellow, purple(ready)
+    growthStage: activeMode === 'cocoon_pupa' ? 3 : activeMode === 'moth_emergence' ? 4 : 2, // 1:egg, 2:larva, 3:pupa/cocoon, 4:moth
+    larvaAge: 3, // 1~5 龄
+    feedCount: 0,
+    eggPart: 'all',
+    reprodType: 'oviparous' // oviparous(卵生), viviparous(胎生)
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'egg_hatching') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>蚕卵孵化温湿度调节</span><span class="val">25°C / 适宜湿度</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnHatch">🐣 模拟温度适宜破壳 (蚁蚕出壳)</button>
+                    <button class="btn btn-green" id="btnFeedMulberry">🍃 投喂嫩桑叶</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'egg_anatomy') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>鸡卵结构透视观察</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.eggPart==='shell'?'btn-primary':''}" id="btnShell">🥚 卵壳与气孔</button>
+                    <button class="btn ${state.eggPart==='air'?'btn-primary':''}" id="btnAir">💨 钝端气室</button>
+                    <button class="btn ${state.eggPart==='yolk'?'btn-primary':''}" id="btnYolk">🟡 卵黄与胚盘</button>
+                    <button class="btn ${state.eggPart==='white'?'btn-primary':''}" id="btnWhite">⚪ 卵白与系带</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'silkworm_growth') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>蚕幼虫进食与蜕皮生长</span><span class="val">${state.larvaAge}龄蚕</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnFeed">🍃 投喂新鲜桑叶</button>
+                    <button class="btn btn-amber" id="btnMolt">✨ 幼虫眠与蜕皮</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'cocoon_pupa') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>吐丝结茧与蚕蛹透视</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnSpin">🧶 结茧吐丝</button>
+                    <button class="btn btn-rose" id="btnOpenCocoon">✂️ 剪开蚕茧观察蚕蛹</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'moth_emergence') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>成虫羽化与繁殖产卵</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnEmerge">🦋 蚕蛾破茧羽化</button>
+                    <button class="btn btn-rose" id="btnLayEggs">🥚 交尾产卵 (约500粒)</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'life_cycle') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>蚕的一生变态发育周期轮盘 (约56天)</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnCycleAll">🔄 步进完整生命阶段</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'animal_lifespan') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>各类动物寿命谱系对比</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnSortLife">📊 排序动物寿命阶梯</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>动物繁殖方式归类</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.reprodType==='oviparous'?'btn-primary':''}" id="btnOvi">🥚 卵生动物</button>
+                    <button class="btn ${state.reprodType==='viviparous'?'btn-primary':''}" id="btnVivi">🍼 胎生哺乳动物</button>
+                </div>
+            </div>
+        `;
+    }
+    controlsContainer.innerHTML = html;
+    bindU2Events();
+}
+
+function bindU2Events() {
+    const btnEggAll = document.getElementById('btnEggAll');
+    if (btnEggAll) btnEggAll.onclick = () => { state.eggPart = 'all'; playTone(600, 0.1); };
+    const btnAirCell = document.getElementById('btnAirCell');
+    if (btnAirCell) btnAirCell.onclick = () => { state.eggPart = 'air'; playTone(700, 0.1); };
+    const btnYolk = document.getElementById('btnYolk');
+    if (btnYolk) btnYolk.onclick = () => { state.eggPart = 'yolk'; playTone(800, 0.1); };
+    const btnWhite = document.getElementById('btnWhite');
+    if (btnWhite) btnWhite.onclick = () => { state.eggPart = 'white'; playTone(500, 0.1); };
+
+    const ageSlider = document.getElementById('ageSlider');
+    if (ageSlider) {
+        ageSlider.addEventListener('input', (e) => {
+            state.larvaAge = parseInt(e.target.value);
+            playTone(400 + state.larvaAge * 50, 0.05);
+        });
+    }
+    const btnFeed = document.getElementById('btnFeed');
+    if (btnFeed) btnFeed.onclick = () => {
+        state.feedCount += 1;
+        playTone(900, 0.1);
+    };
+    const btnMolt = document.getElementById('btnMolt');
+    if (btnMolt) btnMolt.onclick = () => {
+        if (state.larvaAge < 5) state.larvaAge += 1;
+        setupControls();
+        playTone(1100, 0.2);
+    };
+
+    const btnOvi = document.getElementById('btnOvi');
+    if (btnOvi) btnOvi.onclick = () => { state.reprodType = 'oviparous'; setupControls(); playTone(600, 0.1); };
+    const btnVivi = document.getElementById('btnVivi');
+    if (btnVivi) btnVivi.onclick = () => { state.reprodType = 'viviparous'; setupControls(); playTone(800, 0.1); };
+
+    const btnStage1 = document.getElementById('btnStage1');
+    if (btnStage1) btnStage1.onclick = () => { state.growthStage = 1; setupControls(); playTone(500, 0.1); };
+    const btnStage2 = document.getElementById('btnStage2');
+    if (btnStage2) btnStage2.onclick = () => { state.growthStage = 2; setupControls(); playTone(600, 0.1); };
+    const btnStage3 = document.getElementById('btnStage3');
+    if (btnStage3) btnStage3.onclick = () => { state.growthStage = 3; setupControls(); playTone(700, 0.1); };
+    const btnStage4 = document.getElementById('btnStage4');
+    if (btnStage4) btnStage4.onclick = () => { state.growthStage = 4; setupControls(); playTone(900, 0.1); };
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'egg_hatching') {
+        drawEggHatching();
+    } else if (activeMode === 'egg_anatomy') {
+        drawEggAnatomy();
+    } else if (activeMode === 'silkworm_growth') {
+        drawSilkwormGrowth();
+    } else if (activeMode === 'cocoon_pupa') {
+        drawCocoonPupa();
+    } else if (activeMode === 'moth_emergence') {
+        drawMothEmergence();
+    } else if (activeMode === 'life_cycle') {
+        drawLifeCycleWheel();
+    } else if (activeMode === 'reproduction_types') {
+        drawReproductionScene();
+    } else if (activeMode === 'animal_lifespan') {
+        drawAnimalLifespan();
+    } else {
+        drawSilkwormStage();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+
+function drawEggHatching() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🐣 迎接蚕宝宝的诞生: 适宜温湿度下蚕卵由淡黄变紫黑，小蚁蚕破壳而出', cx, 40);
+
+    // Magnifying Glass View Circle
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, 230, 140, 0, Math.PI * 2);
+    ctx.clip();
+
+    ctx.fillStyle = '#f1f5f9';
+    ctx.fillRect(cx - 150, 80, 300, 300);
+
+    // Mulberry leaf edge
+    ctx.fillStyle = '#16a34a';
+    ctx.beginPath();
+    ctx.arc(cx + 100, 320, 160, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Silkworm eggs
+    for (let i = 0; i < 15; i++) {
+        const ex = cx - 90 + (i % 5) * 35;
+        const ey = 140 + Math.floor(i / 5) * 40;
+        ctx.fillStyle = i < 10 ? '#334155' : '#eab308';
+        ctx.beginPath();
+        ctx.arc(ex, ey, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#1e293b';
+        ctx.stroke();
+    }
+
+    // Newly hatched black baby silkworm (蚁蚕)
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.ellipse(cx + 30, 240, 6, 22, 0.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Tiny hairs
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    for (let h = -18; h <= 18; h += 4) {
+        ctx.beginPath();
+        ctx.moveTo(cx + 30 - 4, 240 + h);
+        ctx.lineTo(cx + 30 - 9, 240 + h);
+        ctx.moveTo(cx + 30 + 4, 240 + h);
+        ctx.lineTo(cx + 30 + 9, 240 + h);
+        ctx.stroke();
+    }
+    ctx.restore();
+
+    // Magnifier ring
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(cx, 230, 140, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('🔬 40倍显微放大: 刚出壳的蚁蚕长约2~3毫米，黑褐色极细小，像小蚂蚁', cx, 395);
+}
+
+function drawSilkwormGrowth() {
+    const cx = 360;
+    const cy = 230;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`🐛 蚕幼虫体节解剖与生长: 当前为 ${state.larvaAge} 龄蚕 (经历 ${state.larvaAge-1} 次蜕皮)`, cx, 40);
+
+    // Large Mulberry leaf
+    ctx.fillStyle = '#15803d';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + 40, 260, 110, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Silkworm body: Head, 3 Thoracic segments, 10 Abdominal segments
+    const segCount = 13;
+    const bodyLen = 300;
+    const segWidth = bodyLen / segCount;
+
+    for (let i = 0; i < segCount; i++) {
+        const sx = cx - bodyLen / 2 + i * segWidth + segWidth / 2;
+        ctx.fillStyle = i === 0 ? '#92400e' : '#f8fafc'; // Head is brown
+        ctx.beginPath();
+        ctx.ellipse(sx, cy, segWidth * 0.65, 26, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // 9 pairs of spiracles (气门) on abdomen
+        if (i >= 3 && i <= 11) {
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(sx, cy - 14, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    // Legs annotations: 3 pairs thoracic, 4 pairs abdominal, 1 pair caudal
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('胸足 (3对·抓握把持)', cx - 90, cy + 50);
+    ctx.fillText('腹足 (4对·运动支撑)', cx + 20, cy + 50);
+    ctx.fillText('尾足 (1对)', cx + 130, cy + 50);
+    ctx.fillText('气门 (9对呼吸孔)', cx, cy - 35);
+}
+
+function drawCocoonPupa() {
+    const cx = 360;
+    const cy = 230;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🧶 蚕变了新模样: 吐丝结茧成纺锤形白色蚕茧，蜕皮化蛹为蚕蛹', cx, 40);
+
+    // Left: White Cocoon
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.ellipse(cx - 140, cy, 55, 90, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('完整的蚕茧 (白色椭圆)', cx - 140, cy + 120);
+
+    // Right: Sliced Cocoon showing Pupa inside
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(cx + 140, cy, 55, 90, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Pupa
+    ctx.fillStyle = '#b45309';
+    ctx.beginPath();
+    ctx.ellipse(cx + 140, cy, 32, 65, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#78350f';
+    ctx.stroke();
+
+    // Segments on pupa
+    ctx.strokeStyle = '#451a03';
+    for (let y = cy - 30; y <= cy + 40; y += 12) {
+        ctx.beginPath();
+        ctx.moveTo(cx + 115, y); ctx.lineTo(cx + 165, y);
+        ctx.stroke();
+    }
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillText('剖开蚕茧: 纺锤形深褐色蚕蛹', cx + 140, cy + 120);
+}
+
+function drawMothEmergence() {
+    const cx = 360;
+    const cy = 230;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🦋 茧中钻出了蚕蛾: 破茧羽化为昆虫成虫，头部触角羽状，口器退化不进食', cx, 40);
+
+    // Adult Moth
+    ctx.fillStyle = '#f1f5f9';
+    // Wings
+    ctx.beginPath();
+    ctx.ellipse(cx - 65, cy - 20, 55, 80, 0.45, 0, Math.PI * 2);
+    ctx.ellipse(cx + 65, cy - 20, 55, 80, -0.45, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.stroke();
+
+    // Body
+    ctx.fillStyle = '#e2e8f0';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 22, 65, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Feathered antennae
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx - 8, cy - 60); ctx.lineTo(cx - 40, cy - 95);
+    ctx.moveTo(cx + 8, cy - 60); ctx.lineTo(cx + 40, cy - 95);
+    ctx.stroke();
+
+    ctx.fillStyle = '#10b981';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('雌雄蛾交尾后，雌蛾产下约 400~500 粒蚕卵，生命周期进入下一代轮回', cx, 380);
+}
+
+function drawLifeCycleWheel() {
+    const cx = 360;
+    const cy = 230;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🔄 蚕的一生: 经历“卵、幼虫、蛹、成虫”四种完全变态形态 (共历时约 56 天)', cx, 40);
+
+    const stages = [
+        { t: '1. 蚕卵 (约8天)', d: '生命起点·极微小扁圆', c: '#eab308', a: -Math.PI / 2 },
+        { t: '2. 蚕幼虫 (约25天)', d: '进食桑叶·蜕皮4次', c: '#10b981', a: 0 },
+        { t: '3. 蚕蛹 (约15天)', d: '茧中沉睡·身体重塑', c: '#f59e0b', a: Math.PI / 2 },
+        { t: '4. 蚕蛾成虫 (约8天)', d: '破茧羽化·交尾产卵', c: '#38bdf8', a: Math.PI }
+    ];
+
+    // Center Hub
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 140, 0, Math.PI * 2);
+    ctx.stroke();
+
+    stages.forEach(st => {
+        const x = cx + Math.cos(st.a) * 140;
+        const y = cy + Math.sin(st.a) * 140;
+
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.arc(x, y, 48, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = st.c;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.fillStyle = st.c;
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(st.t, x, y - 8);
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '10px sans-serif';
+        ctx.fillText(st.d, x, y + 12);
+    });
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText('完全变态发育', cx, cy - 6);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('总计约 56 天', cx, cy + 18);
+}
+
+function drawAnimalLifespan() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('📊 动物的一生与寿命谱系对比: 出生、生长发育、繁殖、死亡是不可抗拒的生命规律', cx, 40);
+
+    const animals = [
+        { name: '蜉蝣 (昆虫)', span: '数小时~1天', bar: 20, color: '#f43f5e' },
+        { name: '蚕 (昆虫)', span: '约 56 天', bar: 60, color: '#f59e0b' },
+        { name: '仓鼠 (哺乳)', span: '约 2~3 年', bar: 130, color: '#eab308' },
+        { name: '家犬 (哺乳)', span: '约 12~15 年', bar: 220, color: '#10b981' },
+        { name: '人类 (哺乳)', span: '约 75~85 年', bar: 380, color: '#38bdf8' },
+        { name: '象龟 (爬行)', span: '约 150~180 年', bar: 520, color: '#a855f7' }
+    ];
+
+    animals.forEach((a, i) => {
+        const y = 80 + i * 50;
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(a.name, 160, y + 20);
+
+        // Bar
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(180, y + 5, 450, 24);
+
+        ctx.fillStyle = a.color;
+        ctx.fillRect(180, y + 5, a.bar * 0.8, 24);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(a.span, 190 + a.bar * 0.8, y + 22);
+    });
+}
+
+function drawEggAnatomy() {
+    const cx = 360;
+    const cy = 230;
+
+    // Egg shell
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 140, 180, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ca8a04';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Air cell at blunt end
+    ctx.fillStyle = state.eggPart === 'air' ? '#38bdf8' : '#e2e8f0';
+    ctx.beginPath();
+    ctx.arc(cx, cy - 110, 65, 0.3, Math.PI - 0.3, true);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('气室 (储存空气，供给胚胎呼吸)', cx - 80, cy - 120);
+
+    // Egg white (Albumen)
+    ctx.fillStyle = state.eggPart === 'white' ? 'rgba(56, 189, 248, 0.4)' : 'rgba(255, 255, 255, 0.6)';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + 20, 115, 120, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Egg yolk (Vitellus)
+    ctx.fillStyle = state.eggPart === 'yolk' ? '#f97316' : '#eab308';
+    ctx.beginPath();
+    ctx.arc(cx, cy + 20, 60, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Germinal disc (胚盘) - white dot on yolk
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(cx - 20, cy + 5, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f43f5e';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('🔴 胚盘 (发育成小鸡的关键生命核心)', cx - 140, cy + 8);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('鸡卵内部解剖透视 (卵壳、卵白、卵黄、胚盘、气室)', cx, 40);
+}
+
+function drawSilkwormStage() {
+    const cx = 360;
+    const cy = 230;
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+
+    if (state.growthStage === 1) {
+        ctx.fillText('1. 蚕卵阶段: 扁圆形，由淡黄色转为紫黑色(即将孵化)', cx, 40);
+        // Silkworm eggs on paper
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(cx - 150, 130, 300, 200);
+
+        for (let i = 0; i < 40; i++) {
+            const ex = cx - 120 + (i % 8) * 35;
+            const ey = 160 + Math.floor(i / 8) * 35;
+            ctx.fillStyle = i < 30 ? '#475569' : '#facc15';
+            ctx.beginPath();
+            ctx.arc(ex, ey, 7, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    } else if (state.growthStage === 2) {
+        ctx.fillText(`2. 蚕幼虫阶段 (${state.larvaAge}龄): 身体分头胸腹，体侧有黑色呼吸气门`, cx, 40);
+        // Mulberry leaf
+        ctx.fillStyle = '#15803d';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + 40, 160, 80, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Silkworm body segments
+        const segCount = 13;
+        const bodyLen = 50 + state.larvaAge * 25;
+        const startX = cx - bodyLen / 2;
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 2;
+
+        for (let i = 0; i < segCount; i++) {
+            const sx = startX + (i / segCount) * bodyLen;
+            const sy = cy + Math.sin(i * 0.5) * 8;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 12 + (i > 3 && i < 10 ? 3 : 0), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Spiracle (气门)
+            if (i > 1 && i < 11) {
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.arc(sx, sy + 6, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#f8fafc';
+            }
+        }
+        // Head
+        ctx.fillStyle = '#d97706';
+        ctx.beginPath();
+        ctx.arc(startX + bodyLen + 5, cy, 10, 0, Math.PI * 2);
+        ctx.fill();
+    } else if (state.growthStage === 3) {
+        ctx.fillText('3. 蚕茧与蚕蛹阶段: 幼虫吐丝结茧，茧内蜕皮化蛹', cx, 40);
+        // Cocoon
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.ellipse(cx - 80, cy, 50, 80, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ca8a04';
+        ctx.stroke();
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('蚕茧 (丝质)', cx - 110, cy + 95);
+
+        // Pupa (Cutaway)
+        ctx.fillStyle = '#b45309';
+        ctx.beginPath();
+        ctx.ellipse(cx + 80, cy, 35, 70, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#78350f';
+        ctx.stroke();
+
+        // Pupa segmentation & wing buds
+        ctx.strokeStyle = '#451a03';
+        for (let y = cy - 40; y < cy + 50; y += 15) {
+            ctx.beginPath();
+            ctx.moveTo(cx + 55, y);
+            ctx.lineTo(cx + 105, y);
+            ctx.stroke();
+        }
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('蚕蛹 (纺锤形，体色由浅变深)', cx + 30, cy + 95);
+    } else {
+        ctx.fillText('4. 蚕蛾成虫阶段: 破茧羽化，头部有触角，胸部有翅，不进食', cx, 40);
+        // Adult Moth
+        ctx.fillStyle = '#f1f5f9';
+        // Wings
+        ctx.beginPath();
+        ctx.ellipse(cx - 50, cy - 20, 45, 65, 0.4, 0, Math.PI * 2);
+        ctx.ellipse(cx + 50, cy - 20, 45, 65, -0.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.stroke();
+
+        // Body
+        ctx.fillStyle = '#e2e8f0';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, 18, 55, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Feathered antennae
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(cx - 8, cy - 50); ctx.lineTo(cx - 30, cy - 80);
+        ctx.moveTo(cx + 8, cy - 50); ctx.lineTo(cx + 30, cy - 80);
+        ctx.stroke();
+    }
+}
+
+function drawReproductionScene() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`动物繁殖方式分类归纳: 【${state.reprodType==='oviparous'?'卵生 (产卵)':'胎生 (哺乳)'}】`, cx, 50);
+
+    const animals = state.reprodType === 'oviparous' ?
+        [{name:'🐔 鸡 (鸟类)', desc:'有硬卵壳'}, {name:'🐟 鲫鱼 (鱼类)', desc:'水中产卵'}, {name:'🐸 青蛙 (两栖)', desc:'卵胶膜保护'}, {name:'🐛 蚕蛾 (昆虫)', desc:'产卵百余粒'}] :
+        [{name:'🐼 大熊猫', desc:'直接生出幼仔'}, {name:'🐕 狗 (哺乳)', desc:'母乳哺育幼崽'}, {name:'🐄 奶牛', desc:'胎盘供给营养'}, {name:'🐬 海豚 (水生哺乳)', desc:'胎生哺乳'}];
+
+    animals.forEach((a, idx) => {
+        const x = 80 + (idx % 2) * 300;
+        const y = 120 + Math.floor(idx / 2) * 140;
+
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(x, y, 260, 110);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, 260, 110);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 18px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(a.name, x + 20, y + 45);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '13px sans-serif';
+        ctx.fillText(a.desc, x + 20, y + 80);
+    });
+}
+
+        
+function updateTelemetry() {
+    let txt = `[生命发育数据就绪] 模式: ${activeMode} | `;
+    if (activeMode === 'silkworm_growth') {
+        txt += `幼虫龄期: ${state.larvaAge}龄 | 蜕皮次数: ${state.larvaAge - 1}次 | 进食次数: ${state.feedCount}`;
+    } else if (activeMode === 'egg_anatomy') {
+        txt += `透视观察部位: ${state.eggPart} | 结构完整度: 100%`;
+    } else {
+        txt += `当前变态发育阶段: ${state.growthStage===1?'卵':state.growthStage===2?'幼虫':state.growthStage===3?'蛹':'蚕蛾成虫'}`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

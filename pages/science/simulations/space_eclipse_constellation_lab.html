@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学大师级实验室：日食月食空间阴影与北斗三维天象仪（六年级下册·宇宙）</title>
+  <style>
+    :root {
+      --bg: #030712;
+      --card: #0f172a;
+      --border: #1e293b;
+      --primary: #f59e0b;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1240px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-primary {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-color: #d97706;
+      color: #0f172a;
+      font-weight: 700;
+    }
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .mode-tab {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--muted);
+      border: none;
+      background: transparent;
+      transition: all 0.2s;
+    }
+    .mode-tab.active {
+      background: var(--primary);
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .main-container {
+      max-width: 1240px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 960px) {
+      .main-container { grid-template-columns: 1fr; }
+    }
+
+    .canvas-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .canvas-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.4);
+    }
+    .canvas-wrapper {
+      position: relative;
+      flex: 1;
+      min-height: 520px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 50%, #070c18 0%, #020408 100%);
+    }
+    canvas { display: block; }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fbbf24;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .form-group { margin-bottom: 12px; }
+    .form-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    input[type=range] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #1e293b;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+    }
+    .telemetry-card {
+      background: #060913;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.75rem;
+      color: #38bdf8;
+      line-height: 1.5;
+      min-height: 95px;
+    }
+    .science-tip {
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      background: rgba(30, 41, 59, 0.5);
+      border-left: 3px solid #f59e0b;
+      padding: 8px 10px;
+      border-radius: 0 8px 8px 0;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>🏆 日食月食几何光影与北斗三维空间天象仪</h1>
+      <span class="badge">六下宇宙·天体物理核心</span>
+    </div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabEclipse" onclick="switchMode('eclipse')">🌑 日食空间本影几何</button>
+      <button class="mode-tab" id="tabLunar" onclick="switchMode('lunar')">🌕 月食红月亮成因</button>
+      <button class="mode-tab" id="tabBigDipper" onclick="switchMode('dipper')">✨ 北斗七星三维空间模型</button>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html" class="btn">← 返回大厅</a>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="canvas-panel">
+      <div class="canvas-header">
+        <span id="canvasTitle">🌑 日食空间几何本影光锥与地表观测联动</span>
+        <span style="color: var(--muted); font-size: 0.75rem;">天体几何光学投影 · 真实三维视差</span>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="simCanvas" width="840" height="520"></canvas>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="card" id="ctrlCard">
+        <!-- Injected -->
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 天文轨道与空间几何遥测</div>
+        <div class="telemetry-card" id="telem">
+          初始化中...
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📖 科学家视角与学科大概念</div>
+        <div class="science-tip" id="scienceTip">
+          光的直线传播造成了天体阴影遮蔽。当月球运行到太阳和地球之间三者排成一条直线时，月球挡住太阳光投向地球的阴影便发生了日食；星座只是地球视线方向上星星的视觉投影，实际上各颗恒星距离地球深浅相距数十乃至上百光年！
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    const telem = document.getElementById('telem');
+    const ctrlCard = document.getElementById('ctrlCard');
+    const canvasTitle = document.getElementById('canvasTitle');
+
+    let currentMode = 'eclipse'; // eclipse, lunar, dipper
+
+    // State: Eclipse
+    let moonYOffset = 0; // -60 to 60 (drags moon perpendicular to sun-earth line)
+
+    // State: Dipper
+    let dipperRot = 0; // -90 to 90 degrees
+    const stars = [
+      { name: '天枢', x: 220, y: 140, dist: 124 },
+      { name: '天璇', x: 230, y: 220, dist: 79 },
+      { name: '天玑', x: 330, y: 230, dist: 84 },
+      { name: '天权', x: 340, y: 170, dist: 81 },
+      { name: '玉衡', x: 420, y: 190, dist: 81 },
+      { name: '开阳', x: 500, y: 220, dist: 78 },
+      { name: '摇光', x: 580, y: 270, dist: 101 }
+    ];
+
+    function switchMode(m) {
+      currentMode = m;
+      document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+      if (m === 'eclipse') document.getElementById('tabEclipse').classList.add('active');
+      if (m === 'lunar') document.getElementById('tabLunar').classList.add('active');
+      if (m === 'dipper') document.getElementById('tabBigDipper').classList.add('active');
+      renderSidebar();
+    }
+
+    function renderSidebar() {
+      if (currentMode === 'eclipse') {
+        canvasTitle.textContent = '🌑 日食空间几何本影光锥与地表观测联动';
+        ctrlCard.innerHTML = `
+          <div class="card-title">🌘 月球轨道交点调节</div>
+          <div class="form-group">
+            <div class="form-label"><span>🌙 月球黄道面偏离位移</span><span style="color:#fbbf24; font-weight:bold;">${moonYOffset} px</span></div>
+            <input type="range" min="-50" max="50" step="2" value="${moonYOffset}" oninput="moonYOffset=parseInt(this.value); renderSidebar();">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <button class="btn btn-primary" onclick="moonYOffset=0; renderSidebar();">🌑 日全食模式 (日地月中轴严格对齐)</button>
+            <button class="btn" onclick="moonYOffset=22; renderSidebar();">🌗 日偏食模式 (月球部分遮挡太阳)</button>
+            <button class="btn" onclick="moonYOffset=-45; renderSidebar();">☀️ 正常新月 (黄白交角未发生食)</button>
+          </div>
+        `;
+      } else if (currentMode === 'lunar') {
+        canvasTitle.textContent = '🌕 月食空间几何与地球大气折射红月亮成因';
+        ctrlCard.innerHTML = `
+          <div class="card-title">🔴 月食发生机制</div>
+          <p style="font-size:0.8rem; color:var(--muted); line-height:1.5;">当月球运行到地球后方的本影区时，太阳光被地球遮挡；但波长最长的红光经地球大气层折射投在月球上，呈现神秘古铜色“红月亮”！</p>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <button class="btn btn-primary" onclick="moonYOffset=0; renderSidebar();">🌕 月全食 (完全进入地球本影·红月亮)</button>
+            <button class="btn" onclick="moonYOffset=30; renderSidebar();">🌖 月偏食 (部分进入本影)</button>
+          </div>
+        `;
+      } else if (currentMode === 'dipper') {
+        canvasTitle.textContent = '✨ 北斗七星三维立体空间模型（打破平面星座假象）';
+        ctrlCard.innerHTML = `
+          <div class="card-title">🔄 空间三维视角旋转</div>
+          <div class="form-group">
+            <div class="form-label"><span>🔭 视线旋转角 (绕垂直轴)</span><span style="color:#38bdf8; font-weight:bold;">${dipperRot}°</span></div>
+            <input type="range" min="-85" max="85" step="2" value="${dipperRot}" oninput="dipperRot=parseInt(this.value); renderSidebar();">
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary" style="flex:1;" onclick="dipperRot=0; renderSidebar();">🌍 地球视角 (看像勺子)</button>
+            <button class="btn" onclick="dipperRot=65; renderSidebar();">🌌 侧面宇宙深空视角</button>
+          </div>
+        `;
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (currentMode === 'eclipse') {
+        drawSolarEclipse();
+      } else if (currentMode === 'lunar') {
+        drawLunarEclipse();
+      } else if (currentMode === 'dipper') {
+        drawDipper3D();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    // --- Mode 1: Solar Eclipse ---
+    function drawSolarEclipse() {
+      const sunX = 120, sunY = 260, sunR = 80;
+      const moonX = 400, moonY = 260 + moonYOffset, moonR = 24;
+      const earthX = 680, earthY = 260, earthR = 50;
+
+      // 1. Light Rays: Sun to Moon to Earth (Umbra & Penumbra)
+      // Top tangent
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.12)';
+      ctx.beginPath();
+      ctx.moveTo(sunX, sunY - sunR);
+      ctx.lineTo(moonX, moonY - moonR);
+      ctx.lineTo(earthX, earthY - earthR - 40);
+      ctx.lineTo(earthX, earthY + earthR + 40);
+      ctx.lineTo(moonX, moonY + moonR);
+      ctx.lineTo(sunX, sunY + sunR);
+      ctx.closePath();
+      ctx.fill();
+
+      // Umbra Core Cone (Dark)
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+      ctx.beginPath();
+      ctx.moveTo(moonX, moonY - moonR);
+      ctx.lineTo(earthX, moonY);
+      ctx.lineTo(moonX, moonY + moonR);
+      ctx.closePath();
+      ctx.fill();
+
+      // 2. Draw Sun
+      const sunGrad = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, sunR);
+      sunGrad.addColorStop(0, '#fef08a');
+      sunGrad.addColorStop(0.7, '#f59e0b');
+      sunGrad.addColorStop(1, 'rgba(239, 68, 68, 0.4)');
+      ctx.fillStyle = sunGrad;
+      ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 15px sans-serif'; ctx.fillText('☀️ 太阳 (巨大光源)', sunX - 50, sunY + sunR + 30);
+
+      // 3. Draw Moon
+      ctx.fillStyle = '#64748b';
+      ctx.beginPath(); ctx.arc(moonX, moonY, moonR, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 12px sans-serif'; ctx.fillText('🌙 月球', moonX - 16, moonY + 45);
+
+      // 4. Draw Earth
+      const earthGrad = ctx.createRadialGradient(earthX - 15, earthY - 15, 5, earthX, earthY, earthR);
+      earthGrad.addColorStop(0, '#38bdf8');
+      earthGrad.addColorStop(0.8, '#0369a1');
+      earthGrad.addColorStop(1, '#0f172a');
+      ctx.fillStyle = earthGrad;
+      ctx.beginPath(); ctx.arc(earthX, earthY, earthR, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 13px sans-serif'; ctx.fillText('🌍 地球 (观察者)', earthX - 40, earthY + earthR + 30);
+
+      // 5. Inset Box: View from Earth!
+      const insetX = 700, insetY = 80;
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(insetX - 60, insetY - 60, 120, 120);
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.strokeRect(insetX - 60, insetY - 60, 120, 120);
+
+      // Sun on sky
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath(); ctx.arc(insetX, insetY, 32, 0, Math.PI * 2); ctx.fill();
+
+      // Moon blocking sun
+      ctx.fillStyle = '#030712';
+      ctx.beginPath();
+      ctx.arc(insetX, insetY + moonYOffset * 0.7, 32, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('🔭 地球地面望远镜视野', insetX, insetY + 50);
+
+      const isTotal = Math.abs(moonYOffset) < 6;
+      const isPartial = Math.abs(moonYOffset) >= 6 && Math.abs(moonYOffset) < 38;
+      ctx.fillStyle = isTotal ? '#ef4444' : (isPartial ? '#f59e0b' : '#10b981');
+      ctx.fillText(isTotal ? '🌑 日全食！太阳完全被遮' : (isPartial ? '🌗 日偏食！太阳被月球咬去一块' : '☀️ 无日食 (月球未挡住视线)'), insetX, insetY - 45);
+      ctx.textAlign = 'left';
+
+      telem.innerHTML = `
+[日食天文空间几何遥测]
+• 三球空间排列: 太阳 ➔ 【月球在中间】 ➔ 地球 (发生于农历初一朔日)
+• 几何光影本质: 月球本影投在地球表面极窄区域，形成日全食；半影区形成日偏食；
+• 地面天象判定: ${isTotal ? '日全食 (白昼如夜，日冕大放异彩)' : (isPartial ? '日偏食 (太阳如月牙弯曲)' : '太阳完整照耀地球')}
+      `.trim();
+    }
+
+    // --- Mode 2: Lunar Eclipse ---
+    function drawLunarEclipse() {
+      const sunX = 120, sunY = 260, sunR = 80;
+      const earthX = 420, earthY = 260, earthR = 48;
+      const moonX = 700, moonY = 260 + moonYOffset, moonR = 18;
+
+      // Earth Shadow Cone
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+      ctx.beginPath();
+      ctx.moveTo(earthX, earthY - earthR);
+      ctx.lineTo(earthX + 340, earthY - earthR * 0.7);
+      ctx.lineTo(earthX + 340, earthY + earthR * 0.7);
+      ctx.lineTo(earthX, earthY + earthR);
+      ctx.closePath();
+      ctx.fill();
+
+      // Sun
+      ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, Math.PI*2); ctx.fill();
+      // Earth
+      ctx.fillStyle = '#0284c7'; ctx.beginPath(); ctx.arc(earthX, earthY, earthR, 0, Math.PI*2); ctx.fill();
+
+      // Moon inside shadow (Blood Moon reddish!)
+      const inShadow = Math.abs(moonYOffset) < 26;
+      ctx.fillStyle = inShadow ? '#991b1b' : '#f8fafc';
+      ctx.beginPath(); ctx.arc(moonX, moonY, moonR, 0, Math.PI*2); ctx.fill();
+
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(inShadow ? '🌕 月全食！呈现古铜红月亮（地球大气折射红光）' : '🌕 正常满月 (月球未进入地球本影)', 420, 80);
+      ctx.textAlign = 'left';
+
+      telem.innerHTML = `
+[月食天文遥测]
+• 三球排列: 太阳 ➔ 【地球在中间】 ➔ 月球 (发生于农历十五望日)
+• 红月亮科学原理解密: 太阳七色光经过地球厚重大气层时，蓝紫短波光全部被散射，只有波长最长的红光能穿透大气发生折射，投射到本影中的月球表面，使月球呈现神秘暗红古铜色！
+      `.trim();
+    }
+
+    // --- Mode 3: Dipper 3D ---
+    function drawDipper3D() {
+      const cx = 420, cy = 250;
+      const rad = dipperRot * Math.PI / 180;
+
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(Math.abs(dipperRot) < 15 ? '🌍 在地球上看：七颗星在天球上投影成熟悉的“勺子”形状' : '🌌 侧向宇宙深空视角：七星彼此相距几十光年，根本不在同一个平面！', cx, 60);
+      ctx.textAlign = 'left';
+
+      // Project 3D coordinates
+      const projStars = stars.map(s => {
+        // Star 3D coord relative to cluster center (x=380, z=90)
+        const rx = s.x - 380;
+        const rz = (s.dist - 90) * 4; // depth scale
+
+        // Rotate around Y axis
+        const rotX = rx * Math.cos(rad) - rz * Math.sin(rad);
+        const rotZ = rx * Math.sin(rad) + rz * Math.cos(rad);
+
+        return {
+          name: s.name,
+          dist: s.dist,
+          screenX: cx + rotX,
+          screenY: s.y,
+          size: Math.max(3, 7 - rotZ * 0.02)
+        };
+      });
+
+      // Draw constellation lines
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < projStars.length; i++) {
+        if (i === 0) ctx.moveTo(projStars[i].screenX, projStars[i].screenY);
+        else ctx.lineTo(projStars[i].screenX, projStars[i].screenY);
+      }
+      ctx.stroke();
+      // Spoon box closure (star 0 to 3)
+      ctx.beginPath();
+      ctx.moveTo(projStars[0].screenX, projStars[0].screenY);
+      ctx.lineTo(projStars[3].screenX, projStars[3].screenY);
+      ctx.stroke();
+
+      // Draw Stars
+      projStars.forEach(s => {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(s.screenX, s.screenY, s.size, 0, Math.PI*2); ctx.fill();
+
+        ctx.fillStyle = '#38bdf8'; ctx.font = '11px sans-serif';
+        ctx.fillText(`${s.name} (${s.dist}光年)`, s.screenX + 8, s.screenY + 4);
+      });
+
+      telem.innerHTML = `
+[星座三维视差空间遥测] 当前观测旋转角: ${dipperRot}°
+• 北斗七星空间深度数据:
+  天枢(124光年) | 天璇(79光年) | 天玑(84光年) | 天权(81光年)
+  玉衡(81光年)  | 开阳(78光年) | 摇光(101光年)
+• 科学核心真相: 星座只是人类从地球视角出发的平面想象；它们在浩瀚宇宙中深浅不一、相距极远，并无物理联系！
+      `.trim();
+    }
+
+    renderSidebar();
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>

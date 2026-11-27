@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【5. 给船装上动力】真实验微仿真 - 五年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌱 5. 给船装上动力</h1>
+        <span class="badge">五年级下册·第二单元《船的研究》</span>
+        <a href="buoyancy_boat_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 阿基米德浮力船舶工程水槽 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g10_s2_u02_l01.html" class="">船的历史</a>
+<a href="sim_g10_s2_u02_l02.html" class="">用浮的材料造船</a>
+<a href="sim_g10_s2_u02_l03.html" class="">用沉的材料造船</a>
+<a href="sim_g10_s2_u02_l04.html" class="">增加船的载重量</a>
+<a href="sim_g10_s2_u02_l05.html" class="active">给船装上动力</a>
+<a href="sim_g10_s2_u02_l06.html" class="">设计我们的小船</a>
+<a href="sim_g10_s2_u02_l07.html" class="">制作与测试我们的小船</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时科学数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：系统探索造船材料浮沉、排开水量与浮力平衡、增加载重量与船体流体力学动力设计。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "ship_propulsion";
+
+        
+const state = {
+    boatMaterial: activeMode === 'clay_boat' ? 'clay' : activeMode === 'bamboo_raft' ? 'bamboo' : 'aluminum',
+    boatShape: 'boat', // ball, boat
+    washersCount: 4, // 0~20 载重垫圈
+    propulsion: activeMode === 'ship_propulsion' ? 'propeller' : 'sail',
+    boatSpeed: 0,
+    waterDisplaced: 120, // ml
+    isSunk: false
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'clay_boat') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>橡皮泥形状改变 (排开水量探究)</span><span class="val">${state.boatShape==='boat'?'捏成中空船型 (浮起)':'揉成实心团 (沉底)'}</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnHollow">🚢 捏成中空船型 (排开水量大)</button>
+                    <button class="btn btn-rose" id="btnSolid">⚪ 揉成实心泥团 (排开水量小)</button>
+                </div>
+            </div>
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>放入载重垫圈</span><span class="val" id="washVal">${state.washersCount} 个</span></div>
+                <input type="range" id="washerSlider" min="0" max="15" value="${state.washersCount}">
+            </div>
+        `;
+    } else if (activeMode === 'cargo_capacity' || activeMode === 'bamboo_raft') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>增加载重量垫圈测试</span><span class="val" id="washVal">${state.washersCount} 个</span></div>
+                <input type="range" id="washerSlider" min="0" max="25" value="${state.washersCount}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-primary" id="btnWider">📐 加大底面积 (增加排水体积)</button>
+                <button class="btn btn-green" id="btnHigher">📏 提高船舷防进水</button>
+            </div>
+        `;
+    } else if (activeMode === 'ship_propulsion' || activeMode === 'test_boat') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>动力装置选择</span><span class="val">${state.propulsion}</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnSail">⛵ 风帆动力</button>
+                    <button class="btn btn-green" id="btnPropeller">🌀 电动螺旋桨推进</button>
+                </div>
+            </div>
+            <div class="btn-grid" style="margin-top:6px;">
+                <button class="btn btn-primary" id="btnSailTest">🏁 水槽航行测速</button>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>船首流线型水阻对比</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnStreamline">尖削流线型船首 (阻力小)</button>
+                    <button class="btn btn-rose" id="btnFlatBow">平头宽船首 (阻力大)</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU2Events();
+}
+
+function bindU2Events() {
+    const btnHollow = document.getElementById('btnHollow');
+    if (btnHollow) btnHollow.onclick = () => { state.boatShape = 'boat'; state.isSunk = false; setupControls(); playTone(600, 0.15); };
+    const btnSolid = document.getElementById('btnSolid');
+    if (btnSolid) btnSolid.onclick = () => { state.boatShape = 'ball'; state.isSunk = true; setupControls(); playTone(250, 0.2); };
+
+    const washerSlider = document.getElementById('washerSlider');
+    if (washerSlider) {
+        washerSlider.addEventListener('input', (e) => {
+            state.washersCount = parseInt(e.target.value);
+            document.getElementById('washVal').innerText = state.washersCount + ' 个';
+            // Sinking check
+            if (state.boatShape === 'ball' || state.washersCount > 18) {
+                state.isSunk = true;
+                playTone(200, 0.3, 'sawtooth');
+            } else {
+                state.isSunk = false;
+                playTone(400 + state.washersCount * 25, 0.05);
+            }
+        });
+    }
+
+    const btnWider = document.getElementById('btnWider');
+    if (btnWider) btnWider.onclick = () => { playTone(700, 0.1); };
+    const btnHigher = document.getElementById('btnHigher');
+    if (btnHigher) btnHigher.onclick = () => { playTone(750, 0.1); };
+
+    const btnSail = document.getElementById('btnSail');
+    if (btnSail) btnSail.onclick = () => { state.propulsion = 'sail'; setupControls(); playTone(600, 0.1); };
+    const btnPropeller = document.getElementById('btnPropeller');
+    if (btnPropeller) btnPropeller.onclick = () => { state.propulsion = 'propeller'; setupControls(); playTone(880, 0.1); };
+    const btnSailTest = document.getElementById('btnSailTest');
+    if (btnSailTest) btnSailTest.onclick = () => { playTone(800, 0.2); };
+
+    const btnStreamline = document.getElementById('btnStreamline');
+    if (btnStreamline) btnStreamline.onclick = () => { playTone(750, 0.1); };
+    const btnFlatBow = document.getElementById('btnFlatBow');
+    if (btnFlatBow) btnFlatBow.onclick = () => { playTone(450, 0.1); };
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'ship_history') {
+        drawShipHistory();
+        updateTelemetry();
+        requestAnimationFrame(draw);
+        return;
+    } else if (activeMode === 'hull_design') {
+        drawHullDesign();
+        updateTelemetry();
+        requestAnimationFrame(draw);
+        return;
+    }
+
+    const cx = 360;
+
+    // Water Tank (水槽)
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
+    ctx.fillRect(80, 180, 560, 180);
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(80, 180, 560, 180);
+
+    // Water surface line
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(80, 178, 560, 4);
+
+    // Boat / Clay object
+    if (state.boatShape === 'ball' || state.isSunk) {
+        // Sunken solid clay ball at bottom
+        ctx.fillStyle = '#92400e';
+        ctx.beginPath();
+        ctx.arc(cx, 340, 22, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#f43f5e';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚠️ 沉入水底! 实心物体排开水量极小，所受浮力小于自身重力', cx, 140);
+    } else {
+        // Floating Boat (Hollow)
+        // Draft depth depends on washers load
+        const draft = 15 + state.washersCount * 3.5;
+        const boatY = 180 + draft;
+
+        // Boat Hull
+        ctx.fillStyle = '#b45309';
+        ctx.beginPath();
+        ctx.moveTo(cx - 90, 180 - 25);
+        ctx.lineTo(cx - 70, boatY);
+        ctx.lineTo(cx + 70, boatY);
+        ctx.lineTo(cx + 90, 180 - 25);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#78350f';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Cargo washers inside boat
+        ctx.fillStyle = '#cbd5e1';
+        for (let i = 0; i < state.washersCount; i++) {
+            const wx = cx - 50 + (i % 6) * 18;
+            const wy = boatY - 12 - Math.floor(i / 6) * 12;
+            ctx.fillRect(wx, wy, 15, 8);
+        }
+
+        // Sail or Propeller if active
+        if (state.propulsion === 'sail') {
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(cx, 180 - 25); ctx.lineTo(cx + 40, 180 - 75); ctx.lineTo(cx, 180 - 75);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.stroke();
+        }
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`中空船型漂浮: 载重 ${state.washersCount} 个垫圈 | 吃水深度: ${draft.toFixed(1)} mm`, cx, 40);
+        ctx.fillStyle = '#10b981';
+        ctx.font = '14px sans-serif';
+        ctx.fillText('阿基米德浮力定律: 船体中空体积越大 -> 排开水量越多 -> 获得更大浮力!', cx, 80);
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+        
+function updateTelemetry() {
+    let txt = `[船舶浮力数据就绪] 模式: ${activeMode} | `;
+    if (state.isSunk) {
+        txt += `状态: 沉底 | 浮力 < 重力 | 排开水量: 35ml`;
+    } else {
+        txt += `载重: ${state.washersCount}个垫圈 | 排水量: ${100 + state.washersCount*10}ml | 浮力平衡: 稳定`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    
+function drawShipHistory() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🚢 船的历史与进化：从独木舟到现代远洋巨轮的跨越', cx, 45);
+
+    const ships = [
+        { t: '1. 独木舟 (原始时代)', d: '树木凿空制成\n依靠人力划桨驱动\n载重量小易侧翻', c: '#d97706', x: 80 },
+        { t: '2. 摇橹帆船 (古代工程)', d: '木板榫接成坚固船体\n依靠自然风力和水流\n载重数十吨远涉重洋', c: '#f59e0b', x: 280 },
+        { t: '3. 现代巨轮 (工业时代)', d: '钢铁龙骨与柴油机动力\n螺旋桨推进万吨巨轮\n抗风浪性能与导航极高', c: '#38bdf8', x: 480 }
+    ];
+
+    ships.forEach(s => {
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(s.x, 80, 160, 280);
+        ctx.strokeStyle = s.c;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(s.x, 80, 160, 280);
+
+        ctx.fillStyle = s.c;
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(s.t, s.x + 80, 115);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '12px sans-serif';
+        const lines = s.d.split('\\n');
+        lines.forEach((l, i) => ctx.fillText(l, s.x + 80, 165 + i * 26));
+    });
+    ctx.textAlign = 'left';
+}
+
+function drawHullDesign() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('⚡ 船体流线型与阻力控制实验：流体动力学减阻对比', cx, 45);
+
+    // Left: Flat/Box Hull (High Drag)
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(80, 90, 280, 240);
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(80, 90, 280, 240);
+
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('⬛ 方头平头船首 (高水阻力)', 220, 125);
+    // Draw flat hull
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(160, 160, 120, 60);
+    // Turbulence lines
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 2;
+    for (let y = 165; y <= 215; y += 15) {
+        ctx.beginPath();
+        ctx.moveTo(110, y); ctx.lineTo(160, y);
+        ctx.stroke();
+    }
+    ctx.fillStyle = '#fca5a5';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('水流剧烈受阻碰撞，产生巨大漩涡阻力！', 220, 270);
+
+    // Right: Streamlined Bow (Low Drag)
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(400, 90, 280, 240);
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(400, 90, 280, 240);
+
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('🚢 尖削流线型船首 (低水阻力)', 540, 125);
+    // Draw pointed hull
+    ctx.fillStyle = '#64748b';
+    ctx.beginPath();
+    ctx.moveTo(480, 160); ctx.lineTo(560, 190); ctx.lineTo(480, 220);
+    ctx.closePath();
+    ctx.fill();
+    // Smooth streamlines
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 2;
+    for (let y = 165; y <= 215; y += 15) {
+        ctx.beginPath();
+        ctx.moveTo(430, y);
+        ctx.bezierCurveTo(470, y, 480, 190 + (y-190)*1.8, 570, 190 + (y-190)*1.8);
+        ctx.stroke();
+    }
+    ctx.fillStyle = '#86efac';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('水流平滑贴体分流，航行速度更快更节能！', 540, 270);
+
+    ctx.textAlign = 'left';
+}
+
+</script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

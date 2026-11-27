@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【6. 哪个流动得快】真实验微仿真 - 一年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+        .notes-card strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 <span>6. 哪个流动得快</span></h1>
+        <span class="badge">一年级科学·身边的物体</span>
+        <a href="g1s2_balance_weight.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 天平测重与流体运动实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g02_s2_u01_l01.html" class="">观察物体的特征</a>
+<a href="sim_g02_s2_u01_l02.html" class="">给物体分类</a>
+<a href="sim_g02_s2_u01_l03.html" class="">比较物体的轻重</a>
+<a href="sim_g02_s2_u01_l04.html" class="">认识物体的形状</a>
+<a href="sim_g02_s2_u01_l05.html" class="">观察一杯水</a>
+<a href="sim_g02_s2_u01_l06.html" class="active">哪个流动得快</a>
+<a href="sim_g02_s2_u01_l07.html" class="">它们去哪里了</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="cv" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 探究控制台与物理观测</div>
+            
+            <div class="ctrl-group">
+                <label class="ctrl-label">切换探究主题视窗</label>
+                <div class="btn-grid">
+                    <button class="btn " onclick="switchMode('properties')">🧱 物体特征</button>
+                    <button class="btn " onclick="switchMode('balance_scale')">⚖️ 天平测重</button>
+                    <button class="btn " onclick="switchMode('shape_roll')">📐 斜面滚动</button>
+                    <button class="btn btn-primary" onclick="switchMode('viscosity_race')">💧 液体竞速</button>
+                    <button class="btn " onclick="switchMode('water_properties')">🌊 观察水</button>
+                    <button class="btn " onclick="switchMode('dissolution')">🧂 溶解实验</button>
+                </div>
+            </div>
+
+            <div id="dynamic-controls">
+                <!-- Dynamically injected controls -->
+            </div>
+
+            <div class="card-title" style="margin-top: 6px;">📊 实验遥测与物性参数</div>
+            <div class="telemetry" id="telem">
+                [遥测就绪] 等待交互触发...
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <strong>🎯 探究目标与科学家视角：</strong><br>
+            物体具有质量、体积、形状、颜色、硬度和透明度等物理特征。通过简易天平，我们能用标准砝码（回形针）精确测量并比较轻重；球体和圆柱体可以在斜面上顺畅滚动，而立方体只能滑动；水、食用油和洗洁精具有不同的流体黏度，展现液体独特的流动规律与分子间作用力。
+        </div>
+    </div>
+
+    <script>
+        const cv = document.getElementById('cv');
+        const ctx = cv.getContext('2d');
+        const telem = document.getElementById('telem');
+        const dynControls = document.getElementById('dynamic-controls');
+
+        // Web Audio Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type='sine', dur=0.15) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
+        }
+
+        let activeMode = "viscosity_race";
+        let state = {
+            selectedObj: 'wood_cube',
+            leftObjectWeight: 12, // in paperclips
+            rightClips: 8,
+            beamAngle: 0,
+            tiltAngle: 25,
+            raceRunning: false,
+            raceTime: 0,
+            waterDist: 0,
+            oilDist: 0,
+            detergentDist: 0,
+            dissolveType: 'salt', // salt, sugar, sand
+            dissolveProgress: 0, // 0 to 100
+            containerShape: 'beaker' // beaker, flask, cylinder
+        };
+
+        function switchMode(m) {
+            activeMode = m;
+            playTone(440, 'triangle', 0.1);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setupControls() {
+            let h = '';
+            if (activeMode === 'properties' || activeMode === 'classify') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">选择待测观察物体</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.selectedObj==='wood_cube'?'btn-primary':''}" onclick="setObj('wood_cube')">🪵 小木块</button>
+                        <button class="btn ${state.selectedObj==='pingpong'?'btn-primary':''}" onclick="setObj('pingpong')">⚪ 乒乓球</button>
+                        <button class="btn ${state.selectedObj==='eraser'?'btn-primary':''}" onclick="setObj('eraser')">🟦 橡皮擦</button>
+                        <button class="btn ${state.selectedObj==='steel_ruler'?'btn-primary':''}" onclick="setObj('steel_ruler')">📏 钢尺</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'balance_scale') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">左盘物体: <b>${getObjName(state.selectedObj)}</b> (相当于 ${state.leftObjectWeight} 枚回形针)</label>
+                    <div class="btn-grid">
+                        <button class="btn" onclick="setObjWeight('pingpong', 3)">⚪ 乒乓球 (轻)</button>
+                        <button class="btn" onclick="setObjWeight('wood_cube', 12)">🪵 小木块 (中)</button>
+                        <button class="btn" onclick="setObjWeight('eraser', 20)">🟦 橡皮擦 (重)</button>
+                    </div>
+                </div>
+                <div class="ctrl-group">
+                    <label class="ctrl-label">右盘回形针砝码: <span class="val" id="clips-val">${state.rightClips} 枚</span></label>
+                    <div class="btn-grid">
+                        <button class="btn btn-green" onclick="addClips(1)">➕ 增加 1 枚</button>
+                        <button class="btn btn-green" onclick="addClips(5)">➕ 增加 5 枚</button>
+                        <button class="btn btn-rose" onclick="addClips(-1)">➖ 减少 1 枚</button>
+                        <button class="btn" onclick="clearClips()">🔄 清空右盘</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'shape_roll') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">斜面倾角: <span class="val">${state.tiltAngle}°</span></label>
+                    <input type="range" min="10" max="45" value="${state.tiltAngle}" oninput="state.tiltAngle=parseInt(this.value); updateTelemetry();">
+                </div>
+                <div class="ctrl-group">
+                    <button class="btn btn-primary" onclick="triggerRoll()">▶ 释放物体 (对比球体滚动 vs 立方体滑动)</button>
+                </div>
+                `;
+            } else if (activeMode === 'viscosity_race') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">三液体竞速道 (水 vs 食用油 vs 洗洁精)</label>
+                    <div class="btn-grid">
+                        <button class="btn btn-primary" onclick="startViscosityRace()">🏁 发令起跑！</button>
+                        <button class="btn" onclick="resetViscosityRace()">🔄 擦拭滑道重置</button>
+                    </div>
+                </div>
+                <div class="ctrl-group">
+                    <label class="ctrl-label">滑道倾角: <span class="val" id="tilt-val">${state.tiltAngle}°</span></label>
+                    <input type="range" min="15" max="50" value="${state.tiltAngle}" oninput="state.tiltAngle=parseInt(this.value); updateTelemetry();">
+                </div>
+                `;
+            } else if (activeMode === 'water_properties') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">变换容器形状 (观察水流动入不同容器)</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.containerShape==='beaker'?'btn-primary':''}" onclick="setContainer('beaker')">🥛 烧杯</button>
+                        <button class="btn ${state.containerShape==='flask'?'btn-primary':''}" onclick="setContainer('flask')">🧪 锥形瓶</button>
+                        <button class="btn ${state.containerShape==='cylinder'?'btn-primary':''}" onclick="setContainer('cylinder')">📏 量筒</button>
+                        <button class="btn btn-green" onclick="playTone(587.33); updateTelemetry();">🌊 倾斜晃动</button>
+                    </div>
+                </div>
+                `;
+            } else if (activeMode === 'dissolution') {
+                h = `
+                <div class="ctrl-group">
+                    <label class="ctrl-label">选择放入水中的物质</label>
+                    <div class="btn-grid">
+                        <button class="btn ${state.dissolveType==='salt'?'btn-primary':''}" onclick="setDissolve('salt')">🧂 食盐</button>
+                        <button class="btn ${state.dissolveType==='sugar'?'btn-primary':''}" onclick="setDissolve('sugar')">🍬 红糖</button>
+                        <button class="btn ${state.dissolveType==='sand'?'btn-primary':''}" onclick="setDissolve('sand')">🏖️ 沙子</button>
+                        <button class="btn btn-primary" onclick="stirWater()">🥄 搅拌溶解</button>
+                    </div>
+                </div>
+                `;
+            }
+            dynControls.innerHTML = h;
+        }
+
+        function getObjName(k) {
+            if (k === 'wood_cube') return '小木块';
+            if (k === 'pingpong') return '乒乓球';
+            if (k === 'eraser') return '橡皮擦';
+            if (k === 'steel_ruler') return '钢尺';
+            return k;
+        }
+
+        function setObj(k) {
+            state.selectedObj = k;
+            playTone(392);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setObjWeight(k, w) {
+            state.selectedObj = k;
+            state.leftObjectWeight = w;
+            playTone(330);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function addClips(n) {
+            state.rightClips = Math.max(0, state.rightClips + n);
+            playTone(400 + state.rightClips * 20);
+            const el = document.getElementById('clips-val');
+            if (el) el.innerText = `${state.rightClips} 枚`;
+            updateTelemetry();
+        }
+
+        function clearClips() {
+            state.rightClips = 0;
+            playTone(250);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function triggerRoll() {
+            playTone(600);
+            updateTelemetry();
+        }
+
+        function startViscosityRace() {
+            state.raceRunning = true;
+            state.raceTime = 0;
+            state.waterDist = 0;
+            state.oilDist = 0;
+            state.detergentDist = 0;
+            playTone(700, 'square', 0.2);
+            updateTelemetry();
+        }
+
+        function resetViscosityRace() {
+            state.raceRunning = false;
+            state.waterDist = 0;
+            state.oilDist = 0;
+            state.detergentDist = 0;
+            playTone(300);
+            updateTelemetry();
+        }
+
+        function setContainer(c) {
+            state.containerShape = c;
+            playTone(523.25);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function setDissolve(d) {
+            state.dissolveType = d;
+            state.dissolveProgress = 0;
+            playTone(440);
+            setupControls();
+            updateTelemetry();
+        }
+
+        function stirWater() {
+            if (state.dissolveType !== 'sand') {
+                state.dissolveProgress = Math.min(100, state.dissolveProgress + 35);
+                playTone(659.25, 'triangle', 0.2);
+            } else {
+                playTone(220, 'sawtooth', 0.15);
+            }
+            updateTelemetry();
+        }
+
+        function updateTelemetry() {
+            let txt = `[身边的物体实验室] 模式: ${activeMode} | `;
+            if (activeMode === 'properties' || activeMode === 'classify') {
+                txt += `当前对象: ${getObjName(state.selectedObj)} | 状态: 固体 | 形状: 固定几何体 | 弹性/质地: 稳定`;
+            } else if (activeMode === 'balance_scale') {
+                const diff = state.leftObjectWeight - state.rightClips;
+                let status = '完美平衡 (质量相等)';
+                if (diff > 0) status = `左边较重 (还差 ${diff} 枚回形针平衡)`;
+                else if (diff < 0) status = `右边较重 (超出 ${-diff} 枚回形针)`;
+                txt += `左盘: ${getObjName(state.selectedObj)} (${state.leftObjectWeight} 枚标准重) | 右盘: ${state.rightClips} 枚回形针 | 状态: ${status}`;
+            } else if (activeMode === 'shape_roll') {
+                txt += `倾角: ${state.tiltAngle}° | 球体/圆柱: 滚动阻力极小(飞速滚落) | 立方体: 面接触滑动摩擦力大(滑下或停滞)`;
+            } else if (activeMode === 'viscosity_race') {
+                txt += `竞速状态: ${state.raceRunning?'奔流中':'就绪'} | 水距离: ${state.waterDist.toFixed(1)}px (黏度低，最快) | 油距离: ${state.oilDist.toFixed(1)}px (中等) | 洗洁精: ${state.detergentDist.toFixed(1)}px (黏度高，缓慢)`;
+            } else if (activeMode === 'water_properties') {
+                txt += `容器: ${state.containerShape} | 水特性: 无色、透明、无气味、无固定形状、具有流动性`;
+            } else if (activeMode === 'dissolution') {
+                if (state.dissolveType === 'sand') {
+                    txt += `物质: 沙子 | 现象: 不溶解！颗粒沉底，水清澈透明，仍能分清沙粒`;
+                } else {
+                    txt += `物质: ${state.dissolveType==='salt'?'食盐':'红糖'} | 溶解进度: ${state.dissolveProgress}% | 现象: 颗粒肉眼消失，均匀稳定分散在水中`;
+                }
+            }
+            telem.innerText = txt;
+        }
+
+        function drawProperties(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`常见固体特征检测台 [当前选定: ${getObjName(state.selectedObj)}]`, cx, 40);
+
+            // Display object on pedestral
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(cx - 100, cy + 60, 200, 30);
+            ctx.strokeStyle = '#475569';
+            ctx.strokeRect(cx - 100, cy + 60, 200, 30);
+
+            if (state.selectedObj === 'wood_cube') {
+                ctx.fillStyle = '#b45309';
+                ctx.fillRect(cx - 40, cy - 20, 80, 80);
+                ctx.strokeStyle = '#d97706'; ctx.strokeRect(cx - 40, cy - 20, 80, 80);
+                ctx.fillStyle = '#f8fafc'; ctx.font = '12px sans-serif';
+                ctx.fillText('小木块: 硬、轻、有木纹、不透明', cx, cy + 120);
+            } else if (state.selectedObj === 'pingpong') {
+                ctx.fillStyle = '#f97316';
+                ctx.beginPath(); ctx.arc(cx, cy + 20, 40, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#f8fafc'; ctx.font = '12px sans-serif';
+                ctx.fillText('乒乓球: 空心、极轻、弹性好、表面光滑', cx, cy + 120);
+            } else if (state.selectedObj === 'eraser') {
+                ctx.fillStyle = '#0284c7';
+                ctx.fillRect(cx - 60, cy, 120, 60);
+                ctx.fillStyle = '#f8fafc'; ctx.font = '12px sans-serif';
+                ctx.fillText('橡皮擦: 较软、有微弹性、可弯折擦除字迹', cx, cy + 120);
+            } else if (state.selectedObj === 'steel_ruler') {
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(cx - 140, cy + 30, 280, 30);
+                ctx.fillStyle = '#f8fafc'; ctx.font = '12px sans-serif';
+                ctx.fillText('钢尺: 金属、冰凉、坚硬、具有银白光泽', cx, cy + 120);
+            }
+        }
+
+        function drawBalance(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('简易等臂杠杆天平测重实验', cx, 40);
+
+            // Pivot stand
+            ctx.fillStyle = '#475569';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - 40);
+            ctx.lineTo(cx - 30, cy + 120);
+            ctx.lineTo(cx + 30, cy + 120);
+            ctx.closePath();
+            ctx.fill();
+
+            // Calculate tilt angle based on weight difference
+            const diff = state.leftObjectWeight - state.rightClips;
+            const targetAngle = Math.max(-0.25, Math.min(0.25, diff * 0.035));
+            state.beamAngle += (targetAngle - state.beamAngle) * 0.1;
+
+            ctx.save();
+            ctx.translate(cx, cy - 40);
+            ctx.rotate(state.beamAngle);
+
+            // Beam
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(-180, -6, 360, 12);
+            // Fulcrum point
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI*2); ctx.fill();
+
+            // Left Pan strings & pan
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(-160, 6); ctx.lineTo(-160, 70); ctx.stroke();
+            ctx.fillStyle = '#64748b';
+            ctx.beginPath(); ctx.ellipse(-160, 70, 45, 12, 0, 0, Math.PI*2); ctx.fill();
+            // Object on left pan
+            ctx.fillStyle = '#b45309';
+            ctx.fillRect(-180, 40, 40, 30);
+
+            // Right Pan strings & pan
+            ctx.beginPath(); ctx.moveTo(160, 6); ctx.lineTo(160, 70); ctx.stroke();
+            ctx.fillStyle = '#64748b';
+            ctx.beginPath(); ctx.ellipse(160, 70, 45, 12, 0, 0, Math.PI*2); ctx.fill();
+            // Paperclips on right pan
+            ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2;
+            for(let i=0; i<state.rightClips; i++) {
+                const ox = 140 + (i % 6) * 7;
+                const oy = 60 - Math.floor(i / 6) * 8;
+                ctx.strokeRect(ox, oy, 6, 12);
+            }
+
+            ctx.restore();
+        }
+
+        function drawShapeRoll(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('斜面形状运动比较: 球体(滚动) vs 立方体(滑动)', cx, 40);
+
+            const rad = state.tiltAngle * Math.PI / 180;
+            // Ramp
+            ctx.fillStyle = '#334155';
+            ctx.beginPath();
+            ctx.moveTo(100, cy + 120);
+            ctx.lineTo(600, cy + 120);
+            ctx.lineTo(100, cy + 120 - 500 * Math.tan(rad));
+            ctx.closePath();
+            ctx.fill();
+
+            // Ball rolling down
+            const t = (performance.now() * 0.003) % 2;
+            const bx = 140 + t * 200;
+            const by = cy + 120 - (600 - bx) * Math.tan(rad) - 20;
+            ctx.fillStyle = '#f97316';
+            ctx.beginPath(); ctx.arc(bx, by, 20, 0, Math.PI*2); ctx.fill();
+
+            // Cube on ramp
+            const cx_box = 220;
+            const cy_box = cy + 120 - (600 - cx_box) * Math.tan(rad) - 15;
+            ctx.save();
+            ctx.translate(cx_box, cy_box);
+            ctx.rotate(-rad);
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(-15, -15, 30, 30);
+            ctx.restore();
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('球体: 滚动迅速', bx, by - 26);
+            ctx.fillText('方块: 摩擦阻滞', cx_box, cy_box - 26);
+        }
+
+        function drawViscosityRace(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('液滴流动性对比实验滑道 (水 vs 食用油 vs 洗洁精)', cx, 40);
+
+            const slopeY = cy - 60;
+            const slopeH = 180;
+            const slopeW = 460;
+
+            // Slope board
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#475569';
+            ctx.fillRect(cx - slopeW/2, slopeY, slopeW, slopeH);
+            ctx.strokeRect(cx - slopeW/2, slopeY, slopeW, slopeH);
+
+            // Three tracks
+            const tracks = [
+                { name: '水 (极快)', col: '#38bdf8', y: slopeY + 30, spd: 4.5 },
+                { name: '食用油 (中速)', col: '#eab308', y: slopeY + 90, spd: 1.8 },
+                { name: '洗洁精 (极慢)', col: '#10b981', y: slopeY + 150, spd: 0.5 }
+            ];
+
+            if (state.raceRunning) {
+                state.waterDist = Math.min(380, state.waterDist + tracks[0].spd * (state.tiltAngle / 25));
+                state.oilDist = Math.min(380, state.oilDist + tracks[1].spd * (state.tiltAngle / 25));
+                state.detergentDist = Math.min(380, state.detergentDist + tracks[2].spd * (state.tiltAngle / 25));
+                if (state.detergentDist >= 380 && state.oilDist >= 380 && state.waterDist >= 380) {
+                    state.raceRunning = false;
+                }
+            }
+
+            tracks.forEach((tr, idx) => {
+                ctx.strokeStyle = '#334155'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(cx - slopeW/2, tr.y); ctx.lineTo(cx + slopeW/2, tr.y); ctx.stroke();
+
+                ctx.fillStyle = '#94a3b8'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
+                ctx.fillText(tr.name, cx - slopeW/2 + 10, tr.y - 8);
+
+                // Droplet
+                let dist = idx===0?state.waterDist:(idx===1?state.oilDist:state.detergentDist);
+                const dx = cx - slopeW/2 + 120 + dist;
+                ctx.fillStyle = tr.col;
+                ctx.beginPath();
+                ctx.arc(dx, tr.y, 8, 0, Math.PI*2);
+                ctx.fill();
+            });
+        }
+
+        function drawWater(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`水无固定形状: 倒入${state.containerShape==='beaker'?'烧杯':(state.containerShape==='flask'?'锥形瓶':'量筒')}适应其轮廓`, cx, 40);
+
+            // Container outline
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 3;
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+
+            if (state.containerShape === 'beaker') {
+                ctx.strokeRect(cx - 70, cy - 40, 140, 150);
+                ctx.fillRect(cx - 68, cy + 20, 136, 88);
+            } else if (state.containerShape === 'flask') {
+                ctx.beginPath();
+                ctx.moveTo(cx - 25, cy - 60);
+                ctx.lineTo(cx - 25, cy - 20);
+                ctx.lineTo(cx - 90, cy + 110);
+                ctx.lineTo(cx + 90, cy + 110);
+                ctx.lineTo(cx + 25, cy - 20);
+                ctx.lineTo(cx + 25, cy - 60);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(cx - 50, cy + 30);
+                ctx.lineTo(cx - 88, cy + 108);
+                ctx.lineTo(cx + 88, cy + 108);
+                ctx.lineTo(cx + 50, cy + 30);
+                ctx.closePath();
+                ctx.fill();
+            } else if (state.containerShape === 'cylinder') {
+                ctx.strokeRect(cx - 30, cy - 80, 60, 190);
+                ctx.fillRect(cx - 28, cy - 10, 56, 118);
+            }
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = '13px sans-serif';
+            ctx.fillText('液体具有流动性，没有固定的形状', cx, cy + 140);
+        }
+
+        function drawDissolution(cx, cy) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`溶解实验: 观察${state.dissolveType==='salt'?'食盐':(state.dissolveType==='sugar'?'红糖':'沙子')}在水中的变化`, cx, 40);
+
+            // Beaker
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(cx - 90, cy - 50, 180, 160);
+
+            // Water fill
+            const waterAlpha = state.dissolveType==='sugar' ? (0.2 + state.dissolveProgress*0.005) : 0.3;
+            ctx.fillStyle = state.dissolveType==='sugar' ? `rgba(180, 83, 9, ${waterAlpha})` : `rgba(56, 189, 248, ${waterAlpha})`;
+            ctx.fillRect(cx - 88, cy - 10, 176, 118);
+
+            // Dissolving particles
+            if (state.dissolveType === 'sand') {
+                // Sand particles at bottom
+                ctx.fillStyle = '#eab308';
+                for(let i=0; i<60; i++) {
+                    const sx = cx - 70 + (i * 9) % 140;
+                    const sy = cy + 96 + (i % 4) * 2;
+                    ctx.beginPath(); ctx.arc(sx, sy, 2.5, 0, Math.PI*2); ctx.fill();
+                }
+                ctx.fillStyle = '#f8fafc'; ctx.font = '12px sans-serif';
+                ctx.fillText('沙子颗粒沉底，不能溶解在水中', cx, cy + 140);
+            } else {
+                const remain = 1 - (state.dissolveProgress / 100);
+                ctx.fillStyle = state.dissolveType==='salt'?'#ffffff':'#b45309';
+                for(let i=0; i<40 * remain; i++) {
+                    const sx = cx - 50 + (i * 13) % 100;
+                    const sy = cy + 40 + Math.sin(i) * 30;
+                    ctx.beginPath(); ctx.arc(sx, sy, 2, 0, Math.PI*2); ctx.fill();
+                }
+                ctx.fillStyle = '#f8fafc'; ctx.font = '12px sans-serif';
+                ctx.fillText(state.dissolveProgress>=100 ? '物质已完全溶解，分子微粒均匀分布' : '点击 [🥄 搅拌溶解] 加快微粒分散', cx, cy + 140);
+            }
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            const cx = cv.width / 2;
+            const cy = cv.height / 2;
+
+            if (activeMode === 'properties' || activeMode === 'classify') drawProperties(cx, cy);
+            else if (activeMode === 'balance_scale') drawBalance(cx, cy);
+            else if (activeMode === 'shape_roll') drawShapeRoll(cx, cy);
+            else if (activeMode === 'viscosity_race') drawViscosityRace(cx, cy);
+            else if (activeMode === 'water_properties') drawWater(cx, cy);
+            else if (activeMode === 'dissolution') drawDissolution(cx, cy);
+
+            requestAnimationFrame(render);
+        }
+
+        setupControls();
+        updateTelemetry();
+        render();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

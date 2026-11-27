@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学探究微仿真：地球公转与四季成因（六年级上册·地球的运动）</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: #151e2e;
+      --border: #233147;
+      --primary: #38bdf8;
+      --accent: #f59e0b;
+      --summer: #ef4444;
+      --winter: #3b82f6;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 440px;
+      background: radial-gradient(circle at center, #111a2d 0%, #050811 100%);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #1a273f;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .seasons-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+    button {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 8px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    button:hover { background: #334155; }
+    button.active {
+      background: var(--primary);
+      color: #0b0f19;
+      border-color: var(--primary);
+    }
+    .info-card {
+      background: #101624;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 6px 0;
+    }
+    .info-val { color: var(--accent); font-weight: bold; }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>🌍 地球公转与四季更替成因（六年级上册·地球的运动）</h1>
+    <span class="badge">地轴倾角 23.5° · 太阳直射点移动拟真</span>
+  </header>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="canvas-box" id="container">
+        <canvas id="seasonCanvas"></canvas>
+      </div>
+      <div class="seasons-bar">
+        <button id="btnSpring" data-pos="0">🌸 春分 (3月21日)</button>
+        <button id="btnSummer" data-pos="90" class="active">☀️ 夏至 (6月22日)</button>
+        <button id="btnAutumn" data-pos="180">🍂 秋分 (9月23日)</button>
+        <button id="btnWinter" data-pos="270">❄️ 冬至 (12月22日)</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">📊 节气与昼夜长短数据</h2>
+      
+      <div class="info-card">
+        <div class="info-row">
+          <span>当前公转节气:</span>
+          <span class="info-val" id="valSeason">夏至 (北半球夏季)</span>
+        </div>
+        <div class="info-row">
+          <span>太阳直射点纬度:</span>
+          <span class="info-val" id="valDirectLat">北纬 23.5° (北回归线)</span>
+        </div>
+        <div class="info-row">
+          <span>北半球昼夜长短:</span>
+          <span class="info-val" id="valDayLength" style="color: #f87171;">昼最长、夜最短 (极昼)</span>
+        </div>
+        <div class="info-row">
+          <span>正午太阳高度角:</span>
+          <span class="info-val" id="valSunHeight">最高 (立竿影长最短)</span>
+        </div>
+        <div class="info-row">
+          <span>南半球季节状态:</span>
+          <span class="info-val" id="valSouthSeason" style="color: #60a5fa;">寒冷冬季 (昼最短夜最长)</span>
+        </div>
+      </div>
+
+      <div style="font-size: 12px; color: var(--muted); margin-top: 14px; line-height: 1.6; background: rgba(56,189,248,0.06); padding: 10px; border-radius: 6px; border-left: 3px solid var(--primary);">
+        📖 <strong>科学核心结论</strong>：
+        四季成因的根本原因是：<strong>地球在公转过程中，地轴是倾斜的（倾角约 23.5°），且倾斜方向保持不变（始终指向北极星）</strong>。
+        这导致太阳直射点在一年中于南北回归线之间周期移动，从而形成热量差异与四季交替！
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('seasonCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    let currentPos = 90; // 0: 春分, 90: 夏至, 180: 秋分, 270: 冬至
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    const valSeason = document.getElementById('valSeason');
+    const valDirectLat = document.getElementById('valDirectLat');
+    const valDayLength = document.getElementById('valDayLength');
+    const valSunHeight = document.getElementById('valSunHeight');
+    const valSouthSeason = document.getElementById('valSouthSeason');
+
+    const SEASON_DATA = {
+      0: { name: "春分 (北半球春季)", lat: "0° (赤道)", day: "昼夜平分 (各12小时)", height: "居中 (影长适中)", south: "秋季 (昼夜平分)" },
+      90: { name: "夏至 (北半球夏季)", lat: "北纬 23.5° (北回归线)", day: "昼最长、夜最短 (北极圈极昼)", height: "最高 (正午影子最短)", south: "寒冷冬季 (昼最短夜最长)" },
+      180: { name: "秋分 (北半球秋季)", lat: "0° (赤道)", day: "昼夜平分 (各12小时)", height: "居中 (影长适中)", south: "春季 (昼夜平分)" },
+      270: { name: "冬至 (北半球冬季)", lat: "南纬 23.5° (南回归线)", day: "昼最短、夜最长 (北极圈极夜)", height: "最低 (正午影子最长)", south: "炎热夏季 (昼最长夜最短)" }
+    };
+
+    document.querySelectorAll('.seasons-bar button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.seasons-bar button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentPos = parseInt(btn.dataset.pos);
+        updateInfo(currentPos);
+        draw();
+      });
+    });
+
+    function updateInfo(pos) {
+      const data = SEASON_DATA[pos];
+      valSeason.textContent = data.name;
+      valDirectLat.textContent = data.lat;
+      valDayLength.textContent = data.day;
+      valSunHeight.textContent = data.height;
+      valSouthSeason.textContent = data.south;
+    }
+
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const orbitRx = Math.min(w * 0.42, 280);
+      const orbitRy = Math.min(h * 0.35, 140);
+
+      // 1. 绘制公转椭圆轨道
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, orbitRx, orbitRy, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 2. 绘制中心太阳
+      const sunGrad = ctx.createRadialGradient(cx, cy, 8, cx, cy, 38);
+      sunGrad.addColorStop(0, '#fff');
+      sunGrad.addColorStop(0.3, '#fde047');
+      sunGrad.addColorStop(0.7, '#ea580c');
+      sunGrad.addColorStop(1, 'rgba(234, 88, 12, 0)');
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, 38, 0, Math.PI * 2);
+      ctx.fillStyle = sunGrad;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('太阳', cx, cy);
+
+      // 3. 绘制四个节气对应的地球位置 (标记微小参考)
+      const positions = [
+        { angle: Math.PI * 0.5, label: "春分" },
+        { angle: 0, label: "夏至" },
+        { angle: Math.PI * 1.5, label: "秋分" },
+        { angle: Math.PI, label: "冬至" }
+      ];
+
+      // 当前地球位置坐标 (根据当前选中的节气)
+      let curAngle = 0;
+      if (currentPos === 0) curAngle = Math.PI * 0.5; // 春分在下
+      if (currentPos === 90) curAngle = 0;             // 夏至在右 (北极偏向太阳)
+      if (currentPos === 180) curAngle = Math.PI * 1.5;// 秋分在上
+      if (currentPos === 270) curAngle = Math.PI;      // 冬至在左 (北极背向太阳)
+
+      const earthX = cx + orbitRx * Math.cos(curAngle);
+      const earthY = cy + orbitRy * Math.sin(curAngle);
+
+      // 太阳直射光线指向当前地球
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(earthX, earthY);
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 绘制当前地球
+      drawEarth(earthX, earthY, curAngle, true);
+
+      // 绘制其他3个节气的半透明示意球
+      positions.forEach(p => {
+        if (Math.abs(p.angle - curAngle) > 0.1) {
+          const px = cx + orbitRx * Math.cos(p.angle);
+          const py = cy + orbitRy * Math.sin(p.angle);
+          drawEarth(px, py, p.angle, false);
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '11px sans-serif';
+          ctx.fillText(p.label, px, py + 36);
+        }
+      });
+    }
+
+    function drawEarth(ex, ey, orbitAngle, isCurrent) {
+      const r = isCurrent ? 24 : 14;
+      const tilt = 23.5 * Math.PI / 180; // 始终向右上方倾斜 23.5°
+
+      ctx.save();
+      ctx.translate(ex, ey);
+
+      // 绘制倾斜地轴
+      ctx.beginPath();
+      ctx.moveTo(-Math.sin(tilt) * (r + 14), -Math.cos(tilt) * (r + 14));
+      ctx.lineTo(Math.sin(tilt) * (r + 14), Math.cos(tilt) * (r + 14));
+      ctx.strokeStyle = isCurrent ? '#fde047' : '#64748b';
+      ctx.lineWidth = isCurrent ? 2 : 1;
+      ctx.stroke();
+
+      // 北极标注
+      if (isCurrent) {
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillText('N(北极)', -Math.sin(tilt) * (r + 18), -Math.cos(tilt) * (r + 18));
+      }
+
+      // 地球球体
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fillStyle = isCurrent ? '#0284c7' : '#334155';
+      ctx.fill();
+      ctx.strokeStyle = isCurrent ? '#38bdf8' : '#64748b';
+      ctx.lineWidth = isCurrent ? 2 : 1;
+      ctx.stroke();
+
+      // 昼夜晨昏线阴影 (背对太阳的一面为黑色暗面)
+      // 太阳在原点 (cx, cy)，从地球向太阳的反方向为暗面
+      // 这里简化计算投影：
+      ctx.beginPath();
+      ctx.arc(0, 0, r, Math.PI * 0.5, Math.PI * 1.5);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    resize();
+    updateInfo(currentPos);
+  </script>
+</body>
+</html>

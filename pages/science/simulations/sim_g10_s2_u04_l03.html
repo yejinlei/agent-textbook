@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【3. 温度不同的物体相互接触】真实验微仿真 - 五年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌱 3. 温度不同的物体相互接触</h1>
+        <span class="badge">五年级下册·第四单元《热》</span>
+        <a href="physics_heat_conduction.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 热学传导对流与红外成像实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g10_s2_u04_l01.html" class="">温度与水的变化</a>
+<a href="sim_g10_s2_u04_l02.html" class="">水的蒸发和凝结</a>
+<a href="sim_g10_s2_u04_l03.html" class="active">温度不同的物体相互接触</a>
+<a href="sim_g10_s2_u04_l04.html" class="">热在金属中的传递</a>
+<a href="sim_g10_s2_u04_l05.html" class="">热在水中的传递</a>
+<a href="sim_g10_s2_u04_l06.html" class="">哪个传热快</a>
+<a href="sim_g10_s2_u04_l07.html" class="">做个保温杯</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时科学数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：系统探索热膨胀、热在金属中的传导、冷热平衡与保温杯绝热材料工程原理。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "thermal_equilibrium";
+
+        
+const state = {
+    heatSourceX: 180,
+    heatSourceY: 230,
+    isHeatingMetal: activeMode === 'metal_conduction' || activeMode === 'thermal_conductivity',
+    conductionProg: 0,
+    hotWaterTemp: 80,
+    coldWaterTemp: 20,
+    equilibriumTime: 0,
+    thermosLid: true,
+    thermosInsulation: 'vacuum' // vacuum, foam, none
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'metal_conduction') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>酒精灯加热金属片位置</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-rose" id="btnHeatCenter">🔥 中心加热 (圆形同心圆向外扩散)</button>
+                    <button class="btn btn-rose" id="btnHeatEdge">🔥 边缘加热 (扇形向四周扩散)</button>
+                </div>
+            </div>
+            <div class="btn-grid" style="margin-top:6px;">
+                <button class="btn btn-primary" id="btnResetWax">🔄 重新涂感温蜡层</button>
+            </div>
+        `;
+    } else if (activeMode === 'thermal_conductivity') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>金属导热性对比 (等长等粗棒)</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-rose" id="btnStartConductivity">🔥 同时加热铜棒、铝棒、铁棒</button>
+                    <button class="btn" id="btnResetConductivity">🔄 重置火柴蜡环</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'thermal_equilibrium') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>冷热物体相互接触热平衡</span><span class="val">初温: 热水80°C vs 冷水20°C</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnInsertCold">🧪 试管冷水放入大烧杯热水</button>
+                    <button class="btn" id="btnResetEquil">🔄 重置初温</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>保温杯保温层结构</span><span class="val">${state.thermosInsulation==='vacuum'?'双层真空不锈钢 (最佳)':state.thermosInsulation==='foam'?'泡沫保温层':'普通单层玻璃'}</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.thermosInsulation==='vacuum'?'btn-primary':''}" id="btnVac">🥛 真空双层内胆</button>
+                    <button class="btn ${state.thermosInsulation==='foam'?'btn-primary':''}" id="btnFoam">📦 泡沫塑料包裹</button>
+                </div>
+            </div>
+            <div class="btn-grid" style="margin-top:6px;">
+                <button class="btn ${state.thermosLid?'btn-green':'btn-primary'}" id="btnToggleLid">${state.thermosLid?'🔒 盖紧保温杯盖 (防对流)':'🔓 敞口杯 (热对流散失快)'}</button>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU4Events();
+}
+
+function bindU4Events() {
+    const btnHeatCenter = document.getElementById('btnHeatCenter');
+    if (btnHeatCenter) btnHeatCenter.onclick = () => {
+        state.heatSourceX = 360;
+        state.conductionProg = 0;
+        state.isHeatingMetal = true;
+        playTone(600, 0.2);
+    };
+    const btnHeatEdge = document.getElementById('btnHeatEdge');
+    if (btnHeatEdge) btnHeatEdge.onclick = () => {
+        state.heatSourceX = 220;
+        state.conductionProg = 0;
+        state.isHeatingMetal = true;
+        playTone(600, 0.2);
+    };
+    const btnResetWax = document.getElementById('btnResetWax');
+    if (btnResetWax) btnResetWax.onclick = () => {
+        state.conductionProg = 0;
+        state.isHeatingMetal = false;
+        playTone(300, 0.1);
+    };
+
+    const btnStartConductivity = document.getElementById('btnStartConductivity');
+    if (btnStartConductivity) btnStartConductivity.onclick = () => {
+        state.conductionProg = 0;
+        state.isHeatingMetal = true;
+        playTone(700, 0.2);
+    };
+    const btnResetConductivity = document.getElementById('btnResetConductivity');
+    if (btnResetConductivity) btnResetConductivity.onclick = () => {
+        state.conductionProg = 0;
+        state.isHeatingMetal = false;
+        playTone(300, 0.1);
+    };
+
+    const btnInsertCold = document.getElementById('btnInsertCold');
+    if (btnInsertCold) btnInsertCold.onclick = () => {
+        state.equilibriumTime = 0;
+        playTone(800, 0.2);
+    };
+    const btnResetEquil = document.getElementById('btnResetEquil');
+    if (btnResetEquil) btnResetEquil.onclick = () => {
+        state.hotWaterTemp = 80;
+        state.coldWaterTemp = 20;
+        state.equilibriumTime = 0;
+        playTone(300, 0.1);
+    };
+
+    const btnVac = document.getElementById('btnVac');
+    if (btnVac) btnVac.onclick = () => { state.thermosInsulation = 'vacuum'; setupControls(); playTone(600, 0.1); };
+    const btnFoam = document.getElementById('btnFoam');
+    if (btnFoam) btnFoam.onclick = () => { state.thermosInsulation = 'foam'; setupControls(); playTone(500, 0.1); };
+    const btnToggleLid = document.getElementById('btnToggleLid');
+    if (btnToggleLid) btnToggleLid.onclick = () => { state.thermosLid = !state.thermosLid; setupControls(); playTone(700, 0.1); };
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'metal_conduction') {
+        drawMetalConduction();
+    } else if (activeMode === 'thermal_conductivity') {
+        drawConductivityCompare();
+    } else if (activeMode === 'thermal_equilibrium') {
+        drawThermalEquilibrium();
+    } else if (activeMode === 'temp_water_volume') {
+        drawTempWaterVolume();
+    } else if (activeMode === 'evap_condens_heat') {
+        drawEvapCondensHeat();
+    } else if (activeMode === 'water_convection') {
+        drawWaterConvection();
+    } else if (activeMode === 'insulation_thermos') {
+        drawInsulationThermos();
+    } else {
+        drawThermosScene();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+
+function drawTempWaterVolume() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌡️ 温度与水的变化: 细玻璃管平底烧瓶受热液体膨胀升降 (热胀冷缩)', cx, 40);
+
+    // Flask
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+    ctx.beginPath(); ctx.arc(cx, 260, 60, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3; ctx.stroke();
+
+    // Thin glass tube extending up
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - 5, 110, 10, 110);
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.strokeRect(cx - 5, 110, 10, 110);
+
+    // Red colored water level inside tube
+    ctx.fillStyle = '#dc2626';
+    ctx.fillRect(cx - 3, 150, 6, 70);
+
+    ctx.fillStyle = '#f43f5e'; ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('▲ 受热体积膨胀水柱上升', cx + 110, 155);
+
+    // Heat source below flask
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath(); ctx.arc(cx, 345, 16, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+    ctx.fillText('酒精灯加热烧瓶', cx, 375);
+}
+
+function drawEvapCondensHeat() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('💧 水的蒸发和凝结: 蒸发吸热降温 (干湿球温度计) 与遇冷凝结放热', cx, 40);
+
+    // Left: Dry Bulb Thermometer
+    ctx.fillStyle = '#1e293b'; ctx.fillRect(160, 80, 140, 270);
+    ctx.strokeStyle = '#334155'; ctx.strokeRect(160, 80, 140, 270);
+    ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('干球温度计: 26°C', 230, 115);
+    ctx.fillStyle = '#dc2626'; ctx.fillRect(228, 140, 4, 150);
+
+    // Right: Wet Bulb with moist gauze (蒸发吸热温度偏低)
+    ctx.fillStyle = '#1e293b'; ctx.fillRect(420, 80, 140, 270);
+    ctx.strokeStyle = '#38bdf8'; ctx.strokeRect(420, 80, 140, 270);
+    ctx.fillStyle = '#10b981'; ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('湿球温度计: 21°C', 490, 115);
+    ctx.fillStyle = '#dc2626'; ctx.fillRect(488, 175, 4, 115);
+    // Moist gauze wrapped at bottom
+    ctx.fillStyle = '#bae6fd'; ctx.fillRect(478, 270, 24, 25);
+    ctx.fillStyle = '#f8fafc'; ctx.font = '11px sans-serif';
+    ctx.fillText('包湿棉纱布', 490, 315);
+
+    ctx.fillStyle = '#f59e0b'; ctx.font = '13px sans-serif';
+    ctx.fillText('科学原理: 水蒸发吸热带走热量，使湿球示数明显偏低；两表温差越大说明空气湿度越小', cx, 395);
+}
+
+function drawWaterConvection() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('♨️ 热在水中的传递: 烧杯中热对流循环 (热水上升、冷水下沉)', cx, 40);
+
+    // Beaker
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
+    ctx.fillRect(cx - 100, 110, 200, 210);
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+    ctx.strokeRect(cx - 100, 110, 200, 210);
+
+    // Potassium permanganate purple convection stream (高锰酸钾红紫轨迹)
+    ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 5;
+    ctx.beginPath();
+    // Up from bottom left
+    ctx.moveTo(cx - 60, 310);
+    ctx.lineTo(cx - 60, 140);
+    // Across surface
+    ctx.lineTo(cx + 60, 140);
+    // Down right
+    ctx.lineTo(cx + 60, 310);
+    // Along bottom
+    ctx.lineTo(cx - 60, 310);
+    ctx.stroke();
+
+    // Arrows
+    ctx.fillStyle = '#f43f5e'; ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('▲ 受热膨胀变轻上升', cx - 60, 210);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText('▼ 遇冷收缩变重下沉', cx + 60, 210);
+
+    // Flame heating bottom left
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath(); ctx.arc(cx - 60, 335, 14, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+    ctx.fillText('单侧局部加热', cx - 60, 365);
+}
+
+function drawInsulationThermos() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('☕ 做个保温杯: 真空绝热层(阻断传导对流) + 银镜面(反射热辐射) + 密封软木塞', cx, 40);
+
+    // Cross section of thermos flask
+    const bx = cx - 90;
+    // Outer steel wall
+    ctx.fillStyle = '#64748b'; ctx.fillRect(bx, 100, 180, 240);
+    // Vacuum layer
+    ctx.fillStyle = '#020617'; ctx.fillRect(bx + 15, 115, 150, 210);
+    // Silver inner wall
+    ctx.fillStyle = '#e2e8f0'; ctx.fillRect(bx + 25, 125, 130, 190);
+    // Hot water inside
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.4)'; ctx.fillRect(bx + 30, 140, 120, 170);
+
+    // Cork stopper at neck
+    ctx.fillStyle = '#b45309'; ctx.fillRect(cx - 30, 80, 60, 40);
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 11px sans-serif';
+    ctx.fillText('绝热软木塞', cx, 105);
+
+    // Annotations
+    ctx.fillStyle = '#38bdf8'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('① 软木塞: 阻断热对流逸散', cx + 110, 110);
+    ctx.fillText('② 真空夹层: 消除热传导与对流', cx + 110, 190);
+    ctx.fillText('③ 镀银镜面内胆: 反射红外热辐射', cx + 110, 270);
+}
+
+function drawMetalConduction() {
+    const cx = 360;
+    const cy = 230;
+
+    // Metal Plate (300 x 180)
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(cx - 150, cy - 90, 300, 180);
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(cx - 150, cy - 90, 300, 180);
+
+    // Wax melt radius expanding
+    if (state.isHeatingMetal && state.conductionProg < 140) {
+        state.conductionProg += 0.5;
+    }
+
+    // Heat source flame
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(state.heatSourceX, cy, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(state.heatSourceX, cy, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Wax melt gradient rings (Concentric heat spread)
+    if (state.conductionProg > 0) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(cx - 150, cy - 90, 300, 180);
+        ctx.clip();
+
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(state.heatSourceX, cy, state.conductionProg, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+        ctx.beginPath();
+        ctx.arc(state.heatSourceX, cy, state.conductionProg * 0.65, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('热在金属片中的传递规律: 总是从温度高处向温度低处放射状传导', cx, 40);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = '14px sans-serif';
+    ctx.fillText(`受热点传导半径: ${state.conductionProg.toFixed(1)} mm (同心圆等温线均匀扩展)`, cx, 80);
+}
+
+function drawConductivityCompare() {
+    const cx = 360;
+    // 3 Metal Rods: Copper, Aluminum, Iron
+    const rods = [
+        {name: '铜棒 (导热极快 λ=398)', color: '#b45309', speed: 1.6, key: 'copper'},
+        {name: '铝棒 (导热快 λ=237)', color: '#cbd5e1', speed: 1.2, key: 'aluminum'},
+        {name: '铁棒 (导热较慢 λ=80)', color: '#475569', speed: 0.6, key: 'iron'}
+    ];
+
+    if (state.isHeatingMetal && state.conductionProg < 320) {
+        state.conductionProg += 0.8;
+    }
+
+    rods.forEach((r, idx) => {
+        const ry = 160 + idx * 75;
+
+        // Rod
+        ctx.fillStyle = r.color;
+        ctx.fillRect(160, ry, 380, 16);
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(160, ry, 380, 16);
+
+        // Flame at left end
+        ctx.fillStyle = '#f43f5e';
+        ctx.beginPath();
+        ctx.arc(160, ry + 8, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Matchsticks on wax rings at 80px, 160px, 240px
+        for (let m = 1; m <= 3; m++) {
+            const mx = 160 + m * 80;
+            const reached = (state.conductionProg * r.speed) > (m * 80);
+
+            if (reached) {
+                // Matchstick fallen off
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(mx - 4, ry + 25, 8, 4);
+            } else {
+                // Matchstick upright on wax
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(mx - 3, ry - 22, 6, 22);
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath();
+                ctx.arc(mx, ry - 24, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(r.name, 560, ry + 12);
+    });
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('不同金属传热快慢对比实验: 铜 > 铝 > 铁 (铜棒上的蜡环火柴最先熔化脱落)', cx, 40);
+}
+
+function drawThermalEquilibrium() {
+    const cx = 360;
+
+    // Heat transfer calculation toward equilibrium
+    if (state.hotWaterTemp > 45) {
+        state.hotWaterTemp -= 0.08;
+        state.coldWaterTemp += 0.12;
+    }
+
+    // Outer Beaker (Hot water)
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.35)';
+    ctx.fillRect(cx - 90, 180, 180, 180);
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(cx - 90, 180, 180, 180);
+
+    // Inner Test Tube (Cold water)
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.5)';
+    ctx.fillRect(cx - 20, 130, 40, 190);
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(cx - 20, 130, 40, 190);
+
+    // Thermometers
+    ctx.fillStyle = '#dc2626';
+    ctx.fillRect(cx + 45, 120, 4, 180);
+    ctx.fillRect(cx - 6, 90, 4, 180);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('冷热物体接触热平衡实验 (大烧杯热水 vs 试管冷水)', cx, 40);
+
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 15px monospace';
+    ctx.fillText(`烧杯热水: ${state.hotWaterTemp.toFixed(1)} °C`, cx - 180, 240);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText(`试管冷水: ${state.coldWaterTemp.toFixed(1)} °C`, cx + 180, 240);
+
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('热平衡规律: 热量自发从热水传给冷水，直到两者温度趋于相同', cx, 400);
+}
+
+function drawThermosScene() {
+    const cx = 360;
+    // Thermos Cup Cutaway
+    ctx.fillStyle = state.thermosInsulation === 'vacuum' ? '#0f172a' : '#475569';
+    ctx.fillRect(cx - 75, 160, 150, 200);
+
+    // Inner bottle
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(cx - 55, 180, 110, 160);
+
+    // Hot water inside
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.6)';
+    ctx.fillRect(cx - 50, 210, 100, 125);
+
+    // Lid
+    if (state.thermosLid) {
+        ctx.fillStyle = '#10b981';
+        ctx.fillRect(cx - 65, 140, 130, 25);
+    }
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('自制保温杯隔热结构: 减缓热传导、热对流与热辐射', cx, 40);
+}
+
+        
+function updateTelemetry() {
+    let txt = `[热力学数据就绪] 模式: ${activeMode} | `;
+    if (activeMode === 'metal_conduction') {
+        txt += `热源位置: ${state.heatSourceX} | 熔化扩散半径: ${state.conductionProg.toFixed(1)}mm`;
+    } else if (activeMode === 'thermal_equilibrium') {
+        txt += `热水温: ${state.hotWaterTemp.toFixed(1)}°C | 冷水温: ${state.coldWaterTemp.toFixed(1)}°C | 温差: ${(state.hotWaterTemp-state.coldWaterTemp).toFixed(1)}°C`;
+    } else {
+        txt += `保温层: ${state.thermosInsulation} | 杯盖: ${state.thermosLid?'密封':'敞开'}`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

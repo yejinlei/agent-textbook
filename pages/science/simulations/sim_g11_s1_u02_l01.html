@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【1. 有关光的游戏】真实验微仿真 - 六年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 1. 有关光的游戏</h1>
+        <span class="badge">六年级上册·第二单元《光》</span>
+        <a href="optics_prism_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 牛顿三棱镜七彩色散与透镜光具座 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g11_s1_u02_l01.html" class="active">有关光的游戏</a>
+<a href="sim_g11_s1_u02_l02.html" class="">光是怎样传播的</a>
+<a href="sim_g11_s1_u02_l03.html" class="">光的传播会遇到阻碍吗</a>
+<a href="sim_g11_s1_u02_l04.html" class="">光的反射现象</a>
+<a href="sim_g11_s1_u02_l05.html" class="">制作一个潜望镜</a>
+<a href="sim_g11_s1_u02_l06.html" class="">观察色散与彩虹</a>
+<a href="sim_g11_s1_u02_l07.html" class="">光的折射与应用</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时科学数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：系统探索光沿直线传播、光的反射定律、双平面镜潜望镜光路与三棱镜彩虹色散物理现象。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "light_sources";
+
+        
+const state = {
+    incidentAngle: 45, // 10 ~ 80 deg
+    holesAligned: true,
+    prismRotate: 0,
+    discSpeed: 0,
+    barrierType: 'transparent' // transparent, translucent, opaque
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'law_of_reflection') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>入射角 (入射光线与法线夹角 i)</span><span class="val" id="angVal">${state.incidentAngle}°</span></div>
+                <input type="range" id="angleSlider" min="10" max="80" value="${state.incidentAngle}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-primary" id="btnAng30">📐 30° 入射角</button>
+                <button class="btn btn-primary" id="btnAng45">📐 45° 入射角</button>
+                <button class="btn btn-primary" id="btnAng60">📐 60° 入射角</button>
+            </div>
+        `;
+    } else if (activeMode === 'rectilinear_propagation') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>三块带孔纸板对齐状态</span><span class="val">${state.holesAligned?'三孔在同一直线上 (光斑穿透)':'中间纸板错位 (光被阻挡)'}</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnAlignHoles">📏 三孔严格对齐 (光沿直线穿过)</button>
+                    <button class="btn btn-rose" id="btnMisalign">📐 移动中间纸板错位 (光屏无光斑)</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'prism_dispersion') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>牛顿七色盘旋转速度</span><span class="val" id="discVal">${state.discSpeed} rpm</span></div>
+                <input type="range" id="discSlider" min="0" max="100" value="${state.discSpeed}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-green" id="btnSpinWhite">🌀 高速旋转合成白光</button>
+                <button class="btn btn-rose" id="btnStopDisc">🛑 停止旋转 (显现七色)</button>
+            </div>
+        `;
+    } else if (activeMode === 'periscope_optics') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>潜望镜双反射镜调校</span><span class="val">两块平面镜呈 45° 平行放置</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnLaserRay">🔦 发射光束追踪潜望光路</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>介质阻碍类型</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.barrierType==='transparent'?'btn-primary':''}" id="btnTrans">透明玻璃 (完全穿透)</button>
+                    <button class="btn ${state.barrierType==='translucent'?'btn-primary':''}" id="btnSemi">半透明磨砂纸 (部分穿透)</button>
+                    <button class="btn ${state.barrierType==='opaque'?'btn-rose':''}" id="btnOpaque">不透明厚纸板 (形成清晰影子)</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU2Events();
+}
+
+function bindU2Events() {
+    const angleSlider = document.getElementById('angleSlider');
+    if (angleSlider) {
+        angleSlider.addEventListener('input', (e) => {
+            state.incidentAngle = parseInt(e.target.value);
+            document.getElementById('angVal').innerText = state.incidentAngle + '°';
+            playTone(300 + state.incidentAngle * 10, 0.04);
+        });
+    }
+    const btnAng30 = document.getElementById('btnAng30');
+    if (btnAng30) btnAng30.onclick = () => { state.incidentAngle = 30; setupControls(); playTone(600, 0.1); };
+    const btnAng45 = document.getElementById('btnAng45');
+    if (btnAng45) btnAng45.onclick = () => { state.incidentAngle = 45; setupControls(); playTone(750, 0.1); };
+    const btnAng60 = document.getElementById('btnAng60');
+    if (btnAng60) btnAng60.onclick = () => { state.incidentAngle = 60; setupControls(); playTone(900, 0.1); };
+
+    const btnAlignHoles = document.getElementById('btnAlignHoles');
+    if (btnAlignHoles) btnAlignHoles.onclick = () => { state.holesAligned = true; setupControls(); playTone(880, 0.2); };
+    const btnMisalign = document.getElementById('btnMisalign');
+    if (btnMisalign) btnMisalign.onclick = () => { state.holesAligned = false; setupControls(); playTone(300, 0.2); };
+
+    const discSlider = document.getElementById('discSlider');
+    if (discSlider) {
+        discSlider.addEventListener('input', (e) => {
+            state.discSpeed = parseInt(e.target.value);
+            document.getElementById('discVal').innerText = state.discSpeed + ' rpm';
+        });
+    }
+    const btnSpinWhite = document.getElementById('btnSpinWhite');
+    if (btnSpinWhite) btnSpinWhite.onclick = () => { state.discSpeed = 90; setupControls(); playTone(900, 0.2); };
+    const btnStopDisc = document.getElementById('btnStopDisc');
+    if (btnStopDisc) btnStopDisc.onclick = () => { state.discSpeed = 0; setupControls(); playTone(300, 0.1); };
+
+    const btnLaserRay = document.getElementById('btnLaserRay');
+    if (btnLaserRay) btnLaserRay.onclick = () => { playTone(800, 0.2); };
+
+    const btnTrans = document.getElementById('btnTrans');
+    if (btnTrans) btnTrans.onclick = () => { state.barrierType = 'transparent'; setupControls(); playTone(600, 0.1); };
+    const btnSemi = document.getElementById('btnSemi');
+    if (btnSemi) btnSemi.onclick = () => { state.barrierType = 'translucent'; setupControls(); playTone(500, 0.1); };
+    const btnOpaque = document.getElementById('btnOpaque');
+    if (btnOpaque) btnOpaque.onclick = () => { state.barrierType = 'opaque'; setupControls(); playTone(400, 0.1); };
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'law_of_reflection') {
+        drawReflectionLaw();
+    } else if (activeMode === 'rectilinear_propagation') {
+        drawPropagationHoles();
+    } else if (activeMode === 'periscope_optics') {
+        drawPeriscope();
+    } else if (activeMode === 'prism_dispersion') {
+        drawPrismRainbow();
+    } else if (activeMode === 'light_sources') {
+        drawLightSources();
+    } else if (activeMode === 'light_transmission') {
+        drawLightTransmission();
+    } else if (activeMode === 'light_refraction') {
+        drawLightRefraction();
+    } else {
+        drawLightTransmission();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+
+function drawLightSources() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('💡 有关光的游戏: 光源的科学界定与分类 (能自身发光的物体才是光源)', cx, 40);
+
+    const items = [
+        { t: '☀️ 太阳 (天然光源)', d: '恒星核聚变释放强光\n地球所有光热之源', c: '#f59e0b', x: 80 },
+        { t: '💡 电灯 (人造光源)', d: '人类发明通电发光\n点亮现代文明黑夜', c: '#38bdf8', x: 280 },
+        { t: '🌕 月亮 (非光源!)', d: '本身不发光\n仅反射太阳光线投向地球', c: '#94a3b8', x: 480 }
+    ];
+
+    items.forEach(it => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(it.x, 80, 160, 260);
+        ctx.strokeStyle = it.c; ctx.lineWidth = 2; ctx.strokeRect(it.x, 80, 160, 260);
+
+        ctx.fillStyle = it.c; ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(it.t, it.x + 80, 115);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+        const lines = it.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, it.x + 80, 165 + i * 26));
+
+        ctx.fillStyle = '#334155'; ctx.fillRect(it.x + 10, 280, 140, 36);
+        ctx.fillStyle = it.c; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(it.t.includes('非') ? '❌ 非光源' : '✅ 真实光源', it.x + 80, 303);
+    });
+}
+
+function drawLightRefraction() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌈 光的折射与应用: 光从空气斜射入水中发生偏折 (筷子折断错位与视深变浅)', cx, 40);
+
+    // Water Tank
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+    ctx.fillRect(160, 180, 400, 180);
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+    ctx.strokeRect(160, 180, 400, 180);
+
+    // Normal line (法线)
+    ctx.strokeStyle = '#94a3b8'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(cx, 100); ctx.lineTo(cx, 340); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#94a3b8'; ctx.font = '12px sans-serif';
+    ctx.fillText('法线 (垂直界面)', cx, 95);
+
+    // Incident Ray in Air (30 deg from normal)
+    ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx - 100, 110); ctx.lineTo(cx, 180); ctx.stroke();
+    ctx.fillStyle = '#f43f5e'; ctx.fillText('入射光线 (空气中)', cx - 90, 140);
+
+    // Refracted Ray in Water (20 deg from normal, bent towards normal)
+    ctx.beginPath(); ctx.moveTo(cx, 180); ctx.lineTo(cx + 65, 340); ctx.stroke();
+    ctx.fillStyle = '#38bdf8'; ctx.fillText('折射光线 (水中靠近法线)', cx + 110, 260);
+
+    ctx.fillStyle = '#10b981'; ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('折射定律: 光从空气斜射入水或玻璃介质中时，传播方向发生偏折，折射角小于入射角', cx, 395);
+}
+
+function drawReflectionLaw() {
+    const cx = 360;
+    const cy = 280;
+
+    // Plane Mirror on Table
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(cx - 200, cy, 400, 8);
+    ctx.strokeStyle = '#0284c7';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cx - 200, cy, 400, 8);
+
+    // Normal line (法线 - dotted vertical)
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx, cy - 180);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('法线 (垂直于镜面)', cx + 8, cy - 165);
+
+    // Light calculation
+    const rad = state.incidentAngle * Math.PI / 180;
+    const rayLen = 170;
+
+    // Incident Ray (入射光线)
+    const inX = cx - Math.sin(rad) * rayLen;
+    const inY = cy - Math.cos(rad) * rayLen;
+
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(inX, inY);
+    ctx.lineTo(cx, cy);
+    ctx.stroke();
+
+    // Reflected Ray (反射光线)
+    const refX = cx + Math.sin(rad) * rayLen;
+    const refY = cy - Math.cos(rad) * rayLen;
+
+    ctx.strokeStyle = '#10b981';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(refX, refY);
+    ctx.stroke();
+
+    // Arrows on rays
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('入射光线 ➜', inX - 25, inY - 8);
+    ctx.fillStyle = '#10b981';
+    ctx.fillText('➜ 反射光线', refX + 8, refY - 8);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`光的反射定律验证: 入射角 i = ${state.incidentAngle}°  ≡  反射角 r = ${state.incidentAngle}°`, cx, 40);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('三线共面、法线居中、两角相等 (光在同一平面内反射)', cx, 75);
+}
+
+function drawPropagationHoles() {
+    const cx = 360;
+    // Laser Pointer on left
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(60, 225, 45, 14);
+
+    // 3 Cards with small holes at y=232
+    // Card 1 at x=180
+    // Card 2 at x=340
+    // Card 3 at x=500
+    // Screen at x=640
+    const card2Offset = state.holesAligned ? 0 : 30;
+
+    const cards = [
+        {x: 180, holeY: 232},
+        {x: 340, holeY: 232 + card2Offset},
+        {x: 500, holeY: 232}
+    ];
+
+    cards.forEach((c, idx) => {
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(c.x, 150 + (idx===1?card2Offset:0), 12, 160);
+        // Hole (White gap)
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(c.x - 2, c.holeY - 4, 16, 8);
+    });
+
+    // Screen
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(640, 140, 16, 180);
+
+    // Red Laser beam
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(105, 232);
+    if (state.holesAligned) {
+        ctx.lineTo(640, 232);
+        ctx.stroke();
+
+        // Bright laser dot on screen
+        ctx.fillStyle = '#f87171';
+        ctx.beginPath();
+        ctx.arc(640, 232, 6, 0, Math.PI * 2);
+        ctx.fill();
+    } else {
+        ctx.lineTo(340, 232); // Blocked by card 2
+        ctx.stroke();
+    }
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    const alignTxt = state.holesAligned ? '三孔共线 -> 激光笔直线穿过三孔投射在光屏上 (光沿直线传播!)' : '纸板错位 -> 光束被第二块纸板挡住，光屏无光斑';
+    ctx.fillText(`光是怎样传播的实验 【${alignTxt}】`, cx, 40);
+}
+
+function drawPeriscope() {
+    const cx = 360;
+    // Z-shaped periscope tube
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 14;
+    ctx.beginPath();
+    ctx.moveTo(cx - 100, 140);
+    ctx.lineTo(cx, 140);
+    ctx.lineTo(cx, 320);
+    ctx.lineTo(cx + 100, 320);
+    ctx.stroke();
+
+    // Two 45-degree Mirrors
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 5;
+    // Mirror 1 at (cx, 140)
+    ctx.beginPath(); ctx.moveTo(cx - 15, 125); ctx.lineTo(cx + 15, 155); ctx.stroke();
+    // Mirror 2 at (cx, 320)
+    ctx.beginPath(); ctx.moveTo(cx - 15, 305); ctx.lineTo(cx + 15, 335); ctx.stroke();
+
+    // Light ray ray-tracing
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx - 140, 140);
+    ctx.lineTo(cx, 140);
+    ctx.lineTo(cx, 320);
+    ctx.lineTo(cx + 140, 320);
+    ctx.stroke();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('自制潜望镜光路图解: 双 45° 平面镜使光线两次发生 90° 直角反射', cx, 40);
+}
+
+function drawPrismRainbow() {
+    const cx = 360;
+    const cy = 230;
+
+    if (state.discSpeed > 50) {
+        // High speed spinning disc merges into white
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.arc(cx, cy, 100, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('高速旋转: 七色混合呈现白光 (视觉暂留与复色)', cx, cy + 6);
+    } else {
+        // 7 Color sectors
+        const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#a855f7'];
+        for (let i = 0; i < 7; i++) {
+            ctx.fillStyle = colors[i];
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, 100, i * (Math.PI * 2 / 7), (i + 1) * (Math.PI * 2 / 7));
+            ctx.closePath();
+            ctx.fill();
+        }
+    }
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('牛顿七色盘色散与合成实验 (白光由红橙黄绿蓝靛紫七色光复合而成)', cx, 40);
+}
+
+function drawLightTransmission() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`光的传播与障碍物实验: 【${state.barrierType}】`, cx, 40);
+
+    // Flashlight on left
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(80, 210, 60, 40);
+
+    // Barrier in middle
+    ctx.fillStyle = state.barrierType === 'transparent' ? 'rgba(56, 189, 248, 0.2)' : state.barrierType === 'translucent' ? 'rgba(255, 255, 255, 0.5)' : '#1e293b';
+    ctx.fillRect(cx - 20, 140, 40, 180);
+    ctx.strokeStyle = '#94a3b8';
+    ctx.strokeRect(cx - 20, 140, 40, 180);
+
+    // Screen on right with shadow
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(600, 140, 15, 180);
+
+    if (state.barrierType === 'opaque') {
+        // Clear shadow on screen
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(600, 160, 15, 140);
+    }
+}
+
+        
+function updateTelemetry() {
+    let txt = `[光学实验数据就绪] 模式: ${activeMode} | `;
+    if (activeMode === 'law_of_reflection') {
+        txt += `入射角: ${state.incidentAngle}° | 反射角: ${state.incidentAngle}° | 偏差: 0.00°`;
+    } else if (activeMode === 'rectilinear_propagation') {
+        txt += `对齐状态: ${state.holesAligned?'直线贯通':'错位遮挡'} | 传播速率: 3.0×10⁸ m/s`;
+    } else {
+        txt += `转速: ${state.discSpeed}rpm | 色彩合成状态: ${state.discSpeed>50?'复合成白光':'分色可见'}`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

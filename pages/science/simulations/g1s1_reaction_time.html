@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学深度微仿真：抓尺子反应速度测量（一年级上册·我们自己）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #38bdf8;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 440px;
+      background: radial-gradient(circle at center, #111a2d 0%, #050811 100%);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #1a273f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .action-bar {
+      margin-top: 14px;
+      display: flex;
+      gap: 12px;
+    }
+    button {
+      flex: 1;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-drop {
+      background: #2563eb;
+      color: #fff;
+    }
+    .btn-drop:hover { background: #1d4ed8; }
+    .btn-catch {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #fff;
+      font-size: 1.1rem;
+    }
+    .btn-catch:active { transform: scale(0.97); }
+
+    .results-table {
+      margin-top: 14px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .results-table th, .results-table td {
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      text-align: center;
+    }
+    .results-table th { background: #101624; color: var(--muted); }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>⚡ 抓尺子游戏与人体神经反应时测量（一年级上册·我们自己）</h1>
+    <span class="badge">神经反射弧 · 自由落体精准测时</span>
+  </header>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="canvas-box" id="container">
+        <canvas id="rulerCanvas"></canvas>
+      </div>
+      <div class="action-bar">
+        <button id="btnDrop" class="btn-drop">🖐️ 准备！释放直尺 (随机下落)</button>
+        <button id="btnCatch" class="btn-catch" disabled>⚡ 快速抓尺！(空格键 / 点击)</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">📊 神经反应时实测数据</h2>
+      
+      <div style="background: #101624; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: monospace;">
+        <div>抓取刻度：<span id="catchDistance" style="color: var(--accent); font-weight: bold; font-size: 1.2rem;">-- cm</span></div>
+        <div style="margin-top: 6px;">神经反应时 ($t = \sqrt{2h/g}$)：<span id="catchTime" style="color: var(--success); font-weight: bold; font-size: 1.2rem;">-- s</span></div>
+        <div style="margin-top: 6px;">反应敏捷评级：<span id="catchRank" style="color: var(--primary);">等待测试</span></div>
+      </div>
+
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>测试轮次</th>
+            <th>抓取刻度</th>
+            <th>神经反应时间</th>
+          </tr>
+        </thead>
+        <tbody id="logTbody">
+          <tr><td colspan="3" style="color: var(--muted); padding: 12px;">点击下方【释放直尺】开始测试</td></tr>
+        </tbody>
+      </table>
+
+      <div style="font-size: 12px; color: var(--muted); line-height: 1.6; background: #101624; padding: 10px; border-radius: 6px; border-left: 3px solid var(--primary); margin-top: 14px;">
+        📖 <strong>神经生物学大概念拓展</strong>：
+        - <strong>反射弧通路</strong>：视网膜感光 $\to$ 视神经电信号 $\to$ 大脑视觉皮层识别 $\to$ 运动神经下行传导 $\to$ 手指肌腱收缩；
+        - <strong>正常人类反应时</strong>：一般在 <strong>$0.15\text{ s} \sim 0.25\text{ s}$</strong> 之间；顶级乒乓球或短跑运动员经长期训练可接近人类极限 $0.10\text{ s}$！
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('rulerCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    const btnDrop = document.getElementById('btnDrop');
+    const btnCatch = document.getElementById('btnCatch');
+    const catchDistance = document.getElementById('catchDistance');
+    const catchTime = document.getElementById('catchTime');
+    const catchRank = document.getElementById('catchRank');
+    const logTbody = document.getElementById('logTbody');
+
+    // 纯代码 Web Audio 合成器
+    const Sound = {
+      ctx: null,
+      init() {
+        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+      },
+      beep(freq, duration) {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+      }
+    };
+    window.addEventListener('click', () => Sound.init(), { once: true });
+
+    let state = 'idle'; // idle, waiting, falling, caught, missed
+    let dropTimer = null;
+    let rulerY = 50;
+    let rulerVy = 0;
+    let dropStartTime = 0;
+    let testHistory = [];
+
+    const g = 980; // 像素加速度映射 (cm -> px)
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    btnDrop.addEventListener('click', () => {
+      Sound.init();
+      if (state === 'falling') return;
+      state = 'waiting';
+      rulerY = 50;
+      rulerVy = 0;
+      btnDrop.disabled = true;
+      btnDrop.textContent = '👀 集中注意力！直尺即将掉落...';
+      btnCatch.disabled = false;
+      draw();
+
+      // 1.5 ~ 3.5 秒随机延时释放直尺
+      const delay = 1500 + Math.random() * 2000;
+      dropTimer = setTimeout(() => {
+        if (state === 'waiting') {
+          state = 'falling';
+          dropStartTime = performance.now();
+          Sound.beep(880, 0.05); // 释放轻鸣
+        }
+      }, delay);
+    });
+
+    function doCatch() {
+      if (state === 'waiting') {
+        // 提前抢跑犯规
+        clearTimeout(dropTimer);
+        state = 'idle';
+        btnDrop.disabled = false;
+        btnDrop.textContent = '🖐️ 重新开始 (刚才抢跑啦！)';
+        btnCatch.disabled = true;
+        Sound.beep(220, 0.2);
+        alert('抢跑犯规！直尺还没松手呢，请看到直尺下落的一瞬间再抓！');
+        draw();
+        return;
+      }
+
+      if (state === 'falling') {
+        state = 'caught';
+        btnCatch.disabled = true;
+        btnDrop.disabled = false;
+        btnDrop.textContent = '🖐️ 再次测试！释放直尺';
+        Sound.beep(1200, 0.15); // 抓取成功清脆音
+
+        // 计算抓到的高度 (像素换算为 cm，整尺长度 30cm = 300px)
+        const handY = 320;
+        const caughtPx = handY - rulerY;
+        const caughtCm = Math.max(1, Math.min(30, (caughtPx / 10))).toFixed(1);
+        // 根据自由落体公式反算神经反应时 t = sqrt(2h/g)
+        const tSec = Math.sqrt((2 * (caughtCm / 100)) / 9.8).toFixed(3);
+
+        catchDistance.textContent = caughtCm + ' cm';
+        catchTime.textContent = tSec + ' 秒';
+
+        let rank = '良好';
+        if (tSec < 0.15) rank = '⚡ 闪电神级反应 (国家级运动员水准！)';
+        else if (tSec < 0.20) rank = '🌟 反应极其敏捷！';
+        else if (tSec < 0.25) rank = '👍 正常健康水准';
+        else rank = '🐢 稍慢，多做体育运动可以提升突触传导！';
+        catchRank.textContent = rank;
+
+        addLog(caughtCm, tSec);
+      }
+    }
+
+    btnCatch.addEventListener('click', doCatch);
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        doCatch();
+      }
+    });
+
+    function addLog(cm, sec) {
+      testHistory.push({ round: testHistory.length + 1, cm, sec });
+      let html = '';
+      testHistory.slice(-5).reverse().forEach(item => {
+        html += `<tr>
+          <td>第 ${item.round} 次</td>
+          <td style="color: var(--accent); font-weight: bold;">${item.cm} cm</td>
+          <td style="color: var(--success); font-weight: bold;">${item.sec} s</td>
+        </tr>`;
+      });
+      logTbody.innerHTML = html;
+    }
+
+    let lastTime = null;
+
+    function update(dt) {
+      if (state === 'falling') {
+        rulerVy += 980 * dt;
+        rulerY += rulerVy * dt;
+
+        // 如果超出未抓住
+        if (rulerY > 480) {
+          state = 'missed';
+          btnCatch.disabled = true;
+          btnDrop.disabled = false;
+          btnDrop.textContent = '🖐️ 未抓住！点击再次测试';
+          catchDistance.textContent = '未抓住 (掉落)';
+          catchTime.textContent = '> 0.35 s';
+          catchRank.textContent = '脱手掉落';
+          Sound.beep(180, 0.3);
+        }
+      }
+    }
+
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 1. 绘制抓取手势基准线
+      const handY = 320;
+      ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(cx - 100, handY);
+      ctx.lineTo(cx + 100, handY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#ef4444';
+      ctx.font = '11px sans-serif';
+      ctx.fillText('虎口抓取水平基准线 (0刻度)', cx + 30, handY - 6);
+
+      // 2. 绘制下落直尺 (刻度木尺)
+      const rulerW = 28;
+      const rulerH = 300; // 30cm 长尺
+      const rx = cx - rulerW / 2;
+      const ry = rulerY;
+
+      ctx.fillStyle = '#fde68a';
+      ctx.fillRect(rx, ry, rulerW, rulerH);
+      ctx.strokeStyle = '#b45309';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(rx, ry, rulerW, rulerH);
+
+      // 绘制毫米与厘米刻度线
+      ctx.fillStyle = '#78350f';
+      ctx.font = '9px monospace';
+      for (let i = 0; i <= 30; i++) {
+        const yPos = ry + rulerH - (i * 10);
+        ctx.beginPath();
+        ctx.moveTo(rx, yPos);
+        ctx.lineTo(rx + (i % 5 === 0 ? 10 : 5), yPos);
+        ctx.stroke();
+
+        if (i % 5 === 0) {
+          ctx.fillText(i, rx + 12, yPos + 3);
+        }
+      }
+
+      // 3. 绘制手掌虎口 (示意等待抓握)
+      ctx.fillStyle = state === 'caught' ? '#10b981' : '#64748b';
+      // 拇指与食指夹角
+      ctx.fillRect(cx - 38, handY - 4, 18, 12);
+      ctx.fillRect(cx + 20, handY - 4, 18, 12);
+    }
+
+    function loop(timestamp) {
+      if (lastTime === null) lastTime = timestamp;
+      const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+      lastTime = timestamp;
+
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    resize();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【茎和叶】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(16, 185, 129, 0.15); color: var(--green); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(16, 185, 129, 0.08);
+            border-left: 3px solid var(--green);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--green); cursor: pointer; }
+        .btn {
+            background: var(--green);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--green);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 茎和叶 <span class="badge">四年级下册 · 植物的生长变化</span></h2>
+            <p>教科版科学原书植物生长实验真拟真 · 拒绝伪仿真</p>
+        </div>
+        <a href="virtual_microscope.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 植物器官解剖与维管束实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生植物解剖与生长物理引擎</span>
+                <span>🎧 Web Audio 拟真音效</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：芹菜红墨水维管束输导与叶片蒸腾作用：芹菜浸入红墨水中，观察红色水分沿茎内导管逆重力上升染红叶脉；套上塑料袋观察水蒸气凝结成小水滴！</div>
+            
+        <div class="c-group">
+            <button class="btn" id="btnAbsorbInk">🩸 注入红墨水吸收 (观察导管运输)</button>
+            <button class="btn btn-sec" id="btnTranspire">💨 套上透明塑料袋 (观察叶片蒸腾)</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [芹菜状态] 根茎健康浸在烧杯中<br>
+            [运输机制] 导管毛细现象与蒸腾拉力将水分输送至顶端叶片！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.2, vol=0.1) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        
+        let inkLevel = 0;
+        let hasBag = false;
+        const telem = document.getElementById('telem');
+
+        document.getElementById('btnAbsorbInk').addEventListener('click', () => {
+            playTone(320, 'triangle', 0.2);
+            let timer = setInterval(() => {
+                inkLevel += 2;
+                if(inkLevel >= 100) clearInterval(timer);
+                telem.innerHTML = `[红墨水输导] 红色水分已通过维管束导管上升 ${inkLevel}%！叶脉清晰染红！横切面呈现密集红色小圆点！`;
+            }, 40);
+        });
+        document.getElementById('btnTranspire').addEventListener('click', () => {
+            hasBag = true;
+            playTone(550, 'sine', 0.2);
+            telem.innerHTML = '[叶片蒸腾作用] 根系吸收的 99% 水分通过叶片气孔化作水蒸气蒸腾散失，在塑料袋内壁凝结成晶莹水珠！';
+        });
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            // Beaker
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 3;
+            ctx.strokeRect(w/2 - 50, 260, 100, 120);
+            ctx.fillStyle = inkLevel > 0 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(56, 189, 248, 0.4)';
+            ctx.fillRect(w/2 - 48, 290, 96, 88);
+
+            // Celery Stem
+            const stemCol = inkLevel > 60 ? '#ef4444' : '#22c55e';
+            ctx.strokeStyle = stemCol; ctx.lineWidth = 14;
+            ctx.beginPath();
+            ctx.moveTo(w/2, 340);
+            ctx.lineTo(w/2, 120);
+            ctx.stroke();
+
+            // Leaves at top
+            ctx.fillStyle = inkLevel > 80 ? '#f87171' : '#4ade80';
+            ctx.beginPath(); ctx.ellipse(w/2 - 35, 110, 30, 15, -Math.PI/6, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(w/2 + 35, 110, 30, 15, Math.PI/6, 0, Math.PI*2); ctx.fill();
+
+            // Bag over leaves with condensed water drops
+            if(hasBag) {
+                ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 2;
+                ctx.strokeRect(w/2 - 80, 70, 160, 90);
+                ctx.fillStyle = '#38bdf8';
+                for(let i=0; i<12; i++) {
+                    ctx.beginPath();
+                    ctx.arc(w/2 - 60 + (i%4)*40, 85 + Math.floor(i/4)*25, 3, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

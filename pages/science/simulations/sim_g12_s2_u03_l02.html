@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【2. 八颗行星】真实验微仿真 - 六年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 2. 八颗行星</h1>
+        <span class="badge">六年级上册·第三单元《宇宙》</span>
+        <a href="space_eclipse_constellation_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 日食月食本影全景与三维星座空间实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g12_s2_u03_l01.html" class="">太阳系大家庭</a>
+<a href="sim_g12_s2_u03_l02.html" class="active">八颗行星</a>
+<a href="sim_g12_s2_u03_l03.html" class="">日食</a>
+<a href="sim_g12_s2_u03_l04.html" class="">认识星座</a>
+<a href="sim_g12_s2_u03_l05.html" class="">夏季星空</a>
+<a href="sim_g12_s2_u03_l06.html" class="">浩瀚的宇宙</a>
+<a href="sim_g12_s2_u03_l07.html" class="">探索宇宙</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时科学数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：系统探索太阳系八大行星公转运转、日食形成本影月球遮蔽天象与夏季星空大三角寻星指南。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "eight_planets";
+
+        
+const state = {
+    moonAlignPos: 0, // -50 ~ 50 (0 is perfect eclipse)
+    eclipseType: 'total', // total(全食), annular(环食), partial(偏食)
+    planetSpeedScale: 1,
+    selectedPlanet: 'earth'
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'solar_eclipse') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>月球公转穿过日地连线</span><span class="val" id="alignVal">${state.moonAlignPos}</span></div>
+                <input type="range" id="alignSlider" min="-40" max="40" value="${state.moonAlignPos}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-rose" id="btnTotal">🌑 日全食 (完全遮蔽太阳光球)</button>
+                <button class="btn btn-green" id="btnAnnular">⭕ 日环食 (月球距离地球较远)</button>
+                <button class="btn btn-primary" id="btnPartial">🌘 日偏食 (半影遮蔽部分光盘)</button>
+            </div>
+        `;
+    } else if (activeMode === 'eight_planets' || activeMode === 'solar_family') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>八大行星公转运转模拟</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnSpeedUp">⏩ 加速行星公转运转</button>
+                    <button class="btn" id="btnResetSpeed">🔄 真实基准速度</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>深空天体与星座巡天</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnSummerTri">✨ 夏季大三角 (织女/牛郎/天津四)</button>
+                    <button class="btn btn-green" id="btnMilkyWay">🌌 银河系旋臂全景</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU3Events();
+}
+
+function bindU3Events() {
+    const alignSlider = document.getElementById('alignSlider');
+    if (alignSlider) {
+        alignSlider.addEventListener('input', (e) => {
+            state.moonAlignPos = parseInt(e.target.value);
+            document.getElementById('alignVal').innerText = state.moonAlignPos;
+            if (Math.abs(state.moonAlignPos) <= 2) playTone(900, 0.2);
+            else playTone(400, 0.05);
+        });
+    }
+    const btnTotal = document.getElementById('btnTotal');
+    if (btnTotal) btnTotal.onclick = () => { state.eclipseType = 'total'; state.moonAlignPos = 0; setupControls(); playTone(880, 0.2); };
+    const btnAnnular = document.getElementById('btnAnnular');
+    if (btnAnnular) btnAnnular.onclick = () => { state.eclipseType = 'annular'; state.moonAlignPos = 0; setupControls(); playTone(650, 0.2); };
+    const btnPartial = document.getElementById('btnPartial');
+    if (btnPartial) btnPartial.onclick = () => { state.eclipseType = 'partial'; state.moonAlignPos = 20; setupControls(); playTone(500, 0.2); };
+
+    const btnSpeedUp = document.getElementById('btnSpeedUp');
+    if (btnSpeedUp) btnSpeedUp.onclick = () => { state.planetSpeedScale = 3; playTone(750, 0.1); };
+    const btnResetSpeed = document.getElementById('btnResetSpeed');
+    if (btnResetSpeed) btnResetSpeed.onclick = () => { state.planetSpeedScale = 1; playTone(500, 0.1); };
+
+    const btnSummerTri = document.getElementById('btnSummerTri');
+    if (btnSummerTri) btnSummerTri.onclick = () => { playTone(880, 0.2); };
+    const btnMilkyWay = document.getElementById('btnMilkyWay');
+    if (btnMilkyWay) btnMilkyWay.onclick = () => { playTone(700, 0.2); };
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'solar_eclipse') {
+        drawSolarEclipse();
+    } else if (activeMode === 'summer_triangle' || activeMode === 'constellations') {
+        drawSummerSky();
+    } else if (activeMode === 'milky_way_galaxy') {
+        drawMilkyWay();
+    } else if (activeMode === 'space_exploration') {
+        drawSpaceExploration();
+    } else {
+        drawSolarSystemOrbits();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+
+function drawMilkyWay() {
+    const cx = 360;
+    const cy = 230;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌌 浩瀚的宇宙: 银河系棒旋星系结构 (四条旋臂与太阳系在猎户臂的位置)', cx, 40);
+
+    // Galactic Core
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath(); ctx.arc(cx, cy, 28, 0, Math.PI * 2); ctx.fill();
+
+    // Spiral Arms
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)'; ctx.lineWidth = 8;
+    for (let arm = 0; arm < 4; arm++) {
+        const offset = arm * (Math.PI / 2);
+        ctx.beginPath();
+        for (let r = 30; r <= 160; r += 5) {
+            const theta = offset + r * 0.035;
+            const x = cx + Math.cos(theta) * r * 1.5;
+            const y = cy + Math.sin(theta) * r;
+            if (r === 30) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+
+    // Solar System Position on Orion Arm (距银心约 2.6万光年)
+    const sunX = cx + 110;
+    const sunY = cy - 40;
+    ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(sunX, sunY, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#f43f5e'; ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('☀️ 太阳系 (位于猎户臂·距银心2.6万光年)', sunX + 130, sunY + 4);
+
+    ctx.fillStyle = '#38bdf8'; ctx.font = '13px sans-serif';
+    ctx.fillText('银河系直径约 10万光年，包含数千亿颗恒星；宇宙中包含数千亿个类似银河系的星系', cx, 410);
+}
+
+function drawSpaceExploration() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🚀 探索宇宙: 中国航天辉煌成就 (天宫空间站·嫦娥探月·天问探火)', cx, 40);
+
+    const missions = [
+        { t: '1. 天宫空间站 (T型三舱)', d: '天和核心舱+问天/梦天实验舱\n中国人在太空的永久家园', c: '#38bdf8', x: 80 },
+        { t: '2. 嫦娥探月工程', d: '绕、落、回三步走圆满收官\n月背着陆与月壤成功采样返回', c: '#10b981', x: 280 },
+        { t: '3. 天问一号祝融号火星车', d: '一次实现绕、落、巡三大壮举\n深空火星地质勘探', c: '#f43f5e', x: 480 }
+    ];
+
+    missions.forEach(m => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(m.x, 80, 160, 260);
+        ctx.strokeStyle = m.c; ctx.lineWidth = 2; ctx.strokeRect(m.x, 80, 160, 260);
+
+        ctx.fillStyle = m.c; ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(m.t, m.x + 80, 115);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+        const lines = m.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, m.x + 80, 165 + i * 26));
+
+        ctx.fillStyle = '#334155'; ctx.fillRect(m.x + 10, 280, 140, 36);
+        ctx.fillStyle = m.c; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('航天里程碑', m.x + 80, 303);
+    });
+}
+
+function drawSolarEclipse() {
+    const cx = 360;
+    const cy = 230;
+
+    // Sun Disk (Golden sphere)
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 110, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Corona flare (日冕)
+    if (Math.abs(state.moonAlignPos) < 5 && state.eclipseType === 'total') {
+        ctx.strokeStyle = 'rgba(254, 240, 138, 0.7)';
+        ctx.lineWidth = 14;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 114, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+
+    // Moon Shadow Disk (Dark disk blocking sun)
+    const moonR = state.eclipseType === 'annular' ? 98 : 112; // Annular moon is slightly smaller!
+    const moonX = cx + state.moonAlignPos * 3;
+
+    ctx.fillStyle = '#020617';
+    ctx.beginPath();
+    ctx.arc(moonX, cy, moonR, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    let eName = '太阳光球正常可见';
+    if (Math.abs(state.moonAlignPos) < 4) {
+        eName = state.eclipseType === 'total' ? '☀️🌑 日全食 (月球完全挡住太阳，唯见壮丽日冕)' : state.eclipseType === 'annular' ? '☀️⭕ 日环食 (太阳边缘形成夺目金环)' : '🌘 日偏食';
+    } else if (Math.abs(state.moonAlignPos) < 35) {
+        eName = '🌘 日偏食 (月球遮挡太阳部分光球)';
+    }
+    ctx.fillText(`日食天象成因模拟: 【${eName}】`, cx, 40);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('日地月运行至同一直线: 太阳 -> 月球(居中遮挡) -> 地球观察者', cx, 75);
+}
+
+function drawSolarSystemOrbits() {
+    const cx = 360;
+    const cy = 230;
+
+    // Sun in center
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI * 2); ctx.fill();
+
+    // 8 Planets orbits (Mercury to Neptune)
+    const planets = [
+        {name: '水星', r: 35, speed: 4.1, color: '#94a3b8'},
+        {name: '金星', r: 55, speed: 1.6, color: '#fef08a'},
+        {name: '地球', r: 80, speed: 1.0, color: '#38bdf8'},
+        {name: '火星', r: 105, speed: 0.53, color: '#f87171'},
+        {name: '木星', r: 140, speed: 0.08, color: '#d97706'},
+        {name: '土星', r: 175, speed: 0.03, color: '#ca8a04'},
+        {name: '天王星', r: 210, speed: 0.01, color: '#67e8f9'},
+        {name: '海王星', r: 240, speed: 0.006, color: '#3b82f6'}
+    ];
+
+    const t = Date.now() * 0.001 * state.planetSpeedScale;
+
+    planets.forEach(p => {
+        // Orbit ring
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(cx, cy, p.r, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Planet Body
+        const angle = t * p.speed;
+        const px = cx + Math.cos(angle) * p.r;
+        const py = cy + Math.sin(angle) * p.r;
+
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(px, py, p.r > 120 ? 5 : 3.5, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('太阳系八颗行星真实相对公转轨道模型 (距离太阳越近，公转周期越短)', cx, 40);
+}
+
+function drawSummerSky() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('夏季星空大三角: 织女星 (天琴座) + 牛郎星 (天鹰座) + 天津四 (天鹅座)', cx, 40);
+
+    // Stars of Summer Triangle
+    const stars = [
+        {name: '✨ 织女星 (天琴座)', x: cx - 110, y: 150},
+        {name: '✨ 牛郎星 (天鹰座)', x: cx - 40, y: 310},
+        {name: '✨ 天津四 (天鹅座)', x: cx + 130, y: 170}
+    ];
+
+    // Triangle lines
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(stars[0].x, stars[0].y);
+    ctx.lineTo(stars[1].x, stars[1].y);
+    ctx.lineTo(stars[2].x, stars[2].y);
+    ctx.closePath();
+    ctx.stroke();
+
+    stars.forEach(s => {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(s.x, s.y, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fef08a';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(s.name, s.x + 12, s.y + 4);
+    });
+}
+
+        
+function updateTelemetry() {
+    let txt = `[天文宇宙数据就绪] 模式: ${activeMode} | `;
+    if (activeMode === 'solar_eclipse') {
+        txt += `月影对齐度: ${Math.abs(state.moonAlignPos)<=3?'完全食甚':'偏食'} | 日食类型: ${state.eclipseType}`;
+    } else {
+        txt += `太阳系八大行星运行正常 | 公转时间尺度: 1.0x`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

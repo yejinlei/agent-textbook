@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【5. 水的作用】真实验微仿真 - 五年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .header h1 {
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+        }
+        .badge {
+            background: #0369a1;
+            color: #e0f2fe;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+        }
+        .unit-nav a {
+            color: var(--muted);
+            text-decoration: none;
+            padding: 6px 12px;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a:hover {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            color: var(--text);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+        .notes-card strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌋 <span>5. 水的作用</span></h1>
+        <span class="badge">第四单元《地球表面的变化》</span>
+        <a href="earth_sun_seasons.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 地貌演变与地质动力学实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g09_s1_u04_l01.html" class="">地球的表面</a>
+<a href="sim_g09_s1_u04_l02.html" class="">火山喷发的成因及作用</a>
+<a href="sim_g09_s1_u04_l03.html" class="">地震的成因及作用</a>
+<a href="sim_g09_s1_u04_l04.html" class="">风对地表的作用</a>
+<a href="sim_g09_s1_u04_l05.html" class="active">水的作用</a>
+<a href="sim_g09_s1_u04_l06.html" class="">探索植物对侵蚀的影响</a>
+<a href="sim_g09_s1_u04_l07.html" class="">总结我们的认识</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 地貌与地质作用控制台</div>
+            
+            <div id="controlsContainer">
+                <!-- Dynamically injected controls -->
+            </div>
+
+            <div class="card-title" style="margin-top: 6px;">📊 地球动力学与地貌演变遥测</div>
+            <div class="telemetry" id="telem">
+                [遥测就绪] 等待交互触发...
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <strong>🎯 探究目标与原书要点：</strong><br>
+            系统探索地形高程、火山喷发岩浆模型、地震断层波与降雨地表侵蚀水土流失。
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+
+        const activeMode = "water_erosion";
+
+        // Web Audio Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, dur=0.15) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
+        }
+
+        
+const state = {
+    volcanoActive: activeMode === 'volcano_eruption',
+    earthquakeStress: 0,
+    hasVegetation: activeMode === 'plant_erosion_control',
+    rainStrength: 2, // 0~3
+    sedimentLoss: 0,
+    windStrength: 2
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'volcano_eruption') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>岩浆房地热压力模拟</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-rose" id="btnErupt">🌋 点火加热：番茄酱岩浆喷发</button>
+                    <button class="btn" id="btnCoolVolcano">❄️ 冷却固结成火山岩</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'earthquake_fault') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>地壳板块挤压应力</span><span class="val" id="stressVal">${state.earthquakeStress}%</span></div>
+                <input type="range" id="stressSlider" min="0" max="100" value="${state.earthquakeStress}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-rose" id="btnQuake">⚡ 应力爆发：断层错动地震</button>
+            </div>
+        `;
+    } else if (activeMode === 'plant_erosion_control' || activeMode === 'water_erosion') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>地表植被覆盖度</span><span class="val">${state.hasVegetation?'密集绿植草皮':'裸露荒坡泥土'}</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.hasVegetation?'btn-green':'btn-primary'}" id="btnPlantGrass">🌿 铺植草皮保水固土</button>
+                    <button class="btn ${!state.hasVegetation?'btn-rose':'btn-primary'}" id="btnBareSoil">🧱 裸露黄土荒坡对照</button>
+                </div>
+            </div>
+            <div class="btn-grid" style="margin-top:6px;">
+                <button class="btn btn-primary" id="btnPourWater">🌧️ 人工强降雨冲刷测试</button>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>风沙与外力侵蚀作用</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnWindMushroom">🍄 风蚀蘑菇形成</button>
+                    <button class="btn btn-green" id="btnDune">🏜️ 沙丘风力迁移</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU4Events();
+}
+
+function bindU4Events() {
+    const btnErupt = document.getElementById('btnErupt');
+    if (btnErupt) btnErupt.onclick = () => {
+        state.volcanoActive = true;
+        playTone(180, 0.4, 'sawtooth');
+    };
+    const btnCoolVolcano = document.getElementById('btnCoolVolcano');
+    if (btnCoolVolcano) btnCoolVolcano.onclick = () => {
+        state.volcanoActive = false;
+        playTone(400, 0.1);
+    };
+
+    const stressSlider = document.getElementById('stressSlider');
+    if (stressSlider) {
+        stressSlider.addEventListener('input', (e) => {
+            state.earthquakeStress = parseInt(e.target.value);
+            document.getElementById('stressVal').innerText = state.earthquakeStress + '%';
+            if (state.earthquakeStress >= 90) playTone(120, 0.3, 'sawtooth');
+        });
+    }
+    const btnQuake = document.getElementById('btnQuake');
+    if (btnQuake) btnQuake.onclick = () => {
+        state.earthquakeStress = 100;
+        playTone(100, 0.5, 'sawtooth');
+    };
+
+    const btnPlantGrass = document.getElementById('btnPlantGrass');
+    if (btnPlantGrass) btnPlantGrass.onclick = () => {
+        state.hasVegetation = true;
+        state.sedimentLoss = 3.5;
+        setupControls();
+        playTone(600, 0.1);
+    };
+    const btnBareSoil = document.getElementById('btnBareSoil');
+    if (btnBareSoil) btnBareSoil.onclick = () => {
+        state.hasVegetation = false;
+        state.sedimentLoss = 42.0;
+        setupControls();
+        playTone(300, 0.1);
+    };
+    const btnPourWater = document.getElementById('btnPourWater');
+    if (btnPourWater) btnPourWater.onclick = () => {
+        state.sedimentLoss = state.hasVegetation ? 4.2 : 55.0;
+        playTone(400, 0.2);
+    };
+
+    const btnWindMushroom = document.getElementById('btnWindMushroom');
+    if (btnWindMushroom) btnWindMushroom.onclick = () => { playTone(500, 0.1); };
+    const btnDune = document.getElementById('btnDune');
+    if (btnDune) btnDune.onclick = () => { playTone(600, 0.1); };
+}
+
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'volcano_eruption') {
+        drawVolcano();
+    } else if (activeMode === 'earthquake_fault') {
+        drawEarthquake();
+    } else if (activeMode === 'plant_erosion_control' || activeMode === 'water_erosion') {
+        drawErosionScene();
+    } else if (activeMode === 'wind_erosion') {
+        drawWindErosion();
+    } else if (activeMode === 'geology_summary') {
+        drawGeologySummary();
+    } else if (activeMode === 'topography') {
+        drawTopographyScene();
+    } else {
+        drawTopographyScene();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+
+function drawWindErosion() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏜️ 风对地表的作用: 风蚀蘑菇与雅丹地貌成因 (大风挟带沙砾打磨下部岩石)', cx, 40);
+
+    // Desert ground
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(80, 310, 560, 90);
+
+    // Wind-eroded Mushroom Rock (上大下小)
+    ctx.fillStyle = '#92400e';
+    ctx.beginPath();
+    // Top broad cap
+    ctx.ellipse(cx, 160, 90, 45, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Slender eroded stem below
+    ctx.beginPath();
+    ctx.moveTo(cx - 30, 160);
+    ctx.quadraticCurveTo(cx - 15, 250, cx - 35, 310);
+    ctx.lineTo(cx + 35, 310);
+    ctx.quadraticCurveTo(cx + 15, 250, cx + 30, 160);
+    ctx.closePath();
+    ctx.fill();
+
+    // Wind sand particles flying fast near ground (y: 200~320)
+    ctx.fillStyle = '#fef08a';
+    for (let i = 0; i < 40; i++) {
+        const sx = 100 + (Date.now() * 0.2 + i * 25) % 520;
+        const sy = 220 + (i % 8) * 12;
+        ctx.fillRect(sx, sy, 6, 2);
+    }
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('强风挟带重沙粒主要贴近地面飞行，强烈磨蚀岩石下部，使岩柱日久变成“风蚀蘑菇”', cx, 375);
+}
+
+function drawGeologySummary() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌍 总结我们的认识: 地球内力作用(火山/地震)与外力作用(风/水/冰川)共同塑造地表', cx, 40);
+
+    const forces = [
+        { t: '🌋 地球内力作用', d: '地壳运动·板块挤压碰撞\n火山爆发与地震断裂\n塑造高山、裂谷与高原', c: '#f43f5e', x: 100 },
+        { t: '🌊 地球外力作用', d: '太阳辐射·流水侵蚀沉积\n大风风化与沙丘搬运\n削高填低·造就平原沙洲', c: '#38bdf8', x: 400 }
+    ];
+
+    forces.forEach(f => {
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(f.x, 80, 220, 260);
+        ctx.strokeStyle = f.c; ctx.lineWidth = 2;
+        ctx.strokeRect(f.x, 80, 220, 260);
+
+        ctx.fillStyle = f.c; ctx.font = 'bold 16px sans-serif';
+        ctx.fillText(f.t, f.x + 110, 120);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '13px sans-serif';
+        const lines = f.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, f.x + 110, 170 + i * 28));
+
+        ctx.fillStyle = '#334155'; ctx.fillRect(f.x + 20, 280, 180, 36);
+        ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('地质动态演化', f.x + 110, 303);
+    });
+}
+
+function drawVolcano() {
+    const cx = 360;
+    // Volcano cone (Mashed potato model)
+    ctx.fillStyle = '#78350f';
+    ctx.beginPath();
+    ctx.moveTo(120, 360);
+    ctx.lineTo(310, 160);
+    ctx.lineTo(410, 160);
+    ctx.lineTo(600, 360);
+    ctx.closePath();
+    ctx.fill();
+
+    // Crater depression
+    ctx.fillStyle = '#451a03';
+    ctx.beginPath();
+    ctx.ellipse(cx, 160, 50, 15, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Magma chamber tube in center
+    ctx.fillStyle = '#dc2626';
+    ctx.fillRect(cx - 15, 160, 30, 180);
+
+    // Eruption animations
+    if (state.volcanoActive) {
+        // Lava fountain
+        ctx.fillStyle = '#f97316';
+        for (let i = 0; i < 25; i++) {
+            const lx = cx + (Math.random() - 0.5) * 80;
+            const ly = 150 - Math.random() * 110;
+            ctx.beginPath();
+            ctx.arc(lx, ly, 4 + Math.random() * 6, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Lava flows down slopes
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(330, 165); ctx.lineTo(250, 260); ctx.lineTo(180, 360);
+        ctx.moveTo(390, 165); ctx.lineTo(460, 270); ctx.lineTo(540, 360);
+        ctx.stroke();
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🌋 火山爆发: 高温高压岩浆携带大量气体自地壳裂缝喷出!', cx, 40);
+    } else {
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('土豆泥与番茄酱火山喷发模拟实验 (火山静止休眠期)', cx, 40);
+    }
+}
+
+function drawEarthquake() {
+    const cx = 360;
+    const cy = 240;
+
+    // Fault line offset
+    const offset = (state.earthquakeStress / 100) * 35;
+
+    // Left crust block
+    ctx.fillStyle = '#b45309';
+    ctx.beginPath();
+    ctx.moveTo(100, 140 - offset * 0.5);
+    ctx.lineTo(cx - 10, 140 - offset * 0.5);
+    ctx.lineTo(cx - 50, 360);
+    ctx.lineTo(100, 360);
+    ctx.closePath();
+    ctx.fill();
+
+    // Right crust block
+    ctx.fillStyle = '#d97706';
+    ctx.beginPath();
+    ctx.moveTo(cx + 10, 140 + offset * 0.5);
+    ctx.lineTo(620, 140 + offset * 0.5);
+    ctx.lineTo(620, 360);
+    ctx.lineTo(cx - 30, 360);
+    ctx.closePath();
+    ctx.fill();
+
+    // Fault faultline crack
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(cx - 10, 140 - offset * 0.5);
+    ctx.lineTo(cx - 50, 360);
+    ctx.stroke();
+
+    // Seismic wave ripples if stress > 80
+    if (state.earthquakeStress > 80) {
+        ctx.strokeStyle = 'rgba(244, 63, 94, 0.6)';
+        ctx.lineWidth = 2;
+        for (let r = 20; r <= 100; r += 25) {
+            ctx.beginPath();
+            ctx.arc(cx - 30, 250, r, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        ctx.fillStyle = '#f43f5e';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡ 震源断裂错位产生强力地震波向四周传播!', cx, 40);
+    } else {
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`板块挤压断层实验: 当前地壳应力积累 ${state.earthquakeStress}%`, cx, 40);
+    }
+}
+
+function drawErosionScene() {
+    const cx = 360;
+    // Slope
+    ctx.fillStyle = state.hasVegetation ? '#15803d' : '#a16207';
+    ctx.beginPath();
+    ctx.moveTo(100, 140);
+    ctx.lineTo(100, 360);
+    ctx.lineTo(540, 360);
+    ctx.closePath();
+    ctx.fill();
+
+    // Catch basin for sediment
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(540, 300, 120, 60);
+
+    // Runoff water in basin
+    ctx.fillStyle = state.hasVegetation ? 'rgba(56, 189, 248, 0.6)' : 'rgba(161, 98, 7, 0.8)';
+    ctx.fillRect(542, 315, 116, 45);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText(state.hasVegetation ? '清澈径流' : '浑浊泥沙俱下', 555, 340);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    const evalTxt = state.hasVegetation ? '植被拦截雨水，草根固土，水土流失仅 3.5g (保持良好)' : '裸露荒坡遭受暴雨直接冲刷，严重水土流失 55.0g!';
+    ctx.fillText(`植物对水土流失侵蚀影响实验 【${evalTxt}】`, cx, 40);
+}
+
+function drawTopographyScene() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('中国五大地形地貌高程与典型剖面 (高原/山地/平原/盆地/丘陵)', cx, 40);
+
+    const landforms = [
+        {name: '🏔️ 高原', h: '海拔>1000m', desc: '顶面平缓地势高'},
+        {name: '⛰️ 山地', h: '海拔>500m', desc: '地势陡峭起伏大'},
+        {name: '🌾 平原', h: '海拔<200m', desc: '宽阔平坦一望无际'},
+        {name: '🥣 盆地', h: '四周高中间低', desc: '四周群山环绕'}
+    ];
+
+    landforms.forEach((l, idx) => {
+        const x = 70 + (idx % 2) * 310;
+        const y = 110 + Math.floor(idx / 2) * 140;
+
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(x, y, 270, 115);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x, y, 270, 115);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 18px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(l.name, x + 20, y + 40);
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 14px monospace';
+        ctx.fillText(l.h, x + 20, y + 70);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '13px sans-serif';
+        ctx.fillText(l.desc, x + 20, y + 98);
+    });
+}
+
+
+        
+function updateTelemetry() {
+    let txt = `[地貌地质数据就绪] 模式: ${activeMode} | `;
+    if (activeMode === 'volcano_eruption') {
+        txt += `火山活动: ${state.volcanoActive?'剧烈喷发中':'休眠'} | 岩浆成分: 高温硅酸盐流体`;
+    } else if (activeMode === 'earthquake_fault') {
+        txt += `地壳断层应力: ${state.earthquakeStress}% | 地震等级: ${(state.earthquakeStress/15).toFixed(1)}级`;
+    } else if (activeMode === 'plant_erosion_control' || activeMode === 'water_erosion') {
+        txt += `地表状态: ${state.hasVegetation?'植被草皮覆盖':'裸露黄土'} | 径流含沙量: ${state.sedimentLoss}g`;
+    } else {
+        txt += `地貌高程分类: 5大基本类型 | 内力造山与外力侵蚀平衡`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        updateTelemetry();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

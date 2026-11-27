@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【4. 蚯蚓的选择】真实验微仿真 - 五年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌱 4. 蚯蚓的选择</h1>
+        <span class="badge">五年级下册·第一单元《生物与环境》</span>
+        <a href="virtual_microscope.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 微生态瓶与生态链平衡实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g10_s2_u01_l01.html" class="">种子发芽实验</a>
+<a href="sim_g10_s2_u01_l02.html" class="">比较种子发芽实验</a>
+<a href="sim_g10_s2_u01_l03.html" class="">绿豆苗的生长</a>
+<a href="sim_g10_s2_u01_l04.html" class="active">蚯蚓的选择</a>
+<a href="sim_g10_s2_u01_l05.html" class="">当环境改变了</a>
+<a href="sim_g10_s2_u01_l06.html" class="">食物链和食物网</a>
+<a href="sim_g10_s2_u01_l07.html" class="">设计和制作生态瓶</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时科学数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：系统探索绿豆种子发芽与幼苗生长条件、蚯蚓阴暗潮湿环境选择与密闭生态瓶碳氧循环。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "earthworm_choice";
+
+        
+const state = {
+    hasWater: true,
+    hasLight: true,
+    roomTemp: 22,
+    seedlingDays: 5,
+    earthwormBox: 'dark_moist', // dark_moist, bright_dry
+    ecoFishCount: 2,
+    ecoWeedCount: 3
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'seed_germination' || activeMode === 'compare_germination') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>单变量对照控制</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.hasWater?'btn-green':'btn-primary'}" id="btnWater">${state.hasWater?'💧 充足水分':'🏜️ 干燥缺水'}</button>
+                    <button class="btn ${state.hasLight?'btn-primary':'btn-primary'}" id="btnLight">${state.hasLight?'☀️ 光照充足':'🌑 黑暗无光'}</button>
+                </div>
+            </div>
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>发芽培养时间 (天数)</span><span class="val" id="dayVal">${state.seedlingDays} 天</span></div>
+                <input type="range" id="daySlider" min="1" max="10" value="${state.seedlingDays}">
+            </div>
+        `;
+    } else if (activeMode === 'earthworm_choice') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>蚯蚓对比选择盒环境</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnReleaseWorms">🪱 释放10条蚯蚓居中测试</button>
+                </div>
+            </div>
+        `;
+    } else if (activeMode === 'eco_bottle') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>生态瓶生物配比</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnAddFish">🐟 放入小鱼 (${state.ecoFishCount})</button>
+                    <button class="btn btn-green" id="btnAddWeed">🌿 种植水草 (${state.ecoWeedCount})</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>向光性与生长调节</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" id="btnLightLeft">⬅️ 左侧单向光照</button>
+                    <button class="btn btn-primary" id="btnLightRight">➡️ 右侧单向光照</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU1Events();
+}
+
+function bindU1Events() {
+    const btnWater = document.getElementById('btnWater');
+    if (btnWater) btnWater.onclick = () => { state.hasWater = !state.hasWater; setupControls(); playTone(600, 0.1); };
+    const btnLight = document.getElementById('btnLight');
+    if (btnLight) btnLight.onclick = () => { state.hasLight = !state.hasLight; setupControls(); playTone(600, 0.1); };
+
+    const daySlider = document.getElementById('daySlider');
+    if (daySlider) {
+        daySlider.addEventListener('input', (e) => {
+            state.seedlingDays = parseInt(e.target.value);
+            document.getElementById('dayVal').innerText = state.seedlingDays + ' 天';
+            playTone(400 + state.seedlingDays * 40, 0.05);
+        });
+    }
+
+    const btnReleaseWorms = document.getElementById('btnReleaseWorms');
+    if (btnReleaseWorms) btnReleaseWorms.onclick = () => { playTone(500, 0.2); };
+
+    const btnAddFish = document.getElementById('btnAddFish');
+    if (btnAddFish) btnAddFish.onclick = () => {
+        state.ecoFishCount = (state.ecoFishCount % 4) + 1;
+        setupControls();
+        playTone(700, 0.1);
+    };
+    const btnAddWeed = document.getElementById('btnAddWeed');
+    if (btnAddWeed) btnAddWeed.onclick = () => {
+        state.ecoWeedCount = (state.ecoWeedCount % 5) + 1;
+        setupControls();
+        playTone(800, 0.1);
+    };
+
+    const btnLightLeft = document.getElementById('btnLightLeft');
+    if (btnLightLeft) btnLightLeft.onclick = () => { playTone(600, 0.1); };
+    const btnLightRight = document.getElementById('btnLightRight');
+    if (btnLightRight) btnLightRight.onclick = () => { playTone(600, 0.1); };
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'seed_germination' || activeMode === 'compare_germination') {
+        drawSeedGermination();
+    } else if (activeMode === 'earthworm_choice') {
+        drawEarthwormBox();
+    } else if (activeMode === 'eco_bottle') {
+        drawEcoBottle();
+    } else if (activeMode === 'seedling_phototropism') {
+        drawSeedlingPhototropism();
+    } else if (activeMode === 'seasonal_adaptation') {
+        drawSeasonalAdaptation();
+    } else if (activeMode === 'food_web') {
+        drawFoodWeb();
+    } else {
+        drawSeedlingGrowth();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+function drawSeedGermination() {
+    const cx = 360;
+    // Petri dish
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.ellipse(cx, 240, 160, 90, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Wet gauze if has water
+    ctx.fillStyle = state.hasWater ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255, 255, 255, 0.1)';
+    ctx.beginPath();
+    ctx.ellipse(cx, 240, 140, 75, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 3 Mung bean seeds
+    const willGerminate = state.hasWater; // Water is essential
+    for (let i = -1; i <= 1; i++) {
+        const sx = cx + i * 80;
+        const sy = 240 + Math.abs(i) * 15;
+
+        // Seed Body
+        ctx.fillStyle = willGerminate ? '#15803d' : '#854d0e';
+        ctx.beginPath();
+        ctx.ellipse(sx, sy, 16, 11, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Sprout root if germinated
+        if (willGerminate && state.seedlingDays >= 2) {
+            ctx.strokeStyle = '#fef08a';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(sx - 10, sy);
+            ctx.quadraticCurveTo(sx - 20, sy + 15, sx - 15, sy + state.seedlingDays * 4);
+            ctx.stroke();
+        }
+    }
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    const statusTxt = willGerminate ? `已发芽: 胚根突破种皮向下扎根 (适宜水分+空气)` : '未发芽: 缺少水分，种子处于休眠干燥状态';
+    ctx.fillText(`绿豆种子发芽对比实验 【${statusTxt}】`, cx, 40);
+}
+
+function drawEarthwormBox() {
+    const cx = 360;
+    const cy = 230;
+
+    // Dual Chamber Choice Box
+    // Left: Dark & Moist chamber
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(cx - 220, cy - 80, 220, 160);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(cx - 220, cy - 80, 220, 30); // Lid
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('🌑 阴暗湿润室 (盖黑布+湿土)', cx - 180, cy - 60);
+
+    // Right: Bright & Dry chamber
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(cx, cy - 80, 220, 160);
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('☀️ 明亮干燥室 (敞口强光)', cx + 40, cy - 60);
+
+    // Box divider with passage hole
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(cx - 220, cy - 80, 440, 160);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 80); ctx.lineTo(cx, cy - 20);
+    ctx.moveTo(cx, cy + 20); ctx.lineTo(cx, cy + 80);
+    ctx.stroke();
+
+    // 10 Earthworms: 9 in dark moist, 1 crawling across
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 4;
+    for (let i = 0; i < 9; i++) {
+        const wx = cx - 180 + (i % 3) * 50;
+        const wy = cy - 20 + Math.floor(i / 3) * 30;
+        ctx.beginPath();
+        ctx.moveTo(wx, wy);
+        ctx.quadraticCurveTo(wx + 15, wy - 8, wx + 30, wy + 4);
+        ctx.stroke();
+    }
+    // 1 in dry
+    ctx.beginPath();
+    ctx.moveTo(cx + 80, cy + 20);
+    ctx.quadraticCurveTo(cx + 95, cy + 12, cx + 110, cy + 24);
+    ctx.stroke();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('蚯蚓对环境的选择实验: 9/10 蚯蚓自主聚集于阴暗湿润室', cx, 40);
+    ctx.fillStyle = '#10b981';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('科学结论: 蚯蚓喜欢阴暗、潮湿的生活环境!', cx, 80);
+}
+
+function drawEcoBottle() {
+    const cx = 360;
+    const cy = 240;
+
+    // Sealed Glass Bottle
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+    ctx.fillRect(cx - 90, 100, 180, 240);
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(cx - 90, 100, 180, 240);
+
+    // Sand and pebbles at bottom
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(cx - 88, 305, 176, 33);
+
+    // Water weeds (Elodea)
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 4;
+    for (let w = 0; w < state.ecoWeedCount; w++) {
+        const wx = cx - 60 + w * 35;
+        ctx.beginPath();
+        ctx.moveTo(wx, 305);
+        ctx.quadraticCurveTo(wx + 15, 230, wx - 5, 160);
+        ctx.stroke();
+    }
+
+    // Little fish swimming
+    for (let f = 0; f < state.ecoFishCount; f++) {
+        const fx = cx - 40 + f * 50;
+        const fy = 190 + (f % 2) * 45;
+        ctx.fillStyle = '#f97316';
+        ctx.beginPath();
+        ctx.ellipse(fx, fy, 14, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Tail
+        ctx.beginPath();
+        ctx.moveTo(fx - 14, fy); ctx.lineTo(fx - 22, fy - 6); ctx.lineTo(fx - 22, fy + 6);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    // Bottle Cork (Sealed)
+    ctx.fillStyle = '#b45309';
+    ctx.fillRect(cx - 45, 80, 90, 20);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('密闭生态瓶碳氧循环实验 (生产者水草 + 消费者小鱼 + 分解者微生物)', cx, 40);
+}
+
+function drawSeedlingGrowth() {
+    const cx = 360;
+    // Flowerpot
+    ctx.fillStyle = '#d97706';
+    ctx.beginPath();
+    ctx.moveTo(cx - 70, 360); ctx.lineTo(cx - 90, 260); ctx.lineTo(cx + 90, 260); ctx.lineTo(cx + 70, 360);
+    ctx.closePath();
+    ctx.fill();
+
+    // Soil
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(cx - 85, 260, 170, 20);
+
+    // Stem curving toward light
+    ctx.strokeStyle = '#16a34a';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(cx, 260);
+    ctx.quadraticCurveTo(cx + 10, 200, cx + 45, 150);
+    ctx.stroke();
+
+    // Leaves
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    ctx.ellipse(cx + 45, 145, 22, 10, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('植物向光性实验: 茎叶弯向光源方向生长以获取更多光能', cx, 40);
+}
+
+        
+function updateTelemetry() {
+    let txt = `[生态环境数据就绪] 模式: ${activeMode} | `;
+    if (activeMode === 'seed_germination') {
+        txt += `水分: ${state.hasWater?'充沛':'干燥'} | 光照: ${state.hasLight?'有光':'无光'} | 周期: ${state.seedlingDays}天`;
+    } else if (activeMode === 'eco_bottle') {
+        txt += `鱼类数量: ${state.ecoFishCount} | 植物株数: ${state.ecoWeedCount} | 密闭平衡: 优良`;
+    } else {
+        txt += `环境状态: 正常 | 生态适应性探究`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    
+function drawSeedlingPhototropism() {
+    const cx = 360, cy = 230;
+    // Dark experiment box
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(160, 100, 400, 280);
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(160, 100, 400, 280);
+
+    // Right side opening for sunlight
+    ctx.clearRect(560, 160, 10, 80);
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('☀️ 单侧阳光直射孔', 580, 205);
+
+    // Light rays beaming in
+    ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+    ctx.lineWidth = 2;
+    for (let y = 170; y <= 230; y += 15) {
+        ctx.beginPath();
+        ctx.moveTo(680, 200);
+        ctx.lineTo(560, y);
+        ctx.lineTo(360, 260);
+        ctx.stroke();
+    }
+
+    // Plant Pot
+    ctx.fillStyle = '#78350f';
+    ctx.beginPath();
+    ctx.moveTo(330, 350); ctx.lineTo(390, 350); ctx.lineTo(380, 310); ctx.lineTo(340, 310);
+    ctx.closePath();
+    ctx.fill();
+
+    // Stem bending towards the light (Auxin distribution principle)
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(360, 310);
+    ctx.bezierCurveTo(360, 260, 420, 230, 480, 210);
+    ctx.stroke();
+
+    // Tender Leaves at tip
+    ctx.fillStyle = '#4ade80';
+    ctx.beginPath();
+    ctx.ellipse(490, 205, 18, 9, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(475, 195, 16, 8, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Science note
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌱 植物幼苗向光性实验：背光侧生长素浓度高、细胞伸长快，幼苗明显向光源弯曲！', cx, 65);
+    ctx.textAlign = 'left';
+}
+
+function drawSeasonalAdaptation() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('❄️ 生物对四季环境变化的适应机制（换毛、迁徙与冬眠）', cx, 45);
+
+    const cards = [
+        { t: '1. 大雁南飞 (迁徙)', d: '秋冬气温骤降、食物匮乏\n队列成人字形南下越冬\n春季气温回升重返北方繁殖', c: '#38bdf8', x: 80 },
+        { t: '2. 变色换毛 (防御/保暖)', d: '北极狐春夏季毛色灰褐伪装\n秋冬换生厚密白色长绒毛\n与雪地融为一体并高效御寒', c: '#f59e0b', x: 280 },
+        { t: '3. 刺猬/青蛙 (冬眠)', d: '体温随气温大幅下降\n心跳呼吸减缓、代谢极低\n依靠体内脂肪维持漫长安眠', c: '#10b981', x: 480 }
+    ];
+
+    cards.forEach(card => {
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(card.x, 80, 160, 280);
+        ctx.strokeStyle = card.c;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(card.x, 80, 160, 280);
+
+        ctx.fillStyle = card.c;
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(card.t, card.x + 80, 115);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '12px sans-serif';
+        const lines = card.d.split('\\n');
+        lines.forEach((l, i) => ctx.fillText(l, card.x + 80, 165 + i * 26));
+    });
+    ctx.textAlign = 'left';
+}
+
+function drawFoodWeb() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🕸️ 动态生态平衡：池塘与草地食物链与食物网结构', cx, 45);
+
+    const nodes = [
+        { name: '🌿 水草/浮游植物 (生产者)', x: 120, y: 150, c: '#22c55e' },
+        { name: '🦐 水蚤/浮游动物 (初级消费者)', x: 360, y: 120, c: '#38bdf8' },
+        { name: '🐟 杂食性小鱼 (次级消费者)', x: 360, y: 240, c: '#f59e0b' },
+        { name: '🦅 白鹭/肉食性大鱼 (顶级肉食)', x: 600, y: 180, c: '#ef4444' }
+    ];
+
+    // Draw arrows
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 2;
+    // 0 -> 1
+    drawArrow(220, 150, 280, 130);
+    // 0 -> 2
+    drawArrow(220, 160, 280, 230);
+    // 1 -> 2
+    drawArrow(360, 145, 360, 215);
+    // 1 -> 3
+    drawArrow(440, 130, 520, 170);
+    // 2 -> 3
+    drawArrow(440, 240, 520, 190);
+
+    nodes.forEach(n => {
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(n.x - 70, n.y - 25, 140, 50);
+        ctx.strokeStyle = n.c;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(n.x - 70, n.y - 25, 140, 50);
+
+        ctx.fillStyle = n.c;
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(n.name, n.x, n.y + 4);
+    });
+
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = '13px sans-serif';
+    ctx.fillText('💡 能量流动与物质循环：生产者制造有机物，能量沿着食物链逐级传递并递减！', cx, 360);
+    ctx.textAlign = 'left';
+}
+
+function drawArrow(fromx, fromy, tox, toy) {
+    const headlen = 10;
+    const angle = Math.atan2(toy - fromy, tox - fromx);
+    ctx.beginPath();
+    ctx.moveTo(fromx, fromy);
+    ctx.lineTo(tox, toy);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(tox, toy);
+    ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.fill();
+}
+
+</script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

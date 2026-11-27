@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学深度微仿真：万有引力与第一宇宙速度卫星发射（六年级下册·宇宙拓展）</title>
+  <style>
+    :root {
+      --bg: #050811;
+      --card: #0f172a;
+      --border: #1e293b;
+      --primary: #38bdf8;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 440px;
+      background: radial-gradient(circle at center, #0b1329 0%, #020617 100%);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #1e293b;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .controls { display: flex; flex-direction: column; gap: 14px; }
+    .control-group {
+      background: #090e1a;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #1e293b;
+    }
+    .control-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: #334155;
+      border-radius: 3px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .btn-row { display: flex; gap: 8px; }
+    button {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    button:hover { background: #334155; }
+    button.launch {
+      background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+      color: #0b0f19;
+      padding: 12px;
+      font-size: 15px;
+      width: 100%;
+    }
+
+    .orbit-status {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #090e1a;
+      border: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>🛰️ 万有引力与第一宇宙速度卫星发射（六年级下册·宇宙航天拓展）</h1>
+    <span class="badge">牛顿引力轨道算力 · 航天测控</span>
+  </header>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="canvas-box" id="container">
+        <canvas id="orbitCanvas"></canvas>
+      </div>
+      <div class="orbit-status" id="orbitStatus">
+        <span id="statusIcon">🛰️</span>
+        <span id="statusText">当前速度达到第一宇宙速度 (7.9 km/s)，卫星进入稳定圆周近地轨道！</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ 发射测控台</h2>
+      
+      <div class="controls">
+        <button id="btnLaunch" class="launch">🚀 点火发射人造卫星！</button>
+        <button id="btnReset" style="width: 100%; background: #334155;">↺ 清空轨道轨迹重置</button>
+
+        <!-- 速度调节 -->
+        <div class="control-group">
+          <div class="control-header">
+            <span>水平入轨初速度 (v)</span>
+            <span id="valSpeed" style="color: var(--primary); font-family: monospace; font-weight: bold; font-size: 1.1rem;">7.9 km/s</span>
+          </div>
+          <input type="range" id="sliderSpeed" min="4.0" max="12.5" value="7.9" step="0.1">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px;">
+            <span>4.0km/s (掉落)</span>
+            <span>7.9km/s (第一宇宙)</span>
+            <span>11.2km/s (第二宇宙)</span>
+          </div>
+        </div>
+
+        <div style="font-size: 12px; color: var(--muted); line-height: 1.6; background: #090e1a; padding: 10px; border-radius: 6px; border-left: 3px solid var(--primary);">
+          📖 <strong>航天动力学大概念拓展</strong>：
+          - <strong>牛顿大炮思想实验</strong>：如果高山上的大炮发射速度足够大，炮弹落下的弧度将恰好追上地球表面的弯曲，从而永远不会落回地面！
+          - <strong>第一宇宙速度 ($7.9\text{ km/s}$)</strong>：环绕地球做匀速圆周运动的最小发射速度；
+          - <strong>第二宇宙速度 ($11.2\text{ km/s}$)</strong>：脱离地球引力束缚、飞出地月系统的逃逸速度！
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('orbitCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    let launchSpeed = 7.9; // km/s
+    let sat = { x: 0, y: 0, vx: 0, vy: 0, active: false };
+    let trajectory = []; // 轨道历史轨迹点
+
+    const earthR = 50; // 地球渲染半径
+    const GM = 3000;   // 引力参数常数
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      resetSat();
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    const sliderSpeed = document.getElementById('sliderSpeed');
+    const valSpeed = document.getElementById('valSpeed');
+    const btnLaunch = document.getElementById('btnLaunch');
+    const btnReset = document.getElementById('btnReset');
+    const statusText = document.getElementById('statusText');
+    const statusIcon = document.getElementById('statusIcon');
+
+    sliderSpeed.addEventListener('input', (e) => {
+      launchSpeed = parseFloat(e.target.value);
+      valSpeed.textContent = launchSpeed.toFixed(1) + ' km/s';
+      resetSat();
+    });
+
+    btnLaunch.addEventListener('click', () => {
+      resetSat();
+      sat.active = true;
+    });
+
+    btnReset.addEventListener('click', resetSat);
+
+    function resetSat() {
+      const rect = container.getBoundingClientRect();
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+
+      // 发射起点设在地表高空山顶 (正上方)
+      const r0 = earthR + 35;
+      sat.x = cx;
+      sat.y = cy - r0;
+
+      // 水平发射速度 (向右)
+      // 7.9 km/s 映射到圆周轨道理论速度 v0 = sqrt(GM / r0)
+      const vCircular = Math.sqrt(GM / r0);
+      const vScale = vCircular / 7.9;
+
+      sat.vx = launchSpeed * vScale;
+      sat.vy = 0;
+      sat.active = false;
+      trajectory = [];
+
+      updateOrbitStatus();
+      draw();
+    }
+
+    function updateOrbitStatus() {
+      if (launchSpeed < 7.5) {
+        statusIcon.textContent = '💥';
+        statusText.textContent = `初速度过小 (${launchSpeed} km/s)！引力将卫星拉回地表撞击坠毁！`;
+        statusText.style.color = '#f87171';
+      } else if (launchSpeed >= 7.5 && launchSpeed <= 8.3) {
+        statusIcon.textContent = '🛰️';
+        statusText.textContent = `达到第一宇宙速度 (${launchSpeed} km/s)！卫星进入稳定近地圆周轨道！`;
+        statusText.style.color = '#34d399';
+      } else if (launchSpeed > 8.3 && launchSpeed < 11.2) {
+        statusIcon.textContent = '🪐';
+        statusText.textContent = `超第一宇宙速度 (${launchSpeed} km/s)！卫星进入远地椭圆轨道运行！`;
+        statusText.style.color = '#38bdf8';
+      } else {
+        statusIcon.textContent = '🚀';
+        statusText.textContent = `达到第二宇宙速度 (${launchSpeed} km/s)！卫星脱离地球引力束缚飞向深空！`;
+        statusText.style.color = '#f59e0b';
+      }
+    }
+
+    let lastTime = null;
+
+    function updatePhysics(dt) {
+      if (!sat.active) return;
+
+      const rect = container.getBoundingClientRect();
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+
+      // 数值积分 (分步亚步长 Verlet / Euler 提高引力模拟精度)
+      const subSteps = 5;
+      const sdt = dt / subSteps;
+
+      for (let s = 0; s < subSteps; s++) {
+        const dx = cx - sat.x;
+        const dy = cy - sat.y;
+        const dist = Math.hypot(dx, dy);
+
+        // 如果撞击地球
+        if (dist <= earthR) {
+          sat.active = false;
+          break;
+        }
+
+        // 万有引力加速度 a = GM / r^2
+        const a = GM / (dist * dist);
+        const ax = a * (dx / dist);
+        const ay = a * (dy / dist);
+
+        sat.vx += ax * sdt;
+        sat.vy += ay * sdt;
+        sat.x += sat.vx * sdt;
+        sat.y += sat.vy * sdt;
+
+        trajectory.push({ x: sat.x, y: sat.y });
+        if (trajectory.length > 800) trajectory.shift();
+      }
+    }
+
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 1. 绘制历史轨道线
+      if (trajectory.length > 1) {
+        ctx.strokeStyle = launchSpeed >= 11.2 ? '#f59e0b' : (launchSpeed >= 7.5 ? '#38bdf8' : '#ef4444');
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(trajectory[0].x, trajectory[0].y);
+        for (let i = 1; i < trajectory.length; i++) {
+          ctx.lineTo(trajectory[i].x, trajectory[i].y);
+        }
+        ctx.stroke();
+      }
+
+      // 2. 绘制中心地球 (大气层蓝光晕)
+      const earthGrad = ctx.createRadialGradient(cx, cy, earthR * 0.3, cx, cy, earthR);
+      earthGrad.addColorStop(0, '#0284c7');
+      earthGrad.addColorStop(0.8, '#0369a1');
+      earthGrad.addColorStop(1, '#075985');
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, earthR, 0, Math.PI * 2);
+      ctx.fillStyle = earthGrad;
+      ctx.fill();
+
+      // 大气层微光
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('地球 (M)', cx, cy);
+
+      // 发射高山
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(cx - 3, cy - earthR - 35, 6, 35);
+
+      // 3. 绘制人造卫星
+      ctx.beginPath();
+      ctx.arc(sat.x, sat.y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#fde047';
+      ctx.shadowColor = '#fde047';
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // 太阳能翼板
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(sat.x - 14, sat.y - 2, 8, 4);
+      ctx.fillRect(sat.x + 6, sat.y - 2, 8, 4);
+    }
+
+    function loop(timestamp) {
+      if (lastTime === null) lastTime = timestamp;
+      const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+      lastTime = timestamp;
+
+      updatePhysics(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    resize();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

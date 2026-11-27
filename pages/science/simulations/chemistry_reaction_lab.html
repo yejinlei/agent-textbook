@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学深度微仿真：化学反应微观分子碰撞与质量守恒（六年级下册·物质的变化）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #38bdf8;
+      --accent: #f59e0b;
+      --bubble: #e0f2fe;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .badge {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 420px;
+      background: radial-gradient(circle at center, #111a2d 0%, #050811 100%);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #1a273f;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .controls { display: flex; flex-direction: column; gap: 14px; }
+    .control-group {
+      background: #101624;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #233147;
+    }
+    .control-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    button:hover { background: #334155; }
+    button.active {
+      background: var(--accent);
+      color: #0b0f19;
+      border-color: var(--accent);
+    }
+    button.primary-action {
+      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+      color: #fff;
+      padding: 12px;
+      font-size: 15px;
+      grid-column: span 2;
+    }
+
+    .balance-display {
+      margin-top: 12px;
+      background: #101624;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    .balance-val { color: var(--primary); font-weight: bold; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+    <a href="index.html" style="position: fixed; top: 14px; right: 18px; z-index: 9999; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 6px 16px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: all 0.2s;">← 返回实验大厅</a>
+
+
+  <header>
+    <h1>🧪 化学反应微观碰撞与质量守恒定律（六年级下册·物质的变化深度拓展）</h1>
+    <span class="badge">宏观气压气泡 + 微观分子碰撞重组</span>
+  </header>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="canvas-box" id="container">
+        <canvas id="chemCanvas"></canvas>
+      </div>
+      <div class="balance-display">
+        <span>⚖️ 高精度电子天平示数：</span>
+        <span class="balance-val" id="massReading">150.00 g</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ 反应系统与视角</h2>
+      
+      <div class="controls">
+        <button id="btnReact" class="primary-action">🫧 倒入小苏打：启动化学反应！</button>
+        <button id="btnReset" style="background: #334155; color: #fff;">↺ 清空并重新配置药品</button>
+
+        <!-- 密封 vs 敞口 -->
+        <div class="control-group">
+          <div class="control-header"><span>实验容器密闭性（质量守恒探究）</span></div>
+          <div class="btn-grid">
+            <button id="modeSealed" class="active">密封瓶塞 (气体留在瓶内)</button>
+            <button id="modeOpen">敞口广口瓶 (气体逸散)</button>
+          </div>
+        </div>
+
+        <!-- 宏观 vs 微观视角 -->
+        <div class="control-group">
+          <div class="control-header"><span>观察维度视角</span></div>
+          <div class="btn-grid">
+            <button id="viewMacro" class="active">🔭 宏观气泡与气压</button>
+            <button id="viewMicro">🔬 微观分子碰撞重组</button>
+          </div>
+        </div>
+
+        <div style="font-size: 12px; color: var(--muted); line-height: 1.6; background: #101624; padding: 10px; border-radius: 6px; border-left: 3px solid var(--accent);">
+          📖 <strong>高阶化学反应机理拓展</strong>：
+          - <strong>反应方程式</strong>：  
+            $\text{NaHCO}_3 + \text{CH}_3\text{COOH} \to \text{CH}_3\text{COONa} + \text{H}_2\text{O} + \text{CO}_2\uparrow$
+          - <strong>质量守恒定律</strong>：在化学反应中，参加反应的各物质质量总和<strong>等于</strong>反应后生成的各物质质量总和。敞口瓶示数变小是因为二氧化碳气体逸散到了空气中！
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('chemCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    let isSealed = true;
+    let viewMode = 'macro'; // 'macro' or 'micro'
+    let reacting = false;
+    let reactionTime = 0;
+    let mass = 150.00;
+
+    let bubbles = [];
+    let molecules = [];
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    const massReading = document.getElementById('massReading');
+    const btnReact = document.getElementById('btnReact');
+    const btnReset = document.getElementById('btnReset');
+    const modeSealed = document.getElementById('modeSealed');
+    const modeOpen = document.getElementById('modeOpen');
+    const viewMacro = document.getElementById('viewMacro');
+    const viewMicro = document.getElementById('viewMicro');
+
+    btnReact.addEventListener('click', () => {
+      if (!reacting) {
+        reacting = true;
+        reactionTime = 0;
+        btnReact.textContent = '⚡ 反应剧烈进行中 (生成新物质)...';
+        btnReact.style.opacity = '0.7';
+        initReactionEntities();
+      }
+    });
+
+    btnReset.addEventListener('click', reset);
+
+    modeSealed.addEventListener('click', () => {
+      isSealed = true;
+      modeSealed.className = 'active';
+      modeOpen.className = '';
+      reset();
+    });
+
+    modeOpen.addEventListener('click', () => {
+      isSealed = false;
+      modeOpen.className = 'active';
+      modeSealed.className = '';
+      reset();
+    });
+
+    viewMacro.addEventListener('click', () => {
+      viewMode = 'macro';
+      viewMacro.className = 'active';
+      viewMicro.className = '';
+      draw();
+    });
+
+    viewMicro.addEventListener('click', () => {
+      viewMode = 'micro';
+      viewMicro.className = 'active';
+      viewMacro.className = '';
+      draw();
+    });
+
+    function reset() {
+      reacting = false;
+      reactionTime = 0;
+      mass = 150.00;
+      massReading.textContent = mass.toFixed(2) + ' g';
+      btnReact.textContent = '🫧 倒入小苏打：启动化学反应！';
+      btnReact.style.opacity = '1';
+      bubbles = [];
+      molecules = [];
+      draw();
+    }
+
+    function initReactionEntities() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      // 宏观气泡
+      bubbles = [];
+      for (let i = 0; i < 40; i++) {
+        bubbles.push({
+          x: w/2 - 50 + Math.random() * 100,
+          y: h * 0.65 + Math.random() * 50,
+          r: 2 + Math.random() * 5,
+          vy: 40 + Math.random() * 80
+        });
+      }
+
+      // 微观分子 (代表 NaHCO3 离子与 CH3COOH 分子碰撞重组)
+      molecules = [];
+      for (let i = 0; i < 30; i++) {
+        molecules.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 120,
+          vy: (Math.random() - 0.5) * 120,
+          type: Math.random() > 0.5 ? 'acid' : 'baking'
+        });
+      }
+    }
+
+    let lastTime = null;
+
+    function update(dt) {
+      if (!reacting) return;
+
+      reactionTime += dt;
+
+      // 质量变化
+      if (!isSealed) {
+        // 敞口系统，CO2 气体逸散，质量减少 2.35g
+        mass = Math.max(147.65, 150.00 - reactionTime * 0.45);
+        massReading.textContent = mass.toFixed(2) + ' g (气体逸散)';
+      } else {
+        // 密闭系统，完全守恒
+        massReading.textContent = '150.00 g (质量严格守恒)';
+      }
+
+      const rect = container.getBoundingClientRect();
+      const h = rect.height;
+
+      // 更新气泡
+      bubbles.forEach(b => {
+        b.y -= b.vy * dt;
+        if (b.y < h * 0.45) {
+          b.y = h * 0.7; // 循环生成
+        }
+      });
+
+      // 更新微观分子运动
+      molecules.forEach(m => {
+        m.x += m.vx * dt;
+        m.y += m.vy * dt;
+        if (m.x < 20 || m.x > rect.width - 20) m.vx *= -1;
+        if (m.y < 20 || m.y > rect.height - 20) m.vy *= -1;
+      });
+    }
+
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      if (viewMode === 'macro') {
+        drawMacroView(w, h);
+      } else {
+        drawMicroView(w, h);
+      }
+    }
+
+    // 绘制宏观锥形瓶与化学反应
+    function drawMacroView(w, h) {
+      const cx = w / 2;
+      const cy = h * 0.55;
+
+      // 1. 电子天平底座
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(cx - 100, cy + 120, 200, 20);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(cx - 50, cy + 124, 100, 12);
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(mass.toFixed(2) + ' g', cx, cy + 133);
+
+      // 2. 玻璃锥形瓶轮廓
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      // 瓶口
+      ctx.moveTo(cx - 20, cy - 80);
+      ctx.lineTo(cx + 20, cy - 80);
+      // 瓶颈
+      ctx.lineTo(cx + 20, cy - 40);
+      // 锥体斜坡
+      ctx.lineTo(cx + 80, cy + 110);
+      // 瓶底
+      ctx.lineTo(cx - 80, cy + 110);
+      ctx.lineTo(cx - 20, cy - 40);
+      ctx.closePath();
+      ctx.stroke();
+
+      // 3. 锥形瓶内液体 (白醋 + 小苏打反应液)
+      ctx.fillStyle = reacting ? 'rgba(254, 240, 138, 0.4)' : 'rgba(56, 189, 248, 0.25)';
+      ctx.beginPath();
+      ctx.moveTo(cx - 60, cy + 40);
+      ctx.lineTo(cx + 60, cy + 40);
+      ctx.lineTo(cx + 80, cy + 110);
+      ctx.lineTo(cx - 80, cy + 110);
+      ctx.closePath();
+      ctx.fill();
+
+      // 4. 气泡上升动画
+      if (reacting) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        bubbles.forEach(b => {
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      // 5. 密封瓶塞
+      if (isSealed) {
+        ctx.fillStyle = '#b45309';
+        ctx.fillRect(cx - 18, cy - 90, 36, 14);
+        ctx.strokeStyle = '#d97706';
+        ctx.strokeRect(cx - 18, cy - 90, 36, 14);
+
+        // 如果产生大量气压
+        if (reacting) {
+          ctx.fillStyle = '#ef4444';
+          ctx.font = '10px sans-serif';
+          ctx.fillText('⚡ 密闭气压上升', cx, cy - 98);
+        }
+      } else {
+        // 敞口无塞，绘制逸散二氧化碳虚线箭头
+        if (reacting) {
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = '11px sans-serif';
+          ctx.fillText('💨 CO₂ 气体向上逸散', cx, cy - 95);
+        }
+      }
+    }
+
+    // 绘制微观分子碰撞
+    function drawMicroView(w, h) {
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '12px sans-serif';
+      ctx.fillText('🔬 微观视角：反应物分子碰撞重组为 CO₂ + H₂O', 20, 30);
+
+      molecules.forEach(m => {
+        ctx.beginPath();
+        if (m.type === 'acid') {
+          // 乙酸分子团 (红+蓝)
+          ctx.arc(m.x, m.y, 10, 0, Math.PI * 2);
+          ctx.fillStyle = '#ef4444';
+          ctx.fill();
+          ctx.fillStyle = '#fff';
+          ctx.font = '9px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('CH₃COO⁻', m.x, m.y + 3);
+        } else {
+          // 碳酸氢根 (黄+绿)
+          ctx.arc(m.x, m.y, 10, 0, Math.PI * 2);
+          ctx.fillStyle = '#10b981';
+          ctx.fill();
+          ctx.fillStyle = '#fff';
+          ctx.font = '9px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('HCO₃⁻', m.x, m.y + 3);
+        }
+      });
+    }
+
+    function loop(timestamp) {
+      if (lastTime === null) lastTime = timestamp;
+      const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+      lastTime = timestamp;
+
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    resize();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

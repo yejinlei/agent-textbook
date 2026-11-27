@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【6. 运动与设计】真实验微仿真 - 五年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .header h1 {
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+        }
+        .badge {
+            background: #0369a1;
+            color: #e0f2fe;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+        }
+        .unit-nav a {
+            color: var(--muted);
+            text-decoration: none;
+            padding: 6px 12px;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a:hover {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            color: var(--text);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+        .notes-card strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 <span>6. 运动与设计</span></h1>
+        <span class="badge">第三单元《运动和力》</span>
+        <a href="mechanics_lever.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 运动和力学测力实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g09_s1_u03_l01.html" class="">我们的小缆车</a>
+<a href="sim_g09_s1_u03_l02.html" class="">用气球驱动小车</a>
+<a href="sim_g09_s1_u03_l03.html" class="">用橡皮筋驱动小车</a>
+<a href="sim_g09_s1_u03_l04.html" class="">弹簧测力计</a>
+<a href="sim_g09_s1_u03_l05.html" class="">运动与摩擦力</a>
+<a href="sim_g09_s1_u03_l06.html" class="active">运动与设计</a>
+<a href="sim_g09_s1_u03_l07.html" class="">设计制作小车</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 动力学与力测量控制台</div>
+            
+            <div id="controlsContainer">
+                <!-- Dynamically injected controls -->
+            </div>
+
+            <div class="card-title" style="margin-top: 6px;">📊 运动力学与做功遥测</div>
+            <div class="telemetry" id="telem">
+                [遥测就绪] 等待交互触发...
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <strong>🎯 探究目标与原书要点：</strong><br>
+            系统探索重力驱动、气球喷气反冲、橡皮筋弹力势能、弹簧测力计与滑动摩擦力。
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+
+        const activeMode = "rolling_vs_sliding";
+
+        // Web Audio Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, dur=0.15) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
+        }
+
+        
+const state = {
+    cartPowerType: activeMode === 'balloon_jet' ? 'balloon' : activeMode === 'rubber_band' ? 'rubber' : 'gravity',
+    washerCount: 3, // 1~10 垫圈重力
+    balloonSize: 30, // 10~50 mm
+    rubberWindTurns: 4, // 1~8 圈
+    surface: 'wood', // wood(光滑木板), towel(毛巾粗糙), sandpaper(砂纸)
+    isRolling: true, // true:轮子滚动, false:无轮滑动
+    cartX: 60,
+    cartV: 0,
+    springForce: 1.5, // N
+    isRunning: false
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'gravity_cart') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>悬挂垫圈个数 (下落重力)</span><span class="val" id="washVal">${state.washerCount} 个</span></div>
+                <input type="range" id="washerSlider" min="1" max="8" value="${state.washerCount}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-green" id="btnReleaseCart">🏁 释放缆车启动行驶</button>
+                <button class="btn btn-rose" id="btnResetCart">🔄 复位起点</button>
+            </div>
+        `;
+    } else if (activeMode === 'balloon_jet') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>气球充气直径 (反冲能量)</span><span class="val" id="balVal">${state.balloonSize} mm</span></div>
+                <input type="range" id="balloonSlider" min="15" max="55" value="${state.balloonSize}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-green" id="btnJetRelease">🎈 松开喷气反冲喷射</button>
+                <button class="btn btn-rose" id="btnResetCart">🔄 重新充气</button>
+            </div>
+        `;
+    } else if (activeMode === 'rubber_band') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>橡皮筋后轮缠绕圈数</span><span class="val" id="turnVal">${state.rubberWindTurns} 圈</span></div>
+                <input type="range" id="turnsSlider" min="1" max="8" value="${state.rubberWindTurns}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-green" id="btnRubberRelease">🌀 释放弹力驱动小车</button>
+                <button class="btn btn-rose" id="btnResetCart">🔄 重新缠绕</button>
+            </div>
+        `;
+    } else if (activeMode === 'spring_dynamometer' || activeMode === 'friction_contact') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>接触面粗糙度条件</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.surface==='wood'?'btn-primary':''}" id="btnWood">🪵 光滑木板面 (μ=0.3)</button>
+                    <button class="btn ${state.surface==='towel'?'btn-primary':''}" id="btnTowel">🧣 柔软毛巾面 (μ=0.6)</button>
+                    <button class="btn ${state.surface==='sandpaper'?'btn-primary':''}" id="btnSand">🧱 粗糙砂纸面 (μ=0.8)</button>
+                </div>
+            </div>
+            <div class="btn-grid" style="margin-top:6px;">
+                <button class="btn btn-green" id="btnPullDyno">⚖️ 弹簧测力计匀速拉动木块</button>
+            </div>
+        `;
+    } else {
+        // rolling vs sliding
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>摩擦形式对比</span><span class="val">${state.isRolling?'轮子滚动摩擦':'木块直接滑动摩擦'}</span></div>
+                <div class="btn-grid">
+                    <button class="btn ${state.isRolling?'btn-green':'btn-primary'}" id="btnToggleRolling">🔄 切换轮子滚动 / 接触面滑动</button>
+                    <button class="btn btn-primary" id="btnTestFriction">🏎️ 释放测试行驶距离</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU3Events();
+}
+
+function bindU3Events() {
+    const washerSlider = document.getElementById('washerSlider');
+    if (washerSlider) {
+        washerSlider.addEventListener('input', (e) => {
+            state.washerCount = parseInt(e.target.value);
+            document.getElementById('washVal').innerText = state.washerCount + ' 个';
+            playTone(300 + state.washerCount * 40, 0.05);
+        });
+    }
+    const balloonSlider = document.getElementById('balloonSlider');
+    if (balloonSlider) {
+        balloonSlider.addEventListener('input', (e) => {
+            state.balloonSize = parseInt(e.target.value);
+            document.getElementById('balVal').innerText = state.balloonSize + ' mm';
+        });
+    }
+    const turnsSlider = document.getElementById('turnsSlider');
+    if (turnsSlider) {
+        turnsSlider.addEventListener('input', (e) => {
+            state.rubberWindTurns = parseInt(e.target.value);
+            document.getElementById('turnVal').innerText = state.rubberWindTurns + ' 圈';
+            playTone(400 + state.rubberWindTurns * 40, 0.05);
+        });
+    }
+
+    const btnReleaseCart = document.getElementById('btnReleaseCart');
+    if (btnReleaseCart) btnReleaseCart.onclick = () => {
+        state.isRunning = true;
+        state.cartV = state.washerCount * 0.8;
+        playTone(600, 0.2);
+    };
+    const btnJetRelease = document.getElementById('btnJetRelease');
+    if (btnJetRelease) btnJetRelease.onclick = () => {
+        state.isRunning = true;
+        state.cartV = state.balloonSize * 0.2;
+        playTone(800, 0.3, 'sawtooth');
+    };
+    const btnRubberRelease = document.getElementById('btnRubberRelease');
+    if (btnRubberRelease) btnRubberRelease.onclick = () => {
+        state.isRunning = true;
+        state.cartV = state.rubberWindTurns * 1.1;
+        playTone(700, 0.2);
+    };
+    const btnResetCart = document.getElementById('btnResetCart');
+    if (btnResetCart) btnResetCart.onclick = () => {
+        state.cartX = 60;
+        state.cartV = 0;
+        state.isRunning = false;
+        playTone(300, 0.1);
+    };
+
+    const btnWood = document.getElementById('btnWood');
+    if (btnWood) btnWood.onclick = () => { state.surface = 'wood'; state.springForce = 0.8; setupControls(); playTone(500, 0.1); };
+    const btnTowel = document.getElementById('btnTowel');
+    if (btnTowel) btnTowel.onclick = () => { state.surface = 'towel'; state.springForce = 1.6; setupControls(); playTone(500, 0.1); };
+    const btnSand = document.getElementById('btnSand');
+    if (btnSand) btnSand.onclick = () => { state.surface = 'sandpaper'; state.springForce = 2.4; setupControls(); playTone(500, 0.1); };
+
+    const btnPullDyno = document.getElementById('btnPullDyno');
+    if (btnPullDyno) btnPullDyno.onclick = () => { playTone(880, 0.2); };
+
+    const btnToggleRolling = document.getElementById('btnToggleRolling');
+    if (btnToggleRolling) btnToggleRolling.onclick = () => {
+        state.isRolling = !state.isRolling;
+        setupControls();
+        playTone(650, 0.1);
+    };
+    const btnTestFriction = document.getElementById('btnTestFriction');
+    if (btnTestFriction) btnTestFriction.onclick = () => {
+        state.isRunning = true;
+        state.cartV = state.isRolling ? 6.5 : 1.8;
+        playTone(750, 0.2);
+    };
+}
+
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    // Tabletop
+    ctx.fillStyle = state.surface === 'sandpaper' ? '#78350f' : state.surface === 'towel' ? '#475569' : '#334155';
+    ctx.fillRect(40, 280, 640, 40);
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(40, 320, 640, 100);
+
+    // Friction surface texture
+    if (state.surface === 'sandpaper') {
+        ctx.fillStyle = 'rgba(251, 191, 36, 0.3)';
+        for (let i = 40; i < 680; i += 12) ctx.fillRect(i, 280, 5, 4);
+    } else if (state.surface === 'towel') {
+        ctx.fillStyle = 'rgba(203, 213, 225, 0.3)';
+        for (let i = 40; i < 680; i += 10) ctx.fillRect(i, 280, 4, 6);
+    }
+
+    if (activeMode === 'spring_dynamometer' || activeMode === 'friction_contact') {
+        drawFrictionScene();
+    } else if (activeMode === 'rolling_vs_sliding') {
+        drawRollingVsSliding();
+    } else if (activeMode === 'race_car_design') {
+        drawRaceCarDesign();
+    } else {
+        drawMotionCartScene();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+function drawMotionCartScene() {
+    const cx = 360;
+
+    if (state.isRunning) {
+        state.cartX += state.cartV;
+        state.cartV *= 0.985;
+        if (state.cartV < 0.05 || state.cartX > 600) {
+            state.isRunning = false;
+        }
+    }
+
+    // Cart Body
+    const cxPos = state.cartX;
+    const cyPos = 240;
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(cxPos, cyPos, 65, 30);
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('动力小车', cxPos + 8, cyPos + 18);
+
+    // Wheels
+    if (state.isRolling) {
+        ctx.fillStyle = '#cbd5e1';
+        ctx.beginPath();
+        ctx.arc(cxPos + 12, cyPos + 35, 8, 0, Math.PI * 2);
+        ctx.arc(cxPos + 53, cyPos + 35, 8, 0, Math.PI * 2);
+        ctx.fill();
+    } else {
+        // Flat sliding skid
+        ctx.fillStyle = '#f43f5e';
+        ctx.fillRect(cxPos + 5, cyPos + 30, 55, 6);
+    }
+
+    // Specific Propulsion Apparatus
+    if (activeMode === 'gravity_cart') {
+        // String to pulley & hanging washers
+        ctx.strokeStyle = '#f8fafc';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cxPos + 65, cyPos + 15);
+        ctx.lineTo(620, cyPos + 15);
+        ctx.lineTo(620, 360);
+        ctx.stroke();
+
+        // Pulley at edge
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(620, cyPos + 15, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Hanging washers
+        ctx.fillStyle = '#cbd5e1';
+        for (let i = 0; i < state.washerCount; i++) {
+            ctx.fillRect(612, 360 + i * 8, 16, 6);
+        }
+    } else if (activeMode === 'balloon_jet') {
+        // Balloon on cart
+        ctx.fillStyle = '#f43f5e';
+        ctx.beginPath();
+        ctx.arc(cxPos + 15, cyPos - 10, state.balloonSize * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Jet nozzle & air stream
+        if (state.isRunning) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.arc(cxPos - 15 - i * 10, cyPos - 10 + (Math.random() - 0.5) * 8, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    } else if (activeMode === 'rubber_band') {
+        // Rubber band wound on axle
+        ctx.strokeStyle = '#eab308';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(cxPos + 12, cyPos + 35);
+        ctx.lineTo(cxPos + 35, cyPos + 15);
+        ctx.stroke();
+    }
+
+    // Title banner
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`动力探究小车: 行驶位移 ${((state.cartX - 60)/5).toFixed(1)} cm | 速度: ${state.cartV.toFixed(2)}`, cx, 40);
+}
+
+
+function drawRollingVsSliding() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🛞 运动与设计: 滚动摩擦力 vs 滑动摩擦力对比实验 (滚木/轴承减小阻力90%)', cx, 40);
+
+    // Track 1: Sliding Wood Block (滑动摩擦)
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(80, 100, 560, 110);
+    ctx.strokeStyle = '#334155'; ctx.strokeRect(80, 100, 560, 110);
+
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(140, 130, 80, 50);
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('直接滑动 (接触面大)', 180, 160);
+
+    ctx.fillStyle = '#f43f5e'; ctx.font = 'bold 14px monospace';
+    ctx.fillText('摩擦拉力: 2.80 N', 350, 160);
+    ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(220, 155); ctx.lineTo(310, 155); ctx.stroke();
+
+    // Track 2: Rolling with Rollers/Wheels (滚动摩擦)
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(80, 240, 560, 110);
+    ctx.strokeStyle = '#334155'; ctx.strokeRect(80, 240, 560, 110);
+
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(140, 260, 80, 45);
+    ctx.fillStyle = '#cbd5e1';
+    // 3 Cylindrical Rollers under block
+    for (let r = 0; r < 3; r++) {
+        ctx.beginPath();
+        ctx.arc(155 + r * 25, 312, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#64748b'; ctx.stroke();
+    }
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillText('底部加滚珠/轮子', 180, 288);
+
+    ctx.fillStyle = '#10b981'; ctx.font = 'bold 14px monospace';
+    ctx.fillText('滚动拉力: 0.28 N (省力90%!)', 350, 290);
+    ctx.strokeStyle = '#10b981'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(220, 285); ctx.lineTo(310, 285); ctx.stroke();
+
+    ctx.fillStyle = '#38bdf8'; ctx.font = '13px sans-serif';
+    ctx.fillText('科学结论: 相同压力下，变滑动为滚动可以大幅度减小摩擦力；车轮是人类最伟大的发明之一', cx, 395);
+}
+
+function drawRaceCarDesign() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏎️ 设计制作我们的小赛车: 流线型低风阻车身 + 大轮胎抓地力 + 双驱动力', cx, 40);
+
+    // Wind Tunnel Background
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(100, 80, 520, 260);
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2;
+    ctx.strokeRect(100, 80, 520, 260);
+
+    // Streamline Racing Car
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath();
+    ctx.moveTo(220, 230);
+    ctx.quadraticCurveTo(280, 160, 400, 180);
+    ctx.lineTo(460, 210);
+    ctx.lineTo(470, 230);
+    ctx.closePath();
+    ctx.fill();
+
+    // Spoiler at rear
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(205, 180, 25, 6);
+    ctx.fillRect(215, 186, 6, 44);
+
+    // Big Racing Wheels
+    ctx.fillStyle = '#020617';
+    ctx.beginPath();
+    ctx.arc(260, 235, 20, 0, Math.PI * 2);
+    ctx.arc(430, 235, 18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Streamlines in wind tunnel
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+    ctx.lineWidth = 2;
+    for (let y = 110; y <= 310; y += 30) {
+        ctx.beginPath();
+        ctx.moveTo(120, y);
+        if (y >= 160 && y <= 240) {
+            ctx.quadraticCurveTo(340, y - 40, 580, y);
+        } else {
+            ctx.lineTo(580, y);
+        }
+        ctx.stroke();
+    }
+
+    ctx.fillStyle = '#10b981'; ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('设计要点: ① 流线型车身减少空气阻力 ② 车身重心尽量低防侧翻 ③ 轮胎表面深花纹增大驱动抓地力', cx, 380);
+}
+
+function drawFrictionScene() {
+    const cx = 360;
+    // Wooden Block being pulled
+    const bx = 220;
+    const by = 220;
+
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(bx, by, 70, 60);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('木块 (5N)', bx + 10, by + 35);
+
+    // Spring Dynamometer (弹簧测力计)
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(bx + 75, by + 18, 130, 24);
+    ctx.strokeStyle = '#ca8a04';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bx + 75, by + 18, 130, 24);
+
+    // Scale marks
+    ctx.strokeStyle = '#0f172a';
+    for (let i = 0; i < 10; i++) {
+        ctx.beginPath();
+        ctx.moveTo(bx + 90 + i * 10, by + 18);
+        ctx.lineTo(bx + 90 + i * 10, by + 26);
+        ctx.stroke();
+    }
+
+    // Pointer showing force
+    const pX = bx + 90 + state.springForce * 35;
+    ctx.fillStyle = '#dc2626';
+    ctx.beginPath();
+    ctx.moveTo(pX, by + 18);
+    ctx.lineTo(pX - 4, by + 12);
+    ctx.lineTo(pX + 4, by + 12);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#dc2626';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText(`${state.springForce.toFixed(2)} N`, bx + 160, by + 35);
+
+    // Friction Force arrow opposing motion
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(bx, by + 60);
+    ctx.lineTo(bx - 50, by + 60);
+    ctx.stroke();
+    ctx.fillStyle = '#f43f5e';
+    ctx.fillText('f 摩擦力', bx - 70, by + 55);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`滑动摩擦力测量: ${state.surface==='wood'?'木板(光滑)':state.surface==='towel'?'毛巾(较粗糙)':'砂纸(极粗糙)'} -> 读数 ${state.springForce} N`, cx, 40);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('实验结论: 接触面越粗糙，水平匀速拉动所需的拉力(摩擦力)越大!', cx, 80);
+}
+
+
+        
+function updateTelemetry() {
+    let txt = `[运动力学数据就绪] 模式: ${activeMode} | `;
+    if (activeMode === 'gravity_cart') {
+        txt += `垫圈重力: ${state.washerCount}个 | 行驶位移: ${((state.cartX-60)/5).toFixed(1)}cm | 状态: ${state.isRunning?'行驶中':'就绪'}`;
+    } else if (activeMode === 'balloon_jet') {
+        txt += `气球储能: ${state.balloonSize}mm | 喷气反冲速度: ${state.cartV.toFixed(2)}`;
+    } else if (activeMode === 'spring_dynamometer' || activeMode === 'friction_contact') {
+        txt += `表面介质: ${state.surface} | 测力计读数: ${state.springForce} N`;
+    } else {
+        txt += `形式: ${state.isRolling?'滚动摩擦':'滑动摩擦'} | 速度衰减系数: 0.985`;
+    }
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        updateTelemetry();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

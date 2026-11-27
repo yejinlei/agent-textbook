@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学大师级实验室：塔台结构工程力学与抗风抗震物理沙盒（六年级上册·小小工程师）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --primary: #f59e0b;
+      --accent: #38bdf8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1240px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-primary {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-color: #d97706;
+      color: #0f172a;
+      font-weight: 700;
+    }
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+      color: #f87171;
+    }
+
+    .main-container {
+      max-width: 1240px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 960px) {
+      .main-container { grid-template-columns: 1fr; }
+    }
+
+    .canvas-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .canvas-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.4);
+    }
+    .canvas-wrapper {
+      position: relative;
+      flex: 1;
+      min-height: 520px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 60%, #17243c 0%, #0b1120 100%);
+    }
+    canvas { display: block; }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fbbf24;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .form-group { margin-bottom: 12px; }
+    .form-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    input[type=range] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #1e293b;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+    }
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .option-btn {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.5);
+      color: var(--text);
+      font-size: 0.8rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .option-btn:hover { border-color: var(--primary); }
+    .option-btn.active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--primary);
+      color: #fbbf24;
+      font-weight: 700;
+    }
+    .telemetry-card {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.75rem;
+      color: #38bdf8;
+      line-height: 1.5;
+      min-height: 95px;
+    }
+    .science-tip {
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      background: rgba(30, 41, 59, 0.5);
+      border-left: 3px solid #f59e0b;
+      padding: 8px 10px;
+      border-radius: 0 8px 8px 0;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>🏆 塔台结构工程力学与抗风抗震物理沙盒</h1>
+      <span class="badge">六年级上册·小小工程师核心</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html" class="btn">← 返回实验大厅</a>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="canvas-panel">
+      <div class="canvas-header">
+        <span>🏗️ 桁架力学动态加载实验台（风动风洞、地震波台与承重载荷）</span>
+        <span id="towerStatusTag" style="color: #10b981; font-weight: bold;">● 结构完整稳固</span>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="simCanvas" width="840" height="520"></canvas>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="card">
+        <div class="card-title">📐 塔台结构设计方案选择</div>
+        <div class="btn-grid form-group">
+          <button class="option-btn active" id="btnPlanA" onclick="selectPlan('A')">方案 A: 简易四边形 (无斜撑)</button>
+          <button class="option-btn" id="btnPlanB" onclick="selectPlan('B')">方案 B: 简易三角斜撑</button>
+          <button class="option-btn" id="btnPlanC" onclick="selectPlan('C')">方案 C: 金字塔密集桁架 (工程级)</button>
+          <button class="option-btn" id="btnPlanD" onclick="selectPlan('D')">方案 D: 上重下轻倒置型</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🌪️ 环境破坏载荷测试</div>
+        
+        <div class="form-group">
+          <div class="form-label">
+            <span>💨 吹风机侧风等级 (抗风测试)</span>
+            <span id="valWind" style="color:#38bdf8; font-weight:bold;">0 级 (微风)</span>
+          </div>
+          <input type="range" id="sliderWind" min="0" max="6" value="0" step="1" oninput="updateWind(this.value)">
+        </div>
+
+        <div class="form-group">
+          <div class="form-label">
+            <span>🌋 地震波振动台等级 (抗震测试)</span>
+            <span id="valQuake" style="color:#f59e0b; font-weight:bold;">0 级 (静止)</span>
+          </div>
+          <input type="range" id="sliderQuake" min="0" max="6" value="0" step="1" oninput="updateQuake(this.value)">
+        </div>
+
+        <div class="form-group">
+          <div class="form-label">
+            <span>🏋️ 顶端配重加载 (顶端承重)</span>
+            <span id="valLoad" style="color:#a855f7; font-weight:bold;">0 g</span>
+          </div>
+          <input type="range" id="sliderLoad" min="0" max="800" value="0" step="50" oninput="updateLoad(this.value)">
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-danger" style="flex:1;" onclick="resetTests()">🔄 复原与修复塔台</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 结构遥测与物理受力数据</div>
+        <div class="telemetry-card" id="telem">
+          初始化中...
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📖 工程师大概念视角</div>
+        <div class="science-tip">
+          <strong>稳固的工程结构三原则：</strong><br>
+          1. <strong>三角形稳定性</strong>：三角形具有不可变形性，四边形必须加斜拉杆变成三角形；<br>
+          2. <strong>上小下大、上轻下重</strong>：降低重心高度，大幅提升抗倾覆力矩；<br>
+          3. <strong>风阻控制</strong>：镂空桁架结构让空气顺畅穿透，避免受阻翻倒。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    const telem = document.getElementById('telem');
+    const statusTag = document.getElementById('towerStatusTag');
+
+    // Audio
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(freq, dur=0.15) {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + dur);
+      }catch(e){}
+    }
+
+    let plan = 'A'; // A, B, C, D
+    let windLevel = 0;   // 0~6
+    let quakeLevel = 0;  // 0~6
+    let topLoad = 0;     // 0~800g
+    let collapsed = false;
+
+    // Simulation Physics State
+    let quakePhase = 0;
+    let baseOffset = 0;
+    let topSwayX = 0;
+    let topSwayVx = 0;
+
+    // Wind particles
+    const windParticles = [];
+    for (let i = 0; i < 60; i++) {
+      windParticles.push({
+        x: Math.random() * 840,
+        y: 100 + Math.random() * 320,
+        vx: 4 + Math.random() * 6,
+        size: Math.random() * 2 + 1
+      });
+    }
+
+    function selectPlan(p) {
+      plan = p;
+      collapsed = false;
+      document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('btnPlan' + p).classList.add('active');
+      playBeep(520, 0.1);
+    }
+
+    function updateWind(v) {
+      windLevel = parseInt(v);
+      document.getElementById('valWind').textContent = windLevel === 0 ? '0 级 (静止)' : `${windLevel} 级 (${windLevel * 3.5} m/s)`;
+    }
+    function updateQuake(v) {
+      quakeLevel = parseInt(v);
+      document.getElementById('valQuake').textContent = quakeLevel === 0 ? '0 级 (静止)' : `${quakeLevel} 级震度`;
+    }
+    function updateLoad(v) {
+      topLoad = parseInt(v);
+      document.getElementById('valLoad').textContent = `${topLoad} g`;
+    }
+    function resetTests() {
+      collapsed = false;
+      windLevel = 0;
+      quakeLevel = 0;
+      topLoad = 0;
+      document.getElementById('sliderWind').value = 0;
+      document.getElementById('sliderQuake').value = 0;
+      document.getElementById('sliderLoad').value = 0;
+      document.getElementById('valWind').textContent = '0 级 (静止)';
+      document.getElementById('valQuake').textContent = '0 级 (静止)';
+      document.getElementById('valLoad').textContent = '0 g';
+      playBeep(440, 0.1);
+    }
+
+    function updatePhysics() {
+      // Base shake
+      if (quakeLevel > 0 && !collapsed) {
+        quakePhase += 0.12 * quakeLevel;
+        baseOffset = Math.sin(quakePhase) * (quakeLevel * 5.5);
+      } else {
+        baseOffset = 0;
+      }
+
+      // Wind particles
+      windParticles.forEach(p => {
+        p.x += (p.vx + windLevel * 4.5);
+        if (p.x > 840) {
+          p.x = 0;
+          p.y = 100 + Math.random() * 320;
+        }
+      });
+
+      // Calculate tower stability index
+      // Plan A: weak (k=12, damping=0.92, maxDisp=40)
+      // Plan B: med (k=28, damping=0.88, maxDisp=70)
+      // Plan C: strong (k=55, damping=0.82, maxDisp=110)
+      // Plan D: top-heavy unstable (k=8, damping=0.95, maxDisp=25)
+      let stiffness = 28, maxSafeDisp = 70, windResist = 1.0;
+      if (plan === 'A') { stiffness = 12; maxSafeDisp = 38; windResist = 0.55; }
+      else if (plan === 'B') { stiffness = 30; maxSafeDisp = 75; windResist = 1.0; }
+      else if (plan === 'C') { stiffness = 65; maxSafeDisp = 120; windResist = 1.8; }
+      else if (plan === 'D') { stiffness = 9; maxSafeDisp = 24; windResist = 0.4; }
+
+      // Forces
+      if (!collapsed) {
+        const windForce = (windLevel * windLevel * 2.8) / windResist;
+        const quakeInertia = -baseOffset * (quakeLevel * 1.5) * (1 + topLoad / 200);
+        const gravityPDelta = (topLoad / 40) * (topSwayX / 20); // P-Delta effect
+
+        const totalForce = windForce + quakeInertia + gravityPDelta;
+        const springForce = -stiffness * (topSwayX / 10);
+
+        topSwayVx += (totalForce + springForce) * 0.05;
+        topSwayVx *= 0.88;
+        topSwayX += topSwayVx;
+
+        if (Math.abs(topSwayX) > maxSafeDisp || (topLoad > 550 && plan === 'A') || (topLoad > 250 && plan === 'D')) {
+          collapsed = true;
+          playBeep(180, 0.4);
+        }
+      } else {
+        // Collapsed posture
+        topSwayX = Math.sign(topSwayX || 1) * 110;
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const cx = 420;
+      const baseY = 420;
+
+      // 1. Draw Quake Shaking Base Plate
+      ctx.fillStyle = '#334155';
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 2;
+      const currentBaseX = cx + baseOffset;
+      ctx.fillRect(currentBaseX - 160, baseY, 320, 24);
+      ctx.strokeRect(currentBaseX - 160, baseY, 320, 24);
+
+      // Springs underneath
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 3;
+      for (let sx = -120; sx <= 120; sx += 80) {
+        ctx.beginPath();
+        let py = baseY + 24;
+        ctx.moveTo(currentBaseX + sx, py);
+        for (let j = 0; j < 4; j++) {
+          ctx.lineTo(currentBaseX + sx + (j%2 === 0 ? 8 : -8), py + 8);
+          py += 8;
+        }
+        ctx.lineTo(currentBaseX + sx, baseY + 60);
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(cx - 200, baseY + 60, 400, 20);
+
+      // 2. Draw Wind Blower & Particles
+      if (windLevel > 0) {
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(40, 180, 70, 120);
+        ctx.beginPath();
+        ctx.moveTo(110, 200); ctx.lineTo(150, 170); ctx.lineTo(150, 310); ctx.lineTo(110, 280);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(`风洞 ${windLevel}级`, 45, 245);
+
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+        windParticles.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+          ctx.fill();
+        });
+      }
+
+      // 3. Draw Tower Truss Nodes & Beams
+      const tY = 160; // top height
+      const tW = plan === 'D' ? 140 : (plan === 'C' ? 50 : 70);
+      const bW = plan === 'D' ? 60 : (plan === 'C' ? 180 : 120);
+
+      // Top center
+      const currentTopX = currentBaseX + topSwayX;
+
+      // Coordinates
+      const bL = { x: currentBaseX - bW/2, y: baseY };
+      const bR = { x: currentBaseX + bW/2, y: baseY };
+      const tL = { x: currentTopX - tW/2, y: tY };
+      const tR = { x: currentTopX + tW/2, y: tY };
+
+      // Intermediate floors (3 floors)
+      const f1L = { x: bL.x + (tL.x - bL.x) * 0.33, y: baseY - (baseY - tY) * 0.33 };
+      const f1R = { x: bR.x + (tR.x - bR.x) * 0.33, y: baseY - (baseY - tY) * 0.33 };
+      const f2L = { x: bL.x + (tL.x - bL.x) * 0.66, y: baseY - (baseY - tY) * 0.66 };
+      const f2R = { x: bR.x + (tR.x - bR.x) * 0.66, y: baseY - (baseY - tY) * 0.66 };
+
+      // Beams rendering
+      ctx.lineWidth = collapsed ? 2.5 : 4;
+      ctx.strokeStyle = collapsed ? '#ef4444' : (plan === 'C' ? '#10b981' : (plan === 'A' ? '#f59e0b' : '#38bdf8'));
+
+      function drawBeam(p1, p2) {
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
+
+      // Main Outer Legs
+      drawBeam(bL, tL);
+      drawBeam(bR, tR);
+      // Floor horizontal crossbars
+      drawBeam(f1L, f1R);
+      drawBeam(f2L, f2R);
+      drawBeam(tL, tR);
+
+      // Diagonal crossbracing (Truss triangles)
+      if (plan === 'B' || plan === 'C') {
+        // Floor 1 X brace
+        drawBeam(bL, f1R);
+        drawBeam(bR, f1L);
+        // Floor 2 X brace
+        drawBeam(f1L, f2R);
+        drawBeam(f1R, f2L);
+        // Floor 3 X brace
+        drawBeam(f2L, tR);
+        drawBeam(f2R, tL);
+      }
+      if (plan === 'C') {
+        // Extra central pillar & inner triangles
+        const m1 = { x: (f1L.x + f1R.x)/2, y: f1L.y };
+        const m2 = { x: (f2L.x + f2R.x)/2, y: f2L.y };
+        const mb = { x: currentBaseX, y: baseY };
+        drawBeam(mb, m1); drawBeam(m1, m2);
+        drawBeam(bL, m1); drawBeam(bR, m1);
+        drawBeam(f1L, m2); drawBeam(f1R, m2);
+      }
+
+      // Draw Joint Pins
+      const joints = [bL, bR, f1L, f1R, f2L, f2R, tL, tR];
+      joints.forEach(j => {
+        ctx.fillStyle = collapsed ? '#ef4444' : '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(j.x, j.y, 5, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+
+      // 4. Draw Top Load (Weight)
+      if (topLoad > 0) {
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(currentTopX - 35, tY - 30, 70, 30);
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(currentTopX - 35, tY - 30, 70, 30);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`🏋️ ${topLoad}g`, currentTopX, tY - 10);
+        ctx.textAlign = 'left';
+      }
+
+      // 5. Status Banner
+      if (collapsed) {
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(cx - 160, 60, 320, 50, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#f87171';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('💥 塔台失稳断裂坍塌！结构无法承受当前载荷', cx, 90);
+        ctx.textAlign = 'left';
+        statusTag.textContent = '❌ 结构已失稳破坏！';
+        statusTag.style.color = '#ef4444';
+      } else {
+        statusTag.textContent = '● 结构完整稳固 (正常工作)';
+        statusTag.style.color = '#10b981';
+      }
+
+      // Telemetry
+      const maxAngle = (Math.atan2(Math.abs(topSwayX), baseY - tY) * 180 / Math.PI).toFixed(1);
+      telem.innerHTML = `
+[塔台工程遥测] 当前方案: 方案 ${plan}
+• 结构刚度: ${plan === 'C' ? '极高 (全三角桁架)' : (plan === 'B' ? '良好 (标准三角斜撑)' : '极弱 (无斜撑/倒置)')}
+• 顶端实时水平位移: ${Math.abs(topSwayX).toFixed(1)} mm | 倾斜角: ${maxAngle}°
+• 动态破坏状态: ${collapsed ? '💥 已破坏坍塌' : '✅ 结构安全承受中'}
+• 工程师评估: ${plan === 'C' ? '完美符合“上小下大、上轻下重、三角形稳固”' : (plan === 'A' ? '四边形缺乏三角形斜撑，极易平行四边形侧向剪切破坏' : '上重下轻倒置结构重心过高，极易失稳')}
+      `.trim();
+
+      updatePhysics();
+      requestAnimationFrame(draw);
+    }
+
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>

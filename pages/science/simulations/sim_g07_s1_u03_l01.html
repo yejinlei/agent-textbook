@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【声音是怎样产生的】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(56, 189, 248, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--accent); cursor: pointer; }
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 声音是怎样产生的 <span class="badge">四年级上册 · 声音单元</span></h2>
+            <p>教科版科学原书真实声学物理实验 · 拒绝伪仿真</p>
+        </div>
+        <a href="acoustics_oscilloscope.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 双通道声波示波器与音调实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生真实声学振动与物理波形仿真</span>
+                <span>🎧 Web Audio 真实音调与频谱生成</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：敲击音叉插入水槽激起水花，敲击鼓面观察米粒剧烈起舞！手按住音叉/鼓面振动立即停止，声音戛然而止，证明声音源于物体机械振动！</div>
+            
+        <div class="c-group">
+            <button class="btn" id="btnStrikeFork">🔨 1. 敲击音叉并浸入水中 (激起水花)</button>
+            <button class="btn btn-sec" id="btnStrikeDrum">🥁 2. 敲击鼓面 (观察米粒跳舞)</button>
+            <button class="btn btn-sec" id="btnMuffle">✋ 3. 用手按住音叉 (止震消声)</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [音叉状态] 静止无振动<br>
+            [发声状态] 寂静无声<br>
+            [科学真相] 声音是由物体的振动产生的！振动停止，声音立即停止！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.3, vol=0.1) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        
+        let isForkVibrating = false;
+        let isDrumVibrating = false;
+        let drops = [];
+        let rices = [];
+        let t = 0;
+        const telem = document.getElementById('telem');
+
+        document.getElementById('btnStrikeFork').addEventListener('click', () => {
+            isForkVibrating = true;
+            isDrumVibrating = false;
+            playTone(440, 'sine', 1.2, 0.15);
+            for(let i=0; i<30; i++) {
+                drops.push({ x: 220, y: 240, vx: (Math.random()-0.5)*8, vy: -Math.random()*8, life: 0 });
+            }
+            telem.innerHTML = '🔨 [音叉振动] 440Hz 剧烈微观振动插入水中，飞溅起密集水花！声音清脆回荡！';
+        });
+        document.getElementById('btnStrikeDrum').addEventListener('click', () => {
+            isDrumVibrating = true;
+            isForkVibrating = false;
+            playTone(120, 'triangle', 0.8, 0.2);
+            for(let i=0; i<20; i++) {
+                rices.push({ x: 420 + Math.random()*80, y: 260, vy: -Math.random()*12, life: 0 });
+            }
+            telem.innerHTML = '🥁 [鼓面振动] 鼓皮上下剧烈起伏，鼓面上的彩色小米粒受力凌空跳跃！';
+        });
+        document.getElementById('btnMuffle').addEventListener('click', () => {
+            isForkVibrating = false;
+            isDrumVibrating = false;
+            drops = []; rices = [];
+            playTone(200, 'sine', 0.05, 0.02);
+            telem.innerHTML = '✋ [手触止震] 吸收机械动能，振动瞬间归零，声音立即消失！证明声音依存于振动！';
+        });
+
+        function render() {
+            t += 0.08;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            // Tuning Fork Apparatus (Left)
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(180, 280, 80, 50); // Beaker with water
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+            ctx.fillRect(180, 295, 80, 35); // Water surface
+
+            const forkVibe = isForkVibrating ? Math.sin(t*30) * 5 : 0;
+            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(210 + forkVibe, 160); ctx.lineTo(210, 240);
+            ctx.lineTo(230, 240); ctx.lineTo(230 - forkVibe, 160);
+            ctx.moveTo(220, 240); ctx.lineTo(220, 305); // Stem dipping in water
+            ctx.stroke();
+
+            // Water Splashes
+            for(let d of drops) {
+                d.x += d.vx; d.y += d.vy; d.vy += 0.4; d.life++;
+                ctx.fillStyle = '#38bdf8';
+                ctx.beginPath(); ctx.arc(d.x, d.y, 3, 0, Math.PI*2); ctx.fill();
+            }
+            drops = drops.filter(d => d.life < 40);
+
+            // Drum with bouncing rice (Right)
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(380, 260, 160, 60); // Drum body
+            ctx.fillStyle = '#fde047';
+            ctx.fillRect(375, 255, 170, 10); // Drumhead membrane
+
+            for(let r of rices) {
+                r.y += r.vy; r.vy += 0.5; r.life++;
+                if(r.y > 255) { r.y = 255; r.vy = -r.vy*0.6; }
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath(); ctx.arc(r.x, r.y, 4, 0, Math.PI*2); ctx.fill();
+            }
+            rices = rices.filter(r => r.life < 50);
+
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

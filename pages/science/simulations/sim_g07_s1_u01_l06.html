@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【我们来做“热气球”】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --border: #334155;
+            --accent: #38bdf8;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .header h1 { font-size: 1.3rem; display: flex; align-items: center; gap: 8px; font-weight: 700; color: #f8fafc; }
+        .badge { background: #0369a1; color: #e0f2fe; font-size: 0.75rem; padding: 4px 10px; border-radius: 9999px; font-weight: 600; margin-left: 10px; }
+        .master-lab-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn {
+            background: #334155;
+            color: var(--text);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-amber { background: var(--amber); color: #0b1120; font-weight: 600; }
+        .btn-green { background: var(--green); color: white; }
+        .btn-rose { background: var(--rose); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, monospace;
+            font-size: 0.78rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 90px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎈 <span>6. 我们来做“热气球”</span></h1>
+        <span class="badge">四年级上册·第一单元《空气》</span>
+        <a href="meteorology_atmosphere_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 马德堡半球与托里拆利气压实验室 →</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 热气流加热与升空操作</div>
+            <button class="btn btn-amber" id="btnHeatCandle" style="width:100%;">🔥 点燃蜡烛持续加热 (袋内升温)</button>
+            <div class="btn-grid">
+                <button class="btn btn-green" id="btnReleaseBalloon">🚀 松开双手让热气球升空！</button>
+                <button class="btn btn-rose" id="btnResetBalloon">🔄 换新塑料袋重置</button>
+            </div>
+
+            <div class="card-title" style="margin-top:4px;">📊 热气流动力学遥测</div>
+            <div class="telemetry" id="telem">
+                [初始状态] 常温塑料袋平套在纸筒上方。<br>
+                [袋内温度] 20.0 ℃ | [升空浮力] 0.00 N (平衡)<br>
+                [科学机理] 热空气受热膨胀，相同体积下质量比冷空气轻产生浮力！
+            </div>
+        </div>
+
+        <div class="notes-card">
+            <strong>🎯 探究目标与原书要点：</strong><br>
+            空气受热后分子运动加剧，分子间距变大，体积膨胀；在相同体积下，袋内热空气质量小于外界冷空气质量（即热空气密度小于冷空气）。当产生的阿基米德浮力大于塑料袋自身重力时，塑料袋就会像热气球一样凌空升起！升到高空热空气冷却后，气球会缓慢降落。
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+
+        const state = {
+            temp: 20.0, // ℃
+            isHeating: false,
+            isFlying: false,
+            bagY: 260,
+            bagWidth: 100,
+            bagHeight: 140,
+            thermalParticles: [],
+            airMolecules: []
+        };
+
+        // Initialize 40 air molecules inside bag
+        for (let i = 0; i < 40; i++) {
+            state.airMolecules.push({
+                x: (Math.random() - 0.5) * 80,
+                y: -Math.random() * 110,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: (Math.random() - 0.5) * 1.5
+            });
+        }
+
+        let heatTimer = null;
+        document.getElementById('btnHeatCandle').onclick = () => {
+            if (state.isFlying) return;
+            state.isHeating = true;
+            if (window.MSIS) window.MSIS.AudioFX.play('click');
+
+            if (heatTimer) clearInterval(heatTimer);
+            heatTimer = setInterval(() => {
+                if (state.temp < 75.0) {
+                    state.temp += 2.5;
+                    updateTelem();
+                } else {
+                    clearInterval(heatTimer);
+                    state.isHeating = false;
+                }
+            }, 180);
+        };
+
+        document.getElementById('btnReleaseBalloon').onclick = () => {
+            if (state.temp >= 42.0) {
+                state.isFlying = true;
+                state.isHeating = false;
+                if (heatTimer) clearInterval(heatTimer);
+                if (window.MSIS) {
+                    window.MSIS.AudioFX.play('victory');
+                    window.MSIS.ParticleEngine.emitConfetti();
+                }
+                updateTelem();
+            } else {
+                alert('袋内温度仅有 ' + state.temp.toFixed(1) + '℃，热空气浮力尚未大于塑料袋自身重力！请继续点击【点燃蜡烛持续加热】！');
+            }
+        };
+
+        document.getElementById('btnResetBalloon').onclick = () => {
+            if (heatTimer) clearInterval(heatTimer);
+            state.temp = 20.0;
+            state.isHeating = false;
+            state.isFlying = false;
+            state.bagY = 260;
+            updateTelem();
+            if (window.MSIS) window.MSIS.AudioFX.play('click');
+        };
+
+        function updateTelem() {
+            const buoyancy = Math.max(0, (state.temp - 20) * 0.045);
+            const bagWeight = 0.95; // N
+            const netLift = buoyancy - bagWeight;
+
+            let statusTxt = '常温等待';
+            if (state.isHeating) statusTxt = '持续受热膨胀中';
+            if (state.isFlying) statusTxt = '🚀 凌空升起！热浮力克服重力！';
+
+            telem.innerHTML = `[袋内温度] ${state.temp.toFixed(1)} ℃ | [升空浮力] ${buoyancy.toFixed(2)} N<br>
+                               [塑料袋状态] ${statusTxt}<br>
+                               [受力判定] 净升力: ${netLift > 0 ? '+'+netLift.toFixed(2)+' N (升空)' : netLift.toFixed(2)+' N (需继续加热)'}`;
+        }
+
+        function drawLabEnvironment(cx) {
+            // Lab table
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(80, 410, 560, 40);
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 2;
+            ctx.strokeRect(80, 410, 560, 40);
+
+            // Windproof paper cylinder base (防风纸筒底座)
+            const cylTop = 330;
+            const cylGrad = ctx.createLinearGradient(cx - 55, cylTop, cx + 55, cylTop);
+            cylGrad.addColorStop(0, '#475569');
+            cylGrad.addColorStop(0.3, '#94a3b8');
+            cylGrad.addColorStop(0.7, '#64748b');
+            cylGrad.addColorStop(1, '#334155');
+
+            ctx.fillStyle = cylGrad;
+            ctx.beginPath();
+            ctx.roundRect(cx - 55, cylTop, 110, 80, 4);
+            ctx.fill();
+            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.5; ctx.stroke();
+
+            // Air vent hole at bottom of cylinder (底部进风口)
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(cx, cylTop + 60, 18, 0, Math.PI, true);
+            ctx.fill();
+
+            // Candle body (蜡烛)
+            const candleGrad = ctx.createLinearGradient(cx - 10, cylTop + 20, cx + 10, cylTop + 20);
+            candleGrad.addColorStop(0, '#fef08a');
+            candleGrad.addColorStop(0.5, '#ffffff');
+            candleGrad.addColorStop(1, '#fef08a');
+            ctx.fillStyle = candleGrad;
+            ctx.fillRect(cx - 8, cylTop + 22, 16, 50);
+
+            // Wick
+            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(cx, cylTop + 22); ctx.lineTo(cx, cylTop + 14); ctx.stroke();
+
+            // Flame & Heat shimmer (火焰与热辐射)
+            if (state.isHeating) {
+                // Flickering flame
+                const flw = Math.sin(performance.now() * 0.02) * 2;
+                const flh = Math.cos(performance.now() * 0.02) * 3;
+
+                const flameGrad = ctx.createRadialGradient(cx, cylTop + 10, 2, cx, cylTop + 10, 14);
+                flameGrad.addColorStop(0, '#ffffff');
+                flameGrad.addColorStop(0.3, '#fef08a');
+                flameGrad.addColorStop(0.7, '#f97316');
+                flameGrad.addColorStop(1, 'rgba(239, 68, 68, 0)');
+
+                ctx.fillStyle = flameGrad;
+                ctx.beginPath();
+                ctx.moveTo(cx, cylTop - 8 + flh);
+                ctx.quadraticCurveTo(cx + 9 + flw, cylTop + 8, cx, cylTop + 14);
+                ctx.quadraticCurveTo(cx - 9 - flw, cylTop + 8, cx, cylTop - 8 + flh);
+                ctx.fill();
+
+                // Rising thermal convection particles
+                if (Math.random() < 0.6) {
+                    state.thermalParticles.push({
+                        x: cx + (Math.random() - 0.5) * 30,
+                        y: cylTop,
+                        vy: -2.5 - Math.random() * 2.5,
+                        alpha: 0.8,
+                        size: 3 + Math.random() * 4
+                    });
+                }
+            }
+
+            // Draw thermal particles
+            for (let i = state.thermalParticles.length - 1; i >= 0; i--) {
+                const tp = state.thermalParticles[i];
+                tp.y += tp.vy;
+                tp.alpha -= 0.025;
+                if (tp.alpha <= 0) {
+                    state.thermalParticles.splice(i, 1);
+                    continue;
+                }
+                ctx.fillStyle = 'rgba(251, 146, 60, ' + tp.alpha + ')';
+                ctx.beginPath();
+                ctx.arc(tp.x, tp.y, tp.size, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            // Classroom ceiling line at top
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 1; ctx.setLineDash([6, 6]);
+            ctx.beginPath(); ctx.moveTo(40, 60); ctx.lineTo(680, 60); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#64748b'; ctx.font = '11px sans-serif'; ctx.textAlign = 'right';
+            ctx.fillText('教室天花板高度 ▲', 670, 52);
+        }
+
+        function drawPlasticBagBalloon(cx) {
+            ctx.save();
+            ctx.translate(cx, state.bagY);
+
+            // Calculate inflation ratio from temperature
+            const inflation = Math.min(1.0, (state.temp - 20) / 45); // 0 (flat) to 1.0 (fully inflated)
+
+            const w = 70 + inflation * 65;
+            const h = 110 + inflation * 40;
+
+            // Translucent ultra-thin film gradient
+            const bagGrad = ctx.createRadialGradient(0, -h * 0.45, 10, 0, -h * 0.45, w);
+            if (state.isFlying) {
+                bagGrad.addColorStop(0, 'rgba(254, 240, 138, 0.45)');
+                bagGrad.addColorStop(0.6, 'rgba(244, 63, 94, 0.35)');
+                bagGrad.addColorStop(1, 'rgba(244, 63, 94, 0.6)');
+            } else {
+                bagGrad.addColorStop(0, 'rgba(224, 242, 254, 0.3)');
+                bagGrad.addColorStop(0.7, 'rgba(56, 189, 248, 0.25)');
+                bagGrad.addColorStop(1, 'rgba(14, 165, 233, 0.5)');
+            }
+
+            ctx.fillStyle = bagGrad;
+            ctx.strokeStyle = state.isFlying ? '#f43f5e' : '#38bdf8';
+            ctx.lineWidth = 2;
+
+            // Realistic balloon contour with bottom opening
+            ctx.beginPath();
+            ctx.moveTo(-40, 0); // Left bottom opening
+            ctx.bezierCurveTo(-w * 0.9, -h * 0.3, -w * 1.1, -h * 0.8, 0, -h); // Left dome
+            ctx.bezierCurveTo(w * 1.1, -h * 0.8, w * 0.9, -h * 0.3, 40, 0); // Right dome
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Plastic bag specular gloss wrinkle lines (高光塑料褶皱感)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(-w * 0.35, -h * 0.6, 25, -Math.PI*0.7, -Math.PI*0.2);
+            ctx.stroke();
+
+            // Bottom opening collar ring (底端口颈圈)
+            ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 42, 8, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Hot air molecules inside
+            const molSpeed = 1.0 + inflation * 2.5;
+            ctx.fillStyle = state.temp > 40 ? '#f97316' : '#67e8f9';
+            for (let m of state.airMolecules) {
+                m.x += m.vx * molSpeed;
+                m.y += m.vy * molSpeed;
+                if (Math.abs(m.x) > w * 0.75) m.vx *= -1;
+                if (m.y < -h * 0.9 || m.y > -5) m.vy *= -1;
+
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, 2.5, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        function updateBalloonPhysics() {
+            if (state.isFlying) {
+                if (state.bagY > 90) {
+                    state.bagY -= 2.8; // Ascend smoothly
+                } else {
+                    // Hover near ceiling then slowly cool
+                    state.temp -= 0.12;
+                    updateTelem();
+                    if (state.temp < 32.0) {
+                        state.bagY += 1.8; // Descends when cooled
+                        if (state.bagY >= 260) {
+                            state.bagY = 260;
+                            state.isFlying = false;
+                            updateTelem();
+                        }
+                    }
+                }
+            }
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const cx = 360;
+
+            drawLabEnvironment(cx);
+            updateBalloonPhysics();
+            drawPlasticBagBalloon(cx);
+
+            requestAnimationFrame(render);
+        }
+
+        render();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【岩石与土壤的故事】真实验微仿真 - 四年级科学</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #f59e0b;
+            --green: #10b981;
+            --cyan: #38bdf8;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        header h2 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .badge { background: rgba(245, 158, 11, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .back-link { color: var(--cyan); text-decoration: none; font-size: 0.88rem; }
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        .canvas-box {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 620px;
+            height: 420px;
+            touch-action: none;
+        }
+        .controls {
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .inquiry {
+            background: rgba(245, 158, 11, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .c-group { display: flex; flex-direction: column; gap: 6px; }
+        .c-group label { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; }
+        .c-group input[type=range] { accent-color: var(--accent); cursor: pointer; }
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-sec { background: #334155; color: #f8fafc; }
+        .telemetry {
+            background: #090d16;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #334155;
+            font-family: ui-monospace, monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h2>🔬 岩石与土壤的故事 <span class="badge">四年级下册 · 岩石与土壤</span></h2>
+            <p>教科版科学原书地质与土壤实验真拟真 · 拒绝伪仿真</p>
+        </div>
+        <a href="mineral_soil_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 矿物晶体与土壤成分实验室 →</a>
+        <a href="index.html" class="back-link">← 返回实验大厅</a>
+    </header>
+    <div class="layout">
+        <div class="canvas-box">
+            <canvas id="simCanvas" width="620" height="420"></canvas>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
+                <span>💡 原生岩土物理与矿物学仿真</span>
+                <span>🎧 Web Audio 拟真刻画/水流/滴答声效</span>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="inquiry"><strong>🎯 探究任务</strong>：地层沉积剖面与化石地质时代探秘：从下到上剖析古生代页岩(三叶虫)、中生代砂岩(恐龙蛋)到新生代土壤(猛犸象牙)，探寻地球演化年轮！</div>
+            
+        <div class="c-group">
+            <button class="btn" id="btnPaleozoic">🦗 探寻古生代地层 (5.4亿~2.5亿年前)</button>
+            <button class="btn btn-sec" id="btnMesozoic">🦖 探寻中生代地层 (2.5亿~6600万年前)</button>
+            <button class="btn btn-sec" id="btnCenozoic">🦣 探寻新生代浅层 (6600万年至今)</button>
+        </div>
+        <div class="telemetry" id="telem">
+            [地质考察] 点击选择目标地质年代地层！<br>
+            [地层层序律] 正常情况下，越老的岩层沉积在越下方，越年轻的沉积在上方！
+        </div>
+    
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        function playTone(freq=440, type='sine', dur=0.2, vol=0.1) {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+        function playScratch() {
+            try {
+                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const dur = 0.15;
+                const bufferSize = audioCtx.sampleRate * dur;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.4;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                noise.connect(gain); gain.connect(audioCtx.destination);
+                noise.start();
+            } catch(e){}
+        }
+        
+        let selectedEra = 0;
+        const telem = document.getElementById('telem');
+
+        document.getElementById('btnPaleozoic').addEventListener('click', () => {
+            selectedEra = 1; playTone(250, 'triangle', 0.2);
+            telem.innerHTML = '🦗 [古生代底部页岩] 发现三叶虫化石！证明几亿年前这里曾是一片汪洋大海！';
+        });
+        document.getElementById('btnMesozoic').addEventListener('click', () => {
+            selectedEra = 2; playTone(350, 'sine', 0.2);
+            telem.innerHTML = '🦖 [中生代陆相砂岩] 发现恐龙蛋与恐龙足迹化石！记录了爬行动物统治地球的黄金时代！';
+        });
+        document.getElementById('btnCenozoic').addEventListener('click', () => {
+            selectedEra = 3; playTone(500, 'sine', 0.2);
+            telem.innerHTML = '🦣 [新生代表层腐殖土壤] 发现猛犸象骨骼残骸！记录了冰川期哺乳动物的兴盛！';
+        });
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height;
+
+            // Stratum 1: Cenozoic Top Soil (0-140)
+            ctx.fillStyle = selectedEra === 3 ? '#a16207' : '#78350f';
+            ctx.fillRect(80, 80, 460, 80);
+            ctx.fillStyle = '#fff'; ctx.font = '13px sans-serif';
+            ctx.fillText('新生代土壤层 (猛犸象牙)', 100, 125);
+
+            // Stratum 2: Mesozoic Sandstone (140-240)
+            ctx.fillStyle = selectedEra === 2 ? '#f59e0b' : '#b45309';
+            ctx.fillRect(80, 160, 460, 90);
+            ctx.fillStyle = '#fff';
+            ctx.fillText('中生代红砂岩层 (恐龙蛋化石)', 100, 210);
+
+            // Stratum 3: Paleozoic Shale (240-340)
+            ctx.fillStyle = selectedEra === 1 ? '#475569' : '#1e293b';
+            ctx.fillRect(80, 250, 460, 100);
+            ctx.fillStyle = '#fff';
+            ctx.fillText('古生代深海页岩层 (三叶虫化石)', 100, 305);
+
+            requestAnimationFrame(render);
+        }
+        render();
+    
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>

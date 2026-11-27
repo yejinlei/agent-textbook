@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学科学探究微仿真：虚拟声波示波器与听觉频谱探秘（四年级上册·声音）</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24344d;
+      --scope-bg: #030712;
+      --wave: #10b981;
+      --grid: rgba(16, 185, 129, 0.15);
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 16px auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .back-btn {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.2s;
+    }
+    .back-btn:hover { color: var(--accent); }
+
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .scope-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .scope-header {
+      background: rgba(19, 28, 46, 0.8);
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .scope-body {
+      flex: 1;
+      min-height: 440px;
+      background: radial-gradient(circle at center, #061e16 0%, #030806 85%, #010403 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .controls-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .panel-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    input[type=range] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #1e293b;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--wave);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--wave);
+    }
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    button.wave-btn {
+      background: #101624;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button.wave-btn:hover { border-color: var(--wave); color: var(--text); }
+    button.wave-btn.active {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--wave);
+      color: #34d399;
+      font-weight: bold;
+    }
+    .sound-toggle {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .sound-toggle.on {
+      background: #059669;
+      color: white;
+      border-color: #34d399;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+    }
+    .sound-toggle.off {
+      background: #1e293b;
+      color: var(--muted);
+    }
+    .mic-banner {
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      display: none;
+    }
+    .mic-live-meter {
+      height: 8px;
+      background: #0f172a;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 6px;
+      border: 1px solid #1e293b;
+    }
+    .mic-live-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #10b981 0%, #f59e0b 70%, #ef4444 100%);
+      transition: width 0.05s ease;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <h1>🔊 虚拟声波示波器与听觉频谱探秘</h1>
+      <span class="badge">四年级上册·声音深度拓展</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span style="font-size:0.8rem; color:#34d399;">真实示波器光栅 · Web Audio 实时数字处理</span>
+      <a href="index.html" class="back-btn">← 返回实验大厅</a>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    <div class="scope-panel">
+      <div class="scope-header">
+        <span id="scopeModeTag">🟢 信号源：虚拟音频合成发生器 (CH1 耦合)</span>
+        <span id="scopeStatsTag">TIME/DIV: 1.0 ms | VOLTS/DIV: 50 mV</span>
+      </div>
+      <div class="scope-body" id="container">
+        <canvas id="scopeCanvas"></canvas>
+      </div>
+    </div>
+
+    <div class="controls-panel">
+      <div class="panel-title">⚙️ 声学参数调控</div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <button id="btnAudioToggle" class="sound-toggle off">🔈 开启虚拟发声器</button>
+        <button id="btnMicToggle" class="sound-toggle" style="background:#0284c7; color:#fff; border-color:#38bdf8;">🎤 开启真实麦克风</button>
+      </div>
+
+      <!-- 麦克风状态与实时分贝条 -->
+      <div id="micStatus" class="mic-banner">
+        <div style="font-weight:bold; display:flex; justify-content:space-between;">
+          <span>🎙️ 麦克风实时采集中</span>
+          <span id="micDbText">0 dB</span>
+        </div>
+        <div style="margin-top:4px; font-size:11px; color:#cbd5e1;">对着电脑发声、吹气或歌唱，荧光波束将实时解剖您的真实声音！</div>
+        <div class="mic-live-meter">
+          <div id="micLiveBar" class="mic-live-fill"></div>
+        </div>
+      </div>
+
+      <!-- 音高 (频率) -->
+      <div class="control-group">
+        <div class="control-header">
+          <span>🎼 音高（振动频率 Hz）</span>
+          <span id="valFreq" style="color: var(--wave); font-family: monospace; font-weight: bold;">440 Hz (标准音 A)</span>
+        </div>
+        <input type="range" id="sliderFreq" min="100" max="2000" value="440" step="10">
+        <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">波形越密集 = 频率越高 = 声音越尖锐高亢</div>
+      </div>
+
+      <!-- 音量 (振幅) -->
+      <div class="control-group">
+        <div class="control-header">
+          <span>📢 音量（振动幅度 / 强弱）</span>
+          <span id="valAmp" style="color: var(--accent); font-family: monospace; font-weight: bold;">50%</span>
+        </div>
+        <input type="range" id="sliderAmp" min="10" max="100" value="50" step="1">
+        <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">波峰波谷越高 = 振幅越大 = 声音越响亮强劲</div>
+      </div>
+
+      <!-- 波形选择 (音色) -->
+      <div class="control-group" id="waveformSection">
+        <div class="control-header"><span>🎵 发声波形（决定音色）</span></div>
+        <div class="btn-grid">
+          <button id="waveSine" class="wave-btn active">纯净音 (正弦波)</button>
+          <button id="waveSquare" class="wave-btn">单簧管 (方波)</button>
+          <button id="waveSaw" class="wave-btn">小提琴 (锯齿波)</button>
+          <button id="waveTriangle" class="wave-btn">长笛柔和 (三角波)</button>
+        </div>
+      </div>
+
+      <div style="font-size: 12px; color: var(--muted); line-height: 1.6; background: #101624; padding: 10px; border-radius: 6px; border-left: 3px solid var(--wave);">
+        📖 <strong>小学科学声音大概念</strong>：<br>
+        • <strong>音高（高低）</strong>：由振动<strong>频率（Hz）</strong>决定，频率越快声音越高。<br>
+        • <strong>音量（强弱）</strong>：由振动<strong>幅度（dB）</strong>决定，振幅越大声音越强。<br>
+        • <strong>音色</strong>：由发声体的结构与泛音波形决定。
+      </div>
+    </div>
+  </div>
+
+  <script src="master_science_suite.js"></script>
+  <script>
+    const canvas = document.getElementById('scopeCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    const scopeModeTag = document.getElementById('scopeModeTag');
+    const scopeStatsTag = document.getElementById('scopeStatsTag');
+    const btnAudioToggle = document.getElementById('btnAudioToggle');
+    const btnMicToggle = document.getElementById('btnMicToggle');
+    const micStatus = document.getElementById('micStatus');
+    const micDbText = document.getElementById('micDbText');
+    const micLiveBar = document.getElementById('micLiveBar');
+
+    const sliderFreq = document.getElementById('sliderFreq');
+    const sliderAmp = document.getElementById('sliderAmp');
+    const valFreq = document.getElementById('valFreq');
+    const valAmp = document.getElementById('valAmp');
+    const waveformSection = document.getElementById('waveformSection');
+
+    let freq = 440;
+    let amp = 0.5;
+    let waveType = 'sine';
+    let isAudioOn = false;
+    let isMicOn = false;
+
+    // Web Audio System
+    let audioCtx = null;
+    let osc = null;
+    let gainNode = null;
+
+    let micStream = null;
+    let micSource = null;
+    let micAnalyser = null;
+    let micDataArray = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        osc = audioCtx.createOscillator();
+        gainNode = audioCtx.createGain();
+
+        osc.type = waveType;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.start();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // 自相关基频分析算法 (Autocorrelation Pitch Detection)
+    function detectPitch(buf, sampleRate) {
+      const SIZE = buf.length;
+      let rms = 0;
+      for (let i = 0; i < SIZE; i++) {
+        const val = (buf[i] - 128) / 128.0;
+        rms += val * val;
+      }
+      rms = Math.sqrt(rms / SIZE);
+      if (rms < 0.015) {
+        return { freq: -1, rms: rms }; // 太轻或静音
+      }
+
+      // 截取两端阈值区间
+      let r1 = 0, r2 = SIZE - 1, thres = 0.2;
+      for (let i = 0; i < SIZE / 2; i++) {
+        if (Math.abs((buf[i] - 128) / 128.0) < thres) { r1 = i; break; }
+      }
+      for (let i = 1; i < SIZE / 2; i++) {
+        if (Math.abs((buf[SIZE - i] - 128) / 128.0) < thres) { r2 = SIZE - i; break; }
+      }
+
+      const sliced = buf.subarray(r1, r2);
+      const sLen = sliced.length;
+      const c = new Float32Array(sLen);
+      for (let i = 0; i < sLen; i++) {
+        for (let j = 0; j < sLen - i; j++) {
+          c[i] += ((sliced[j] - 128) / 128.0) * ((sliced[j + i] - 128) / 128.0);
+        }
+      }
+
+      let d = 0;
+      while (d < sLen - 1 && c[d] > c[d + 1]) d++;
+      let maxval = -1, maxpos = -1;
+      for (let i = d; i < sLen; i++) {
+        if (c[i] > maxval) {
+          maxval = c[i];
+          maxpos = i;
+        }
+      }
+      if (maxpos > 0 && maxval > 0.35) {
+        return { freq: Math.round(sampleRate / maxpos), rms: rms };
+      }
+      return { freq: -1, rms: rms };
+    }
+
+    // 乐音音名转换辅助
+    function freqToNoteName(f) {
+      if (f <= 0) return '';
+      const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      const semitones = 12 * (Math.log2(f / 440));
+      const noteNum = Math.round(semitones) + 69;
+      const noteName = notes[noteNum % 12];
+      const octave = Math.floor(noteNum / 12) - 1;
+      return `(${noteName}${octave})`;
+    }
+
+    // 麦克风开关与采集系统
+    async function toggleMicrophone() {
+      initAudio();
+      if (!isMicOn) {
+        try {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert('当前浏览器环境限制直接获取麦克风输入，建议通过本地 HTTP 服务访问。');
+            return;
+          }
+          micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          micSource = audioCtx.createMediaStreamSource(micStream);
+          micAnalyser = audioCtx.createAnalyser();
+          micAnalyser.fftSize = 2048;
+          micAnalyser.smoothingTimeConstant = 0.3;
+          micSource.connect(micAnalyser);
+          micDataArray = new Uint8Array(micAnalyser.fftSize);
+
+          isMicOn = true;
+          btnMicToggle.textContent = '🎙️ 麦克风采集中 (点击停止)';
+          btnMicToggle.style.background = '#10b981';
+          btnMicToggle.style.borderColor = '#34d399';
+          btnMicToggle.style.color = '#0f172a';
+          btnMicToggle.style.fontWeight = 'bold';
+          micStatus.style.display = 'block';
+
+          scopeModeTag.innerHTML = '🎙️ <strong>信号源：真实硬件麦克风 (CH1 实时耦合捕捉)</strong>';
+          scopeModeTag.style.color = '#34d399';
+
+          // 静音虚拟发生器避免回授啸叫
+          if (isAudioOn) {
+            isAudioOn = false;
+            btnAudioToggle.textContent = '🔈 开启虚拟发声器';
+            btnAudioToggle.className = 'sound-toggle off';
+            gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+          }
+        } catch (err) {
+          console.warn('Microphone access denied:', err);
+          alert('无法获取麦克风：请检查浏览器地址栏麦克风权限是否允许。');
+        }
+      } else {
+        // 关闭麦克风
+        if (micStream) {
+          micStream.getTracks().forEach(t => t.stop());
+        }
+        isMicOn = false;
+        btnMicToggle.textContent = '🎤 开启真实麦克风';
+        btnMicToggle.style.background = '#0284c7';
+        btnMicToggle.style.borderColor = '#38bdf8';
+        btnMicToggle.style.color = '#fff';
+        btnMicToggle.style.fontWeight = 'normal';
+        micStatus.style.display = 'none';
+
+        scopeModeTag.textContent = '🟢 信号源：虚拟音频合成发生器 (CH1 耦合)';
+        scopeModeTag.style.color = 'var(--muted)';
+      }
+    }
+    btnMicToggle.addEventListener('click', toggleMicrophone);
+
+    // 虚拟发声器开关
+    btnAudioToggle.addEventListener('click', () => {
+      initAudio();
+      // 如果麦克风开着，先关掉麦克风
+      if (isMicOn) {
+        toggleMicrophone();
+      }
+      isAudioOn = !isAudioOn;
+      if (isAudioOn) {
+        btnAudioToggle.textContent = '🔊 发声器已开启：点击静音';
+        btnAudioToggle.className = 'sound-toggle on';
+        gainNode.gain.setTargetAtTime(amp * 0.2, audioCtx.currentTime, 0.05);
+      } else {
+        btnAudioToggle.textContent = '🔈 开启虚拟发声器';
+        btnAudioToggle.className = 'sound-toggle off';
+        gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+      }
+    });
+
+    // 控件事件监听
+    sliderFreq.addEventListener('input', (e) => {
+      freq = parseFloat(e.target.value);
+      valFreq.textContent = freq + ' Hz';
+      if (osc && isAudioOn) {
+        osc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.02);
+      }
+    });
+    sliderAmp.addEventListener('input', (e) => {
+      amp = parseFloat(e.target.value) / 100;
+      valAmp.textContent = Math.round(amp * 100) + '%';
+      if (gainNode && isAudioOn) {
+        gainNode.gain.setTargetAtTime(amp * 0.2, audioCtx.currentTime, 0.02);
+      }
+    });
+
+    const waveBtns = {
+      sine: document.getElementById('waveSine'),
+      square: document.getElementById('waveSquare'),
+      sawtooth: document.getElementById('waveSaw'),
+      triangle: document.getElementById('waveTriangle')
+    };
+    Object.keys(waveBtns).forEach(wt => {
+      waveBtns[wt].addEventListener('click', () => {
+        waveType = wt;
+        Object.values(waveBtns).forEach(b => b.classList.remove('active'));
+        waveBtns[wt].classList.add('active');
+        if (osc) osc.type = wt;
+      });
+    });
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    let phase = 0;
+
+    // 主渲染循环：示波器荧光屏描摹
+    function draw() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cy = h / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 1. 绘制示波器绿色刻度坐标网格 (Phosphor Graticule)
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.12)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < w; x += 32) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0); ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      for (let y = 0; y < h; y += 32) {
+        ctx.beginPath();
+        ctx.moveTo(0, y); ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // 示波器水平主轴与微小标尺刻度
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, cy); ctx.lineTo(w, cy);
+      ctx.stroke();
+
+      // 2. 绘制声波动态曲线
+      ctx.strokeStyle = '#34d399';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#10b981';
+      ctx.shadowBlur = 10;
+
+      if (isMicOn && micAnalyser && micDataArray) {
+        // --- 真实麦克风数据驱动模式 ---
+        micAnalyser.getByteTimeDomainData(micDataArray);
+
+        // 示波器上升沿零交叉触发锁定 (Edge Trigger Lock)
+        let triggerIndex = 0;
+        for (let i = 0; i < micDataArray.length / 2; i++) {
+          if (micDataArray[i] < 128 && micDataArray[i + 1] >= 128) {
+            triggerIndex = i;
+            break;
+          }
+        }
+
+        ctx.beginPath();
+        const displaySamples = Math.min(512, micDataArray.length - triggerIndex);
+        const sliceWidth = w / displaySamples;
+        let x = 0;
+
+        for (let i = 0; i < displaySamples; i++) {
+          const v = micDataArray[triggerIndex + i] / 128.0; // 0.0 ~ 2.0 (中心 1.0)
+          const y = cy - (v - 1.0) * (h * 0.45);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+          x += sliceWidth;
+        }
+        ctx.stroke();
+
+        // 实时音高基频与有效值计算
+        const pitchInfo = detectPitch(micDataArray, audioCtx.sampleRate);
+        const curRms = pitchInfo.rms;
+        const curDb = Math.max(0, Math.min(100, Math.round(20 * Math.log10(curRms * 12 + 0.0001) + 65)));
+        
+        // 更新麦克风实时能量条
+        micLiveBar.style.width = Math.min(100, curRms * 350) + '%';
+        micDbText.textContent = `${curDb} dB`;
+
+        // 更新示波器屏显印章
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#34d399';
+        ctx.font = 'bold 12px monospace';
+        const detectedFreqText = pitchInfo.freq > 0 ? `${pitchInfo.freq} Hz ${freqToNoteName(pitchInfo.freq)}` : '检测中...';
+        ctx.fillText(`CH1: 🎙️ MIC REALTIME | PITCH: ${detectedFreqText} | LEVEL: ${curDb} dB | RMS: ${(curRms*100).toFixed(1)}%`, 14, 24);
+
+        scopeStatsTag.textContent = `TRIG: EDGE+ | PITCH: ${pitchInfo.freq > 0 ? pitchInfo.freq + ' Hz' : '--'} | PEAK: ${curDb} dB`;
+      } else {
+        // --- 虚拟发声器公式模式 ---
+        ctx.beginPath();
+        const waveLength = (1500 / freq) * 20;
+        const waveAmp = amp * (h * 0.38);
+        phase += 0.08;
+
+        for (let x = 0; x < w; x++) {
+          const t = (x / waveLength) + phase;
+          let yVal = 0;
+          if (waveType === 'sine') {
+            yVal = Math.sin(t * Math.PI * 2);
+          } else if (waveType === 'square') {
+            yVal = Math.sin(t * Math.PI * 2) >= 0 ? 1 : -1;
+          } else if (waveType === 'sawtooth') {
+            yVal = 2 * (t - Math.floor(t + 0.5));
+          } else if (waveType === 'triangle') {
+            yVal = 2 * Math.abs(2 * (t - Math.floor(t + 0.5))) - 1;
+          }
+          const y = cy - yVal * waveAmp;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#10b981';
+        ctx.font = 'monospace 12px';
+        ctx.fillText(`CH1: 20mV/DIV | FREQ: ${freq} Hz | AMP: ${(amp * 100).toFixed(0)}% | WAVE: ${waveType.toUpperCase()}`, 14, 24);
+        scopeStatsTag.textContent = `TIME/DIV: ${(1000/freq).toFixed(2)} ms | V_PP: ${(amp * 100).toFixed(0)}%`;
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+  </script>
+</body>
+</html>

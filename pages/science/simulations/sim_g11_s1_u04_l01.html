@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【1. 时间在流逝】真实验微仿真 - 六年级科学</title>
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #1e293b;
+            --panel-border: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .header .badge { background: #0369a1; color: #e0f2fe; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .unit-nav {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .unit-nav a {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .unit-nav a.active {
+            background: var(--accent);
+            color: #0b1120;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+        .unit-nav a:hover:not(.active) {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .main-stage {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+        @media (max-width: 860px) {
+            .main-stage { grid-template-columns: 1fr; }
+        }
+        .canvas-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 10;
+        }
+        .controls-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-label span.val { color: var(--accent); font-weight: 600; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--accent); color: #0b1120; font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-rose { background: var(--rose); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .telemetry {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            line-height: 1.5;
+            min-height: 80px;
+        }
+        .notes-card {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .notes-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 1. 时间在流逝</h1>
+        <span class="badge">六年级上册·第四单元《计量时间》</span>
+        <a href="pendulum_lab.html" class="master-lab-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); margin-left: 10px;" title="进入全景开放式大师级科学综合实验室">🏆 进入大师级实验室 · 伽利略单摆等时性计时实验室 →</a>
+    </div>
+
+    <div class="unit-nav">
+        <a href="sim_g11_s1_u04_l01.html" class="active">时间在流逝</a>
+<a href="sim_g11_s1_u04_l02.html" class="">用水计量时间</a>
+<a href="sim_g11_s1_u04_l03.html" class="">我们的水钟</a>
+<a href="sim_g11_s1_u04_l04.html" class="">机械摆钟</a>
+<a href="sim_g11_s1_u04_l05.html" class="">摆的快慢</a>
+<a href="sim_g11_s1_u04_l06.html" class="">制作钟摆</a>
+<a href="sim_g11_s1_u04_l07.html" class="">计量时间和我们的生活</a>
+    </div>
+
+    <div class="main-stage">
+        <div class="canvas-card">
+            <canvas id="simCanvas" width="720" height="450"></canvas>
+        </div>
+
+        <div class="controls-card">
+            <div class="card-title">⚙️ 实验控制台 & 探究操作</div>
+            <div id="controlsContainer"></div>
+
+            <div class="card-title">📡 实时科学数据 (Telemetry)</div>
+            <div class="telemetry" id="telem">初始化中...</div>
+        </div>
+
+        <div class="notes-card">
+            <h3>🔬 核心科学探究与原书要点</h3>
+            <p><strong>探究目标</strong>：系统探索水钟滴漏恒压控制、伽利略单摆等时性物理规律与 1 分钟 60 次钟摆精准制作。</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playTone(freq, duration, type='sine') {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const telem = document.getElementById('telem');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const activeMode = "incense_clock";
+
+        
+const state = {
+    pendulumLength: 25, // 10 ~ 50 cm (25cm is approx 60 beats/min!)
+    bobMass: 30, // g (does not affect period!)
+    swingAngle: 15, // deg
+    swingCurrentAngle: 0,
+    pendulumSwinging: true,
+    swingCount: 0,
+    startTime: Date.now(),
+    waterClockLevel: 0
+};
+
+function setupControls() {
+    let html = '';
+    if (activeMode === 'pendulum_length_control' || activeMode === 'sixty_beats_pendulum' || activeMode === 'pendulum_isochronism') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>单摆摆长控制 (决定摆动周期)</span><span class="val" id="lenVal">${state.pendulumLength} cm</span></div>
+                <input type="range" id="lenSlider" min="10" max="50" value="${state.pendulumLength}">
+            </div>
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>摆锤质量控制 (无关变量)</span><span class="val" id="massVal">${state.bobMass} g</span></div>
+                <input type="range" id="massSlider" min="10" max="60" value="${state.bobMass}">
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-green" id="btnCountBeats">⏱️ 开始 15 秒摆动次数计数</button>
+                <button class="btn btn-primary" id="btnTune60">🎯 微调摆长至 25cm (60次/分)</button>
+            </div>
+        `;
+    } else if (activeMode === 'water_clock_inflow' || activeMode === 'constant_level_clepsydra') {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>水钟进水恒定水压控制</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-green" id="btnDripStart">💧 恒压滴漏进水</button>
+                    <button class="btn btn-rose" id="btnResetWater">🔄 清空量筒</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="ctrl-group">
+                <div class="ctrl-label"><span>燃香与经典计时</span></div>
+                <div class="btn-grid">
+                    <button class="btn btn-rose" id="btnLightIncense">🕯️ 点燃线香 (均匀燃烧计时)</button>
+                </div>
+            </div>
+        `;
+    }
+
+    controlsContainer.innerHTML = html;
+    bindU4Events();
+}
+
+function bindU4Events() {
+    const lenSlider = document.getElementById('lenSlider');
+    if (lenSlider) {
+        lenSlider.addEventListener('input', (e) => {
+            state.pendulumLength = parseInt(e.target.value);
+            document.getElementById('lenVal').innerText = state.pendulumLength + ' cm';
+            playTone(300 + (50 - state.pendulumLength) * 10, 0.05);
+        });
+    }
+    const massSlider = document.getElementById('massSlider');
+    if (massSlider) {
+        massSlider.addEventListener('input', (e) => {
+            state.bobMass = parseInt(e.target.value);
+            document.getElementById('massVal').innerText = state.bobMass + ' g';
+        });
+    }
+
+    const btnCountBeats = document.getElementById('btnCountBeats');
+    if (btnCountBeats) btnCountBeats.onclick = () => {
+        state.swingCount = 0;
+        state.startTime = Date.now();
+        playTone(880, 0.2);
+    };
+    const btnTune60 = document.getElementById('btnTune60');
+    if (btnTune60) btnTune60.onclick = () => {
+        state.pendulumLength = 25; // standard ~1.00s period -> 60 beats/min
+        setupControls();
+        playTone(1000, 0.2);
+    };
+
+    const btnDripStart = document.getElementById('btnDripStart');
+    if (btnDripStart) btnDripStart.onclick = () => { playTone(600, 0.1); };
+    const btnResetWater = document.getElementById('btnResetWater');
+    if (btnResetWater) btnResetWater.onclick = () => { state.waterClockLevel = 0; playTone(300, 0.1); };
+
+    const btnLightIncense = document.getElementById('btnLightIncense');
+    if (btnLightIncense) btnLightIncense.onclick = () => { playTone(600, 0.2); };
+}
+
+        
+function draw() {
+    ctx.clearRect(0, 0, 720, 450);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 720, 450);
+
+    if (activeMode === 'water_clock_inflow' || activeMode === 'constant_level_clepsydra') {
+        drawWaterClock();
+    } else if (activeMode === 'incense_clock') {
+        drawIncenseClock();
+    } else if (activeMode === 'clock_evolution') {
+        drawClockEvolution();
+    } else {
+        drawPendulumLab();
+    }
+
+    updateTelemetry();
+    requestAnimationFrame(draw);
+}
+
+function drawPendulumLab() {
+    const cx = 360;
+    const cy = 90;
+
+    // Fixed Pivot Stand (支架)
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(cx - 100, cy - 15, 200, 15);
+    ctx.fillRect(cx - 10, cy - 15, 20, 20);
+
+    // Period calculation: T = 2 * PI * sqrt(L / g)
+    // For visualization, angular frequency omega = sqrt(g / L)
+    const L_m = state.pendulumLength / 100;
+    const omega = Math.sqrt(9.8 / L_m);
+    const t = (Date.now() - state.startTime) * 0.001;
+    const currentAngleRad = (state.swingAngle * Math.PI / 180) * Math.cos(omega * t);
+
+    // String length in pixels
+    const pxLen = 80 + state.pendulumLength * 4.5;
+    const bobX = cx + Math.sin(currentAngleRad) * pxLen;
+    const bobY = cy + Math.cos(currentAngleRad) * pxLen;
+
+    // Draw String
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(bobX, bobY);
+    ctx.stroke();
+
+    // Draw Pendulum Bob (Heavy brass ball)
+    const bobRadius = 10 + (state.bobMass / 60) * 8;
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(bobX, bobY, bobRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#b45309';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Sound click when passing center
+    if (Math.abs(currentAngleRad) < 0.03) {
+        // center pass
+    }
+
+    // Theoretical Period & Beats/min
+    const theoreticalPeriod = 2 * Math.PI * Math.sqrt(L_m / 9.8);
+    const beatsPerMin = Math.round(60 / theoreticalPeriod);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`伽利略单摆等时性探究: 摆长 ${state.pendulumLength} cm | 周期 T = ${theoreticalPeriod.toFixed(2)} 秒`, cx, 40);
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 15px monospace';
+    ctx.fillText(`摆动频率: 约 ${beatsPerMin} 次/分钟 (周期仅与摆长有关，与摆锤重量和摆幅无关!)`, cx, 70);
+}
+
+
+function drawIncenseClock() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🕯️ 时间在流逝: 燃香钟计时实验 (在无风环境中线香匀速燃烧测定时间)', cx, 40);
+
+    // Incense stick standing vertically
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(cx - 3, 140, 6, 180);
+
+    // Burning glowing coal on top
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath(); ctx.arc(cx, 140, 5, 0, Math.PI * 2); ctx.fill();
+
+    // Smoke wisps drifting up
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, 135);
+    ctx.quadraticCurveTo(cx - 15, 90, cx + 10, 60);
+    ctx.stroke();
+
+    // Scale Ruler marks alongside incense
+    ctx.fillStyle = '#f8fafc'; ctx.font = '11px monospace';
+    for (let cm = 0; cm <= 15; cm += 3) {
+        const sy = 140 + cm * 11;
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(cx + 8, sy); ctx.lineTo(cx + 25, sy); ctx.stroke();
+        ctx.fillText(cm * 2 + ' 分钟', cx + 32, sy + 4);
+    }
+
+    // Incense burner at base
+    ctx.fillStyle = '#d97706';
+    ctx.beginPath(); ctx.ellipse(cx, 330, 45, 18, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2; ctx.stroke();
+
+    ctx.fillStyle = '#38bdf8'; ctx.font = '13px sans-serif';
+    ctx.fillText('实验结论: 线香燃烧速度相对均匀稳定，古人常以“一炷香的时间”(约30分钟)来粗略计量时间', cx, 395);
+}
+
+function drawClockEvolution() {
+    const cx = 360;
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('⏳ 计量时间和我们的生活: 计时仪器进化史与人类文明精度飞跃', cx, 40);
+
+    const clocks = [
+        { t: '1. 日晷/水钟', d: '古代天文影子/漏壶\n误差约 15~30 分钟', c: '#d97706', x: 60 },
+        { t: '2. 机械摆钟', d: '惠更斯单摆等时性\n误差约 1 秒/天', c: '#10b981', x: 215 },
+        { t: '3. 石英钟表', d: '石英晶体高频压电振荡\n误差约 1 秒/月', c: '#38bdf8', x: 370 },
+        { t: '4. 现代原子钟', d: '铯133原子超精细能级\n误差 2000万年 1 秒!', c: '#a855f7', x: 525 }
+    ];
+
+    clocks.forEach(c => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(c.x, 80, 140, 270);
+        ctx.strokeStyle = c.c; ctx.lineWidth = 2; ctx.strokeRect(c.x, 80, 140, 270);
+
+        ctx.fillStyle = c.c; ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(c.t, c.x + 70, 115);
+
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '12px sans-serif';
+        const lines = c.d.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, c.x + 70, 160 + i * 24));
+
+        ctx.fillStyle = '#334155'; ctx.fillRect(c.x + 10, 290, 120, 36);
+        ctx.fillStyle = c.c; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('精度划时代', c.x + 70, 312);
+    });
+}
+
+function drawWaterClock() {
+    const cx = 360;
+    // Clepsydra dripping into cylinder
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('恒压滴漏受水型水钟实验 (溢流恒定水压保证水滴速率均匀)', cx, 40);
+
+    // Upper reservoir
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(cx - 50, 110, 100, 90);
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+    ctx.fillRect(cx - 48, 140, 96, 58);
+
+    // Drips falling
+    ctx.fillStyle = '#38bdf8';
+    const dripY = 200 + (Date.now() * 0.08) % 70;
+    ctx.beginPath();
+    ctx.arc(cx, dripY, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Lower graduated cylinder
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.strokeRect(cx - 30, 270, 60, 110);
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.5)';
+    ctx.fillRect(cx - 28, 330, 56, 48);
+
+    // Scale on cylinder
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = '10px monospace';
+    for (let h = 0; h <= 50; h += 10) {
+        ctx.fillText(h + 'ml', cx + 35, 375 - h * 2);
+    }
+}
+
+        
+function updateTelemetry() {
+    let txt = `[计时物理数据就绪] 模式: ${activeMode} | `;
+    const L_m = state.pendulumLength / 100;
+    const T = (2 * Math.PI * Math.sqrt(L_m / 9.8)).toFixed(2);
+    txt += `摆长: ${state.pendulumLength}cm | 摆锤: ${state.bobMass}g | 单摆周期: ${T}s (${Math.round(60/T)}次/分)`;
+    telem.innerText = txt;
+}
+
+
+        setupControls();
+        draw();
+    </script>
+    <script src="master_science_suite.js"></script>
+</body>
+</html>
