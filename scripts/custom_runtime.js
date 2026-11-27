@@ -1394,15 +1394,22 @@
 
   /* ============================================================== 科学模块 (课文文本 & 科学实验) */
 
-  function formatScienceMd(text) {
+  function formatScienceMd(text, volDir) {
     if (!text) return "";
     var s = String(text);
-    // 移除顶部重复标题 ## 1. 标题
-    s = s.replace(/^##\s+\d+\.\s+[^\n]*\n+/g, "");
     // 移除内嵌仿真链接行（已由仿真卡片独立承载）
     s = s.replace(/-\s*🧪\s*\*\*配套微仿真实验\*\*[^\n]*\n*/g, "");
-    // 清理图片标记为插图标注
-    s = s.replace(/!\[(.*?)\]\([^\)]+\)/g, '<div class="sci-fig-caption">🖼️ $1</div>');
+
+    // 渲染真实高清插图与实验活动图示
+    s = s.replace(/!\[(.*?)\]\((?:figures\/)?([^)]+)\.(?:png|jpg|webp|jpeg)\)/gi, function (match, caption, pName) {
+      var vol = volDir || "";
+      var imgUrl = "figures/" + encodeURIComponent(vol) + "/" + pName + ".webp";
+      return '<figure class="sci-figure"><img src="' + imgUrl + '" alt="' + esc(caption) + '" loading="lazy"><figcaption>🖼️ ' + esc(caption) + '</figcaption></figure>';
+    });
+
+    // 移除正文中的 ## 1. 标题（因为课程主卡顶部已展示标题）
+    s = s.replace(/^##\s+\d+\.\s+[^\n]*\n*/gm, "");
+
     // 教材页码分界线
     s = s.replace(/###\s*\[第\s*(\d+)\s*页\]/g, '<div class="sci-page-divider"><span>📘 教材第 $1 页</span></div>');
     // 移除裸露的 markdown 水平线 ---
@@ -1434,7 +1441,7 @@
     for (var i = 0; i < parts.length; i++) {
       var p = parts[i].trim();
       if (!p) continue;
-      if (p.indexOf("<div") === 0 || p.indexOf("</div>") === 0 || p.indexOf("<ul") === 0 || p.indexOf("<ol") === 0) {
+      if (p.indexOf("<div") === 0 || p.indexOf("</div>") === 0 || p.indexOf("<ul") === 0 || p.indexOf("<ol") === 0 || p.indexOf("<figure") === 0) {
         out.push(p);
       } else {
         out.push("<p>" + p.replace(/\n/g, "<br>") + "</p>");
@@ -1712,7 +1719,7 @@
           '<span>📖 课文原文与课堂探究指南</span>' +
           '<span class="sci-textbook-vol-tag">' + esc(curLesson.book) + ' · ' + esc(curLesson.unit_title) + '</span>' +
           '</div>' +
-          '<div class="sci-textbook-body">' + formatScienceMd(curLesson.raw_text) + '</div>' +
+          '<div class="sci-textbook-body">' + formatScienceMd(curLesson.raw_text, curLesson.vol_dir) + '</div>' +
           '</div>';
 
         // 2. 🧪 配套交互科学微实验 (Simulation Embed)

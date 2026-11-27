@@ -14,21 +14,22 @@ def run(cmd):
 
 def main():
     # 1. Update main branch
-    run("git branch -f main 1a7539afd")
+    run("git push origin feature/english-tts-spelling")
+    run("git branch -f main 5c6e98fc9")
     run("git push origin main")
 
     # 2. Deploy gh-pages
     tree = run("git write-tree --prefix=pages/")
     print(f"Tree hash: {tree}")
     
-    parent = "1a7539afd"
+    parent = "5c6e98fc9"
     print(f"Parent commit on origin: {parent}")
     
     commit_cmd = f'git commit-tree {tree} -p {parent} -m "deploy: update gh-pages with Science textbook & 287 interactive simulations"'
     commit = run(commit_cmd)
     print(f"New gh-pages commit: {commit}")
     
-    push_cmd = f"git push origin {commit}:refs/heads/gh-pages"
+    push_cmd = f"git push -f origin {commit}:refs/heads/gh-pages"
     run(push_cmd)
     print("Successfully pushed to origin/gh-pages!")
 

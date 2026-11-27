@@ -2969,3 +2969,40 @@ details.aq .aa {
   border-left: 4px solid #10b981;
   background: #f0fdf4;
 }
+
+/* 课本真实高清插图与实验活动图示卡片 */
+.sci-figure {
+  margin: 20px auto 24px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  max-width: 680px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.sci-figure:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.1);
+}
+.sci-figure img {
+  display: block;
+  width: 100%;
+  max-height: 520px;
+  object-fit: contain;
+  margin: 0 auto;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+}
+.sci-figure figcaption {
+  padding: 9px 16px;
+  font-size: 13px;
+  color: #475569;
+  background: #f8fafc;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
