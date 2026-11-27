@@ -3006,3 +3006,87 @@ details.aq .aa {
   justify-content: center;
   gap: 6px;
 }
+
+
+/* ---- Math Textbook Specific Styles ---- */
+.math-meta-bar {
+  background: #f8fafc;
+  border-left: 4px solid #0284c7;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #475569;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+.math-scene-note {
+  background: #fdf4ff;
+  border: 1px dashed #d946ef;
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin: 12px 0 16px;
+  font-size: 13.5px;
+  color: #86198f;
+}
+.math-sect-title {
+  margin: 20px 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  border-left: 3px solid #f59e0b;
+  padding-left: 10px;
+}
+.math-extra-section {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px dashed #e2e8f0;
+}
+.math-extra-section .sect-label {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 12px;
+}
+.math-drill-details {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+.math-drill-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #2563eb;
+}
+.prob-list {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.prob-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+.prob-stem {
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+.prob-steps {
+  font-size: 13px;
+  color: #475569;
+  margin: 6px 0;
+  padding-left: 8px;
+  border-left: 2px solid #94a3b8;
+}
+.prob-ans {
+  color: #166534;
+  font-size: 13.5px;
+  background: #f0fdf4;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 6px;
+}
